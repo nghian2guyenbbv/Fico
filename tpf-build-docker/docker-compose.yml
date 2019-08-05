@@ -1,0 +1,137 @@
+version: "3.1"
+services: 
+  tpf-opensource-rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    container_name: tpf-opensource-rabbitmq
+    hostname: localhost
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    networks:
+      - service_network
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+  tpf-opensource-redis:
+    image: redis
+    restart: always
+    container_name: tpf-opensource-redis
+    command: redis-server --requirepass admin
+    networks:
+      - service_network
+    ports:
+      - "6379:6379"
+  tpf-opensource-postgres:
+    image: postgres
+    restart: always
+    container_name: tpf-opensource-postgres
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - service_network
+    ports:
+      - "5432:5432"
+  tpf-opensource-mongodb:
+    image: mongo
+    restart: always
+    container_name: tpf-opensource-mongodb
+    command: mongod
+    networks:
+      - service_network
+    ports:
+      - "27017:27017"        
+  tpf-service-config:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-config
+    hostname: tpf-service-config
+    working_dir: /opt/tpf-service-config
+    volumes: 
+      - './../tpf-service-config/target:/opt/tpf-service-config'
+    environment: 
+      SPRING_PROFILES_ACTIVE: dev
+    command: bash -c "cd /opt/tpf-service-config && java -jar tpf-service-config-1.0.jar"
+    networks:
+      - service_network
+#    stdin_open: true
+#    tty: true
+    ports: 
+      - "8888:8888"
+  tpf-service-eureka:
+    image: tpf/tpf-openjdk:11
+    restart: unless-stopped
+    container_name: tpf-service-eureka
+    hostname: tpf-service-eureka
+#    working_dir: /opt/tpf-service-eureka
+    environment:
+      SPRING_PROFILES_ACTIVE: dev 
+    volumes:
+      - './../tpf-service-eureka/target:/opt/tpf-service-eureka'
+    entrypoint: ./wait-for-it.sh http://tpf-microservice-config:8888 -t 10 --
+    command: bash -c "cd /opt/tpf-service-eureka && java -jar tpf-service-eureka-1.0.jar"
+    networks:
+      - service_network
+    ports:
+      - "8761:8761"
+    depends_on:
+      - tpf-service-config
+  tpf-service-zuul:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-zuul
+    hostname: tpf-service-zuul
+    working_dir: /opt/tpf-service-zuul
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+      - './../tpf-service-zuul/target:/opt/tpf-service-zuul'
+    command: bash -c "cd /opt/tpf-service-zuul && java -jar tpf-service-zuul-1.0.jar"
+    networks:
+      - service_network
+    ports:
+      - "9000:9000"
+    depends_on:
+      - tpf-service-config
+      - tpf-service-eureka
+  tpf-service-authentication:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-authentication
+    hostname: tpf-service-authentication
+    working_dir: /opt/tpf-service-authentication
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+      - './../tpf-service-authentication/target:/opt/tpf-service-authentication'
+    command: bash -c "cd /opt/tpf-service-authentication && java -jar tpf-service-authentication-1.0.jar"
+    networks:
+      - service_network
+    ports:
+      - "1100:1100"
+    depends_on:
+      - tpf-service-config
+      - tpf-service-eureka
+  tpf-service-authorization:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-authorization
+    hostname: tpf-service-authorization
+    working_dir: /opt/tpf-service-authorization
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+      - './../tpf-service-authorization/target:/opt/tpf-service-authorization'
+    command: bash -c "cd /opt/tpf-service-authorization && java -jar tpf-service-authorization-1.0.jar"
+    networks:
+      - service_network
+    ports:
+      - "1200:1200"
+    depends_on:
+      - tpf-service-config
+      - tpf-service-eureka
+    
+networks: 
+  service_network:
+    driver: bridge
