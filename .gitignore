@@ -34,6 +34,7 @@ build/
 /*/target/
 # And any grandchildren ...
 /*/*/target/
+/*/*/node_modules
 # Or you can do:
 target/
 # which matches 'target' in any sub folder:
