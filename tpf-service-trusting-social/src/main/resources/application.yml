@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: tpf-service-trusting-social

@@ -1,9 +1,9 @@
-const IORedis = require('ioredis')
+const ioredis = require('ioredis')
 
 class Redis {
 
 	constructor() {
-		this.client = new IORedis({
+		this.client = new ioredis({
 			port: Number(process.env.REDIS_PORT),
 			host: process.env.REDIS_HOST,
 			retryStrategy: () => 1000

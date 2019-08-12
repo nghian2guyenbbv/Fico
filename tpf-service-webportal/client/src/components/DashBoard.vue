@@ -1,5 +1,5 @@
 <template>
-  <v-layout v-if="s.userSession" pa-1 justify-center wrap>
+  <v-layout v-if="s.userSession" pt-1 justify-center wrap>
     <title>{{ model }}</title>
     <v-flex xs12>
       <v-card flat>
@@ -44,7 +44,7 @@
               <td>{{ props.item.status }}</td>
               <td>{{ props.item.project }}</td>
               <td>{{ props.item.photos.length }}</td>
-              <td><v-btn icon><v-icon>person</v-icon></v-btn>{{ props.item.assigned }}</td>
+              <td><v-btn icon @click="fnAssign(props.item)"><v-icon>person</v-icon></v-btn></td>
               <td>{{ props.item.createdAt | fDateTime }}</td>
             </template>
           </v-data-table>
@@ -72,6 +72,20 @@ export default {
     projects() {
       if (!this.s.userSession.projects) return this.s['Account'].projects
       return this.s['Account'].projects.filter(i => this.s.userSession.projects.indexOf(i.value) !== -1)
+    }
+  },
+  methods: {
+    fnAssign(app) {
+      this.s['App'].obj.assigned = this.s.userSession.user_name
+      this.s['App'].obj.project = app.project
+      this.s['App'].obj.id = app.uuid.split('_')[1]
+      this.fnUpdate('App')
+    },
+    fnUnassign(app) {
+      this.s['App'].obj.unassigned = app.assigned
+      this.s['App'].obj.project = app.project
+      this.s['App'].obj.id = app.uuid.split('_')[1]
+      this.fnUpdate('App')
     }
   }
 }

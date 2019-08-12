@@ -23,7 +23,10 @@
   	<module>tpf-service-authorization</module>
   	<module>tpf-service-rest</module>
   	<module>tpf-service-zuul</module>
-  
+
+  	<module>tpf-service-assets</module>
+  	<module>tpf-service-finnone</module>
+  	<module>tpf-service-esb</module>
   </modules>
   
   <dependencies>

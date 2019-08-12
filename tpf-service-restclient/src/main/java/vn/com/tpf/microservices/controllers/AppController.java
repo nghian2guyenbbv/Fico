@@ -26,7 +26,7 @@ public class AppController {
   private RabbitMQService rabbitMQService;
 
   @GetMapping("/v1/app")
-  @PreAuthorize("#oauth2.hasAnyScope('tpf-service-restclient')")
+  @PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
   public ResponseEntity<?> reads(@RequestHeader("Authorization") String token, @RequestParam Map<String, String> param)
       throws Exception {
     Map<String, Object> request = new HashMap<>();
@@ -40,7 +40,7 @@ public class AppController {
   }
 
   @PostMapping("/v1/app")
-  @PreAuthorize("#oauth2.hasAnyScope('tpf-service-restclient')")
+  @PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
   public ResponseEntity<?> create(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
       throws Exception {
     Map<String, Object> request = new HashMap<>();
@@ -53,7 +53,7 @@ public class AppController {
   }
 
   @PutMapping("/v1/app/{id}")
-  @PreAuthorize("#oauth2.hasAnyScope('tpf-service-restclient')")
+  @PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
   public ResponseEntity<?> update(@RequestHeader("Authorization") String token, @PathVariable String id,
       @RequestBody JsonNode body) throws Exception {
     Map<String, Object> request = new HashMap<>();

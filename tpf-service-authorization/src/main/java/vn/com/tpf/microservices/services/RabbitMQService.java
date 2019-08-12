@@ -5,6 +5,8 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -28,6 +30,8 @@ import vn.com.tpf.microservices.models.Account;
 
 @Service
 public class RabbitMQService {
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Value("${security.oauth2.client.access-token-uri}")
   private String accessTokenUri;
@@ -58,7 +62,7 @@ public class RabbitMQService {
     rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
   }
 
-  public JsonNode login(String username, String password) {
+  public JsonNode getToken(String username, String password) {
     try {
       URI url = URI.create(accessTokenUri);
       HttpMethod method = HttpMethod.POST;
@@ -104,13 +108,17 @@ public class RabbitMQService {
     Message response = rabbitTemplate.sendAndReceive(appId, request);
 
     if (response != null) {
-      return mapper.readTree(new String(response.getBody()));
+      return mapper.readTree(new String(response.getBody(), "UTF-8"));
     }
 
     return null;
   }
 
-  public Message response(Message message, Object object) throws Exception {
+  public Message response(Message message, byte[] payload, Object object) throws Exception {
+    JsonNode obj = mapper.convertValue(object, JsonNode.class);
+    log.info("[==RABBITMQ-LOG==] : {}", Map.of("payload", new String(payload, "UTF-8"), "result",
+        Map.of("status", obj.path("status"), "message", obj.path("data").path("message"))));
+
     if (message.getMessageProperties().getReplyTo() != null) {
       return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
     }
@@ -121,26 +129,26 @@ public class RabbitMQService {
   @SuppressWarnings("unchecked")
   @RabbitListener(queues = "${spring.rabbitmq.app-id}")
   public Message onMessage(Message message, byte[] payload) throws Exception {
-    System.out.println(new String(payload));
     try {
-      JsonNode request = mapper.readTree(new String(payload));
+      JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
       if (request.path("func").asText().equals("login")) {
         String username = request.path("body").path("username").asText();
         String password = request.path("body").path("password").asText();
-        JsonNode data = login(username, password);
+        JsonNode data = getToken(username, password);
 
         if (data != null) {
-          return response(message, Map.of("status", 200, "data", data));
+          return response(message, payload, Map.of("status", 200, "data", data));
         }
 
-        return response(message, Map.of("status", 400, "data", Map.of("message", "Username or Password Invalid")));
+        return response(message, payload,
+            Map.of("status", 400, "data", Map.of("message", "Username or Password Invalid")));
       }
 
       JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
       if (token == null) {
-        return response(message, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
+        return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
       }
 
       String scopes = token.path("scope").toString();
@@ -150,24 +158,24 @@ public class RabbitMQService {
       case "getListAccount":
         if (scopes.matches(".*(\"tpf-service-authorization\").*")
             && authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-          return response(message, accountService.getListAccount(request, token));
+          return response(message, payload, accountService.getListAccount(request, token));
         }
         break;
       case "createAccount":
         if (scopes.matches(".*(\"tpf-service-authorization\").*")
             && authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-          return response(message, accountService.createAccount(request));
+          return response(message, payload, accountService.createAccount(request));
         }
         break;
       case "updateAccount":
         if (scopes.matches(".*(\"tpf-service-authorization\").*")
             && authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-          return response(message, accountService.updateAccount(request));
+          return response(message, payload, accountService.updateAccount(request));
         }
         break;
       case "deleteAccount":
         if (scopes.matches(".*(\"tpf-service-authorization\").*") && authorities.matches(".*(\"role_root\").*")) {
-          return response(message, accountService.deleteAccount(request));
+          return response(message, payload, accountService.deleteAccount(request));
         }
         break;
       case "getInfoAccount":
@@ -180,20 +188,20 @@ public class RabbitMQService {
             info.put("projects", account.getProjects());
           }
 
-          return response(message, Map.of("status", 200, "data", info));
+          return response(message, payload, Map.of("status", 200, "data", info));
         }
         break;
       default:
-        return response(message, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+        return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
       }
 
-      return response(message, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
+      return response(message, payload, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
     } catch (IllegalArgumentException e) {
-      return response(message, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
+      return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
     } catch (DataIntegrityViolationException e) {
-      return response(message, Map.of("status", 409, "data", Map.of("message", "Conflict")));
+      return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
     } catch (Exception e) {
-      return response(message, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
+      return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
     }
   }
 

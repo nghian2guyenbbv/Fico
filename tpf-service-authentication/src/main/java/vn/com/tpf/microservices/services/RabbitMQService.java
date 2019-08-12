@@ -5,9 +5,8 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -23,8 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Service
 public class RabbitMQService {
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Value("${security.oauth2.resource.token-info-uri}")
   private String tokenUri;
@@ -83,13 +87,17 @@ public class RabbitMQService {
     Message response = rabbitTemplate.sendAndReceive(appId, request);
 
     if (response != null) {
-      return mapper.readTree(new String(response.getBody()));
+      return mapper.readTree(new String(response.getBody(), "UTF-8"));
     }
 
     return null;
   }
 
-  public Message response(Message message, Object object) throws Exception {
+  public Message response(Message message, byte[] payload, Object object) throws Exception {
+    JsonNode obj = mapper.convertValue(object, JsonNode.class);
+    log.info("[==RABBITMQ-LOG==] : {}", Map.of("payload", new String(payload, "UTF-8"), "result",
+        Map.of("status", obj.path("status"), "message", obj.path("data").path("message"))));
+
     if (message.getMessageProperties().getReplyTo() != null) {
       return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
     }
@@ -99,13 +107,12 @@ public class RabbitMQService {
 
   @RabbitListener(queues = "${spring.rabbitmq.app-id}")
   public Message onMessage(Message message, byte[] payload) throws Exception {
-    System.out.println(new String(payload));
     try {
-      JsonNode request = mapper.readTree(new String(payload));
+      JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
       JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
       if (token == null) {
-        return response(message, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
+        return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
       }
 
       String scopes = token.path("scope").toString();
@@ -115,67 +122,67 @@ public class RabbitMQService {
       case "getListUser":
         if (scopes.matches(".*(\"tpf-service-authentication\").*")
             && authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-          return response(message, userService.getListUser(request));
+          return response(message, payload, userService.getListUser(request));
         }
         break;
       case "createUser":
         if (scopes.matches(".*(\"tpf-service-authentication\").*")
             && authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-          return response(message, userService.createUser(request, token));
+          return response(message, payload, userService.createUser(request, token));
         }
         break;
       case "updateUser":
         if (scopes.matches(".*(\"tpf-service-authentication\").*")
             && authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-          return response(message, userService.updateUser(request, token));
+          return response(message, payload, userService.updateUser(request, token));
         }
         break;
       case "deleteUser":
         if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-          return response(message, userService.deleteUser(request, token));
+          return response(message, payload, userService.deleteUser(request, token));
         }
         break;
       case "logout":
         if (scopes.matches(".*(\"tpf-service-authentication\").*")) {
-          return response(message, userService.logoutUser(token));
+          return response(message, payload, userService.logoutUser(token));
         }
         break;
       case "changePassword":
         if (scopes.matches(".*(\"tpf-service-authentication\").*")) {
-          return response(message, userService.changePasswordUser(request, token));
+          return response(message, payload, userService.changePasswordUser(request, token));
         }
         break;
       case "getListClient":
         if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-          return response(message, clientService.getListClient(request));
+          return response(message, payload, clientService.getListClient(request));
         }
         break;
       case "createClient":
         if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-          return response(message, clientService.createClient(request));
+          return response(message, payload, clientService.createClient(request));
         }
         break;
       case "updateClient":
         if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-          return response(message, clientService.updateClient(request));
+          return response(message, payload, clientService.updateClient(request));
         }
         break;
       case "deleteClient":
         if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-          return response(message, clientService.deleteClient(request));
+          return response(message, payload, clientService.deleteClient(request));
         }
         break;
       default:
-        return response(message, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+        return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
       }
 
-      return response(message, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
+      return response(message, payload, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
     } catch (IllegalArgumentException e) {
-      return response(message, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
+      return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
     } catch (DataIntegrityViolationException e) {
-      return response(message, Map.of("status", 409, "data", Map.of("message", "Conflict")));
+      return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
     } catch (Exception e) {
-      return response(message, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
+      return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
     }
   }
 

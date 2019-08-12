@@ -1,4 +1,4 @@
-require('dotenv').config({ path: __dirname + `/${process.env.NODE_ENV === 'prod' ? 'prod' : 'dev'}.env` })
+require('dotenv').config({ path: __dirname + `/${process.env.NODE_ENV || 'dev'}.env` })
 const axios = require('axios')
 const express = require('express')
 APP = express()
@@ -37,21 +37,15 @@ IO.use(async (socket, next) => {
     const success = await axios.get(process.env.USER_INFO_URI, { headers: { Authorization: 'Bearer ' + token } })
     socket.user = success.data
     socket.id = socket.user.user_name
-
     next()
   } catch (error) {
+	console.log(error)
     next(error)
   }
 })
 
 IO.on('connection', (socket) => {
-  if (socket.user.departments) {
-    socket.user.departments.forEach(d => {
-      socket.user.projects.forEach(p => {
-        socket.join(d + p)
-      })
-    })
-  }
-  else socket.join('default')
+  if (!socket.user.departments) socket.join('default')
+  else socket.user.departments.forEach(d => socket.user.projects.forEach(p => socket.join(d + p)))
   socket.on('disconnect', () => { })
 })

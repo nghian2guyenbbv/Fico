@@ -36,7 +36,7 @@ export default new Vuex.Store({
 			Logout: { ...fnCopy(opt), url: '/v1/logout' },
 			Login: { ...fnCopy(opt), url: '/v1/login' },
 			ChangePassword: { ...fnCopy(opt), url: '/v1/change-password' },
-			DashBoard: { ...fnCopy(opt) },
+			App: { ...fnCopy(opt), url: '/v1/app' },
 			Assigned: {
 				...fnCopy(opt), url: '/v1/app', headers: [
 					{ text: 'App Id', value: 'appId', sortable: false },
@@ -116,15 +116,13 @@ export default new Vuex.Store({
 						dispatch('fnFilterCreate', { model: 'Unassigned', data })
 						break
 					case 'UPDATE':
-						if (data.assigned) {
-							if (data.assigned === state.s.userSession.user_name || state.s.userSession.authorities[0] !== 'role_user') {
-								dispatch('fnFilterCreate', { model: 'Assigned', data })
-							}
-							dispatch('fnFilterDelete', { model: 'Unassigned', data })
-						} else {
-							dispatch('fnFilterUpdate', { model: 'Assigned', data })
-							dispatch('fnFilterUpdate', { model: 'Unassigned', data })
-						}
+						if (data.assigned
+							&& (data.assigned === state.s.userSession.user_name || state.s.userSession.authorities[0] !== 'role_user')) {
+							dispatch('fnFilterCreate', { model: 'Assigned', data })
+						} else dispatch('fnFilterDelete', { model: 'Assigned', data })
+
+						if (!data.assigned) dispatch('fnFilterCreate', { model: 'Unassigned', data })
+						else dispatch('fnFilterDelete', { model: 'Unassigned', data })
 						break
 					case 'DELETE':
 						dispatch('fnFilterDelete', { model: 'Assigned', data })
@@ -164,7 +162,8 @@ export default new Vuex.Store({
 
 		fnFilterCreate: ({ state }, { model, data }) => {
 			const idx = state.s[model].list.findIndex(e => e.id === data.id)
-			if (idx === -1) {
+			if (idx !== -1) Vue.set(state.s[model].list, idx, { ...state.s[model].list[idx], ...data })
+			else {
 				state.s[model].list.unshift(data)
 				state.s[model].total += 1
 				if (state.s[model].list.length > state.s[model].rowsPerPage) state.s[model].list.pop()
@@ -185,7 +184,14 @@ export default new Vuex.Store({
 		fnLoadData: ({ state }, model) => {
 			switch (model) {
 				case 'Client':
-					state.s[model].obj = { ...state.s[model].obj, clientSecret: state.s[model].obj.secret }
+					if (state.s[model].isCreate) {
+						state.s[model].obj = {
+							...state.s[model].obj, authorizedGrantTypes: 'client_credentials',
+							accessTokenValidity: 2592000, refreshTokenValidity: 15552000
+						}
+					} else {
+						state.s[model].obj = { ...state.s[model].obj, clientSecret: state.s[model].obj.secret }
+					}
 					break
 			}
 		},
@@ -206,6 +212,26 @@ export default new Vuex.Store({
 					router.push('/')
 				})
 			}).catch(error => dispatch('fnHandleError', { model, error }))
+		},
+
+		fnPagination: ({ dispatch, state }, { model, event }) => {
+			const { sortBy, descending, page, rowsPerPage } = event
+
+			if (
+				state.s[model]._page !== page
+				|| state.s[model].rowsPerPage !== rowsPerPage
+				|| (state.s[model].sortBy !== sortBy && sortBy !== null)
+				|| (state.s[model].descending !== descending && descending !== null)
+			) {
+				state.s[model].sortBy = sortBy
+				state.s[model].descending = descending
+				state.s[model]._sort = descending ? `${sortBy},desc` : `${sortBy},asc`
+				state.s[model]._page = page
+				state.s[model].rowsPerPage = rowsPerPage
+				dispatch('fnRead', model)
+			}
+
+			return { sortBy, descending, page, rowsPerPage }
 		},
 
 		fnRead: ({ dispatch, state }, model) => new Promise(resolve => {
@@ -272,26 +298,6 @@ export default new Vuex.Store({
 				resolve(success.data)
 			}).catch(error => dispatch('fnHandleError', { model, error }))
 		}),
-
-		fnPagination: ({ dispatch, state }, { model, event }) => {
-			const { sortBy, descending, page, rowsPerPage } = event
-
-			if (
-				state.s[model]._page !== page
-				|| state.s[model].rowsPerPage !== rowsPerPage
-				|| (state.s[model].sortBy !== sortBy && sortBy !== null)
-				|| (state.s[model].descending !== descending && descending !== null)
-			) {
-				state.s[model].sortBy = sortBy
-				state.s[model].descending = descending
-				state.s[model]._sort = descending ? `${sortBy},desc` : `${sortBy},asc`
-				state.s[model]._page = page
-				state.s[model].rowsPerPage = rowsPerPage
-				dispatch('fnRead', model)
-			}
-
-			return { sortBy, descending, page, rowsPerPage }
-		},
 
 		fnCallResetView: ({ state }, model) => {
 			state.s[model] = {

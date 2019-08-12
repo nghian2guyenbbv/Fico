@@ -1,5 +1,5 @@
 <template>
-  <v-layout v-if="s.userSession" pa-1>
+  <v-layout v-if="s.userSession" pt-1>
     <title>{{ model }}</title>
     <!-- List Data -->
     <v-flex xs12>

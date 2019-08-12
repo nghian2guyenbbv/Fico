@@ -22,7 +22,7 @@ Vue.mixin({
   computed: mapState(['s']),
   methods: {
     fnCopy, fnIsAuth, ...mapActions([
-      'fnToastr', 'fnLogout', 'fnLogin', 'fnRead', 'fnCreate', 'fnUpdate', 'fnDelete', 'fnPagination',
+      'fnToastr', 'fnLogout', 'fnLogin', 'fnPagination', 'fnRead', 'fnCreate', 'fnUpdate', 'fnDelete',
       'fnCallResetView', 'fnCallListView', 'fnCallCreateView', 'fnCallUpdateView', 'fnCallDeleteView'
     ])
   }

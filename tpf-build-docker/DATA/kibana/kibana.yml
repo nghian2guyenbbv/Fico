@@ -1,0 +1,7 @@
+---
+## Default Kibana configuration from kibana-docker.
+## https://github.com/elastic/kibana-docker/blob/master/.tedi/template/kibana.yml.j2
+#
+server.name: kibana
+server.host: "0"
+elasticsearch.hosts: [ "http://tpf-opensource-elasticsearch:9200" ]

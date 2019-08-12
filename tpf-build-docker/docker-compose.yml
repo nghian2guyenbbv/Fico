@@ -1,5 +1,5 @@
 version: "3.1"
-services: 
+services:     
   tpf-opensource-rabbitmq:
     image: rabbitmq:3-management
     restart: always
@@ -13,6 +13,47 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+  tpf-opensource-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    restart: always
+    container_name: tpf-opensource-elasticsearch
+    hostname: tpf-opensource-elasticsearch
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "discovery.type=single-node"
+    networks:
+      - service_network
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+  tpf-opensource-logstash:
+    image: logstash:6.8.1
+    restart: always
+    container_name: tpf-opensource-logstash
+    hostname: tpf-opensource-logstash
+    command: logstash -f /etc/logstash/conf.d/logstash.conf
+    volumes: 
+      - './DATA/logstash/:/etc/logstash/conf.d/'
+    networks:
+      - service_network
+    ports:
+      - "5000:5000"
+    depends_on:
+      - tpf-opensource-rabbitmq
+      - tpf-opensource-elasticsearch
+  tpf-opensource-kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.0
+    restart: always
+    container_name: tpf-opensource-kibana
+    hostname: tpf-opensource-kibana
+    volumes: 
+      - './DATA/kibana/:/opt/kibana/config/'
+    networks:
+      - service_network
+    ports:
+      - "5601:5601"
+    depends_on:
+      - tpf-opensource-elasticsearch
   tpf-opensource-redis:
     image: redis
     restart: always
@@ -109,6 +150,7 @@ services:
     ports:
       - "1100:1100"
     depends_on:
+      - tpf-opensource-rabbitmq
       - tpf-service-config
       - tpf-service-eureka
   tpf-service-authorization:
@@ -127,6 +169,7 @@ services:
     ports:
       - "1200:1200"
     depends_on:
+      - tpf-opensource-rabbitmq
       - tpf-service-config
       - tpf-service-eureka
   tpf-service-restclient:
@@ -145,6 +188,26 @@ services:
     ports:
       - "4000:4000"
     depends_on:
+      - tpf-opensource-rabbitmq
+      - tpf-service-config
+      - tpf-service-eureka      
+  tpf-service-app:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-app
+    hostname: tpf-service-app
+    working_dir: /opt/tpf-service-app
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+      - './../tpf-service-app/target:/opt/tpf-service-app'
+    command: bash -c "cd /opt/tpf-service-app && java -jar tpf-service-app-1.0.jar"
+    networks:
+      - service_network
+    ports:
+      - "4004:4004"
+    depends_on:
+      - tpf-opensource-rabbitmq
       - tpf-service-config
       - tpf-service-eureka
   tpf-service-webportal:
@@ -163,6 +226,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
+      - tpf-opensource-rabbitmq
       - tpf-service-config
       - tpf-service-eureka
 networks: 
