@@ -10,6 +10,6 @@ import vn.com.tpf.microservices.models.OauthUserDetails;
 @Repository
 public interface UserRepository extends JpaRepository<OauthUserDetails, UUID> {
 
-  public OauthUserDetails findByUsername(String username);
+	public OauthUserDetails findByUsername(String username);
 
 }

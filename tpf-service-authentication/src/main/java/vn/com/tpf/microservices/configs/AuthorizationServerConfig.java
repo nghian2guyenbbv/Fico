@@ -23,43 +23,43 @@ import vn.com.tpf.microservices.services.UserService;
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
-  @Autowired
-  private AuthenticationManager authenticationManager;
+	@Autowired
+	private AuthenticationManager authenticationManager;
 
-  @Autowired
-  private DataSource dataSource;
+	@Autowired
+	private DataSource dataSource;
 
-  @Autowired
-  private UserService userService;
+	@Autowired
+	private UserService userService;
 
-  @Bean
-  public TokenStore tokenStore() {
-    return new JdbcTokenStore(dataSource);
-  }
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource);
+	}
 
-  @Bean
-  public AuthorizationCodeServices authorizationCodeServices() {
-    return new JdbcAuthorizationCodeServices(dataSource);
-  }
+	@Bean
+	public AuthorizationCodeServices authorizationCodeServices() {
+		return new JdbcAuthorizationCodeServices(dataSource);
+	}
 
-  @Override
-  public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-    security.checkTokenAccess("isAuthenticated()");
-    security.allowFormAuthenticationForClients();
-  }
+	@Override
+	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+		security.checkTokenAccess("isAuthenticated()");
+		security.allowFormAuthenticationForClients();
+	}
 
-  @Override
-  public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-    clients.jdbc(dataSource);
-  }
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		clients.jdbc(dataSource);
+	}
 
-  @Override
-  public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-    endpoints.tokenStore(tokenStore());
-    endpoints.authorizationCodeServices(authorizationCodeServices());
-    endpoints.userDetailsService(userService);
-    endpoints.authenticationManager(authenticationManager);
-    endpoints.allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
-  }
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.tokenStore(tokenStore());
+		endpoints.authorizationCodeServices(authorizationCodeServices());
+		endpoints.userDetailsService(userService);
+		endpoints.authenticationManager(authenticationManager);
+		endpoints.allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
+	}
 
 }

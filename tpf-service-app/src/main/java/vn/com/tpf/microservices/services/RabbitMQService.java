@@ -26,8 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import vn.com.tpf.microservices.models.Account;
-
 @Service
 public class RabbitMQService {
 
@@ -55,21 +53,21 @@ public class RabbitMQService {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	private AccountService accountService;
+	private AppService appService;
 
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
 	}
 
-	public JsonNode getToken(String username, String password) {
+	public JsonNode getToken() {
 		try {
 			URI url = URI.create(accessTokenUri);
 			HttpMethod method = HttpMethod.POST;
 			HttpHeaders headers = new HttpHeaders();
 			headers.setBasicAuth(clientId, clientSecret);
 			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			String body = "username=" + username + "&password=" + password + "&grant_type=password";
+			String body = "grant_type=client_credentials";
 			HttpEntity<String> entity = new HttpEntity<String>(body, headers);
 			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
 			return mapper.valueToTree(res.getBody());
@@ -126,25 +124,10 @@ public class RabbitMQService {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-
-			if (request.path("func").asText().equals("login")) {
-				String username = request.path("body").path("username").asText();
-				String password = request.path("body").path("password").asText();
-				JsonNode data = getToken(username, password);
-
-				if (data != null) {
-					return response(message, payload, Map.of("status", 200, "data", data));
-				}
-
-				return response(message, payload,
-						Map.of("status", 400, "data", Map.of("message", "Username or Password Invalid")));
-			}
-
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
 			if (token == null) {
@@ -152,43 +135,23 @@ public class RabbitMQService {
 			}
 
 			String scopes = token.path("scope").toString();
-			String authorities = token.path("authorities").toString();
 
 			switch (request.path("func").asText()) {
-			case "getListAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, accountService.getListAccount(request, token));
+			case "getListApp":
+				if (scopes.matches(".*(\"tpf-service-app\").*")) {
+					JsonNode info = sendAndReceive("tpf-service-authorization",
+							Map.of("func", "getInfoAccount", "token", request.path("token")));
+					return response(message, payload, appService.getListApp(request, info.path("data")));
 				}
 				break;
-			case "createAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, accountService.createAccount(request));
+			case "createApp":
+				if (scopes.matches(".*(\"tpf-service-app\").*")) {
+					return response(message, payload, appService.createApp(request));
 				}
 				break;
-			case "updateAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, accountService.updateAccount(request));
-				}
-				break;
-			case "deleteAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*") && authorities.matches(".*(\"role_root\").*")) {
-					return response(message, payload, accountService.deleteAccount(request));
-				}
-				break;
-			case "getInfoAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")) {
-					Map<String, Object> info = mapper.convertValue(token, Map.class);
-					Account account = accountService.getInfoAccount(token.path("user_name").asText());
-
-					if (account != null) {
-						info.put("departments", account.getDepartments());
-						info.put("projects", account.getProjects());
-					}
-
-					return response(message, payload, Map.of("status", 200, "data", info));
+			case "updateApp":
+				if (scopes.matches(".*(\"tpf-service-app\").*")) {
+					return response(message, payload, appService.updateApp(request));
 				}
 				break;
 			default:

@@ -9,17 +9,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.web.client.RestTemplate;
 
-
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableJpaAuditing
-public class Application  {
+public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
 
-	
 	@Value("${spring.rabbitmq.app-id}")
 	private String appId;
 
@@ -33,4 +31,3 @@ public class Application  {
 		return new RestTemplate();
 	}
 }
-

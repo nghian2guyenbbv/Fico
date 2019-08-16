@@ -1,35 +1,39 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>vn.com.tpf.microservices</groupId>
-  <artifactId>microservices-message-queue</artifactId>
-  <packaging>pom</packaging>
-  <version>1.0</version>
-  <name>tpf-microservices-message-queue</name>
-  <description>Fico TpBank MicroServices Source</description>
-  <properties>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>vn.com.tpf.microservices</groupId>
+	<artifactId>microservices-message-queue</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0</version>
+	<name>tpf-microservices-message-queue</name>
+	<description>Fico TpBank MicroServices Source</description>
+	<properties>
 		<java.version>1.11</java.version>
 		<spring-cloud.version>Greenwich.SR1</spring-cloud.version>
 	</properties>
-  <parent>
+	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.1.3.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath />
 	</parent>
-  <modules>
-  	<module>tpf-service-config</module>
-  	<module>tpf-service-eureka</module>
-  	<module>tpf-service-authentication</module>
-  	<module>tpf-service-authorization</module>
-  	<module>tpf-service-rest</module>
-  	<module>tpf-service-zuul</module>
 
-  	<module>tpf-service-assets</module>
-  	<module>tpf-service-finnone</module>
-  	<module>tpf-service-esb</module>
-  </modules>
-  
-  <dependencies>
+	<modules>
+		<module>tpf-service-app</module>
+		<module>tpf-service-assets</module>
+		<module>tpf-service-authentication</module>
+		<module>tpf-service-authorization</module>
+		<module>tpf-service-config</module>
+		<module>tpf-service-esb</module>
+		<module>tpf-service-eureka</module>
+		<module>tpf-service-finnone</module>
+		<module>tpf-service-restclient</module>
+		<module>tpf-service-zuul</module>
+	</modules>
+
+	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -40,9 +44,9 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-
 	</dependencies>
-  <dependencyManagement>
+
+	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
@@ -55,29 +59,28 @@
 	</dependencyManagement>
 
 	<build>
-	 	<defaultGoal>install</defaultGoal>
-	 	<sourceDirectory>src/main/java</sourceDirectory>
-    	<testSourceDirectory>src/test/java</testSourceDirectory>
+		<defaultGoal>install</defaultGoal>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <annotationProcessorPaths>
-                 
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>1.3.0.Final</version>
-                        </path>
-                    </annotationProcessorPaths>
-                    <compilerArgs>
-                        <arg>-Amapstruct.suppressGeneratorTimestamp=true</arg>
-                        <arg>-Amapstruct.defaultComponentModel=spring</arg>
-                    </compilerArgs>
-                </configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>1.3.0.Final</version>
+						</path>
+					</annotationProcessorPaths>
+					<compilerArgs>
+						<arg>-Amapstruct.suppressGeneratorTimestamp=true</arg>
+						<arg>-Amapstruct.defaultComponentModel=spring</arg>
+					</compilerArgs>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

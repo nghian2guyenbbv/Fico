@@ -1,9 +1,6 @@
 package vn.com.tpf.microservices;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,17 +27,6 @@ public class Application {
 	public Queue queue() {
 		return new Queue(appId, true, false, false);
 	}
-	
-	@Bean
-	public Queue queue_logstash() {
-		return new Queue("tpf-service-logstash-app", true, false, false);
-	}
-
-	@Bean
-	public Binding binding() {
-		TopicExchange topicExchange = new TopicExchange("amq.topic", true, false);
-		return BindingBuilder.bind(queue_logstash()).to(topicExchange).with("tpf-service-logstash-app");
-	}
 
 	@Bean
 	public RestTemplate restTemplate() {
@@ -51,4 +37,5 @@ public class Application {
 	public MongoTemplate mongoTemplate(MongoDbFactory mongoDbFactory) {
 		return new MongoTemplate(mongoDbFactory);
 	}
+
 }

@@ -18,15 +18,15 @@ import lombok.Data;
 @Builder
 public class Assets {
 
-  @Id
-  private String key;
-  
-  @Builder.Default
-  private Set<Map<?, ?>> assets = new HashSet<>();
+	@Id
+	private String key;
 
-  @CreatedDate
-  private Date createdAt;
-  @LastModifiedDate
-  private Date updatedAt;
+	@Builder.Default
+	private Set<Map<?, ?>> assets = new HashSet<>();
+
+	@CreatedDate
+	private Date createdAt;
+	@LastModifiedDate
+	private Date updatedAt;
 
 }

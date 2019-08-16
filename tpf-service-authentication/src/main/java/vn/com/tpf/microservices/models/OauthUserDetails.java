@@ -23,22 +23,22 @@ import lombok.Data;
 @EntityListeners(AuditingEntityListener.class)
 public class OauthUserDetails {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private UUID id;
 
-  @Column(unique = true)
-  private String username;
-  private String password;
-  private String authorities;
-  private boolean enabled;
-  private boolean credentialsNonExpired;
-  private boolean accountNonLocked;
-  private boolean accountNonExpired;
+	@Column(unique = true)
+	private String username;
+	private String password;
+	private String authorities;
+	private boolean enabled;
+	private boolean credentialsNonExpired;
+	private boolean accountNonLocked;
+	private boolean accountNonExpired;
 
-  @CreationTimestamp
-  private Date createdAt;
-  @UpdateTimestamp
-  private Date updatedAt;
+	@CreationTimestamp
+	private Date createdAt;
+	@UpdateTimestamp
+	private Date updatedAt;
 
 }

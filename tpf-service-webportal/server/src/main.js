@@ -1,4 +1,4 @@
-require('dotenv').config({ path: __dirname + `/${process.env.NODE_ENV || 'dev'}.env` })
+require('dotenv').config({ path: __dirname + `/${process.env.NODE_ENV || 'local'}.env` })
 const axios = require('axios')
 const express = require('express')
 APP = express()
@@ -37,9 +37,9 @@ IO.use(async (socket, next) => {
     const success = await axios.get(process.env.USER_INFO_URI, { headers: { Authorization: 'Bearer ' + token } })
     socket.user = success.data
     socket.id = socket.user.user_name
+
     next()
   } catch (error) {
-	console.log(error)
     next(error)
   }
 })
