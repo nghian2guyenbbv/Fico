@@ -17,30 +17,30 @@ import lombok.Data;
 @Document
 public class App {
 
-  @Id
-  private String id;
+	@Id
+	private String id;
 
-  private String project;
-  @Indexed(unique = true, sparse = true)
-  private String uuid;
-  @Indexed(unique = true, sparse = true)
-  private String appId;
-  private String status;
-  private String fullName;
-  private String partnerId;
-  private String productCode;
-  private String schemeCode;
-  private String automationResult;
-  private String assigned;
-  private Map<?, ?> optional;
-  private Set<Map<?, ?>> photos = new HashSet<>();
-  private Set<Map<?, ?>> statusHistory = new HashSet<>();
-  private Set<Map<?, ?>> assignedHistory = new HashSet<>();
-  private Set<Map<?, ?>> automationHistory = new HashSet<>();
+	private String project;
+	@Indexed(unique = true, sparse = true)
+	private String uuid;
+	@Indexed(unique = true, sparse = true)
+	private String appId;
+	private String status;
+	private String fullName;
+	private String partnerId;
+	private String productCode;
+	private String schemeCode;
+	private String automationResult;
+	private String assigned;
+	private Map<?, ?> optional;
+	private Set<Map<?, ?>> photos = new HashSet<>();
+	private Set<Map<?, ?>> statusHistory = new HashSet<>();
+	private Set<Map<?, ?>> assignedHistory = new HashSet<>();
+	private Set<Map<?, ?>> automationHistory = new HashSet<>();
 
-  @CreatedDate
-  private Date createdAt;
-  @LastModifiedDate
-  private Date updatedAt;
+	@CreatedDate
+	private Date createdAt;
+	@LastModifiedDate
+	private Date updatedAt;
 
 }

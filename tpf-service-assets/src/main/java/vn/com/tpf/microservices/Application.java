@@ -7,18 +7,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.web.client.RestTemplate;
 
-
 @SpringBootApplication
 @EnableDiscoveryClient
-public class Application  {
+@EnableMongoAuditing
+public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
-	
+
 	@Value("${spring.rabbitmq.app-id}")
 	private String appId;
 
@@ -37,4 +38,3 @@ public class Application  {
 		return new MongoTemplate(mongoDbFactory);
 	}
 }
-

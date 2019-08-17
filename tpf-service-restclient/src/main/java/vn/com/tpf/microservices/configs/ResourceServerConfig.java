@@ -12,14 +12,14 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
-  @Override
-  public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-    resources.resourceId("restclient");
-  }
+	@Override
+	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+		resources.resourceId("tpf-service-restclient");
+	}
 
-  @Override
-  public void configure(HttpSecurity http) throws Exception {
-    http.authorizeRequests().antMatchers("/", "/v1/login").permitAll().anyRequest().authenticated();
-  }
+	@Override
+	public void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests().antMatchers("/", "/v1/login").permitAll().anyRequest().authenticated();
+	}
 
 }
