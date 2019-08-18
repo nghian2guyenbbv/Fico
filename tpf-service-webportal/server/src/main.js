@@ -22,30 +22,31 @@ APP.use(express.static(`${__dirname}/../public/`))
 APP.use((req, res, next) => next(APP.get('ERROR_REDIS') && { message: 'Redis Disconnected' }))
 APP.use((req, res, next) => next({ status: 404, message: 'Api Not Found' }))
 APP.use((err, req, res, next) => {
-  const { status, code, message, error } = err
-  res.status(status || 500).send({ code, message, error })
+	const { status, code, message, error } = err
+	res.status(status || 500).send({ code, message, error })
 })
 
 // SOCKET.IO
 IO.use(async (socket, next) => {
-  try {
-    if (APP.get('ERROR_REDIS')) return next(new Error('Redis Disconnected'))
+	try {
+		if (APP.get('ERROR_REDIS')) return next(new Error('Redis Disconnected'))
 
-    const token = socket.handshake.query.token
-    if (!token) return next(new Error('Forbidden'))
+		const token = socket.handshake.query.token
+		if (!token) return next(new Error('Forbidden'))
 
-    const success = await axios.get(process.env.USER_INFO_URI, { headers: { Authorization: 'Bearer ' + token } })
-    socket.user = success.data
-    socket.id = socket.user.user_name
+		const success = await axios.get(process.env.USER_INFO_URI, { headers: { Authorization: 'Bearer ' + token } })
+		socket.user = success.data
+		socket.id = socket.user.user_name
 
-    next()
-  } catch (error) {
-    next(error)
-  }
+		next()
+	} catch (error) {
+		console.error(error.response)
+		next(error)
+	}
 })
 
 IO.on('connection', (socket) => {
-  if (!socket.user.departments) socket.join('default')
-  else socket.user.departments.forEach(d => socket.user.projects.forEach(p => socket.join(d + p)))
-  socket.on('disconnect', () => { })
+	if (!socket.user.departments) socket.join('default')
+	else socket.user.departments.forEach(d => socket.user.projects.forEach(p => socket.join(d + p)))
+	socket.on('disconnect', () => { })
 })

@@ -29,7 +29,12 @@
 		<module>tpf-service-esb</module>
 		<module>tpf-service-eureka</module>
 		<module>tpf-service-finnone</module>
+		<module>tpf-service-fpt</module>
+		<module>tpf-service-momo</module>
 		<module>tpf-service-restclient</module>
+		<module>tpf-service-template</module>
+		<module>tpf-service-trusting-social</module>
+		<module>tpf-service-vinid</module>
 		<module>tpf-service-zuul</module>
 	</modules>
 

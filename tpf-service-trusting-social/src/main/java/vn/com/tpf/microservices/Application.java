@@ -1,29 +1,28 @@
 package vn.com.tpf.microservices;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
-import vn.com.tpf.microservices.services.HttpLogService;
-
-
 @SpringBootApplication
 @EnableDiscoveryClient
-public class Application  {
+@EnableMongoAuditing
+public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
+
 	@Value("${spring.rabbitmq.app-id}")
 	private String appId;
 
@@ -34,15 +33,14 @@ public class Application  {
 
 	@Bean
 	public RestTemplate restTemplate() {
-		return new RestTemplate();
+		ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
+		RestTemplate restTemplate = new RestTemplate(factory);
+		return restTemplate;
 	}
-	
-	 @Bean
-		public RestTemplate restTemplate1() {
-			ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
-			RestTemplate restTemplate = new RestTemplate(factory);
-			restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
-			return restTemplate;
-	 }
-}
 
+	@Bean
+	public MongoTemplate mongoTemplate(MongoDbFactory mongoDbFactory) {
+		return new MongoTemplate(mongoDbFactory);
+	}
+
+}

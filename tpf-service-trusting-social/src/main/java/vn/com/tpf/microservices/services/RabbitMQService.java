@@ -5,6 +5,8 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,144 +26,149 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.extern.slf4j.Slf4j;
-
-
 @Service
-@Slf4j
 public class RabbitMQService {
-	
-  @Value("${security.oauth2.client.access-token-uri}")
-  private String accessTokenUri;
 
-  @Value("${security.oauth2.resource.token-info-uri}")
-  private String tokenUri;
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  @Value("${security.oauth2.client.client-id}")
-  private String clientId;
+	@Value("${security.oauth2.client.access-token-uri}")
+	private String accessTokenUri;
 
-  @Value("${security.oauth2.client.client-secret}")
-  private String clientSecret;
+	@Value("${security.oauth2.resource.token-info-uri}")
+	private String tokenUri;
 
-  @Autowired
-  private ObjectMapper mapper;
+	@Value("${security.oauth2.client.client-id}")
+	private String clientId;
 
-  @Autowired
-  private RabbitTemplate rabbitTemplate;
-  
+	@Value("${security.oauth2.client.client-secret}")
+	private String clientSecret;
 
-  @Autowired
-  private RestTemplate restTemplate;
-  
-  
-  @Autowired
-  private RestTemplate restTemplate1;
+	@Autowired
+	private ObjectMapper mapper;
 
-  @Autowired
-  private TrustingSocialFirstCheckService trustingSocialFirstCheckService;
+	@Autowired
+	private RabbitTemplate rabbitTemplate;
 
-  @PostConstruct
-  private void init() {
-    rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
-  }
+	@Autowired
+	private RestTemplate restTemplate;
 
-  public JsonNode getToken(String username, String password) {
-    try {
-      URI url = URI.create(accessTokenUri);
-      HttpMethod method = HttpMethod.POST;
-      HttpHeaders headers = new HttpHeaders();
-      headers.setBasicAuth(clientId, clientSecret);
-      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-      String body = "username=" + username + "&password=" + password + "&grant_type=password";
-      HttpEntity<String> entity = new HttpEntity<String>(body, headers);
-      ResponseEntity<?> res = restTemplate1.exchange(url, method, entity, Map.class);
-      return mapper.valueToTree(res.getBody());
-    } catch (HttpClientErrorException e) {
-      log.error(e.getResponseBodyAsString());
-    }
-    return null;
-  }
+	@Autowired
+	private TrustingSocialService trustingSocialService;
 
-  public JsonNode checkToken(String[] token) {
-    try {
-      if (token.length == 2) {
-        URI url = URI.create(tokenUri + "?token=" + token[1]);
-        HttpMethod method = HttpMethod.GET;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(clientId, clientSecret);
-        HttpEntity<String> entity = new HttpEntity<String>(headers);
-        ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-        return mapper.valueToTree(res.getBody());
-      }
-    } catch (HttpClientErrorException e) {
-    	log.error(e.getResponseBodyAsString());
-    }
-    return null;
-  }
+	@PostConstruct
+	private void init() {
+		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
+	}
 
-  public void send(String appId, Object object) throws Exception {
-    Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
-    rabbitTemplate.send(appId, request);
-  }
+	public JsonNode getToken() {
+		try {
+			URI url = URI.create(accessTokenUri);
+			HttpMethod method = HttpMethod.POST;
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBasicAuth(clientId, clientSecret);
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			String body = "grant_type=client_credentials";
+			HttpEntity<String> entity = new HttpEntity<String>(body, headers);
+			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
+			return mapper.valueToTree(res.getBody());
+		} catch (HttpClientErrorException e) {
+			System.err.println(e.getResponseBodyAsString());
+		}
 
-  public JsonNode sendAndReceive(String appId, Object object) throws Exception {
-    Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
-    Message response = rabbitTemplate.sendAndReceive(appId, request);
+		return null;
+	}
 
-    if (response != null) {
-      return mapper.readTree(new String(response.getBody()));
-    }
-    return null;
-  }
+	public JsonNode checkToken(String[] token) {
+		try {
+			if (token.length == 2) {
+				URI url = URI.create(tokenUri + "?token=" + token[1]);
+				HttpMethod method = HttpMethod.GET;
+				HttpHeaders headers = new HttpHeaders();
+				headers.setBasicAuth(clientId, clientSecret);
+				HttpEntity<String> entity = new HttpEntity<String>(headers);
+				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
+				return mapper.valueToTree(res.getBody());
+			}
+		} catch (HttpClientErrorException e) {
+			System.err.println(e.getResponseBodyAsString());
+		}
 
-  public Message response(Message message, Object object) throws Exception {
-    if (message.getMessageProperties().getReplyTo() != null) {
-      return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
-    }
-    return null;
-  }
+		return null;
+	}
 
-  @SuppressWarnings("unchecked")
-  @RabbitListener(queues = "${spring.rabbitmq.app-id}")
-  public Message onMessage(Message message, byte[] payload) throws Exception {
-	log.info(new String(payload));
-    try {
-      JsonNode request = mapper.readTree(new String(payload));
+	public void send(String appId, Object object) throws Exception {
+		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
+		rabbitTemplate.send(appId, request);
+	}
 
-      JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
+	public JsonNode sendAndReceive(String appId, Object object) throws Exception {
+		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
+		Message response = rabbitTemplate.sendAndReceive(appId, request);
 
-      if (token == null) {
-        return response(message, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
-      }
+		if (response != null) {
+			return mapper.readTree(new String(response.getBody(), "UTF-8"));
+		}
 
-      String scopes = token.path("scope").toString();
-      String authorities = token.path("authorities").toString();
+		return null;
+	}
 
-      switch (request.path("func").asText()) {
-      case "getFirstCheck":
-        if (scopes.matches(".*(\"tpf-service-trusting-social\").*")
-            && authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-        	
-        	Map<?,?> data = null;
-        	
-          return response(message, data);
-        }
-        break;
-      default:
-        return response(message, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
-      }
+	public Message response(Message message, byte[] payload, Object object) throws Exception {
+		JsonNode obj = mapper.convertValue(object, JsonNode.class);
+		log.info("[==RABBITMQ-LOG==] : {}", Map.of("payload", new String(payload, "UTF-8"), "result",
+				Map.of("status", obj.path("status"), "message", obj.path("data").path("message"))));
 
-      return response(message, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-      return response(message, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
-    } catch (DataIntegrityViolationException e) {
-      e.printStackTrace();
-      return response(message, Map.of("status", 409, "data", Map.of("message", "Conflict")));
-    } catch (Exception e) {
-      e.printStackTrace();
-      return response(message, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
-    }
-  }
+		if (message.getMessageProperties().getReplyTo() != null) {
+			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
+		}
+
+		return null;
+	}
+
+	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
+	public Message onMessage(Message message, byte[] payload) throws Exception {
+		try {
+			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
+			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
+
+			if (token == null) {
+				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
+			}
+
+			String scopes = token.path("scope").toString();
+
+			switch (request.path("func").asText()) {
+			case "getListTrustingSocial":
+				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
+					return response(message, payload, trustingSocialService.getListTrustingSocial(request, token));
+				}
+				break;
+			case "createTrustingSocial":
+				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
+					return response(message, payload, trustingSocialService.createTrustingSocial(request));
+				}
+				break;
+			case "updateTrustingSocial":
+				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
+					return response(message, payload, trustingSocialService.updateTrustingSocial(request));
+				}
+				break;
+			case "deleteTrustingSocial":
+				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
+					return response(message, payload, trustingSocialService.deleteTrustingSocial(request));
+				}
+				break;
+			default:
+				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+			}
+
+			return response(message, payload, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
+		} catch (IllegalArgumentException e) {
+			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
+		} catch (DataIntegrityViolationException e) {
+			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
+		} catch (Exception e) {
+			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
+		}
+	}
 
 }
