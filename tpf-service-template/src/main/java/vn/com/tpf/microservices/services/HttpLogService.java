@@ -19,12 +19,13 @@ public class HttpLogService implements ClientHttpRequestInterceptor {
 	@Override
 	public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
 			throws IOException {
+		log.info("[==HTTP-LOG-REQUEST==] : {}", Map.of("payload", new String(body, "UTF-8"), "method", request.getMethod(),
+				"url", request.getURI(), "header", request.getHeaders()));
+
 		ClientHttpResponse response = execution.execute(request, body);
 
-		log.info("[==HTTP-LOG==] : {}",
-				Map.of("method", request.getMethod(), "url", request.getURI(), "header", request.getHeaders(), "payload",
-						new String(body, "UTF-8"), "status", response.getStatusCode(), "result",
-						StreamUtils.copyToString(response.getBody(), Charset.defaultCharset())));
+		log.info("[==HTTP-LOG-RESPONSE==] : {}", Map.of("payload", new String(body, "UTF-8"), "status",
+				response.getStatusCode(), "result", StreamUtils.copyToString(response.getBody(), Charset.defaultCharset())));
 
 		return response;
 	}

@@ -1,28 +1,28 @@
 package vn.com.tpf.microservices.models;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Document
-@Builder
-public class Assets {
+public class Address {
 
 	@Id
-	private String key;
+	private String id;
 
-	@Builder.Default
-	private Set<Map<?, ?>> assets = new HashSet<>();
+	@Indexed(unique = true)
+	private String areaCode;
+	private String areaName;
+	private String postCode;
+	private String cityName;
+	private String region;
 
 	@CreatedDate
 	private Date createdAt;

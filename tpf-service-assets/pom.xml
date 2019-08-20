@@ -9,7 +9,7 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>tpf-service-assets</artifactId>
-	<description>Assets data  microservice</description>
+	<description>Assets service</description>
 
 	<dependencies>
 		<dependency>

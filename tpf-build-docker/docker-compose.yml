@@ -8,108 +8,107 @@ services:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
     networks:
-      - service_network
+    - service_network
     ports:
-      - 15672:15672
-      - 5672:5672
+    - 15672:15672
+    - 5672:5672
   tpf-opensource-elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
     restart: always
     container_name: tpf-opensource-elasticsearch
     environment:
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - discovery.type=single-node
+    - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    - discovery.type=single-node
     networks:
-      - service_network
+    - service_network
     ports:
-      - 9200:9200
-      - 9300:9300
+    - 9200:9200
+    - 9300:9300
   tpf-opensource-kibana:
     image: docker.elastic.co/kibana/kibana:7.3.0
     restart: always
     container_name: tpf-opensource-kibana
-    volumes: 
-      - ./DATA/kibana/:/opt/kibana/config/
+    volumes:
+    - ./DATA/kibana/:/opt/kibana/config/
     networks:
-      - service_network
+    - service_network
     ports:
-      - 5601:5601
+    - 5601:5601
     depends_on:
-      - tpf-opensource-elasticsearch
+    - tpf-opensource-elasticsearch
   tpf-opensource-logstash:
     image: logstash:6.8.1
     restart: always
     container_name: tpf-opensource-logstash
     command: logstash -f /etc/logstash/conf.d/logstash.conf
     volumes:
-      - ./DATA/logstash/:/etc/logstash/conf.d/
+    - ./DATA/logstash/:/etc/logstash/conf.d/
     environment:
       XPACK_MONITORING_ENABLED: 'false'
     networks:
-      - service_network
+    - service_network
     ports:
-      - 5000:5000
+    - 5000:5000
     depends_on:
-      - tpf-opensource-rabbitmq
-      - tpf-opensource-elasticsearch
+    - tpf-opensource-rabbitmq
+    - tpf-opensource-elasticsearch
   tpf-opensource-redis:
     image: redis
     restart: always
     container_name: tpf-opensource-redis
     networks:
-      - service_network
+    - service_network
     ports:
-      - 6379:6379
+    - 6379:6379
   tpf-opensource-postgres:
     image: postgres
     restart: always
     container_name: tpf-opensource-postgres
     environment:
-      POSTGRES_USER: postgres 
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      - service_network
+    - service_network
     ports:
-      - 5432:5432
+    - 5432:5432
   tpf-opensource-mongodb:
     image: mongo
     restart: always
     container_name: tpf-opensource-mongodb
     networks:
-      - service_network
+    - service_network
     ports:
-      - 27017:27017
+    - 27017:27017
   tpf-service-config:
     image: openjdk:11
     restart: always
     container_name: tpf-service-config
     working_dir: /opt/tpf-service-config
-    volumes: 
-      - ./../tpf-service-config/target:/opt/tpf-service-config
-    environment: 
+    volumes:
+    - ./../tpf-service-config/target:/opt/tpf-service-config
+    environment:
       SPRING_PROFILES_ACTIVE: dev
     command: bash -c 'cd /opt/tpf-service-config && java -jar tpf-service-config-1.0.jar'
     networks:
-      - service_network
-    ports: 
-      - 8888:8888
+    - service_network
+    ports:
+    - 8888:8888
   tpf-service-eureka:
     image: openjdk:11
     restart: always
     container_name: tpf-service-eureka
     working_dir: /opt/tpf-service-eureka
     environment:
-      SPRING_PROFILES_ACTIVE: dev 
+      SPRING_PROFILES_ACTIVE: dev
     volumes:
-      - ./../tpf-service-eureka/target:/opt/tpf-service-eureka
-#    entrypoint: ./wait-for-it.sh http://tpf-microservice-config:8888 -t 10 --
+    - ./../tpf-service-eureka/target:/opt/tpf-service-eureka
     command: bash -c 'cd /opt/tpf-service-eureka && java -jar tpf-service-eureka-1.0.jar'
     networks:
-      - service_network
+    - service_network
     ports:
-      - 8761:8761
+    - 8761:8761
     depends_on:
-      - tpf-service-config
+    - tpf-service-config
   tpf-service-zuul:
     image: openjdk:11
     restart: always
@@ -118,15 +117,15 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
     volumes:
-      - ./../tpf-service-zuul/target:/opt/tpf-service-zuul
+    - ./../tpf-service-zuul/target:/opt/tpf-service-zuul
     command: bash -c 'cd /opt/tpf-service-zuul && java -jar tpf-service-zuul-1.0.jar'
     networks:
-      - service_network
+    - service_network
     ports:
-      - 9000:9000
+    - 9000:9000
     depends_on:
-      - tpf-service-config
-      - tpf-service-eureka
+    - tpf-service-config
+    - tpf-service-eureka
   tpf-service-authentication:
     image: openjdk:11
     restart: always
@@ -135,16 +134,16 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
     volumes:
-      - ./../tpf-service-authentication/target:/opt/tpf-service-authentication
+    - ./../tpf-service-authentication/target:/opt/tpf-service-authentication
     command: bash -c 'cd /opt/tpf-service-authentication && java -jar tpf-service-authentication-1.0.jar'
     networks:
-      - service_network
+    - service_network
     ports:
-      - 1100:1100
+    - 1100:1100
     depends_on:
-      - tpf-opensource-rabbitmq
-      - tpf-service-config
-      - tpf-service-eureka
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
   tpf-service-authorization:
     image: openjdk:11
     restart: always
@@ -153,16 +152,16 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
     volumes:
-      - ./../tpf-service-authorization/target:/opt/tpf-service-authorization
+    - ./../tpf-service-authorization/target:/opt/tpf-service-authorization
     command: bash -c 'cd /opt/tpf-service-authorization && java -jar tpf-service-authorization-1.0.jar'
     networks:
-      - service_network
+    - service_network
     ports:
-      - 1200:1200
+    - 1200:1200
     depends_on:
-      - tpf-opensource-rabbitmq
-      - tpf-service-config
-      - tpf-service-eureka
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
   tpf-service-restclient:
     image: openjdk:11
     restart: always
@@ -171,16 +170,16 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
     volumes:
-      - ./../tpf-service-restclient/target:/opt/tpf-service-restclient
+    - ./../tpf-service-restclient/target:/opt/tpf-service-restclient
     command: bash -c 'cd /opt/tpf-service-restclient && java -jar tpf-service-restclient-1.0.jar'
     networks:
-      - service_network
+    - service_network
     ports:
-      - 4000:4000
+    - 4000:4000
     depends_on:
-      - tpf-opensource-rabbitmq
-      - tpf-service-config
-      - tpf-service-eureka
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
   tpf-service-webportal:
     image: node:10
     restart: always
@@ -189,16 +188,16 @@ services:
     environment:
       NODE_ENV: dev
     volumes:
-      - ./../tpf-service-webportal/server:/opt/tpf-service-webportal
+    - ./../tpf-service-webportal/server:/opt/tpf-service-webportal
     command: node ./src/main.js
     networks:
-      - service_network
+    - service_network
     ports:
-      - 3000:3000
+    - 3000:3000
     depends_on:
-      - tpf-opensource-rabbitmq
-      - tpf-service-config
-      - tpf-service-eureka
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
   tpf-service-app:
     image: openjdk:11
     restart: always
@@ -207,16 +206,106 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
     volumes:
-      - ./../tpf-service-app/target:/opt/tpf-service-app
+    - ./../tpf-service-app/target:/opt/tpf-service-app
     command: bash -c 'cd /opt/tpf-service-app && java -jar tpf-service-app-1.0.jar'
     networks:
-      - service_network
+    - service_network
     ports:
-      - 4004:4004
+    - 4004:4004
     depends_on:
-      - tpf-opensource-rabbitmq
-      - tpf-service-config
-      - tpf-service-eureka
-networks: 
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
+  tpf-service-trusting-social:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-trusting-social
+    working_dir: /opt/tpf-service-trusting-social
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+    - ./../tpf-service-trusting-social/target:/opt/tpf-service-trusting-social
+    command: bash -c 'cd /opt/tpf-service-trusting-social && java -jar tpf-service-trusting-social-1.0.jar'
+    networks:
+    - service_network
+    ports:
+    - 4005:4005
+    depends_on:
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
+  tpf-service-fpt:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-fpt
+    working_dir: /opt/tpf-service-fpt
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+    - ./../tpf-service-fpt/target:/opt/tpf-service-fpt
+    command: bash -c 'cd /opt/tpf-service-fpt && java -jar tpf-service-fpt-1.0.jar'
+    networks:
+    - service_network
+    ports:
+    - 4006:4006
+    depends_on:
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
+  tpf-service-vinid:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-vinid
+    working_dir: /opt/tpf-service-vinid
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+    - ./../tpf-service-vinid/target:/opt/tpf-service-vinid
+    command: bash -c 'cd /opt/tpf-service-vinid && java -jar tpf-service-vinid-1.0.jar'
+    networks:
+    - service_network
+    ports:
+    - 4007:4007
+    depends_on:
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
+  tpf-service-momo:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-momo
+    working_dir: /opt/tpf-service-momo
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+    - ./../tpf-service-momo/target:/opt/tpf-service-momo
+    command: bash -c 'cd /opt/tpf-service-momo && java -jar tpf-service-momo-1.0.jar'
+    networks:
+    - service_network
+    ports:
+    - 4008:4008
+    depends_on:
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
+  tpf-service-assets:
+    image: openjdk:11
+    restart: always
+    container_name: tpf-service-assets
+    working_dir: /opt/tpf-service-assets
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+    - ./../tpf-service-assets/target:/opt/tpf-service-assets
+    command: bash -c 'cd /opt/tpf-service-assets && java -jar tpf-service-assets-1.0.jar'
+    networks:
+    - service_network
+    ports:
+    - 4010:4010
+    depends_on:
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
+networks:
   service_network:
     driver: bridge

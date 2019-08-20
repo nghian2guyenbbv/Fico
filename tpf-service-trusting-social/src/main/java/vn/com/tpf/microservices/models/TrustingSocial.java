@@ -16,8 +16,6 @@ public class TrustingSocial {
 	@Id
 	private String id;
 
-	private String name;
-
 	@CreatedDate
 	private Date createdAt;
 	@LastModifiedDate

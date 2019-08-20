@@ -68,7 +68,7 @@ public class RabbitMQService {
 			headers.setBasicAuth(clientId, clientSecret);
 			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 			String body = "grant_type=client_credentials";
-			HttpEntity<String> entity = new HttpEntity<String>(body, headers);
+			HttpEntity<?> entity = new HttpEntity<>(body, headers);
 			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
 			return mapper.valueToTree(res.getBody());
 		} catch (HttpClientErrorException e) {
@@ -85,7 +85,7 @@ public class RabbitMQService {
 				HttpMethod method = HttpMethod.GET;
 				HttpHeaders headers = new HttpHeaders();
 				headers.setBasicAuth(clientId, clientSecret);
-				HttpEntity<String> entity = new HttpEntity<String>(headers);
+				HttpEntity<?> entity = new HttpEntity<>(headers);
 				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
 				return mapper.valueToTree(res.getBody());
 			}
