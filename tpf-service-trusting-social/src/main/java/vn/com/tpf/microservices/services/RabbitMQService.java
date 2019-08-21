@@ -68,7 +68,7 @@ public class RabbitMQService {
 			headers.setBasicAuth(clientId, clientSecret);
 			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 			String body = "grant_type=client_credentials";
-			HttpEntity<String> entity = new HttpEntity<String>(body, headers);
+			HttpEntity<?> entity = new HttpEntity<>(body, headers);
 			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
 			return mapper.valueToTree(res.getBody());
 		} catch (HttpClientErrorException e) {
@@ -85,7 +85,7 @@ public class RabbitMQService {
 				HttpMethod method = HttpMethod.GET;
 				HttpHeaders headers = new HttpHeaders();
 				headers.setBasicAuth(clientId, clientSecret);
-				HttpEntity<String> entity = new HttpEntity<String>(headers);
+				HttpEntity<?> entity = new HttpEntity<>(headers);
 				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
 				return mapper.valueToTree(res.getBody());
 			}
@@ -137,24 +137,9 @@ public class RabbitMQService {
 			String scopes = token.path("scope").toString();
 
 			switch (request.path("func").asText()) {
-			case "getListTrustingSocial":
+			case "firstCheckTrustingSocial":
 				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
-					return response(message, payload, trustingSocialService.getListTrustingSocial(request, token));
-				}
-				break;
-			case "createTrustingSocial":
-				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
-					return response(message, payload, trustingSocialService.createTrustingSocial(request));
-				}
-				break;
-			case "updateTrustingSocial":
-				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
-					return response(message, payload, trustingSocialService.updateTrustingSocial(request));
-				}
-				break;
-			case "deleteTrustingSocial":
-				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
-					return response(message, payload, trustingSocialService.deleteTrustingSocial(request));
+					return response(message, payload, trustingSocialService.firstCheckTrustingSocial(request));
 				}
 				break;
 			default:

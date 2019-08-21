@@ -5,9 +5,6 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -24,6 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class RabbitMQService {
@@ -66,7 +66,7 @@ public class RabbitMQService {
 				HttpMethod method = HttpMethod.GET;
 				HttpHeaders headers = new HttpHeaders();
 				headers.setBasicAuth(clientId, clientSecret);
-				HttpEntity<String> entity = new HttpEntity<String>(headers);
+				HttpEntity<?> entity = new HttpEntity<>(headers);
 				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
 				return mapper.valueToTree(res.getBody());
 			}

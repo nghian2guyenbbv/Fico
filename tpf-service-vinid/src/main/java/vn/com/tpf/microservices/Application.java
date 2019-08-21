@@ -9,9 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -33,9 +30,7 @@ public class Application {
 
 	@Bean
 	public RestTemplate restTemplate() {
-		ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
-		RestTemplate restTemplate = new RestTemplate(factory);
-		return restTemplate;
+		return new RestTemplate();
 	}
 
 	@Bean

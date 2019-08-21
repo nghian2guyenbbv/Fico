@@ -40,7 +40,6 @@ IO.use(async (socket, next) => {
 
 		next()
 	} catch (error) {
-		console.error(error.response)
 		next(error)
 	}
 })

@@ -1,90 +1,63 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import vn.com.tpf.microservices.models.TrustingSocial;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
 public class TrustingSocialService {
 
 	@Autowired
-	private ObjectMapper mapper;
+	private ApiService apiService;
 
 	@Autowired
-	private MongoTemplate mongoTemplate;
+	private RabbitMQService rabbitMQService;
 
-	public Map<String, Object> getListTrustingSocial(JsonNode request, JsonNode token) {
-		int page = request.path("param").path("page").asInt(1);
-		int limit = request.path("param").path("limit").asInt(10);
-		String[] sort = request.path("param").path("sort").asText("createdAt,desc").split(",");
-
-		Query query = new Query();
-		long total = mongoTemplate.count(query, TrustingSocial.class);
-
-		query.with(PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0])));
-		List<TrustingSocial> list = mongoTemplate.find(query, TrustingSocial.class);
-
-		return Map.of("status", 200, "data", list, "total", total);
-	}
-
-	public Map<String, Object> createTrustingSocial(JsonNode request) throws Exception {
+	public Map<String, Object> firstCheckTrustingSocial(JsonNode request) throws Exception {
 		Assert.notNull(request.get("body"), "no body");
 
-		TrustingSocial body = mapper.treeToValue(request.get("body"), TrustingSocial.class);
+		ObjectNode body = (ObjectNode) request.path("body");
+		Assert.isTrue(body.path("phone_number").asText().matches("^(\\+84)(?=(?:.{9}|.{10})$)[0-9]*$"),
+				"phone_number is required string. Ex: +84123456789");
+		Assert.isTrue(body.path("national_id").asText().matches("^(?=(?:.{9}|.{12})$)[0-9]*$"),
+				"national_id is required string ^0-9 length 9 or 12");
+		Assert.isTrue(body.path("middle_name").isTextual(), "middle_name is required string");
+		Assert.isTrue(body.path("first_name").isTextual() && !body.path("first_name").asText().isEmpty(),
+				"first_name is required string and not empty");
+		Assert.isTrue(body.path("last_name").isTextual() && !body.path("last_name").asText().isEmpty(),
+				"last_name is required string and not empty");
+		Assert.isTrue(body.path("address_no").isTextual() && !body.path("address_no").asText().isEmpty(),
+				"address_no is required string and not empty");
+		Assert.isTrue(body.path("dob").asText().matches("^([0-2][0-9]|(3)[0-1])(\\/)(((0)[0-9])|((1)[0-2]))(\\/)\\d{4}$"),
+				"dob is required string format dd/MM/yyyy");
+		Assert.isTrue(body.path("gender").asText().toLowerCase().matches("^(male|female)$"),
+				"gender is required male or female");
+		Assert.isTrue(body.path("province_code").isInt(), "province_code is required number");
+		Assert.isTrue(body.path("district_code").isInt(), "district_code is required number");
 
-		Assert.hasText(body.getName(), "name is required");
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getAddress", "token",
+						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
+						Map.of("areaCode", body.path("district_code").asInt())));
 
-		TrustingSocial entity = new TrustingSocial();
-		entity.setName(body.getName());
-
-		mongoTemplate.save(entity);
-		return Map.of("status", 201, "data", entity);
-	}
-
-	public Map<String, Object> updateTrustingSocial(JsonNode request) throws Exception {
-		String id = request.path("param").path("id").asText();
-		Assert.hasText(id, "param id is required");
-		Assert.notNull(request.get("body"), "no body");
-
-		TrustingSocial body = mapper.treeToValue(request.get("body"), TrustingSocial.class);
-
-		Assert.hasText(body.getName(), "name is required");
-
-		TrustingSocial entity = mongoTemplate.findById(id, TrustingSocial.class);
-
-		if (entity == null) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+		if (address.path("status").asInt() != 200) {
+			return Map.of("status", 404, "data", Map.of("message", "District Code Not Exits"));
 		}
 
-		mongoTemplate.save(entity);
-		return Map.of("status", 200, "data", entity);
-	}
-
-	public Map<String, Object> deleteTrustingSocial(JsonNode request) throws Exception {
-		String id = request.path("param").path("id").asText();
-		Assert.hasText(id, "param id is required");
-
-		TrustingSocial entity = mongoTemplate.findById(id, TrustingSocial.class);
-
-		if (entity == null) {
-			return Map.of("status", 404, "data", Map.of("message", "Not  Found"));
+		if (!address.path("data").path("postCode").asText().equals(body.path("province_code").asText())) {
+			return Map.of("status", 404, "data", Map.of("message", "Province Code Not Exits"));
 		}
 
-		mongoTemplate.remove(entity);
-		return Map.of("status", 200, "data", entity);
+		body.set("district_code", address.path("data").path("areaName"));
+		body.set("province_code", address.path("data").path("cityName"));
+
+		return Map.of("status", 200, "data",
+				Map.of("status", apiService.firstCheckRisk(body).equals("pass") ? "passed" : "rejected"));
 	}
 
 }
