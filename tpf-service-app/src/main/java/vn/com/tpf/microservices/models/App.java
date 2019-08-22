@@ -28,6 +28,7 @@ public class App {
 	private String status;
 	private String fullName;
 	private String partnerId;
+	private String nationalId;
 	private String productCode;
 	private String schemeCode;
 	private String automationResult;

@@ -64,7 +64,9 @@ public class AppService {
 
 		if (!info.path("authorities").toString().matches(".*(\"role_root\").*")) {
 			Set<String> projects = new HashSet<>();
-			if (info.path("projects").isArray()) {
+			if (request.path("param").path("project").isTextual()) {
+				projects.add(request.path("param").path("project").asText());
+			} else if (info.path("projects").isArray()) {
 				projects = mapper.convertValue(info.path("projects"), Set.class);
 			}
 			criteria.and("project").in(projects);
@@ -111,15 +113,19 @@ public class AppService {
 			convertVinId(entity, request, "create");
 		else if (project.equals("momo"))
 			convertMomo(entity, request, "create");
-		else if (project.equals("trusting_social"))
+		else if (project.equals("trustingsocial"))
 			convertTrustingSocial(entity, request, "create");
 		else
 			return Map.of("status", 400, "data", Map.of("message", "Project Invalid"));
 
 		Date date = new Date();
-		entity.setStatusHistory(new HashSet<>(Arrays.asList(Map.of("status", entity.getStatus(), "createdAt", date))));
-		entity.setAutomationHistory(
-				new HashSet<>(Arrays.asList(Map.of("status", entity.getAutomationResult(), "createdAt", date))));
+		if (entity.getStatus() != null) {
+			entity.setStatusHistory(new HashSet<>(Arrays.asList(Map.of("status", entity.getStatus(), "createdAt", date))));
+		}
+		if (entity.getAutomationResult() != null) {
+			entity.setAutomationHistory(
+					new HashSet<>(Arrays.asList(Map.of("status", entity.getAutomationResult(), "createdAt", date))));
+		}
 
 		mongoTemplate.save(entity);
 
@@ -166,7 +172,7 @@ public class AppService {
 			convertVinId(entity, request, "update");
 		else if (project.equals("momo"))
 			convertMomo(entity, request, "update");
-		else if (project.equals("trusting_social"))
+		else if (project.equals("trustingsocial"))
 			convertTrustingSocial(entity, request, "update");
 		else
 			return Map.of("status", 400, "data", Map.of("message", "Project Invalid"));
@@ -247,8 +253,8 @@ public class AppService {
 
 	private void convertFpt(App entity, JsonNode request, String type) {
 		JsonNode body = request.path("body");
-		JsonNode id = body.path("id");
-		JsonNode custId = body.path("custId");
+		JsonNode uuid = body.path("id");
+		JsonNode partnerId = body.path("custId");
 		JsonNode firstName = body.path("firstName");
 		JsonNode middleName = body.path("middleName");
 		JsonNode lastName = body.path("lastName");
@@ -260,21 +266,23 @@ public class AppService {
 		JsonNode appId = body.path("appId");
 
 		if (type.equals("create")) {
-			Assert.isTrue(id.isNumber(), "id is required");
-			Assert.isTrue(custId.isNumber(), "custId is required");
-			Assert.isTrue(firstName.isTextual() && !firstName.asText().isEmpty(), "firstName is required");
-			Assert.isTrue(middleName.isTextual() && !middleName.asText().isEmpty(), "middleName is required");
-			Assert.isTrue(lastName.isTextual() && !lastName.asText().isEmpty(), "lastName is required");
+			Assert.isTrue(uuid.isNumber(), "id is required number");
+			Assert.isTrue(partnerId.isNumber(), "custId is required number");
+			Assert.isTrue(firstName.isTextual() && !firstName.asText().isEmpty(),
+					"firstName is required string and not empty");
+			Assert.isTrue(middleName.isTextual(), "middleName is required string");
+			Assert.isTrue(lastName.isTextual() && !lastName.asText().isEmpty(), "lastName is required string and not empty");
 			Assert.isTrue(automationResult.isTextual() && !automationResult.asText().isEmpty(),
-					"automationResult is required");
-			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required");
-			Assert.isTrue(scheme.isTextual() && !scheme.asText().isEmpty(), "loanDetail.product is required");
-			Assert.isTrue(photos.isArray(), "photos is required");
+					"automationResult is required string and not empty");
+			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required string and not empty");
+			Assert.isTrue(scheme.isTextual() && !scheme.asText().isEmpty(),
+					"loanDetail.product is required string and not empty");
+			Assert.isTrue(photos.isArray(), "photos is required array and not empty");
 		}
 
 		entity.setProject("fpt");
-		if (id.isNumber()) {
-			entity.setUuid("fpt_" + id.asText());
+		if (uuid.isNumber()) {
+			entity.setUuid("fpt_" + uuid.asText());
 		}
 		if (assigned.isTextual() && !assigned.asText().isEmpty()) {
 			entity.setAssigned(assigned.asText());
@@ -284,10 +292,11 @@ public class AppService {
 		}
 		if (firstName.isTextual() && !firstName.asText().isEmpty() && middleName.isTextual()
 				&& !middleName.asText().isEmpty() && lastName.isTextual() && !lastName.asText().isEmpty()) {
-			entity.setFullName(firstName.asText() + " " + middleName.asText() + " " + lastName.asText());
+			entity.setFullName(
+					(firstName.asText() + " " + middleName.asText() + " " + lastName.asText()).replaceAll("\\s+", " "));
 		}
-		if (custId.isNumber()) {
-			entity.setPartnerId(custId.asText());
+		if (partnerId.isNumber()) {
+			entity.setPartnerId(partnerId.asText());
 		}
 		if (scheme.isTextual() && !scheme.asText().isEmpty()) {
 			entity.setSchemeCode(scheme.asText());
@@ -304,7 +313,6 @@ public class AppService {
 			}
 			entity.setStatus(sts);
 		}
-
 		if (photos.isArray()) {
 			Set<Map<?, ?>> pts = new HashSet<>();
 			photos.forEach(e -> {
@@ -324,7 +332,68 @@ public class AppService {
 	}
 
 	private void convertTrustingSocial(App entity, JsonNode request, String type) {
+		JsonNode body = request.path("body");
+		JsonNode uuid = body.path("id");
+		JsonNode partnerId = body.path("tsLeadId");
+		JsonNode firstName = body.path("firstName");
+		JsonNode middleName = body.path("middleName");
+		JsonNode lastName = body.path("lastName");
+		JsonNode photos = body.path("documents");
+		JsonNode status = body.path("status");
+		JsonNode nationalId = body.path("nationalId");
+		JsonNode assigned = body.path("assigned");
+		JsonNode appId = body.path("appId");
 
+		if (type.equals("create")) {
+			Assert.isTrue(uuid.isTextual() && !uuid.asText().isEmpty(), "id is required string and not empty");
+			Assert.isTrue(partnerId.isTextual() && !partnerId.asText().isEmpty(),
+					"tsLeadId is required string and not empty");
+			Assert.isTrue(firstName.isTextual() && !firstName.asText().isEmpty(),
+					"firstName is required string and not empty");
+			Assert.isTrue(middleName.isTextual(), "middleName is required string");
+			Assert.isTrue(lastName.isTextual() && !lastName.asText().isEmpty(), "lastName is required string and not empty");
+			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required string and not empty");
+			Assert.isTrue(nationalId.isTextual() && !nationalId.asText().isEmpty(),
+					"nationalId is required string and not empty");
+			Assert.isTrue(photos.isArray(), "documents is required array and not empty");
+		}
+
+		entity.setProject("trustingsocial");
+		if (uuid.isTextual() && !uuid.asText().isEmpty()) {
+			entity.setUuid("trustingsocial_" + uuid.asText());
+		}
+		if (assigned.isTextual() && !assigned.asText().isEmpty()) {
+			entity.setAssigned(assigned.asText());
+		}
+		if (appId.isTextual() && !appId.asText().isEmpty()) {
+			entity.setAppId(appId.asText());
+		}
+		if (firstName.isTextual() && !firstName.asText().isEmpty() && middleName.isTextual() && lastName.isTextual()
+				&& !lastName.asText().isEmpty()) {
+			entity.setFullName(
+					(firstName.asText() + " " + middleName.asText() + " " + lastName.asText()).replaceAll("\\s+", " "));
+		}
+		if (partnerId.isTextual() && !partnerId.asText().isEmpty()) {
+			entity.setPartnerId(partnerId.asText());
+		}
+		if (nationalId.isTextual() && !nationalId.asText().isEmpty()) {
+			entity.setNationalId(nationalId.asText());
+		}
+		if (status.isTextual() && !status.asText().isEmpty()) {
+			String sts = status.asText().toUpperCase();
+			if (sts.equals("PROCESSING")) {
+				sts = sts + "_" + "PASS";
+			}
+			entity.setStatus(sts);
+		}
+		if (photos.isArray()) {
+			Set<Map<?, ?>> pts = new HashSet<>();
+			photos.forEach(e -> {
+				pts.add(Map.of("type", e.path("document_type").asText(), "link", e.path("view_url").asText(), "download",
+						e.path("donwload_url").asText(), "createdAt", new Date()));
+			});
+			entity.setPhotos(pts);
+		}
 	}
 
 }

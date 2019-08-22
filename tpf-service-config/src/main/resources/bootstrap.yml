@@ -3,8 +3,19 @@ server:
 spring:
   application:
     name: tpf-service-config
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: tpf-service-config
+    password: tpf-service-config
+    app-id: tpf-service-config
   cloud:
     config:
       server:
         git:
-          uri: https://github.com/daongoc315/tpf-config.git
+          uri: https://github.com/daongoc315/tpf-config.git       
+---
+spring:
+  profiles: dev
+  rabbitmq:
+    host: tpf-opensource-rabbitmq

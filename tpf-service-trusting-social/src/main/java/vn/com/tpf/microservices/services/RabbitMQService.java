@@ -142,6 +142,16 @@ public class RabbitMQService {
 					return response(message, payload, trustingSocialService.firstCheckTrustingSocial(request));
 				}
 				break;
+			case "createTrustingSocial":
+				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
+					return response(message, payload, trustingSocialService.createTrustingSocial(request));
+				}
+				break;
+			case "updateTrustingSocial":
+				if (scopes.matches(".*(\"tpf-service-trusting-social\").*")) {
+					return response(message, payload, trustingSocialService.updateTrustingSocial(request));
+				}
+				break;
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
