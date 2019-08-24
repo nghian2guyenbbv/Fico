@@ -6,6 +6,7 @@ APP = express()
 // INIT
 require('./redis')
 require('./rabbitmq')
+require('./eureka')
 
 // INIT SOCKET.IO
 IO = require('socket.io')(require('http').createServer(APP).listen(Number(process.env.PORT)))
