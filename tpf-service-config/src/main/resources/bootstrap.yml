@@ -13,7 +13,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/daongoc315/tpf-config.git       
+          uri: https://github.com/daongoc315/tpf-config.git
 ---
 spring:
   profiles: dev
