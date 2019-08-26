@@ -1,6 +1,6 @@
 spring:
   application:
-      name: tpf-service-eureka
+    name: tpf-service-eureka
   cloud:
     config:
       uri: http://localhost:8888

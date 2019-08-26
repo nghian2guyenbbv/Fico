@@ -129,14 +129,7 @@ public class AppService {
 
 		mongoTemplate.save(entity);
 
-		String roomTo = "";
-		String status = entity.getStatus();
-		if (status.equals("PROCESSING_FAIL")) {
-			roomTo = AUTOMATION;
-		} else if (status.equals("PROCESSING_PASS") || status.equals("PROCESSING_FIX") || status.equals("RETURNED")) {
-			roomTo = DOCUMENT_CHECK;
-		}
-
+		String roomTo = getRoom(entity);
 		if (!roomTo.isEmpty()) {
 			Map<?, ?> body = Map.of("from", "", "to", roomTo, "project", entity.getProject(), "data", entity);
 			Map<?, ?> notify = Map.of("token", rabbitMQService.getToken().path("access_token"), "body", body);
@@ -218,23 +211,12 @@ public class AppService {
 			update.unset("assigned");
 		}
 
-		String roomFrom = "";
-		String oStatus = oEntity.getStatus();
-		if (oStatus.equals("PROCESSING_FAIL"))
-			roomFrom = AUTOMATION;
-		else if (oStatus.equals("PROCESSING_PASS") || oStatus.equals("PROCESSING_FIX") || oStatus.equals("RETURNED"))
-			roomFrom = DOCUMENT_CHECK;
-		else if (oStatus.equals("APPROVED") || oStatus.equals("SUPPLEMENT"))
-			roomFrom = LOAN_BOOKING;
+		String roomFrom = getRoom(oEntity);
+		String roomTo = getRoom(entity);
 
-		String roomTo = roomFrom;
-		String nStatus = entity.getStatus() != null ? entity.getStatus() : "";
-		if (nStatus.equals("PROCESSING_FAIL"))
-			roomTo = AUTOMATION;
-		else if (nStatus.equals("PROCESSING_PASS") || nStatus.equals("PROCESSING_FIX") || nStatus.equals("RETURNED"))
-			roomTo = DOCUMENT_CHECK;
-		else if (nStatus.equals("APPROVED") || nStatus.equals("SUPPLEMENT"))
-			roomTo = LOAN_BOOKING;
+		if (roomTo.isEmpty()) {
+			roomTo = roomFrom;
+		}
 
 		if (!roomFrom.equals(roomTo)) {
 			update.unset("assigned");
@@ -249,6 +231,20 @@ public class AppService {
 		}
 
 		return Map.of("status", 200, "data", nEntity);
+	}
+
+	private String getRoom(App entity) {
+		String status = entity.getStatus() != null ? entity.getStatus() : "";
+		String room = "";
+
+		if (status.equals("PROCESSING_FAIL"))
+			room = AUTOMATION;
+		else if (status.equals("PROCESSING_PASS") || status.equals("PROCESSING_FIX") || status.equals("RETURNED"))
+			room = DOCUMENT_CHECK;
+		else if (status.equals("APPROVED") || status.equals("SUPPLEMENT"))
+			room = LOAN_BOOKING;
+
+		return room;
 	}
 
 	private void convertFpt(App entity, JsonNode request, String type) {
