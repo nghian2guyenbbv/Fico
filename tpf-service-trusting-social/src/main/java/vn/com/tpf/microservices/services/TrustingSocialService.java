@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -88,7 +87,7 @@ public class TrustingSocialService {
 		res.put("result_code", code);
 		res.put("request_id", body.path("request_id").asText());
 		res.put("date_time", body.path("date_time").asText());
-		res.put("reference_id", UUID.randomUUID().toString());
+		res.put("reference_id", body.path("reference_id").asText());
 		if (code == 0) {
 			res.put("data", data);
 		} else {
@@ -140,6 +139,8 @@ public class TrustingSocialService {
 
 		data.set("district_code", address.path("data").path("areaName"));
 		data.set("province_code", address.path("data").path("cityName"));
+		data.set("reference_id", body.path("reference_id"));
+		data.set("request_id", body.path("request_id"));
 
 		return response(0, body, Map.of("status", apiService.firstCheckRisk(data).equals("pass") ? "passed" : "rejected"));
 	}

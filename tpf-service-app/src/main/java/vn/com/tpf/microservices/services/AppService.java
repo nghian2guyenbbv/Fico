@@ -27,7 +27,7 @@ import vn.com.tpf.microservices.models.App;
 @Service
 public class AppService {
 
-	private static final String AUTOMATION = "automation";
+	private static final String DATA_ENTRY = "data_entry";
 	private static final String DOCUMENT_CHECK = "document_check";
 	private static final String LOAN_BOOKING = "loan_booking";
 
@@ -75,7 +75,7 @@ public class AppService {
 			if (info.path("departments").isArray()) {
 				Set<String> departments = mapper.convertValue(info.path("departments"), Set.class);
 				departments.forEach(e -> {
-					if (e.equals(AUTOMATION))
+					if (e.equals(DATA_ENTRY))
 						status.add("PROCESSING_FAIL");
 					else if (e.equals(DOCUMENT_CHECK))
 						status.addAll(Arrays.asList("PROCESSING_PASS", "PROCESSING_FIX", "RETURNED"));
@@ -238,7 +238,7 @@ public class AppService {
 		String room = "";
 
 		if (status.equals("PROCESSING_FAIL"))
-			room = AUTOMATION;
+			room = DATA_ENTRY;
 		else if (status.equals("PROCESSING_PASS") || status.equals("PROCESSING_FIX") || status.equals("RETURNED"))
 			room = DOCUMENT_CHECK;
 		else if (status.equals("APPROVED") || status.equals("SUPPLEMENT"))
@@ -312,8 +312,8 @@ public class AppService {
 		if (photos.isArray()) {
 			Set<Map<?, ?>> pts = new HashSet<>();
 			photos.forEach(e -> {
-				pts.add(
-						Map.of("type", e.path("documentType").asText(), "link", e.path("link").asText(), "createdAt", new Date()));
+				pts.add(Map.of("type", e.path("documentType").asText(), "view_url", e.path("link").asText(), "createdAt",
+						new Date()));
 			});
 			entity.setPhotos(pts);
 		}
@@ -372,9 +372,6 @@ public class AppService {
 		if (partnerId.isTextual() && !partnerId.asText().isEmpty()) {
 			entity.setPartnerId(partnerId.asText());
 		}
-		if (nationalId.isTextual() && !nationalId.asText().isEmpty()) {
-			entity.setNationalId(nationalId.asText());
-		}
 		if (status.isTextual() && !status.asText().isEmpty()) {
 			String sts = status.asText().toUpperCase();
 			if (sts.equals("PROCESSING")) {
@@ -385,8 +382,8 @@ public class AppService {
 		if (photos.isArray()) {
 			Set<Map<?, ?>> pts = new HashSet<>();
 			photos.forEach(e -> {
-				pts.add(Map.of("type", e.path("document_type").asText(), "link", e.path("view_url").asText(), "download",
-						e.path("donwload_url").asText(), "createdAt", new Date()));
+				pts.add(Map.of("type", e.path("document_type").asText(), "view_url", e.path("view_url").asText(),
+						"download_url", e.path("donwload_url").asText(), "createdAt", new Date()));
 			});
 			entity.setPhotos(pts);
 		}
