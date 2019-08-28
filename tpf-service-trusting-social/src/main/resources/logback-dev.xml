@@ -14,7 +14,7 @@
 			</pattern>
 		</layout>
 
-		<host>192.168.0.200</host>
+		<host>tpf-opensource-rabbitmq</host>
 		<port>5672</port>
 		<username>tpf-service-trusting-social</username>
 		<password>tpf-service-trusting-social</password>

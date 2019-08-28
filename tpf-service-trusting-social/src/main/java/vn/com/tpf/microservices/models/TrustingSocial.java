@@ -40,6 +40,7 @@ public class TrustingSocial {
 	private String addressNo;
 	private String ward;
 	private Set<Map<?, ?>> documents = new HashSet<>();
+	private Set<Map<?, ?>> comments = new HashSet<>();
 
 	@CreatedDate
 	private Date createdAt;

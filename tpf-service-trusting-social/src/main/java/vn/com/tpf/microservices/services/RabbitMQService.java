@@ -114,8 +114,7 @@ public class RabbitMQService {
 
 	public Message response(Message message, byte[] payload, Object object) throws Exception {
 		JsonNode obj = mapper.convertValue(object, JsonNode.class);
-		log.info("[==RABBITMQ-LOG==] : {}", Map.of("payload", new String(payload, "UTF-8"), "result",
-				Map.of("status", obj.path("status"), "message", obj.path("data").path("message"))));
+		log.info("[==RABBITMQ-LOG==] : {}", Map.of("payload", new String(payload, "UTF-8"), "result", obj));
 
 		if (message.getMessageProperties().getReplyTo() != null) {
 			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();

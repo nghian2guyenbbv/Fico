@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,7 +29,7 @@ public class ApiService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	// @Value("${spring.url.first-check-risk}")
+	@Value("${spring.url.first-check-risk}")
 	private String urlFirstCheckRisk;
 
 	@Autowired
@@ -44,8 +45,6 @@ public class ApiService {
 	}
 
 	public String firstCheckRisk(JsonNode request) {
-		urlFirstCheckRisk = "http://10.131.21.137:52233/sale_page/api_management/firstcheck/";
-
 		Map<String, Object> profile = new HashMap<>();
 		profile.put("firstName", request.path("first_name").asText());
 		profile.put("lastName", request.path("last_name").asText());
@@ -54,9 +53,10 @@ public class ApiService {
 		profile.put("gender", request.path("gender").asText().toUpperCase());
 		profile.put("id", Map.of("number", request.path("national_id").asText()));
 		profile.put("phoneNumber", request.path("phone_number").asText());
-		Map<?, ?> data = Map.of("profile", profile, "requestId", "ts-" + System.currentTimeMillis() / 1000,
-				"request_fb_address", String.format("%s %s %s", request.path("address_no").asText(),
-						request.path("district_code").asText(), request.path("province_code").asText()));
+		Map<?, ?> data = Map.of("profile", profile, "request_id", request.path("request_id").asText(), "reference_id",
+				request.path("reference_id").asText(), "request_fb_address",
+				String.format("%s %s %s", request.path("address_no").asText(), request.path("district_code").asText(),
+						request.path("province_code").asText()));
 
 		try {
 			HttpHeaders headers = new HttpHeaders();
