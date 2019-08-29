@@ -1,7 +1,9 @@
 package vn.com.tpf.microservices.services;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,7 +11,11 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -80,6 +86,8 @@ public class TrustingSocialService {
 		error.set("ward", mapper.convertValue(ward, JsonNode.class));
 		Map<?, ?> documents = Map.of("code", 120, "message", "documents is required array and not empty");
 		error.set("documents", mapper.convertValue(documents, JsonNode.class));
+		Map<?, ?> codeWasSubmit = Map.of("code", 121, "message", "dc_return_code or info_query_code was submit");
+		error.set("codeWasSubmit", mapper.convertValue(codeWasSubmit, JsonNode.class));
 	}
 
 	private Map<String, Object> response(int code, JsonNode body, Object data) {
@@ -123,17 +131,17 @@ public class TrustingSocialService {
 		}
 
 		TrustingSocial ts = new TrustingSocial();
-		ts.setPhoneNumber(data.path("phone_number").asText());
-		ts.setNationalId(data.path("national_id").asText());
-		ts.setMiddleName(data.path("middle_name").asText());
-		ts.setFirstName(data.path("first_name").asText());
-		ts.setLastName(data.path("last_name").asText());
-		ts.setAddressNo(data.path("address_no").asText());
+		ts.setPhone_number(data.path("phone_number").asText());
+		ts.setNational_id(data.path("national_id").asText());
+		ts.setMiddle_name(data.path("middle_name").asText());
+		ts.setFirst_name(data.path("first_name").asText());
+		ts.setLast_name(data.path("last_name").asText());
+		ts.setAddress_no(data.path("address_no").asText());
 		ts.setDob(data.path("dob").asText());
 		ts.setGender(data.path("gender").asText());
-		ts.setProvinceCode(data.path("province_code").asText());
+		ts.setProvince_code(data.path("province_code").asText());
 		ts.setProvince(address.path("data").path("cityName").asText());
-		ts.setDistrictCode(data.path("district_code").asText());
+		ts.setDistrict_code(data.path("district_code").asText());
 		ts.setDistrict(address.path("data").path("areaName").asText());
 		mongoTemplate.save(ts);
 
@@ -174,38 +182,107 @@ public class TrustingSocialService {
 		}
 
 		TrustingSocial ts = new TrustingSocial();
-		ts.setPhoneNumber(data.path("phone_number").asText());
-		ts.setNationalId(data.path("national_id").asText());
-		ts.setMiddleName(data.path("middle_name").asText());
-		ts.setFirstName(data.path("first_name").asText());
-		ts.setLastName(data.path("last_name").asText());
-		ts.setAddressNo(data.path("address_no").asText());
+		ts.setPhone_number(data.path("phone_number").asText());
+		ts.setNational_id(data.path("national_id").asText());
+		ts.setMiddle_name(data.path("middle_name").asText());
+		ts.setFirst_name(data.path("first_name").asText());
+		ts.setLast_name(data.path("last_name").asText());
+		ts.setAddress_no(data.path("address_no").asText());
 		ts.setDob(data.path("dob").asText());
 		ts.setGender(data.path("gender").asText());
-		ts.setProvinceCode(data.path("province_code").asText());
+		ts.setProvince_code(data.path("province_code").asText());
 		ts.setProvince(address.path("data").path("cityName").asText());
-		ts.setDistrictCode(data.path("district_code").asText());
+		ts.setDistrict_code(data.path("district_code").asText());
 		ts.setDistrict(address.path("data").path("areaName").asText());
-		ts.setTsLeadId(data.path("ts_lead_id").asText());
-		ts.setProductCode(data.path("product_code").asText());
-		ts.setScoreRange(data.path("score_range").asText());
-		ts.setDsaCode(data.path("dsa_code").asText());
-		ts.setTsaCode(data.path("tsa_code").asText());
+		ts.setTs_lead_id(data.path("ts_lead_id").asText());
+		ts.setProduct_code(data.path("product_code").asText());
+		ts.setScore_range(data.path("score_range").asText());
+		ts.setDsa_code(data.path("dsa_code").asText());
+		ts.setTsa_code(data.path("tsa_code").asText());
 		ts.setWard(data.path("ward").asText());
 		ts.setDocuments(mapper.convertValue(data.path("documents"), Set.class));
 		mongoTemplate.save(ts);
 
-		rabbitMQService.send("tpf-service-app",
-				Map.of("func", "createApp", "token",
-						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
-						Map.of("project", "trustingsocial"), "body",
-						mapper.convertValue(ts, ObjectNode.class).put("status", "PROCESSING")));
+//		rabbitMQService.send("tpf-service-app",
+//				Map.of("func", "createApp", "token",
+//						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
+//						Map.of("project", "trustingsocial"), "body",
+//						mapper.convertValue(ts, ObjectNode.class).put("status", "PROCESSING")));
 
 		return response(0, body, ts);
 	}
 
 	public Map<String, Object> updateTrustingSocial(JsonNode request) throws Exception {
-		return Map.of("status", 200);
+		JsonNode body = request.path("body");
+		JsonNode data = body.path("data");
+
+		Map<String, Object> comments = new HashMap<>();
+		comments.put("updatedAt", new Date());
+		comments.put("return", true);
+
+		if (data.path("dc_documents").isObject()) {
+			comments.put("document_type", data.path("dc_documents").path("document_type").asText());
+			comments.put("code", data.path("dc_documents").path("dc_return_code").asText());
+			comments.put("name", data.path("dc_documents").path("dc_return_code_desc").asText());
+			comments.put("request", data.path("dc_documents").path("dc_comment").asText());
+
+			Set<Map<?, ?>> response = new HashSet<>();
+			if (data.path("dc_documents").path("dc_ts_comment").isTextual()) {
+				response.add(getComment(null, null, null, data.path("dc_documents").path("dc_ts_comment").asText()));
+			}
+			if (data.path("dc_documents").path("dc_ts_documents").isArray()) {
+				data.path("dc_documents").path("dc_ts_documents").forEach(c -> {
+					response.add(getComment(c.path("document_type").asText(""), c.path("view_url").asText(""),
+							c.path("download_url").asText(""), c.path("comment").asText()));
+				});
+			}
+			comments.put("response", response);
+		} else if (data.path("information").isObject()) {
+			comments.put("code", data.path("information").path("info_query_code").asText());
+			comments.put("name", data.path("information").path("info_query_name").asText());
+			comments.put("request", data.path("information").path("info_query").asText());
+
+			Set<Map<?, ?>> response = new HashSet<>();
+			if (data.path("information").path("info_ts_comment").isTextual()) {
+				response.add(getComment(null, null, null, data.path("information").path("info_ts_comment").asText()));
+			}
+			if (data.path("information").path("info_ts_documents").isArray()) {
+				data.path("information").path("info_ts_documents").forEach(c -> {
+					response.add(getComment(c.path("document_type").asText(""), c.path("view_url").asText(""),
+							c.path("download_url").asText(""), c.path("comment").asText()));
+				});
+			}
+			comments.put("response", response);
+		}
+
+		TrustingSocial nEntity = mongoTemplate.findAndModify(
+				Query.query(Criteria.where("ts_lead_id").is(data.path("ts_lead_id").asText()).and("comments.code")
+						.is(comments.get("code")).and("comments.return").is(false)),
+				new Update().set("comments.$", comments), new FindAndModifyOptions().returnNew(true), TrustingSocial.class);
+
+		if (nEntity == null) {
+			return response(error.get("codeWasSubmit").get("code").asInt(), body,
+					Map.of("message", error.get("codeWasSubmit").get("message").asText()));
+		}
+
+		return response(0, body, nEntity);
+	}
+
+	private Map<?, ?> getComment(String document_type, String view_url, String download_url, String comment) {
+		Map<String, Object> c = new HashMap<>();
+		if (document_type != null && !document_type.isEmpty()) {
+			c.put("document_type", document_type);
+		}
+		if (view_url != null && !view_url.isEmpty()) {
+			c.put("view_url", view_url);
+		}
+		if (download_url != null && !download_url.isEmpty()) {
+			c.put("download_url", download_url);
+		}
+		if (comment != null && !comment.isEmpty()) {
+			c.put("comment", comment);
+		}
+		return c;
 	}
 
 	private JsonNode validation(JsonNode body, List<String> fields) {

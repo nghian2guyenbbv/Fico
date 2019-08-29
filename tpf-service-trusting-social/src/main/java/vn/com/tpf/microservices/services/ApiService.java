@@ -64,7 +64,7 @@ public class ApiService {
 			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(data), headers);
 			ResponseEntity<?> res = restTemplate.postForEntity(urlFirstCheckRisk, entity, Object.class);
 
-			JsonNode body = mapper.valueToTree(res.getBody());
+			JsonNode body = mapper.convertValue(res.getBody(), JsonNode.class);
 			if (body.path("first_check_result").isTextual()) {
 				return body.path("first_check_result").asText().toLowerCase();
 			}
