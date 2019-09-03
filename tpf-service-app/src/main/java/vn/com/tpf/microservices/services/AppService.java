@@ -330,27 +330,27 @@ public class AppService {
 	private void convertTrustingSocial(App entity, JsonNode request, String type) {
 		JsonNode body = request.path("body");
 		JsonNode uuid = body.path("id");
-		JsonNode partnerId = body.path("tsLeadId");
-		JsonNode firstName = body.path("firstName");
-		JsonNode middleName = body.path("middleName");
-		JsonNode lastName = body.path("lastName");
+		JsonNode partnerId = body.path("ts_lead_id");
+		JsonNode firstName = body.path("first_name");
+		JsonNode middleName = body.path("middle_name");
+		JsonNode lastName = body.path("last_name");
 		JsonNode photos = body.path("documents");
 		JsonNode status = body.path("status");
-		JsonNode nationalId = body.path("nationalId");
+		JsonNode nationalId = body.path("national_id");
 		JsonNode assigned = body.path("assigned");
 		JsonNode appId = body.path("appId");
 
 		if (type.equals("create")) {
 			Assert.isTrue(uuid.isTextual() && !uuid.asText().isEmpty(), "id is required string and not empty");
 			Assert.isTrue(partnerId.isTextual() && !partnerId.asText().isEmpty(),
-					"tsLeadId is required string and not empty");
+					"ts_lead_id is required string and not empty");
 			Assert.isTrue(firstName.isTextual() && !firstName.asText().isEmpty(),
-					"firstName is required string and not empty");
-			Assert.isTrue(middleName.isTextual(), "middleName is required string");
-			Assert.isTrue(lastName.isTextual() && !lastName.asText().isEmpty(), "lastName is required string and not empty");
+					"first_name is required string and not empty");
+			Assert.isTrue(middleName.isTextual(), "middle_name is required string");
+			Assert.isTrue(lastName.isTextual() && !lastName.asText().isEmpty(), "last_name is required string and not empty");
 			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required string and not empty");
 			Assert.isTrue(nationalId.isTextual() && !nationalId.asText().isEmpty(),
-					"nationalId is required string and not empty");
+					"national_id is required string and not empty");
 			Assert.isTrue(photos.isArray(), "documents is required array and not empty");
 		}
 
@@ -382,7 +382,7 @@ public class AppService {
 		if (photos.isArray()) {
 			Set<Map<?, ?>> pts = new HashSet<>();
 			photos.forEach(e -> {
-				pts.add(Map.of("type", e.path("document_type").asText(), "view_url", e.path("view_url").asText(),
+				pts.add(Map.of("document_type", e.path("document_type").asText(), "view_url", e.path("view_url").asText(),
 						"download_url", e.path("donwload_url").asText(), "createdAt", new Date()));
 			});
 			entity.setPhotos(pts);
