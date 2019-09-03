@@ -39,6 +39,7 @@ public class TrustingSocial {
 	private String province_code;
 	private String address_no;
 	private String ward;
+	private String stage;
 	private Set<Map<?, ?>> documents = new HashSet<>();
 	private Set<Map<?, ?>> comments = new HashSet<>();
 

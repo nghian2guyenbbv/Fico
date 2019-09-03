@@ -153,7 +153,6 @@ public class TrustingSocialService {
 		return response(0, body, Map.of("status", apiService.firstCheckRisk(data).equals("pass") ? "passed" : "rejected"));
 	}
 
-	@SuppressWarnings("unchecked")
 	public Map<String, Object> createTrustingSocial(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		JsonNode valid = validation(body,
@@ -200,7 +199,16 @@ public class TrustingSocialService {
 		ts.setDsa_code(data.path("dsa_code").asText());
 		ts.setTsa_code(data.path("tsa_code").asText());
 		ts.setWard(data.path("ward").asText());
-		ts.setDocuments(mapper.convertValue(data.path("documents"), Set.class));
+
+		Set<Map<?, ?>> documents = new HashSet<>();
+		data.path("documents").forEach(e -> {
+			Map<String, Object> doc = getComment(e.path("document_type").asText(""), e.path("view_url").asText(""),
+					e.path("download_url").asText(""), null);
+			doc.put("updatedAt", new Date());
+			documents.add(doc);
+		});
+		ts.setDocuments(documents);
+
 		mongoTemplate.save(ts);
 
 //		rabbitMQService.send("tpf-service-app",
@@ -268,7 +276,7 @@ public class TrustingSocialService {
 		return response(0, body, nEntity);
 	}
 
-	private Map<?, ?> getComment(String document_type, String view_url, String download_url, String comment) {
+	private Map<String, Object> getComment(String document_type, String view_url, String download_url, String comment) {
 		Map<String, Object> c = new HashMap<>();
 		if (document_type != null && !document_type.isEmpty()) {
 			c.put("document_type", document_type);

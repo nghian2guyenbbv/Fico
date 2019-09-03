@@ -10,3 +10,15 @@ spring:
   cloud:
     config:
       uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: uat
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: pro
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
