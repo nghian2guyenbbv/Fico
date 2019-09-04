@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
 public class ApiService {
@@ -41,7 +42,7 @@ public class ApiService {
 	private void init() {
 		ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
 		restTemplate = new RestTemplate(factory);
-		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
+		restTemplate.setInterceptors(Arrays.asList(new HttpLogService(mapper)));
 	}
 
 	public String firstCheckRisk(JsonNode request) {
@@ -69,10 +70,19 @@ public class ApiService {
 				return body.path("first_check_result").asText().toLowerCase();
 			}
 		} catch (HttpClientErrorException e) {
-			log.info("[==HTTP-LOG-RESPONSE==] : {}",
-					Map.of("payload", data, "status", e.getStatusCode(), "result", e.getResponseBodyAsString()));
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+			dataLogRes.set("status", mapper.convertValue(e.getStatusCode(), JsonNode.class));
+			dataLogRes.put("result", e.getResponseBodyAsString());
+			dataLogRes.set("payload", mapper.convertValue(data, JsonNode.class));
+			log.info("{}", dataLogRes);
 		} catch (Exception e) {
-			log.info("[==HTTP-LOG-RESPONSE==] : {}", Map.of("payload", data, "status", 500, "result", e.getMessage()));
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+			dataLogRes.put("status", 500);
+			dataLogRes.put("result", e.getMessage());
+			dataLogRes.set("payload", mapper.convertValue(data, JsonNode.class));
+			log.info("{}", dataLogRes);
 		}
 
 		return "pass";

@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
 public class RabbitMQService {
@@ -114,8 +115,16 @@ public class RabbitMQService {
 
 	public Message response(Message message, byte[] payload, Object object) throws Exception {
 		JsonNode obj = mapper.convertValue(object, JsonNode.class);
-		log.info("[==RABBITMQ-LOG==] : {}", Map.of("payload", new String(payload, "UTF-8"), "result",
-				Map.of("status", obj.path("status"), "message", obj.path("data").path("message"))));
+		ObjectNode dataLog = mapper.createObjectNode();
+		dataLog.put("type", "[==RABBITMQ-LOG==]");
+		dataLog.set("result", mapper.convertValue(
+				Map.of("status", obj.path("status"), "message", obj.path("data").path("message")), JsonNode.class));
+		try {
+			dataLog.set("payload", mapper.readTree(new String(payload, "UTF-8")));
+		} catch (Exception e) {
+			dataLog.put("payload", new String(payload, "UTF-8"));
+		}
+		log.info("{}", dataLog);
 
 		if (message.getMessageProperties().getReplyTo() != null) {
 			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();

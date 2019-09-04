@@ -19,3 +19,34 @@ spring:
   profiles: dev
   rabbitmq:
     host: tpf-opensource-rabbitmq
+  cloud:
+    config:
+      server:
+        git:
+          uri: http://tpf-opensource-git/service-app/tpf-config.git
+          username: service-app
+          password: service-app
+---
+spring:
+  profiles: uat
+  rabbitmq:
+    host: tpf-opensource-rabbitmq
+  cloud:
+    config:
+      server:
+        git:
+          uri: http://tpf-opensource-git/service-app/tpf-config.git
+          username: service-app
+          password: service-app
+---
+spring:
+  profiles: pro
+  rabbitmq:
+    host: tpf-opensource-rabbitmq
+  cloud:
+    config:
+      server:
+        git:
+          uri: http://tpf-opensource-git/service-app/tpf-config.git
+          username: service-app
+          password: service-app

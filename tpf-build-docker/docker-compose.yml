@@ -1,5 +1,15 @@
 version: '3.1'
 services:
+  tpf-opensource-git:
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    container_name: tpf-opensource-git
+    networks:
+    - service_network
+    ports:
+    - 8088:80
+    - 4443:443
+    - 22222:22
   tpf-opensource-rabbitmq:
     image: rabbitmq:3-management
     restart: always
