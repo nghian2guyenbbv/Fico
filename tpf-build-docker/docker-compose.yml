@@ -208,6 +208,24 @@ services:
     - tpf-opensource-rabbitmq
     - tpf-service-config
     - tpf-service-eureka
+  tpf-service-file:
+    image: node:10
+    restart: always
+    container_name: tpf-service-file
+    working_dir: /opt/tpf-service-file
+    environment:
+      NODE_ENV: dev
+    volumes:
+    - ./../tpf-service-file/server:/opt/tpf-service-file
+    command: node ./src/main.js
+    networks:
+    - service_network
+    ports:
+    - 3001:3001
+    depends_on:
+    - tpf-opensource-rabbitmq
+    - tpf-service-config
+    - tpf-service-eureka
   tpf-service-app:
     image: openjdk:11
     restart: always
