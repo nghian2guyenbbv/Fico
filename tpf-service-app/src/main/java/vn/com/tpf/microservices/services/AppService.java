@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -181,14 +182,14 @@ public class AppService {
 		if (entity.getPartnerId() != null) {
 			update.set("partnerId", entity.getPartnerId());
 		}
-		if (entity.getProductCode() != null) {
-			update.set("productCode", entity.getProductCode());
+		if (entity.getOptional() != null) {
+			update.set("optional", entity.getOptional());
 		}
-		if (entity.getSchemeCode() != null) {
-			update.set("schemeCode", entity.getSchemeCode());
+		if (!entity.getDocuments().isEmpty()) {
+			update.set("documents", entity.getDocuments());
 		}
-		if (!entity.getPhotos().isEmpty()) {
-			update.set("photos", entity.getPhotos());
+		if (!entity.getComments().isEmpty()) {
+			update.set("comments", entity.getComments());
 		}
 		if (entity.getStatus() != null) {
 			update.set("status", entity.getStatus());
@@ -255,7 +256,7 @@ public class AppService {
 		JsonNode middleName = body.path("middleName");
 		JsonNode lastName = body.path("lastName");
 		JsonNode automationResult = body.path("automationResult");
-		JsonNode photos = body.path("photos");
+		JsonNode documents = body.path("photos");
 		JsonNode status = body.path("status");
 		JsonNode scheme = body.path("loanDetail").path("product");
 		JsonNode assigned = body.path("assigned");
@@ -273,7 +274,7 @@ public class AppService {
 			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required string and not empty");
 			Assert.isTrue(scheme.isTextual() && !scheme.asText().isEmpty(),
 					"loanDetail.product is required string and not empty");
-			Assert.isTrue(photos.isArray(), "photos is required array and not empty");
+			Assert.isTrue(documents.isArray(), "photos is required array and not empty");
 		}
 
 		entity.setProject("fpt");
@@ -294,10 +295,6 @@ public class AppService {
 		if (partnerId.isNumber()) {
 			entity.setPartnerId(partnerId.asText());
 		}
-		if (scheme.isTextual() && !scheme.asText().isEmpty()) {
-			entity.setSchemeCode(scheme.asText());
-			entity.setProductCode(entity.getSchemeCode().split("_")[0]);
-		}
 		if (automationResult.isTextual() && !automationResult.asText().isEmpty()) {
 			entity.setAutomationResult(automationResult.asText());
 		}
@@ -309,13 +306,13 @@ public class AppService {
 			}
 			entity.setStatus(sts);
 		}
-		if (photos.isArray()) {
-			Set<Map<?, ?>> pts = new HashSet<>();
-			photos.forEach(e -> {
-				pts.add(Map.of("type", e.path("documentType").asText(), "view_url", e.path("link").asText(), "createdAt",
+		if (documents.isArray()) {
+			Set<Map<String, Object>> docs = new HashSet<>();
+			documents.forEach(e -> {
+				docs.add(Map.of("type", e.path("documentType").asText(), "view_url", e.path("link").asText(), "createdAt",
 						new Date()));
 			});
-			entity.setPhotos(pts);
+			entity.setDocuments(docs);
 		}
 	}
 
@@ -334,8 +331,15 @@ public class AppService {
 		JsonNode firstName = body.path("first_name");
 		JsonNode middleName = body.path("middle_name");
 		JsonNode lastName = body.path("last_name");
-		JsonNode photos = body.path("documents");
+		JsonNode documents = body.path("documents");
+		JsonNode comments = body.path("comments");
 		JsonNode status = body.path("status");
+		JsonNode stage = body.path("stage");
+		JsonNode dob = body.path("dob");
+		JsonNode city = body.path("province");
+		JsonNode loanAmount = body.path("score_range");
+		JsonNode scheme = body.path("product_code");
+		JsonNode dsaCode = body.path("dsa_code");
 		JsonNode nationalId = body.path("national_id");
 		JsonNode assigned = body.path("assigned");
 		JsonNode appId = body.path("appId");
@@ -351,7 +355,14 @@ public class AppService {
 			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required string and not empty");
 			Assert.isTrue(nationalId.isTextual() && !nationalId.asText().isEmpty(),
 					"national_id is required string and not empty");
-			Assert.isTrue(photos.isArray(), "documents is required array and not empty");
+			Assert.isTrue(dob.isTextual() && !dob.asText().isEmpty(), "dob is required string and not empty");
+			Assert.isTrue(city.isTextual() && !city.asText().isEmpty(), "province is required string and not empty");
+			Assert.isTrue(scheme.isTextual() && !scheme.asText().isEmpty(), "product_code is required string and not empty");
+			Assert.isTrue(loanAmount.isTextual() && !loanAmount.asText().isEmpty(),
+					"score_range is required string and not empty");
+			Assert.isTrue(dsaCode.isTextual() && !dsaCode.asText().isEmpty(), "dsa_code is required string and not empty");
+			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required string and not empty");
+			Assert.isTrue(documents.isArray(), "documents is required array and not empty");
 		}
 
 		entity.setProject("trustingsocial");
@@ -375,18 +386,77 @@ public class AppService {
 		if (status.isTextual() && !status.asText().isEmpty()) {
 			String sts = status.asText().toUpperCase();
 			if (sts.equals("PROCESSING")) {
-				sts = sts + "_" + "PASS";
+				sts = sts + "_" + "FAIL";
 			}
 			entity.setStatus(sts);
 		}
-		if (photos.isArray()) {
-			Set<Map<?, ?>> pts = new HashSet<>();
-			photos.forEach(e -> {
-				pts.add(Map.of("document_type", e.path("document_type").asText(), "view_url", e.path("view_url").asText(),
-						"download_url", e.path("donwload_url").asText(), "createdAt", new Date()));
+		if (documents.isArray()) {
+			Set<Map<String, Object>> docs = new HashSet<>();
+			documents.forEach(e -> {
+				docs.add(Map.of("document_type", e.path("document_type").asText(), "view_url", e.path("view_url").asText(),
+						"download_url", e.path("download_url").asText(), "updatedAt", e.path("updatedAt").asText()));
 			});
-			entity.setPhotos(pts);
+			entity.setDocuments(docs);
 		}
+		if (comments.isArray()) {
+			Set<Map<String, Object>> cmts = new HashSet<>();
+			comments.forEach(e -> {
+				Set<Map<String, Object>> response = new HashSet<>();
+				if (e.path("response").isArray()) {
+					e.path("response").forEach(c -> {
+						response.add(getComment(c.path("document_type").asText(""), c.path("view_url").asText(""),
+								c.path("download_url").asText(""), c.path("comment").asText()));
+					});
+				}
+				cmts.add(Map.of("code", e.path("code").asText(), "request", e.path("request").asText(), "name",
+						e.path("name").asText(), "document_type", e.path("document_type").asText(), "response", response,
+						"updatedAt", e.path("updatedAt").asText()));
+			});
+			entity.setComments(cmts);
+		}
+
+		Map<String, Object> optional = new HashMap<>();
+		if (dob.isTextual() && !dob.asText().isEmpty()) {
+			optional.put("dob", dob.asText());
+		}
+		if (city.isTextual() && !city.asText().isEmpty()) {
+			optional.put("city", city.asText());
+		}
+		if (loanAmount.isTextual() && !loanAmount.asText().isEmpty()) {
+			optional.put("loanAmount", loanAmount.asText());
+		}
+		if (scheme.isTextual() && !scheme.asText().isEmpty()) {
+			optional.put("scheme", scheme.asText());
+		}
+		if (dsaCode.isTextual() && !dsaCode.asText().isEmpty()) {
+			optional.put("dsaCode", dsaCode.asText());
+		}
+		if (nationalId.isTextual() && !nationalId.asText().isEmpty()) {
+			optional.put("nationalId", nationalId.asText());
+		}
+		if (stage.isTextual() && !stage.asText().isEmpty()) {
+			optional.put("stage", stage.asText());
+		}
+		if (!optional.isEmpty()) {
+			entity.setOptional(optional);
+		}
+	}
+
+	private Map<String, Object> getComment(String document_type, String view_url, String download_url, String comment) {
+		Map<String, Object> c = new HashMap<>();
+		if (document_type != null && !document_type.isEmpty()) {
+			c.put("document_type", document_type);
+		}
+		if (view_url != null && !view_url.isEmpty()) {
+			c.put("view_url", view_url);
+		}
+		if (download_url != null && !download_url.isEmpty()) {
+			c.put("download_url", download_url);
+		}
+		if (comment != null && !comment.isEmpty()) {
+			c.put("comment", comment);
+		}
+		return c;
 	}
 
 }

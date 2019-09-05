@@ -66,11 +66,11 @@ public class TrustingSocialService {
 		error.set("gender", mapper.convertValue(gender, JsonNode.class));
 		Map<?, ?> provinceCode = Map.of("code", 110, "message", "province_code is required number");
 		error.set("provinceCode", mapper.convertValue(provinceCode, JsonNode.class));
-		Map<?, ?> provinceNotExists = Map.of("code", 111, "message", "District Code Not Exits");
+		Map<?, ?> provinceNotExists = Map.of("code", 111, "message", "province_code not exits");
 		error.set("provinceNotExists", mapper.convertValue(provinceNotExists, JsonNode.class));
 		Map<?, ?> districtCode = Map.of("code", 112, "message", "district_code is required number");
 		error.set("districtCode", mapper.convertValue(districtCode, JsonNode.class));
-		Map<?, ?> districtNotExists = Map.of("code", 113, "message", "District Code Not Exits");
+		Map<?, ?> districtNotExists = Map.of("code", 113, "message", "district_code not exits");
 		error.set("districtNotExists", mapper.convertValue(districtNotExists, JsonNode.class));
 		Map<?, ?> tsLeadId = Map.of("code", 114, "message", "ts_lead_id is required string and not empty");
 		error.set("tsLeadId", mapper.convertValue(tsLeadId, JsonNode.class));
@@ -88,6 +88,8 @@ public class TrustingSocialService {
 		error.set("documents", mapper.convertValue(documents, JsonNode.class));
 		Map<?, ?> codeWasSubmit = Map.of("code", 121, "message", "dc_return_code or info_query_code was submit");
 		error.set("codeWasSubmit", mapper.convertValue(codeWasSubmit, JsonNode.class));
+		Map<?, ?> stage = Map.of("code", 122, "message", "stage is required string and not empty");
+		error.set("stage", mapper.convertValue(stage, JsonNode.class));
 	}
 
 	private Map<String, Object> response(int code, JsonNode body, Object data) {
@@ -200,7 +202,7 @@ public class TrustingSocialService {
 		ts.setTsa_code(data.path("tsa_code").asText());
 		ts.setWard(data.path("ward").asText());
 
-		Set<Map<?, ?>> documents = new HashSet<>();
+		Set<Map<String, Object>> documents = new HashSet<>();
 		data.path("documents").forEach(e -> {
 			Map<String, Object> doc = getComment(e.path("document_type").asText(""), e.path("view_url").asText(""),
 					e.path("download_url").asText(""), null);
@@ -211,22 +213,35 @@ public class TrustingSocialService {
 
 		mongoTemplate.save(ts);
 
-//		rabbitMQService.send("tpf-service-app",
-//				Map.of("func", "createApp", "token",
-//						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
-//						Map.of("project", "trustingsocial"), "body",
-//						mapper.convertValue(ts, ObjectNode.class).put("status", "PROCESSING")));
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "createApp", "token",
+						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
+						Map.of("project", "trustingsocial"), "body",
+						mapper.convertValue(ts, ObjectNode.class).put("status", "PROCESSING")));
 
 		return response(0, body, ts);
 	}
 
 	public Map<String, Object> updateTrustingSocial(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
+		JsonNode valid = validation(body, Arrays.asList("request_id", "date_time", "data.ts_lead_id", "data.stage"));
+
+		if (valid != null) {
+			return response(valid.get("code").asInt(), body, Map.of("message", valid.get("message").asText()));
+		}
+
 		JsonNode data = body.path("data");
 
+		Query query = Query.query(Criteria.where("ts_lead_id").is(data.path("ts_lead_id").asText()));
+		TrustingSocial oEntity = mongoTemplate.findOne(query, TrustingSocial.class);
+
+		if (oEntity == null) {
+			return Map.of("status", 404, "data", Map.of("message", "TsLeadId Not Found"));
+		}
+
+		Set<Map<?, ?>> response = new HashSet<>();
 		Map<String, Object> comments = new HashMap<>();
 		comments.put("updatedAt", new Date());
-		comments.put("return", true);
 
 		if (data.path("dc_documents").isObject()) {
 			comments.put("document_type", data.path("dc_documents").path("document_type").asText());
@@ -234,7 +249,6 @@ public class TrustingSocialService {
 			comments.put("name", data.path("dc_documents").path("dc_return_code_desc").asText());
 			comments.put("request", data.path("dc_documents").path("dc_comment").asText());
 
-			Set<Map<?, ?>> response = new HashSet<>();
 			if (data.path("dc_documents").path("dc_ts_comment").isTextual()) {
 				response.add(getComment(null, null, null, data.path("dc_documents").path("dc_ts_comment").asText()));
 			}
@@ -250,7 +264,6 @@ public class TrustingSocialService {
 			comments.put("name", data.path("information").path("info_query_name").asText());
 			comments.put("request", data.path("information").path("info_query").asText());
 
-			Set<Map<?, ?>> response = new HashSet<>();
 			if (data.path("information").path("info_ts_comment").isTextual()) {
 				response.add(getComment(null, null, null, data.path("information").path("info_ts_comment").asText()));
 			}
@@ -263,15 +276,42 @@ public class TrustingSocialService {
 			comments.put("response", response);
 		}
 
-		TrustingSocial nEntity = mongoTemplate.findAndModify(
-				Query.query(Criteria.where("ts_lead_id").is(data.path("ts_lead_id").asText()).and("comments.code")
-						.is(comments.get("code")).and("comments.return").is(false)),
-				new Update().set("comments.$", comments), new FindAndModifyOptions().returnNew(true), TrustingSocial.class);
+		boolean isCodeWasSubmit = true;
+		for (Map<String, Object> c : oEntity.getComments()) {
+			if (c.get("response") == null && c.get("code") != null && c.get("code").equals(comments.get("code"))) {
+				c.put("response", comments.get("response"));
+				isCodeWasSubmit = false;
+				break;
+			}
+		}
 
-		if (nEntity == null) {
+		if (isCodeWasSubmit) {
 			return response(error.get("codeWasSubmit").get("code").asInt(), body,
 					Map.of("message", error.get("codeWasSubmit").get("message").asText()));
 		}
+
+		oEntity.getDocuments().forEach(c -> {
+			response.forEach(r -> {
+				if (c.get("document_type") != null && r.get("document_type") != null
+						&& c.get("document_type").equals(r.get("document_type"))) {
+					c.put("download_url", r.get("download_url"));
+					c.put("view_url", r.get("view_url"));
+					c.put("updatedAt", new Date());
+					return;
+				}
+			});
+		});
+
+		Update update = new Update().set("comments", oEntity.getComments())
+				.set("stage", data.path("stage").asText().toUpperCase()).set("documents", oEntity.getDocuments());
+
+		TrustingSocial nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				TrustingSocial.class);
+
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "updateApp", "token",
+						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
+						Map.of("project", "trustingsocial", "id", nEntity.getId()), "body", nEntity));
 
 		return response(0, body, nEntity);
 	}
@@ -363,6 +403,10 @@ public class TrustingSocialService {
 			if (field.equals("data.ward")
 					&& (!body.path("data").path("ward").isTextual() || body.path("data").path("ward").asText().isEmpty())) {
 				return error.get("ward");
+			}
+			if (field.equals("data.stage")
+					&& (!body.path("data").path("stage").isTextual() || body.path("data").path("stage").asText().isEmpty())) {
+				return error.get("stage");
 			}
 			if (field.equals("data.documents")
 					&& (!body.path("data").path("documents").isArray() || body.path("data").path("documents").size() == 0)) {
