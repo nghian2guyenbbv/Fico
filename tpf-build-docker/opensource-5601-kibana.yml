@@ -1,0 +1,18 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-opensource-kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.0
+    hostname: tpf-opensource-kibana
+    volumes:
+      - ./mount/kibana:/opt/kibana/config
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 5601:5601

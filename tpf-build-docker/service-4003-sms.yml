@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-sms:
+    image: openjdk:11
+    hostname: tpf-service-sms
+    working_dir: /opt/tpf-service-sms
+    command: bash -c 'cd /opt/tpf-service-sms && java -jar tpf-service-sms-1.0.jar'
+    volumes:
+      - ./../tpf-service-sms/target:/opt/tpf-service-sms
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4003:4003

@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-assets:
+    image: openjdk:11
+    hostname: tpf-service-assets
+    working_dir: /opt/tpf-service-assets
+    command: bash -c 'cd /opt/tpf-service-assets && java -jar tpf-service-assets-1.0.jar'
+    volumes:
+      - ./../tpf-service-assets/target:/opt/tpf-service-assets
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4002:4002

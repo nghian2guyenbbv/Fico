@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-vindid:
+    image: openjdk:11
+    hostname: tpf-service-vindid
+    working_dir: /opt/tpf-service-vindid
+    command: bash -c 'cd /opt/tpf-service-vindid && java -jar tpf-service-vindid-1.0.jar'
+    volumes:
+      - ./../tpf-service-vindid/target:/opt/tpf-service-vindid
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4007:4007

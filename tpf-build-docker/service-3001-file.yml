@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-file:
+    image: node:10
+    hostname: tpf-service-file
+    working_dir: /opt/tpf-service-file
+    command: node ./src/main.js
+    volumes:
+      - ./../tpf-service-file/server:/opt/tpf-service-file
+    environment:
+      NODE_ENV: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 3001:3001

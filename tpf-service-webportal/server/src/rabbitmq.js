@@ -16,10 +16,11 @@ class Rabbit {
 					const roomFrom = ['default', from + project]
 					const roomTo = ['default', to + project]
 					if (from !== to) {
-						roomFrom.forEach(r => IO.to(r).send({ action: 'DELETE', data }))
-						roomTo.forEach(r => IO.to(r).send({ action: 'CREATE', data }))
+						roomFrom.forEach(r => IO.to(r).send({ action: 'DELETE', from, to, project, data }))
+						roomTo.forEach(r => IO.to(r).send({ action: 'CREATE', from, to, project, data }))
 					} else {
-						roomFrom.forEach(r => IO.to(r).send({ action: 'UPDATE', data }))
+						if (!from) IO.send({ action: 'UPDATE', from, to, project, data })
+						else roomFrom.forEach(r => IO.to(r).send({ action: 'UPDATE', from, to, project, data }))
 					}
 				} catch (error) {
 					console.error(error)

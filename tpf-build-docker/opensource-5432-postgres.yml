@@ -1,0 +1,21 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-opensource-postgres:
+    image: postgres
+    hostname: tpf-opensource-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./mount/postgres:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 5432:5432

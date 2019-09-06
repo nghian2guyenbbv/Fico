@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-eureka:
+    image: openjdk:11
+    hostname: tpf-service-eureka
+    working_dir: /opt/tpf-service-eureka
+    command: bash -c 'cd /opt/tpf-service-eureka && java -jar tpf-service-eureka-1.0.jar'
+    volumes:
+      - ./../tpf-service-eureka/target:/opt/tpf-service-eureka
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 8761:8761

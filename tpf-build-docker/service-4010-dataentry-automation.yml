@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-dataentry-automation:
+    image: openjdk:11
+    hostname: tpf-service-dataentry-automation
+    working_dir: /opt/tpf-service-dataentry-automation
+    command: bash -c 'cd /opt/tpf-service-dataentry-automation && java -jar tpf-service-dataentry-automation-1.0.jar'
+    volumes:
+      - ./../tpf-service-dataentry-automation/target:/opt/tpf-service-dataentry-automation
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4010:4010
