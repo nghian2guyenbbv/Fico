@@ -1,0 +1,120 @@
+package vn.com.tpf.microservices.models;
+
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.util.Date;
+
+@Entity
+@Table(name = "fico_customer_current_amount", schema = "payoo")
+public class FicoCustomer {
+    @Id
+    //@GeneratedValue(strategy= GenerationType.IDENTITY)
+    @Column(name="loanid", nullable = false, unique = true)
+    private long loanId;
+
+    @Column(name="duedate")
+    private Date dueDate;
+
+    @Column(name="loan_account_no", unique = true, nullable = false)
+    private String loanAccountNo;
+
+    @Column(name="identification_number")
+    private String identificationNumber;
+
+    @Column(name="customer_name")
+    private String customerName;
+
+    @Column(name="installment_amount")
+    private long installmentAmount;
+
+    @Column(name = "net_amount")
+    private long netAmount;
+
+    public FicoCustomer() {
+    }
+
+    public long getLoanId() {
+        return loanId;
+    }
+
+    public void setLoanId(long loanId) {
+        this.loanId = loanId;
+    }
+
+    public Date getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(Date dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public String getLoanAccountNo() {
+        return loanAccountNo;
+    }
+
+    public void setLoanAccountNo(String loanAccountNo) {
+        this.loanAccountNo = loanAccountNo;
+    }
+
+    public String getIdentificationNumber() {
+        return identificationNumber;
+    }
+
+    public void setIdentificationNumber(String identificationNumber) {
+        this.identificationNumber = identificationNumber;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public long getInstallmentAmount() {
+        return installmentAmount;
+    }
+
+    public void setInstallmentAmount(long installmentAmount) {
+        this.installmentAmount = installmentAmount;
+    }
+
+    public long getNetAmount() {
+        return netAmount;
+    }
+
+    public void setNetAmount(long netAmount) {
+        this.netAmount = netAmount;
+    }
+
+    @Override
+    public String toString() {
+        return "{\n"
+                + " \"loanId\":" + loanId
+                + ",\n  \"dueDate\":\"" + dueDate + "\""
+                + ",\n  \"loanAccountNo\":\"" + loanAccountNo + "\""
+                + ",\n  \"identificationNumber\":\"" + identificationNumber + "\""
+                + ",\n  \"customerName\":\"" + customerName + "\""
+                + ",\n  \"installmentAmount\":\"" + installmentAmount + "\""
+                + ",\n  \"netAmount\":\"" + netAmount + "\""
+                + "\n}";
+    }
+
+    /*@Override
+    public String toString() {
+        return "{\"FicoCustomer\":{"
+                + "                        \"loanId\":\"" + loanId + "\""
+                + ",                         \"dueDate\":" + dueDate
+                + ",                         \"loanAccountNo\":\"" + loanAccountNo + "\""
+                + ",                         \"identificationNumber\":\"" + identificationNumber + "\""
+                + ",                         \"customerName\":\"" + customerName + "\""
+                + ",                         \"installmentAmount\":\"" + installmentAmount + "\""
+                + ",                         \"netAmount\":\"" + netAmount + "\""
+                + "}}";
+    }*/
+}
