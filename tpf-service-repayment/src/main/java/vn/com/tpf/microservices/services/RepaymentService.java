@@ -3,7 +3,6 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.dao.FicoCustomerDAO;
@@ -28,9 +27,6 @@ public class RepaymentService {
 
 	@Autowired
 	private ObjectMapper mapper;
-
-	@Autowired
-	private MongoTemplate mongoTemplate;
 
 	@Autowired
 	private RabbitMQService rabbitMQService;
