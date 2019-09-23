@@ -41,11 +41,13 @@ public class RepaymentService {
 
 	public Map<String, Object> getCustomers(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
 		try{
 			List<FicoCustomer> ficoCustomerList = null;
 
 			Assert.notNull(request.get("body"), "no body");
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			request_id = requestModel.getRequest_id();
 
 			String inputValue = requestModel.getData().getSearch_value();
 
@@ -70,16 +72,22 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
-			responseModel.setFailMessage("Error: " + e.getMessage());
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("500");
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
 
 	public Map<String, Object> getCustomers_pay(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
 		try{
 			Assert.notNull(request.get("body"), "no body");
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			request_id = requestModel.getRequest_id();
 
 			String inputValue = requestModel.getData().getTransaction_id();
 
@@ -100,7 +108,11 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
-			responseModel.setFailMessage("Error: " + e.getMessage());
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("500");
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -118,36 +130,44 @@ public class RepaymentService {
 
 			FicoTransPay getByTransactionId = ficoTransPayDAO.findByTransactionId(requestModel.getData().getTransaction_id());
 			if (getByTransactionId == null) {
+				FicoCustomer ficoLoanId = ficoCustomerDAO.findByLoanId(requestModel.getData().getLoan_id());
+				List<FicoCustomer> ficoLoanAcct = ficoCustomerDAO.findByLoanAccountNo(requestModel.getData().getLoan_account_no());
 
-				ficoTransPay.setLoanId(requestModel.getData().getLoan_id());
-				ficoTransPay.setLoanAccountNo(requestModel.getData().getLoan_account_no());
-				ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
-				ficoTransPay.setTransactionId(requestModel.getData().getTransaction_id());
-				ficoTransPay.setAmount(requestModel.getData().getAmount());
-				ficoTransPay.setCreateDate(requestModel.getDate_time());
+				if (ficoLoanId != null && ficoLoanAcct != null){
+					ficoTransPay.setLoanId(requestModel.getData().getLoan_id());
+					ficoTransPay.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
+					ficoTransPay.setTransactionId(requestModel.getData().getTransaction_id());
+					ficoTransPay.setAmount(requestModel.getData().getAmount());
+					ficoTransPay.setCreateDate(requestModel.getDate_time());
 
-				ficoTransPayDAO.save(ficoTransPay);
+					ficoTransPayDAO.save(ficoTransPay);
 
-				responseModel.setRequest_id(requestModel.getRequest_id());
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(date_time);
-				responseModel.setResult_code("0");
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(date_time);
+					responseModel.setResult_code("0");
+				}else{
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(date_time);
+					responseModel.setResult_code("2");
+					responseModel.setMessage("Not exits");
+				}
 			}else {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(date_time);
 				responseModel.setResult_code("1");
 				responseModel.setMessage("transaction_id already exists.");
-
-				return Map.of("status", 200, "data", responseModel);
 			}
 		}
 		catch (Exception e) {
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("1");
-			responseModel.setMessage(e.toString());
+			responseModel.setResult_code("500");
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
