@@ -1,6 +1,6 @@
 spring:
   application:
-    name: tpf-service-collection
+    name: tpf-service-repayment
   cloud:
     config:
       uri: http://localhost:8888

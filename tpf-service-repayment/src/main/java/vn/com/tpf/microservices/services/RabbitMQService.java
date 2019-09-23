@@ -48,7 +48,7 @@ public class RabbitMQService {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	private CollectionService collectionService;
+	private RepaymentService repaymentService;
 
 	@PostConstruct
 	private void init() {
@@ -143,18 +143,18 @@ public class RabbitMQService {
 
 			switch (request.path("func").asText()) {
 			case "getCustomers":
-				if (scopes.matches(".*(\"tpf-service-collection\").*")) {
-					return response(message, payload, collectionService.getCustomers(request));
+				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+					return response(message, payload, repaymentService.getCustomers(request));
 				}
 				break;
 			case "getCustomers_pay":
-				if (scopes.matches(".*(\"tpf-service-collection\").*")) {
-					return response(message, payload, collectionService.getCustomers_pay(request));
+				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+					return response(message, payload, repaymentService.getCustomers_pay(request));
 				}
 				break;
 			case "customers_pay":
-				if (scopes.matches(".*(\"tpf-service-collection\").*")) {
-					return response(message, payload, collectionService.customers_pay(request));
+				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+					return response(message, payload, repaymentService.customers_pay(request));
 				}
 				break;
 			default:

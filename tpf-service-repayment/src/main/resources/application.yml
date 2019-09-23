@@ -2,7 +2,8 @@
 #  rabbitmq:
 #    host: 192.168.0.200
 #  datasource:
-#      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
+##      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
+#        url: jdbc:postgresql://10.1.66.30:5435/ficodb
 #security:
 #  oauth2:
 #    client:

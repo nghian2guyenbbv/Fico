@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class CollectionService {
+public class RepaymentService {
 
 	private static final String AUTOMATION = "automation";
 	private static final String DOCUMENT_CHECK = "document_check";
