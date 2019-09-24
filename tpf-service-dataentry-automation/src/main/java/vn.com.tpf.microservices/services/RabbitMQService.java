@@ -148,9 +148,9 @@ public class RabbitMQService {
 					return response(message, payload, automationService.fullInfoApp(request));
 				}
 				break;
-			case "updateInfoApp":
+			case "updateAppError":
 					if (scopes.matches(".*(\"tpf-service-dataentry-automation\").*")) {
-						return response(message, payload, automationService.updateInfoApp(request));
+						return response(message, payload, automationService.updateAppError(request));
 					}
 					break;
 			default:

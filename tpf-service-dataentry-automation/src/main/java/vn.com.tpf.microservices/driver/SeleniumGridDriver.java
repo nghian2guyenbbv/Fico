@@ -31,11 +31,11 @@ public class SeleniumGridDriver {
 //        Platform platform = Platform.fromString(os.toUpperCase());
         if (browser.equalsIgnoreCase("chrome")) {
             ChromeOptions chromeOptions = new ChromeOptions();
-            chromeOptions.addArguments("headless");
-            chromeOptions.addArguments("--incognito");
+            //chromeOptions.addArguments("headless");
+            //chromeOptions.addArguments("--incognito");
 //            chromeOptions.addArguments("start-maximized");
-            chromeOptions.addArguments("window-size=2560x3000");
-            //chromeOptions.addArguments("window-size=1920x1080");
+            //chromeOptions.addArguments("window-size=2560x3000");
+            chromeOptions.addArguments("window-size=1920x1080");
 //            chromeOptions.setCapability("platform", platform);
             this.driver = new RemoteWebDriver(new URL("http://" + host + ":4545/wd/hub"), chromeOptions);
         } else if (browser.equalsIgnoreCase("firefox")) {

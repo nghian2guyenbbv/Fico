@@ -210,6 +210,7 @@ public class LeadDetailPage {
 
             schemeInputElement.sendKeys(quickLead.getSchemeCode());
             schemeInputElement.sendKeys(Keys.ENTER);
+            Utilities.captureScreenShot(_driver);
 
             //ACTIVITY
             activityElement.click();
@@ -280,11 +281,8 @@ public class LeadDetailPage {
 
                         photoElement.get(_tempIndex).sendKeys(photoUrl);
 
-                        // Added sleep to make you see the difference.
-                        Thread.sleep(2000);
-
-                        Utilities.captureScreenShot(_driver);
-                        System.out.println(photoElement.get(_tempIndex).getText());
+//                        // Added sleep to make you see the difference.
+//                        Thread.sleep(2000);
                     }
                 }
                 index++;
