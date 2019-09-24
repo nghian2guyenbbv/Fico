@@ -133,7 +133,7 @@ public class RepaymentService {
 				FicoCustomer ficoLoanId = ficoCustomerDAO.findByLoanId(requestModel.getData().getLoan_id());
 				List<FicoCustomer> ficoLoanAcct = ficoCustomerDAO.findByLoanAccountNo(requestModel.getData().getLoan_account_no());
 
-				if (ficoLoanId != null && ficoLoanAcct != null){
+				if (ficoLoanId != null && ficoLoanAcct.size() > 0){
 					ficoTransPay.setLoanId(requestModel.getData().getLoan_id());
 					ficoTransPay.setLoanAccountNo(requestModel.getData().getLoan_account_no());
 					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());

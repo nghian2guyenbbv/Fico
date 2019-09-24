@@ -1,6 +1,8 @@
 package vn.com.tpf.microservices.models;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -13,24 +15,31 @@ public class FicoCustomer {
     @Id
     //@GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name="loanid", nullable = false, unique = true)
+    @JsonProperty("loan_id")
     private long loanId;
 
     @Column(name="duedate")
+    @JsonProperty("due_date")
     private Date dueDate;
 
     @Column(name="loan_account_no", unique = true, nullable = false)
+    @JsonProperty("loan_account_no")
     private String loanAccountNo;
 
     @Column(name="identification_number")
+    @JsonProperty("identification_number")
     private String identificationNumber;
 
     @Column(name="customer_name")
+    @JsonProperty("customer_name")
     private String customerName;
 
     @Column(name="installment_amount")
+    @JsonProperty("installment_amount")
     private long installmentAmount;
 
     @Column(name = "net_amount")
+    @JsonProperty("net_amount")
     private long netAmount;
 
     public FicoCustomer() {

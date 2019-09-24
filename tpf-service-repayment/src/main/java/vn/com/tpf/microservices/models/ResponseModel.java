@@ -1,8 +1,15 @@
 package vn.com.tpf.microservices.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
+
+import javax.persistence.*;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 public class ResponseModel<T> implements Serializable {
 
@@ -10,6 +17,7 @@ public class ResponseModel<T> implements Serializable {
     private String reference_id;
     private Timestamp date_time;
     private String result_code;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String message;
 
     private T data;

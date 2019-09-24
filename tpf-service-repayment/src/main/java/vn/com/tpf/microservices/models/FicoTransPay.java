@@ -1,5 +1,7 @@
 package vn.com.tpf.microservices.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -15,18 +17,23 @@ public class FicoTransPay implements Serializable {
     private long id;
 
     @Column(name="transaction_id", unique = true, nullable = false)
+    @JsonProperty("transaction_id")
     private String transactionId;
 
     @Column(name="loanid", nullable = false)
+    @JsonProperty("loan_id")
     private long loanId;
 
     @Column(name="create_date")
+    @JsonProperty("create_date")
     private Timestamp createDate;
 
     @Column(name="loan_account_no")
+    @JsonProperty("loan_account_no")
     private String loanAccountNo;
 
     @Column(name="identification_number")
+    @JsonProperty("identification_number")
     private String identificationNumber;
 
     @Column(name="amount")
