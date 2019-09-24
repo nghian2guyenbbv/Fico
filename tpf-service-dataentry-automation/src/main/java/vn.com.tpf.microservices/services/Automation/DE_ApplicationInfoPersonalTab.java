@@ -621,11 +621,24 @@ public class DE_ApplicationInfoPersonalTab {
 
         Actions actions = new Actions(_driver);
 
+        //check xem co address nao empty type ko
+
+        if(viewTagElement.size()!=0)
+        {
+            for (WebElement e : viewTagElement)
+            {
+                if(e.getText().equals(""))
+                {
+                    WebElement weDel =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'')]//ancestor::tr//*[contains(@id,'deleteTag')]"));
+                    weDel.click();
+                }
+            }
+        }
+
         await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCreateAnotherElement.isDisplayed());
 
         btnCreateAnotherElement.click();
-
 
         for (AddressDTO data : datas) {
 
@@ -633,10 +646,6 @@ public class DE_ApplicationInfoPersonalTab {
             await("trAddressListElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> trAddressListElement.size() > 0);
             Utilities.captureScreenShot(_driver);
-
-            //check đã chay dc bao nhieu address
-//            await("viewTagElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> viewTagElement.size()>0);
 
 
             if(_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]")).size()!=0)
@@ -648,11 +657,6 @@ public class DE_ApplicationInfoPersonalTab {
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//            await("updateMobilePhoneNumberElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> updateMobilePhoneNumberElement.isDisplayed());
-//
-//
-//            updateMobilePhoneNumberElement.click();
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
@@ -665,11 +669,6 @@ public class DE_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-//
-//			Select addressSelect = new Select(addressTypeElement);
-//			await("Address loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> addressSelect.getOptions().size() > 0);
-//			addressSelect.selectByVisibleText(data.getAddressType());
 
                 actions.moveToElement(textCountryElement).click().build().perform();
                 await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -681,11 +680,6 @@ public class DE_ApplicationInfoPersonalTab {
                     }
                 }
 
-//			Select countrySelect = new Select(textCountryElement);
-//			await("Country loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> countrySelect.getOptions().size() > 0);
-//			countrySelect.selectByVisibleText(data.getCountry());
-
                 actions.moveToElement(regionElement).click().build().perform();
                 await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> regionOptionElement.size() > 1);
@@ -695,27 +689,13 @@ public class DE_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-//			Select regionSelect = new Select(regionElement);
-//			await("Region loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> regionSelect.getOptions().size() > 0);
-//			regionSelect.selectByVisibleText(data.getRegion());
 
                 actions.moveToElement(cityElement).click().build().perform();
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> cityOptionElement.size() > 1);
-//            for (WebElement element : cityOptionElement) {
-//                if (element.getText().equals(data.getCity())) {
-//                    element.click();
-//                    break;
-//                }
-//            }
                 cityInputElement.sendKeys(data.getCity().toUpperCase());
                 cityInputElement.sendKeys(Keys.ENTER);
 
-//            Select citySelect = new Select(cityElement);
-//            await("City loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> citySelect.getOptions().size() > 0);
-//            citySelect.selectByVisibleText(data.getCity());
                 pinCodeElement.clear();
                 pinCodeElement.sendKeys("%%%");
                 await("Pincode loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -731,10 +711,7 @@ public class DE_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-//            Select areaSelect = new Select(areaElement);
-//            await("Area loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> areaSelect.getOptions().size() > 0);
-//            areaSelect.selectByVisibleText(data.getArea());
+
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
                 address2Element.clear();
@@ -746,8 +723,6 @@ public class DE_ApplicationInfoPersonalTab {
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
-//            currentCityYearsElement.sendKeys(data.getCityDurationYear());
-//            currentCityMonthsElement.sendKeys(data.getCityDurationMonth());
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 Utilities.captureScreenShot(_driver);
@@ -762,11 +737,6 @@ public class DE_ApplicationInfoPersonalTab {
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//            await("updateMobilePhoneNumberElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> updateMobilePhoneNumberElement.isDisplayed());
-//
-//
-//            updateMobilePhoneNumberElement.click();
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
@@ -779,11 +749,6 @@ public class DE_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-//
-//			Select addressSelect = new Select(addressTypeElement);
-//			await("Address loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> addressSelect.getOptions().size() > 0);
-//			addressSelect.selectByVisibleText(data.getAddressType());
 
                 actions.moveToElement(textCountryElement).click().build().perform();
                 await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -795,11 +760,6 @@ public class DE_ApplicationInfoPersonalTab {
                     }
                 }
 
-//			Select countrySelect = new Select(textCountryElement);
-//			await("Country loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> countrySelect.getOptions().size() > 0);
-//			countrySelect.selectByVisibleText(data.getCountry());
-
                 actions.moveToElement(regionElement).click().build().perform();
                 await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> regionOptionElement.size() > 1);
@@ -809,27 +769,14 @@ public class DE_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-//			Select regionSelect = new Select(regionElement);
-//			await("Region loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> regionSelect.getOptions().size() > 0);
-//			regionSelect.selectByVisibleText(data.getRegion());
 
                 actions.moveToElement(cityElement).click().build().perform();
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> cityOptionElement.size() > 1);
-//            for (WebElement element : cityOptionElement) {
-//                if (element.getText().equals(data.getCity())) {
-//                    element.click();
-//                    break;
-//                }
-//            }
+
                 cityInputElement.sendKeys(data.getCity().toUpperCase());
                 cityInputElement.sendKeys(Keys.ENTER);
 
-//            Select citySelect = new Select(cityElement);
-//            await("City loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> citySelect.getOptions().size() > 0);
-//            citySelect.selectByVisibleText(data.getCity());
                 pinCodeElement.clear();
                 pinCodeElement.sendKeys("%%%");
                 await("Pincode loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -845,10 +792,7 @@ public class DE_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-//            Select areaSelect = new Select(areaElement);
-//            await("Area loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> areaSelect.getOptions().size() > 0);
-//            areaSelect.selectByVisibleText(data.getArea());
+
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
                 address2Element.clear();
@@ -860,8 +804,7 @@ public class DE_ApplicationInfoPersonalTab {
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
-//            currentCityYearsElement.sendKeys(data.getCityDurationYear());
-//            currentCityMonthsElement.sendKeys(data.getCityDurationMonth());
+
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 Utilities.captureScreenShot(_driver);
@@ -1076,14 +1019,14 @@ public class DE_ApplicationInfoPersonalTab {
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnCheckDuplicateUpdateElement.isEnabled());
+                .until(() -> btnCheckDuplicateUpdateElement.isDisplayed());
 
         Actions actions=new Actions(_driver);
-         actions.moveToElement(btnCheckDuplicateUpdateElement).click().build().perform();
-        //btnCheckDuplicateElement.click();
+         //actions.moveToElement(btnCheckDuplicateUpdateElement).click().build().perform();
+        btnCheckDuplicateElement.click();
 
          //ko hien thi
-         await("Button check address duplicate not enabled").atMost(60, TimeUnit.SECONDS)
+         await("numDuplicateElement text not enabled").atMost(60, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
 
         saveAndNext();

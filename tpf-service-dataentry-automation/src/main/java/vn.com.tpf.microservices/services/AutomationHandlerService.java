@@ -467,6 +467,7 @@ public class AutomationHandlerService {
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
                         error += " - " + we.getText();
                     }
+                    application.setError(error);
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -503,7 +504,12 @@ public class AutomationHandlerService {
             switch (stageError)
             {
                 case "END OF LEAD DETAIL":
-                    updateAppError_EndLeadDetail(driver,stageError,accountDTO,leadAppID,mapValue);
+                    if(application.getError()!=null && application.getError().contains("Address")){
+                        updateAppError_EndLeadDetailWithAddress(driver, stageError, accountDTO, leadAppID, mapValue);
+                    }
+                    else {
+                        updateAppError_EndLeadDetail(driver, stageError, accountDTO, leadAppID, mapValue);
+                    }
                     break;
                 case "PERSONAL INFORMATION":
                     updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
@@ -1080,6 +1086,196 @@ public class AutomationHandlerService {
             application.setStatus("OK");
             application.setDescription("Thanh cong");
 
+        } catch (Exception e) {
+            //UPDATE STATUS
+            application.setStatus("ERROR");
+            application.setStage(stage);
+            application.setDescription(e.getMessage());
+
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+
+            if (e.getMessage().contains("Work flow failed!!!")) {
+                stage = "END OF LEAD DETAIL";
+
+                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+
+                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                    String error = "Error: ";
+                    for (WebElement we : driver.findElements(By.id("error-message"))) {
+                        error += " - " + we.getText();
+                    }
+                    System.out.println(stage + "=>" + error);
+                }
+            }
+        } finally {
+            updateStatusRabbit(application, "updateAppError");
+            System.out.println(stage);
+            logout(driver);
+        }
+    }
+
+    private void updateAppError_EndLeadDetailWithAddress(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
+        Application application= Application.builder().build();
+        try {
+            application = (Application) mapValue.get("ApplicationDTO");
+            ApplicationInfoDTO applicationInfoDTO = (ApplicationInfoDTO) mapValue.get("ApplicationInfoDTO");
+            LoanDetailsDTO loanDetailsDTO = (LoanDetailsDTO) mapValue.get("LoanDetailsDTO");
+            LoanDetailsVapDTO loanDetailsVapDTO = (LoanDetailsVapDTO) mapValue.get("LoanDetailsVapDTO");
+            List<ReferenceDTO> referenceDTO = (List<ReferenceDTO>) mapValue.get("ReferenceDTO");
+            MiscFptDTO miscFptDTO = (MiscFptDTO) mapValue.get("MiscFptDTO");
+            MiscFrmAppDtlDTO miscFrmAppDtlDTO = (MiscFrmAppDtlDTO) mapValue.get("MiscFrmAppDtlDTO");
+            MiscVinIdDTO miscVinIdDTO = (MiscVinIdDTO) mapValue.get("MiscVinIdDTO");
+
+            stage = "LOGIN FINONE";
+            HashMap<String, String> dataControl = new HashMap<>();
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            Utilities.captureScreenShot(driver);
+
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+
+            //DATA INPUT UPDATE
+            //String leadAppID="APPL00086527";
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "APPLICATIONS";
+            // ========== APPLICATIONS =================
+            homePage.getMenuApplicationElement().click();
+            homePage.getApplicationElement().click();
+
+            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+
+            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+            applicationGridPage.updateData(leadAppID);
+            Utilities.captureScreenShot(driver);
+
+            // ========== LEAD DETAILS (DATA ENTRY) =================
+            LeadDetailDEPage leadDetailDEPage= new LeadDetailDEPage(driver);
+            leadDetailDEPage.setData(leadAppID);
+            Utilities.captureScreenShot(driver);
+
+            stage="PERSONAL INFORMATION";
+            // ========== PERSONAL INFORMATION =================
+            DE_ApplicationInfoPage appInfoPage = new DE_ApplicationInfoPage(driver);
+            DE_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
+
+            await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->personalTab.getPersonalCustomerDetailsElement().isDisplayed());
+
+            personalTab.updateValue(applicationInfoDTO);
+
+            System.out.println(stage + ": DONE" );
+            stage="EMPLOYMENT DETAILS";
+            // ========== EMPLOYMENT DETAILS =================
+            await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
+
+            DE_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
+
+            employmentDetailsTab.updateData(applicationInfoDTO.getEmploymentDetails());
+            employmentDetailsTab.getDoneBtnElement().click();
+            await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
+            employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
+            employmentDetailsTab.getSaveAndNextBtnElement().click();
+
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+            stage="FINANCIAL DETAILS";
+            // ==========FINANCIAL DETAILS =================
+            if (applicationInfoDTO.getIncomeDetails() != null && applicationInfoDTO.getIncomeDetails().size() > 0) {
+                DE_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
+
+                financialDetailsTab.openIncomeDetailSection();
+                await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
+                financialDetailsTab.updateIncomeDetailsData(applicationInfoDTO.getIncomeDetails());
+                financialDetailsTab.saveAndNext();
+            }
+
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+
+
+            // ==========LOAN DETAILS=================
+            stage = "LOAN DETAIL - SOURCING DETAIL TAB";
+            DE_LoanDetailsPage loanDetailsPage = new DE_LoanDetailsPage(driver);
+            Utilities.captureScreenShot(driver);
+            loanDetailsPage.getTabLoanDetailsElement().click();
+
+            DE_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new DE_LoanDetailsSourcingDetailsTab(driver);
+            await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
+            await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
+            loanDetailsSourcingDetailsTab.updateData(loanDetailsDTO);
+            Utilities.captureScreenShot(driver);
+            loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
+
+            //update
+            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size() > 0);
+
+            await("modalBtnConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).findElement(By.id("confirmDeleteVapNext")).isDisplayed());
+
+            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
+
+            Actions actions = new Actions(driver);
+
+            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size() > 0);
+
+            System.out.println(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
+
+            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).isDisplayed());
+
+            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
+
+            System.out.println("LOAN DETAILS: DONE");
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            // ==========MISC FRM APP DTL=================
+            stage = "MISC FRM APPDTL";
+            DE_MiscFrmAppDtlPage miscFrmAppDtlPage = new DE_MiscFrmAppDtlPage(driver);
+            miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
+
+            miscFrmAppDtlPage.updateData(miscFrmAppDtlDTO);
+
+            await("getBtnSaveElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
+
+            Utilities.captureScreenShot(driver);
+            miscFrmAppDtlPage._getBtnSaveElement().click();
+
+            await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            System.out.println("MISC FRM APP DTL: DONE");
+
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "COMPLETE";
+            System.out.println("AUTO OK: user =>" + accountDTO.getUserName());
         } catch (Exception e) {
             //UPDATE STATUS
             application.setStatus("ERROR");

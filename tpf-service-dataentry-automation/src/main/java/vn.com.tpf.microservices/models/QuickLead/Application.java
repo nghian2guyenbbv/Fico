@@ -22,4 +22,5 @@ public class Application {
     private String status;
     private String description;
     private String stage;
+    private String error;
 }
