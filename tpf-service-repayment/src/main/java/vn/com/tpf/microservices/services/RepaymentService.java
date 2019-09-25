@@ -2,6 +2,8 @@ package vn.com.tpf.microservices.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -13,13 +15,16 @@ import vn.com.tpf.microservices.models.RequestModel;
 import vn.com.tpf.microservices.models.ResponseModel;
 
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 public class RepaymentService {
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private static final String AUTOMATION = "automation";
 	private static final String DOCUMENT_CHECK = "document_check";
@@ -49,6 +54,18 @@ public class RepaymentService {
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 			request_id = requestModel.getRequest_id();
 
+//            DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+            try{
+				OffsetDateTime.parse(requestModel.getDate_time());
+            }catch (Exception e) {
+                responseModel.setRequest_id(requestModel.getRequest_id());
+                responseModel.setReference_id(UUID.randomUUID().toString());
+                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                responseModel.setResult_code(500);
+                responseModel.setMessage("Others error");
+                return Map.of("status", 200, "data", responseModel);
+            }
+
 			String inputValue = requestModel.getData().getSearch_value();
 
 			if(isValidIdNumer(inputValue)) {
@@ -60,14 +77,14 @@ public class RepaymentService {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("1");
+				responseModel.setResult_code(1);
 				responseModel.setMessage("not exist");
 				responseModel.setData(ficoCustomerList);
 			}else {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
+				responseModel.setResult_code(0);
 				responseModel.setData(ficoCustomerList);
 			}
 		}
@@ -75,8 +92,10 @@ public class RepaymentService {
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("500");
+			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -89,6 +108,17 @@ public class RepaymentService {
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 			request_id = requestModel.getRequest_id();
 
+			try{
+				OffsetDateTime.parse(requestModel.getDate_time());
+			}catch (Exception e) {
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Others error");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
 			String inputValue = requestModel.getData().getTransaction_id();
 
 			FicoTransPay ficoTransPay = ficoTransPayDAO.findByTransactionId(inputValue);
@@ -96,14 +126,14 @@ public class RepaymentService {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("1");
+				responseModel.setResult_code(1);
 				responseModel.setMessage("not exist");
 				responseModel.setData(ficoTransPay);
 			}else {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
+				responseModel.setResult_code(0);
 				responseModel.setData(ficoTransPay);
 			}
 		}
@@ -111,8 +141,10 @@ public class RepaymentService {
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("500");
+			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -126,7 +158,18 @@ public class RepaymentService {
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 			FicoTransPay ficoTransPay = new FicoTransPay();
 			request_id = requestModel.getRequest_id();
-			date_time = requestModel.getDate_time();
+//			date_time = requestModel.getDate_time();
+
+			try{
+				OffsetDateTime.parse(requestModel.getDate_time());
+			}catch (Exception e) {
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Others error");
+				return Map.of("status", 200, "data", responseModel);
+			}
 
 			FicoTransPay getByTransactionId = ficoTransPayDAO.findByTransactionId(requestModel.getData().getTransaction_id());
 			if (getByTransactionId == null) {
@@ -139,35 +182,37 @@ public class RepaymentService {
 					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
 					ficoTransPay.setTransactionId(requestModel.getData().getTransaction_id());
 					ficoTransPay.setAmount(requestModel.getData().getAmount());
-					ficoTransPay.setCreateDate(requestModel.getDate_time());
+					ficoTransPay.setCreateDate(new Timestamp(new Date().getTime()));
 
 					ficoTransPayDAO.save(ficoTransPay);
 
 					responseModel.setRequest_id(requestModel.getRequest_id());
 					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(date_time);
-					responseModel.setResult_code("0");
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
 				}else{
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(date_time);
-					responseModel.setResult_code("2");
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(2);
 					responseModel.setMessage("Not exits");
 				}
 			}else {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(date_time);
-				responseModel.setResult_code("1");
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
 				responseModel.setMessage("transaction_id already exists.");
 			}
 		}
 		catch (Exception e) {
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("500");
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}

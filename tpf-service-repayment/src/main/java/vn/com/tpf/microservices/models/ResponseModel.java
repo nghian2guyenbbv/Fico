@@ -1,10 +1,14 @@
 package vn.com.tpf.microservices.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import javax.persistence.*;
@@ -16,14 +20,15 @@ public class ResponseModel<T> implements Serializable {
     private String request_id;
     private String reference_id;
     private Timestamp date_time;
-    private String result_code;
+    private int result_code;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String message;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private T data;
 
     public ResponseModel() {
-        this.setResult_code("0");
+        this.setResult_code(0);
     }
 
     public ResponseModel(T data) {
@@ -56,11 +61,11 @@ public class ResponseModel<T> implements Serializable {
         this.date_time = date_time;
     }
 
-    public String getResult_code() {
+    public int getResult_code() {
         return result_code;
     }
 
-    public void setResult_code(String result_code) {
+    public void setResult_code(int result_code) {
         this.result_code = result_code;
     }
 
@@ -87,8 +92,8 @@ public class ResponseModel<T> implements Serializable {
     }
 
     public void setFailMessage(String format, String... params) {
-        this.setResult_code("500");
-        this.setDate_time(new Timestamp(new Date().getTime()));
+        this.setResult_code(500);
+//        this.setDate_time(new Timestamp(new Date().getTime()));
         this.setData(null);
         if (params != null && params.length > 0) {
             this.message = String.format(format, (Object[]) params);

@@ -135,6 +135,10 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
+			if (request.path("func").asText().equals("CALLERROR")){
+				return response(message, payload, Map.of("status", 500, "data", Map.of("message", "CALL API WRONG.")));
+			}
+
 			if (token == null) {
 				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
 			}

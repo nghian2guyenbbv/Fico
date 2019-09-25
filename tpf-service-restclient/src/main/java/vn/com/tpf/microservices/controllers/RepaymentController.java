@@ -5,8 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+//import vn.com.tpf.microservices.configs.RepaymentException;
 import vn.com.tpf.microservices.services.RabbitMQService;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,6 +43,7 @@ public class RepaymentController {
 		request.put("body", body);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-repayment", request);
+
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
