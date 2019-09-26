@@ -7,9 +7,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.TimeZone;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -53,8 +56,15 @@ public class ResponseModel<T> implements Serializable {
         this.reference_id = reference_id;
     }
 
-    public Timestamp getDate_time() {
-        return date_time;
+    public String getDate_time() {
+        Instant now = Instant.now();
+        ZoneId zoneId = ZoneId.of("Asia/Bangkok"); //Etc/GMT-7  Asia/Bangkok
+        return ZonedDateTime.ofInstant(now, zoneId).toOffsetDateTime().toString();
+
+//        return ZonedDateTime.now(ZoneOffset.UTC).toOffsetDateTime().toString();
+//        return  date_time.toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+//        return df.format(date_time).toString();
+//        return date_time.toLocalDateTime().toString();
     }
 
     public void setDate_time(Timestamp date_time) {
