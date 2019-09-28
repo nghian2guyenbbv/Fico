@@ -66,4 +66,17 @@ public class AppController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
+	@GetMapping("/v1/app/{id}")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
+	public ResponseEntity<?> getApp(@RequestHeader("Authorization") String token, @PathVariable String id)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getApp");
+		request.put("token", token);
+		request.put("param", Map.of("id", id));
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-app", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
 }

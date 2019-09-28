@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-dataentry:
+    image: openjdk:11
+    hostname: tpf-service-dataentry
+    working_dir: /opt/tpf-service-dataentry
+    command: bash -c 'cd /opt/tpf-service-dataentry && java -jar tpf-service-dataentry-1.0.jar'
+    volumes:
+      - ./../tpf-service-dataentry/target:/opt/tpf-service-dataentry
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4009:4009

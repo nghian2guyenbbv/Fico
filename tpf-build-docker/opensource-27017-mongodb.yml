@@ -1,0 +1,18 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-opensource-mongodb:
+    image: mongo
+    hostname: tpf-opensource-mongodb
+    volumes:
+      - ./mount/mongodb:/data/db
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 27017:27017

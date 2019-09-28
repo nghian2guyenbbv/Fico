@@ -1,0 +1,18 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-opensource-redis:
+    image: redis
+    hostname: tpf-opensource-redis
+    volumes:
+      - ./mount/redis:/data
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 6379:6379

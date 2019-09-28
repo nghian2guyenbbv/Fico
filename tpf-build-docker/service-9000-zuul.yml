@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-zuul:
+    image: openjdk:11
+    hostname: tpf-service-zuul
+    working_dir: /opt/tpf-service-zuul
+    command: bash -c 'cd /opt/tpf-service-zuul && java -jar tpf-service-zuul-1.0.jar'
+    volumes:
+      - ./../tpf-service-zuul/target:/opt/tpf-service-zuul
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 9000:9000

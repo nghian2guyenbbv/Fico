@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-collection:
+    image: openjdk:11
+    hostname: tpf-service-collection
+    working_dir: /opt/tpf-service-collection
+    command: bash -c 'cd /opt/tpf-service-collection && java -jar tpf-service-collection-1.0.jar'
+    volumes:
+      - ./../tpf-service-collection/target:/opt/tpf-service-collection
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4011:4011
