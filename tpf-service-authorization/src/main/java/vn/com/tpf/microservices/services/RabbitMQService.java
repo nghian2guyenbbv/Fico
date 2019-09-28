@@ -20,7 +20,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,39 +63,28 @@ public class RabbitMQService {
 	}
 
 	public JsonNode getToken(String username, String password) {
-		try {
-			URI url = URI.create(accessTokenUri);
-			HttpMethod method = HttpMethod.POST;
-			HttpHeaders headers = new HttpHeaders();
-			headers.setBasicAuth(clientId, clientSecret);
-			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			String body = "username=" + username + "&password=" + password + "&grant_type=password";
-			HttpEntity<?> entity = new HttpEntity<>(body, headers);
-			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-			return mapper.valueToTree(res.getBody());
-		} catch (HttpClientErrorException e) {
-			System.err.println(e.getResponseBodyAsString());
-		}
-
-		return null;
+		URI url = URI.create(accessTokenUri);
+		HttpMethod method = HttpMethod.POST;
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBasicAuth(clientId, clientSecret);
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		String body = "username=" + username + "&password=" + password + "&grant_type=password";
+		HttpEntity<?> entity = new HttpEntity<>(body, headers);
+		ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
+		return mapper.valueToTree(res.getBody());
 	}
 
 	public JsonNode checkToken(String[] token) {
-		try {
-			if (token.length == 2) {
-				URI url = URI.create(tokenUri + "?token=" + token[1]);
-				HttpMethod method = HttpMethod.GET;
-				HttpHeaders headers = new HttpHeaders();
-				headers.setBasicAuth(clientId, clientSecret);
-				HttpEntity<?> entity = new HttpEntity<>(headers);
-				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-				return mapper.valueToTree(res.getBody());
-			}
-		} catch (HttpClientErrorException e) {
-			System.err.println(e.getResponseBodyAsString());
+		if (token.length != 2) {
+			return mapper.createObjectNode();
 		}
-
-		return null;
+		URI url = URI.create(tokenUri + "?token=" + token[1]);
+		HttpMethod method = HttpMethod.GET;
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBasicAuth(clientId, clientSecret);
+		HttpEntity<?> entity = new HttpEntity<>(headers);
+		ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
+		return mapper.valueToTree(res.getBody());
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -112,7 +100,7 @@ public class RabbitMQService {
 			return mapper.readTree(new String(response.getBody(), "UTF-8"));
 		}
 
-		return null;
+		return mapper.createObjectNode();
 	}
 
 	public Message response(Message message, byte[] payload, Object object) throws Exception {
@@ -195,6 +183,9 @@ public class RabbitMQService {
 					if (account != null) {
 						info.put("departments", account.getDepartments());
 						info.put("projects", account.getProjects());
+						if (account.getOptional() != null) {
+							info.put("optional", account.getOptional());
+						}
 					}
 
 					return response(message, payload, Map.of("status", 200, "data", info));

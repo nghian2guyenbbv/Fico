@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-webportal:
+    image: node:10
+    hostname: tpf-service-webportal
+    working_dir: /opt/tpf-service-webportal
+    command: node ./src/main.js
+    volumes:
+      - ./../tpf-service-webportal/server:/opt/tpf-service-webportal
+    environment:
+      NODE_ENV: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 3000:3000

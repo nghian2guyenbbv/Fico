@@ -19,7 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,21 +60,16 @@ public class RabbitMQService {
 	}
 
 	public JsonNode checkToken(String[] token) {
-		try {
-			if (token.length == 2) {
-				URI url = URI.create(tokenUri + "?token=" + token[1]);
-				HttpMethod method = HttpMethod.GET;
-				HttpHeaders headers = new HttpHeaders();
-				headers.setBasicAuth(clientId, clientSecret);
-				HttpEntity<?> entity = new HttpEntity<>(headers);
-				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-				return mapper.valueToTree(res.getBody());
-			}
-		} catch (HttpClientErrorException e) {
-			System.err.println(e.getResponseBodyAsString());
+		if (token.length != 2) {
+			return mapper.createObjectNode();
 		}
-
-		return null;
+		URI url = URI.create(tokenUri + "?token=" + token[1]);
+		HttpMethod method = HttpMethod.GET;
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBasicAuth(clientId, clientSecret);
+		HttpEntity<?> entity = new HttpEntity<>(headers);
+		ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
+		return mapper.valueToTree(res.getBody());
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -91,7 +85,7 @@ public class RabbitMQService {
 			return mapper.readTree(new String(response.getBody(), "UTF-8"));
 		}
 
-		return null;
+		return mapper.createObjectNode();
 	}
 
 	public Message response(Message message, byte[] payload, Object object) throws Exception {
@@ -120,7 +114,7 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
-			if (token == null) {
+			if (token.isEmpty(null)) {
 				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
 			}
 

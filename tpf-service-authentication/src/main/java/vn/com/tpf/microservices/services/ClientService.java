@@ -1,6 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +18,7 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.OauthClientDetails;
 import vn.com.tpf.microservices.repositories.ClientRepository;
@@ -87,7 +87,13 @@ public class ClientService {
 		}
 	}
 
-	public Map<String, Object> getListClient(JsonNode request) {
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
+	}
+
+	public JsonNode getListClient(JsonNode request) {
 		int page = request.path("param").path("page").asInt(1);
 		int limit = request.path("param").path("limit").asInt(10);
 		String[] sort = request.path("param").path("sort").asText("createdAt,desc").split(",");
@@ -95,10 +101,10 @@ public class ClientService {
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0]));
 		Page<OauthClientDetails> result = repository.findAll(pageable);
 
-		return Map.of("status", 200, "data", result.getContent(), "total", result.getTotalElements());
+		return response(200, mapper.convertValue(result.getContent(), JsonNode.class), result.getTotalElements());
 	}
 
-	public Map<String, Object> createClient(JsonNode request) throws Exception {
+	public JsonNode createClient(JsonNode request) throws Exception {
 		Assert.notNull(request.get("body"), "no body");
 
 		OauthClientDetails body = mapper.treeToValue(request.get("body"), OauthClientDetails.class);
@@ -120,10 +126,10 @@ public class ClientService {
 		entity.setWebServerRedirectUri(body.getWebServerRedirectUri());
 		repository.save(entity);
 
-		return Map.of("status", 201, "data", entity);
+		return response(201, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> updateClient(JsonNode request) throws Exception {
+	public JsonNode updateClient(JsonNode request) throws Exception {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 		Assert.notNull(request.get("body"), "no body");
@@ -132,7 +138,7 @@ public class ClientService {
 		Optional<OauthClientDetails> exists = repository.findById(UUID.fromString(id));
 
 		if (exists.isEmpty()) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
 		OauthClientDetails entity = exists.get();
@@ -151,17 +157,17 @@ public class ClientService {
 			tokenStore.removeRefreshToken(t.getRefreshToken());
 		});
 
-		return Map.of("status", 200, "data", entity);
+		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> deleteClient(JsonNode request) {
+	public JsonNode deleteClient(JsonNode request) {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 
 		Optional<OauthClientDetails> exists = repository.findById(UUID.fromString(id));
 
 		if (exists.isEmpty()) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
 		OauthClientDetails entity = exists.get();
@@ -172,7 +178,7 @@ public class ClientService {
 			tokenStore.removeRefreshToken(t.getRefreshToken());
 		});
 
-		return Map.of("status", 200, "data", entity);
+		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
 }

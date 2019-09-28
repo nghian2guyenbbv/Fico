@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-authentication:
+    image: openjdk:11
+    hostname: tpf-service-authentication
+    working_dir: /opt/tpf-service-authentication
+    command: bash -c 'cd /opt/tpf-service-authentication && java -jar tpf-service-authentication-1.0.jar'
+    volumes:
+      - ./../tpf-service-authentication/target:/opt/tpf-service-authentication
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 1100:1100

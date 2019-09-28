@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-fpt:
+    image: openjdk:11
+    hostname: tpf-service-fpt
+    working_dir: /opt/tpf-service-fpt
+    command: bash -c 'cd /opt/tpf-service-fpt && java -jar tpf-service-fpt-1.0.jar'
+    volumes:
+      - ./../tpf-service-fpt/target:/opt/tpf-service-fpt
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4006:4006

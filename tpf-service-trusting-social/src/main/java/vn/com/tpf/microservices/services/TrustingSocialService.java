@@ -36,6 +36,9 @@ public class TrustingSocialService {
 	private ApiService apiService;
 
 	@Autowired
+	private ConvertService convertService;
+
+	@Autowired
 	private RabbitMQService rabbitMQService;
 
 	@Autowired
@@ -90,247 +93,6 @@ public class TrustingSocialService {
 		error.set("codeWasSubmit", mapper.convertValue(codeWasSubmit, JsonNode.class));
 		Map<?, ?> stage = Map.of("code", 122, "message", "stage is required string and not empty");
 		error.set("stage", mapper.convertValue(stage, JsonNode.class));
-	}
-
-	private Map<String, Object> response(int code, JsonNode body, Object data) {
-		Map<String, Object> res = new HashMap<>();
-		res.put("result_code", code);
-		res.put("request_id", body.path("request_id").asText());
-		res.put("date_time", body.path("date_time").asText());
-		res.put("reference_id", body.path("reference_id").asText());
-		if (code == 0) {
-			res.put("data", data);
-		} else {
-			res.put("message", mapper.convertValue(data, JsonNode.class).get("message"));
-		}
-		return Map.of("status", 200, "data", res);
-	}
-
-	public Map<String, Object> firstCheckTrustingSocial(JsonNode request) throws Exception {
-		JsonNode body = request.path("body");
-		JsonNode valid = validation(body,
-				Arrays.asList("request_id", "date_time", "data.phone_number", "data.national_id", "data.middle_name",
-						"data.first_name", "data.last_name", "data.address_no", "data.dob", "data.gender", "data.province_code",
-						"data.district_code"));
-
-		if (valid != null) {
-			return response(valid.get("code").asInt(), body, Map.of("message", valid.get("message").asText()));
-		}
-
-		ObjectNode data = (ObjectNode) body.path("data");
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "token",
-						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
-						Map.of("areaCode", data.path("district_code").asInt())));
-
-		if (address.path("status").asInt() != 200) {
-			return response(error.get("districtNotExists").get("code").asInt(), body,
-					Map.of("message", error.get("districtNotExists").get("message").asText()));
-		}
-		if (!address.path("data").path("postCode").asText().equals(data.path("province_code").asText())) {
-			return response(error.get("provinceNotExists").get("code").asInt(), body,
-					Map.of("message", error.get("provinceNotExists").get("message").asText()));
-		}
-
-		TrustingSocial ts = new TrustingSocial();
-		ts.setPhone_number(data.path("phone_number").asText());
-		ts.setNational_id(data.path("national_id").asText());
-		ts.setMiddle_name(data.path("middle_name").asText());
-		ts.setFirst_name(data.path("first_name").asText());
-		ts.setLast_name(data.path("last_name").asText());
-		ts.setAddress_no(data.path("address_no").asText());
-		ts.setDob(data.path("dob").asText());
-		ts.setGender(data.path("gender").asText());
-		ts.setProvince_code(data.path("province_code").asText());
-		ts.setProvince(address.path("data").path("cityName").asText());
-		ts.setDistrict_code(data.path("district_code").asText());
-		ts.setDistrict(address.path("data").path("areaName").asText());
-		mongoTemplate.save(ts);
-
-		data.set("district_code", address.path("data").path("areaName"));
-		data.set("province_code", address.path("data").path("cityName"));
-		data.set("reference_id", body.path("reference_id"));
-		data.set("request_id", body.path("request_id"));
-
-		return response(0, body, Map.of("status", apiService.firstCheckRisk(data).equals("pass") ? "passed" : "rejected"));
-	}
-
-	public Map<String, Object> createTrustingSocial(JsonNode request) throws Exception {
-		JsonNode body = request.path("body");
-		JsonNode valid = validation(body,
-				Arrays.asList("request_id", "date_time", "data.phone_number", "data.national_id", "data.middle_name",
-						"data.first_name", "data.last_name", "data.address_no", "data.dob", "data.gender", "data.province_code",
-						"data.district_code", "data.ts_lead_id", "data.product_code", "data.score_range", "data.dsa_code",
-						"data.tsa_code", "data.ward", "data.documents"));
-
-		if (valid != null) {
-			return response(valid.get("code").asInt(), body, Map.of("message", valid.get("message").asText()));
-		}
-
-		ObjectNode data = (ObjectNode) body.path("data");
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "token",
-						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
-						Map.of("areaCode", data.path("district_code").asInt())));
-
-		if (address.path("status").asInt() != 200) {
-			return response(error.get("districtNotExists").get("code").asInt(), body,
-					Map.of("message", error.get("districtNotExists").get("message").asText()));
-		}
-		if (!address.path("data").path("postCode").asText().equals(data.path("province_code").asText())) {
-			return response(error.get("provinceNotExists").get("code").asInt(), body,
-					Map.of("message", error.get("provinceNotExists").get("message").asText()));
-		}
-
-		TrustingSocial ts = new TrustingSocial();
-		ts.setPhone_number(data.path("phone_number").asText());
-		ts.setNational_id(data.path("national_id").asText());
-		ts.setMiddle_name(data.path("middle_name").asText());
-		ts.setFirst_name(data.path("first_name").asText());
-		ts.setLast_name(data.path("last_name").asText());
-		ts.setAddress_no(data.path("address_no").asText());
-		ts.setDob(data.path("dob").asText());
-		ts.setGender(data.path("gender").asText());
-		ts.setProvince_code(data.path("province_code").asText());
-		ts.setProvince(address.path("data").path("cityName").asText());
-		ts.setDistrict_code(data.path("district_code").asText());
-		ts.setDistrict(address.path("data").path("areaName").asText());
-		ts.setTs_lead_id(data.path("ts_lead_id").asText());
-		ts.setProduct_code(data.path("product_code").asText());
-		ts.setScore_range(data.path("score_range").asText());
-		ts.setDsa_code(data.path("dsa_code").asText());
-		ts.setTsa_code(data.path("tsa_code").asText());
-		ts.setWard(data.path("ward").asText());
-
-		Set<Map<String, Object>> documents = new HashSet<>();
-		data.path("documents").forEach(e -> {
-			Map<String, Object> doc = getComment(e.path("document_type").asText(""), e.path("view_url").asText(""),
-					e.path("download_url").asText(""), null);
-			doc.put("updatedAt", new Date());
-			documents.add(doc);
-		});
-		ts.setDocuments(documents);
-
-		mongoTemplate.save(ts);
-
-		rabbitMQService.send("tpf-service-app",
-				Map.of("func", "createApp", "token",
-						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
-						Map.of("project", "trustingsocial"), "body",
-						mapper.convertValue(ts, ObjectNode.class).put("status", "PROCESSING")));
-
-		return response(0, body, ts);
-	}
-
-	public Map<String, Object> updateTrustingSocial(JsonNode request) throws Exception {
-		JsonNode body = request.path("body");
-		JsonNode valid = validation(body, Arrays.asList("request_id", "date_time", "data.ts_lead_id", "data.stage"));
-
-		if (valid != null) {
-			return response(valid.get("code").asInt(), body, Map.of("message", valid.get("message").asText()));
-		}
-
-		JsonNode data = body.path("data");
-
-		Query query = Query.query(Criteria.where("ts_lead_id").is(data.path("ts_lead_id").asText()));
-		TrustingSocial oEntity = mongoTemplate.findOne(query, TrustingSocial.class);
-
-		if (oEntity == null) {
-			return Map.of("status", 404, "data", Map.of("message", "TsLeadId Not Found"));
-		}
-
-		Set<Map<?, ?>> response = new HashSet<>();
-		Map<String, Object> comments = new HashMap<>();
-		comments.put("updatedAt", new Date());
-
-		if (data.path("dc_documents").isObject()) {
-			comments.put("document_type", data.path("dc_documents").path("document_type").asText());
-			comments.put("code", data.path("dc_documents").path("dc_return_code").asText());
-			comments.put("name", data.path("dc_documents").path("dc_return_code_desc").asText());
-			comments.put("request", data.path("dc_documents").path("dc_comment").asText());
-
-			if (data.path("dc_documents").path("dc_ts_comment").isTextual()) {
-				response.add(getComment(null, null, null, data.path("dc_documents").path("dc_ts_comment").asText()));
-			}
-			if (data.path("dc_documents").path("dc_ts_documents").isArray()) {
-				data.path("dc_documents").path("dc_ts_documents").forEach(c -> {
-					response.add(getComment(c.path("document_type").asText(""), c.path("view_url").asText(""),
-							c.path("download_url").asText(""), c.path("comment").asText()));
-				});
-			}
-			comments.put("response", response);
-		} else if (data.path("information").isObject()) {
-			comments.put("code", data.path("information").path("info_query_code").asText());
-			comments.put("name", data.path("information").path("info_query_name").asText());
-			comments.put("request", data.path("information").path("info_query").asText());
-
-			if (data.path("information").path("info_ts_comment").isTextual()) {
-				response.add(getComment(null, null, null, data.path("information").path("info_ts_comment").asText()));
-			}
-			if (data.path("information").path("info_ts_documents").isArray()) {
-				data.path("information").path("info_ts_documents").forEach(c -> {
-					response.add(getComment(c.path("document_type").asText(""), c.path("view_url").asText(""),
-							c.path("download_url").asText(""), c.path("comment").asText()));
-				});
-			}
-			comments.put("response", response);
-		}
-
-		boolean isCodeWasSubmit = true;
-		for (Map<String, Object> c : oEntity.getComments()) {
-			if (c.get("response") == null && c.get("code") != null && c.get("code").equals(comments.get("code"))) {
-				c.put("response", comments.get("response"));
-				isCodeWasSubmit = false;
-				break;
-			}
-		}
-
-		if (isCodeWasSubmit) {
-			return response(error.get("codeWasSubmit").get("code").asInt(), body,
-					Map.of("message", error.get("codeWasSubmit").get("message").asText()));
-		}
-
-		oEntity.getDocuments().forEach(c -> {
-			response.forEach(r -> {
-				if (c.get("document_type") != null && r.get("document_type") != null
-						&& c.get("document_type").equals(r.get("document_type"))) {
-					c.put("download_url", r.get("download_url"));
-					c.put("view_url", r.get("view_url"));
-					c.put("updatedAt", new Date());
-					return;
-				}
-			});
-		});
-
-		Update update = new Update().set("comments", oEntity.getComments())
-				.set("stage", data.path("stage").asText().toUpperCase()).set("documents", oEntity.getDocuments());
-
-		TrustingSocial nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				TrustingSocial.class);
-
-		rabbitMQService.send("tpf-service-app",
-				Map.of("func", "updateApp", "token",
-						String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "param",
-						Map.of("project", "trustingsocial", "id", nEntity.getId()), "body", nEntity));
-
-		return response(0, body, nEntity);
-	}
-
-	private Map<String, Object> getComment(String document_type, String view_url, String download_url, String comment) {
-		Map<String, Object> c = new HashMap<>();
-		if (document_type != null && !document_type.isEmpty()) {
-			c.put("document_type", document_type);
-		}
-		if (view_url != null && !view_url.isEmpty()) {
-			c.put("view_url", view_url);
-		}
-		if (download_url != null && !download_url.isEmpty()) {
-			c.put("download_url", download_url);
-		}
-		if (comment != null && !comment.isEmpty()) {
-			c.put("comment", comment);
-		}
-		return c;
 	}
 
 	private JsonNode validation(JsonNode body, List<String> fields) {
@@ -414,6 +176,215 @@ public class TrustingSocialService {
 			}
 		}
 		return null;
+	}
+
+	private JsonNode response(int status, JsonNode data) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).set("data", data);
+		return response;
+	}
+
+	private JsonNode response(int code, JsonNode body, JsonNode data) {
+		ObjectNode response = mapper.createObjectNode();
+		ObjectNode res = mapper.createObjectNode();
+		res.put("result_code", code);
+		res.put("request_id", body.path("request_id").asText());
+		res.put("reference_id", body.path("reference_id").asText());
+		res.put("date_time", new Date().toString());
+		if (code == 0) {
+			res.set("data", data);
+		} else {
+			res.set("message", data.path("message"));
+		}
+		response.put("status", 200).set("data", res);
+		return response;
+	}
+
+	private Map<String, Object> getComment(String document_type, String view_url, String download_url, String comment) {
+		Map<String, Object> c = new HashMap<>();
+		if (document_type != null && !document_type.isEmpty()) {
+			c.put("document_type", document_type);
+		}
+		if (view_url != null && !view_url.isEmpty()) {
+			c.put("view_url", view_url);
+		}
+		if (download_url != null && !download_url.isEmpty()) {
+			c.put("download_url", download_url);
+		}
+		if (comment != null && !comment.isEmpty()) {
+			c.put("comment", comment);
+		}
+		return c;
+	}
+
+	public JsonNode firstCheckTrustingSocial(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		JsonNode valid = validation(body,
+				Arrays.asList("request_id", "date_time", "data.phone_number", "data.national_id", "data.middle_name",
+						"data.first_name", "data.last_name", "data.address_no", "data.dob", "data.gender", "data.province_code",
+						"data.district_code"));
+
+		if (valid != null) {
+			return response(valid.get("code").asInt(), body, mapper.createObjectNode().set("message", valid.get("message")));
+		}
+
+		ObjectNode data = (ObjectNode) body.path("data");
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getAddress", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+						"param", Map.of("areaCode", data.path("district_code").asInt())));
+
+		if (address.path("status").asInt() != 200) {
+			return response(error.get("districtNotExists").get("code").asInt(), body,
+					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
+		}
+		if (!address.path("data").path("postCode").asText().equals(data.path("city").asText())) {
+			return response(error.get("cityNotExists").get("code").asInt(), body,
+					mapper.createObjectNode().set("message", error.get("cityNotExists").get("message")));
+		}
+
+		TrustingSocial ts = mapper.convertValue(data, TrustingSocial.class);
+		ts.setProvince(address.path("data").path("cityName").asText());
+		ts.setDistrict(address.path("data").path("areaName").asText());
+		mongoTemplate.save(ts);
+
+		data.set("district_code", address.path("data").path("areaName"));
+		data.set("province_code", address.path("data").path("cityName"));
+
+		return response(0, body, mapper.createObjectNode().put("status",
+				apiService.firstCheckRisk(data).equals("pass") ? "passed" : "rejected"));
+	}
+
+	public JsonNode createTrustingSocial(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		JsonNode valid = validation(body,
+				Arrays.asList("request_id", "date_time", "data.phone_number", "data.national_id", "data.middle_name",
+						"data.first_name", "data.last_name", "data.address_no", "data.dob", "data.gender", "data.province_code",
+						"data.district_code", "data.ts_lead_id", "data.product_code", "data.score_range", "data.dsa_code",
+						"data.tsa_code", "data.ward", "data.documents"));
+
+		if (valid != null) {
+			return response(valid.get("code").asInt(), body, mapper.createObjectNode().set("message", valid.get("message")));
+		}
+
+		ObjectNode data = (ObjectNode) body.path("data");
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getAddress", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+						"param", Map.of("areaCode", data.path("district_code").asInt())));
+
+		if (address.path("status").asInt() != 200) {
+			return response(error.get("districtNotExists").get("code").asInt(), body,
+					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
+		}
+		if (!address.path("data").path("postCode").asText().equals(data.path("city").asText())) {
+			return response(error.get("cityNotExists").get("code").asInt(), body,
+					mapper.createObjectNode().set("message", error.get("cityNotExists").get("message")));
+		}
+
+		TrustingSocial ts = mapper.convertValue(data, TrustingSocial.class);
+		ts.setProvince(address.path("data").path("cityName").asText());
+		ts.setDistrict(address.path("data").path("areaName").asText());
+		ts.getDocuments().forEach(e -> e.setUpdatedAt(new Date()));
+		mongoTemplate.save(ts);
+
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+						"param", Map.of("project", "trustingsocial"), "body", convertService.toAppDisplay(ts)));
+
+		return response(0, body, mapper.convertValue(ts, JsonNode.class));
+	}
+
+	public JsonNode updateTrustingSocial(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		JsonNode valid = validation(body, Arrays.asList("request_id", "date_time", "data.ts_lead_id", "data.stage"));
+
+		if (valid != null) {
+			return response(valid.get("code").asInt(), body, mapper.createObjectNode().set("message", valid.get("message")));
+		}
+
+		JsonNode data = body.path("data");
+
+		Query query = Query.query(Criteria.where("ts_lead_id").is(data.path("ts_lead_id").asText()));
+		TrustingSocial oEntity = mongoTemplate.findOne(query, TrustingSocial.class);
+
+		if (oEntity == null) {
+			return response(404, mapper.createObjectNode().put("message", "TsLeadId Not Found"));
+		}
+
+		Set<Map<?, ?>> response = new HashSet<>();
+		Map<String, Object> comments = new HashMap<>();
+		comments.put("updatedAt", new Date());
+
+		if (data.path("dc_documents").isObject()) {
+			comments.put("document_type", data.path("dc_documents").path("document_type").asText());
+			comments.put("code", data.path("dc_documents").path("dc_return_code").asText());
+			comments.put("name", data.path("dc_documents").path("dc_return_code_desc").asText());
+			comments.put("request", data.path("dc_documents").path("dc_comment").asText());
+
+			if (data.path("dc_documents").path("dc_ts_comment").isTextual()) {
+				response.add(getComment(null, null, null, data.path("dc_documents").path("dc_ts_comment").asText()));
+			}
+			if (data.path("dc_documents").path("dc_ts_documents").isArray()) {
+				data.path("dc_documents").path("dc_ts_documents").forEach(c -> {
+					response.add(getComment(c.path("document_type").asText(""), c.path("view_url").asText(""),
+							c.path("download_url").asText(""), c.path("comment").asText()));
+				});
+			}
+			comments.put("response", response);
+		} else if (data.path("information").isObject()) {
+			comments.put("code", data.path("information").path("info_query_code").asText());
+			comments.put("name", data.path("information").path("info_query_name").asText());
+			comments.put("request", data.path("information").path("info_query").asText());
+
+			if (data.path("information").path("info_ts_comment").isTextual()) {
+				response.add(getComment(null, null, null, data.path("information").path("info_ts_comment").asText()));
+			}
+			if (data.path("information").path("info_ts_documents").isArray()) {
+				data.path("information").path("info_ts_documents").forEach(c -> {
+					response.add(getComment(c.path("document_type").asText(""), c.path("view_url").asText(""),
+							c.path("download_url").asText(""), c.path("comment").asText()));
+				});
+			}
+			comments.put("response", response);
+		}
+
+		boolean isCodeWasSubmit = true;
+		for (Map<String, Object> c : oEntity.getComments()) {
+			if (c.get("response") == null && c.get("code") != null && c.get("code").equals(comments.get("code"))) {
+				c.put("response", comments.get("response"));
+				isCodeWasSubmit = false;
+				break;
+			}
+		}
+
+		if (isCodeWasSubmit) {
+			return response(error.get("codeWasSubmit").get("code").asInt(), body,
+					mapper.createObjectNode().set("message", error.get("codeWasSubmit").get("message")));
+		}
+
+		oEntity.getDocuments().forEach(c -> {
+			response.forEach(r -> {
+				if (c.getDocument_type() != null && r.get("document_type") != null
+						&& c.getDocument_type().equals(r.get("document_type"))) {
+					c.setDownload_url((String) r.get("download_url"));
+					c.setView_url((String) r.get("view_url"));
+					c.setUpdatedAt(new Date());
+					return;
+				}
+			});
+		});
+
+		Update update = new Update().set("comments", oEntity.getComments())
+				.set("stage", data.path("stage").asText().toUpperCase()).set("documents", oEntity.getDocuments());
+
+		TrustingSocial nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				TrustingSocial.class);
+
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+						"param", Map.of("project", "trustingsocial", "id", nEntity.getId()), "body",
+						convertService.toAppDisplay(nEntity)));
+
+		return response(0, body, mapper.convertValue(nEntity, JsonNode.class));
 	}
 
 }

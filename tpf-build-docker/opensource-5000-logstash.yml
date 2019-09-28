@@ -1,0 +1,19 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-opensource-logstash:
+    image: logstash:6.8.1
+    hostname: tpf-opensource-logstash
+    command: logstash -f /etc/logstash/conf.d/logstash.conf
+    volumes:
+      - ./mount/logstash:/etc/logstash/conf.d
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 5000:5000

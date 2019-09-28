@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-config:
+    image: openjdk:11
+    hostname: tpf-service-config
+    working_dir: /opt/tpf-service-config
+    command: bash -c 'cd /opt/tpf-service-config && java -jar tpf-service-config-1.0.jar'
+    volumes:
+      - ./../tpf-service-config/target:/opt/tpf-service-config
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 8888:8888

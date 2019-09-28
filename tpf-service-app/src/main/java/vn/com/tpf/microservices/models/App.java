@@ -25,11 +25,11 @@ public class App {
 	private String uuid;
 	@Indexed(unique = true, sparse = true)
 	private String appId;
-	private String status;
-	private String fullName;
-	private String partnerId;
-	private String automationResult;
 	private String assigned;
+	private String partnerId;
+	private String fullName;
+	private String status;
+	private String automationResult;
 	private Map<String, Object> optional;
 	private Set<Map<String, Object>> documents = new HashSet<>();
 	private Set<Map<String, Object>> comments = new HashSet<>();
