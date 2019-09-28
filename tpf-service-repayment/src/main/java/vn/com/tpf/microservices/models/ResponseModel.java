@@ -1,11 +1,18 @@
 package vn.com.tpf.microservices.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.TimeZone;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -16,14 +23,15 @@ public class ResponseModel<T> implements Serializable {
     private String request_id;
     private String reference_id;
     private Timestamp date_time;
-    private String result_code;
+    private int result_code;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String message;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private T data;
 
     public ResponseModel() {
-        this.setResult_code("0");
+        this.setResult_code(0);
     }
 
     public ResponseModel(T data) {
@@ -48,19 +56,26 @@ public class ResponseModel<T> implements Serializable {
         this.reference_id = reference_id;
     }
 
-    public Timestamp getDate_time() {
-        return date_time;
+    public String getDate_time() {
+        Instant now = Instant.now();
+        ZoneId zoneId = ZoneId.of("Asia/Bangkok"); //Etc/GMT-7  Asia/Bangkok
+        return ZonedDateTime.ofInstant(now, zoneId).toOffsetDateTime().toString();
+
+//        return ZonedDateTime.now(ZoneOffset.UTC).toOffsetDateTime().toString();
+//        return  date_time.toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+//        return df.format(date_time).toString();
+//        return date_time.toLocalDateTime().toString();
     }
 
     public void setDate_time(Timestamp date_time) {
         this.date_time = date_time;
     }
 
-    public String getResult_code() {
+    public int getResult_code() {
         return result_code;
     }
 
-    public void setResult_code(String result_code) {
+    public void setResult_code(int result_code) {
         this.result_code = result_code;
     }
 
@@ -87,8 +102,8 @@ public class ResponseModel<T> implements Serializable {
     }
 
     public void setFailMessage(String format, String... params) {
-        this.setResult_code("500");
-        this.setDate_time(new Timestamp(new Date().getTime()));
+        this.setResult_code(500);
+//        this.setDate_time(new Timestamp(new Date().getTime()));
         this.setData(null);
         if (params != null && params.length > 0) {
             this.message = String.format(format, (Object[]) params);

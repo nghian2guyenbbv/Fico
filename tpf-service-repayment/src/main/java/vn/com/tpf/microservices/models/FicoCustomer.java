@@ -7,6 +7,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Entity
@@ -20,7 +23,7 @@ public class FicoCustomer {
 
     @Column(name="duedate")
     @JsonProperty("due_date")
-    private Date dueDate;
+    private Timestamp dueDate;
 
     @Column(name="loan_account_no", unique = true, nullable = false)
     @JsonProperty("loan_account_no")
@@ -53,11 +56,14 @@ public class FicoCustomer {
         this.loanId = loanId;
     }
 
-    public Date getDueDate() {
-        return dueDate;
+    public String getDueDate() {
+//        return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(new java.sql.Date(dueDate.getTime()).toLocalDate());
+//        return DateTimeFormatter.ISO_DATE.format(dueDate.toLocalDateTime());
+        return DateTimeFormatter.ofPattern("dd/MM/yyyy").format(dueDate.toLocalDateTime());
+//        return dueDate;
     }
 
-    public void setDueDate(Date dueDate) {
+    public void setDueDate(Timestamp dueDate) {
         this.dueDate = dueDate;
     }
 
