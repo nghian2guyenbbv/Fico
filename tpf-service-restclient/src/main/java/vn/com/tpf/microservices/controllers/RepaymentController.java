@@ -5,13 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-//import vn.com.tpf.microservices.configs.RepaymentException;
 import vn.com.tpf.microservices.services.RabbitMQService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
+
+//import vn.com.tpf.microservices.configs.RepaymentException;
 
 @RestController
 public class RepaymentController {
@@ -54,6 +53,34 @@ public class RepaymentController {
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "importTrans");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-repayment", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/repayment/settleTrans")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment')")
+	public ResponseEntity<?> settleTrans(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "settleTrans");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-repayment", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/repayment/getListTrans")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment')")
+	public ResponseEntity<?> getListTrans(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getListTrans");
 		request.put("token", token);
 		request.put("body", body);
 

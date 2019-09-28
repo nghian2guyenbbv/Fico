@@ -18,14 +18,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
 import java.sql.Timestamp;
-<<<<<<< HEAD
-import java.time.LocalDateTime;
-=======
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
->>>>>>> 7eb6f56dec8612e7633e4135835e01e5949328f4
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -271,18 +265,19 @@ public class RepaymentService {
 				ficoPayooImp.setTransDate(maxObject.getCreateDateTrans());
 			}
 
-			ficoImportPayooDAO.saveAll(requestModel);
+			List<FicoPayooImp> listResult= ficoImportPayooDAO.saveAll(requestModel);
 
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("0");
+			responseModel.setResult_code(0);
+			responseModel.setData(Map.of("totalRow",listResult.size()));
 		}
 		catch (Exception e) {
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("500");
+			responseModel.setResult_code(500);
 			responseModel.setMessage(e.getMessage());
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -370,14 +365,14 @@ public class RepaymentService {
 			responseModel.setData(reviews);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("0");
+			responseModel.setResult_code(0);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("500");
+			responseModel.setResult_code(500);
 			responseModel.setMessage(e.getMessage());
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -400,14 +395,14 @@ public class RepaymentService {
 			responseModel.setData(reviews);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("0");
+			responseModel.setResult_code(0);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
-			responseModel.setResult_code("500");
+			responseModel.setResult_code(500);
 			responseModel.setMessage(e.getMessage());
 		}
 		return Map.of("status", 200, "data", responseModel);

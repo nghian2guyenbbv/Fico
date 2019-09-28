@@ -171,7 +171,7 @@ public class RabbitMQService {
 						return response(message, payload, repaymentService.settle(request));
 					}
 					break;
-			case "listTrans":
+			case "getListTrans":
 					if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
 						return response(message, payload, repaymentService.getListTrans(request));
 					}
