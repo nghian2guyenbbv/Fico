@@ -157,6 +157,21 @@ public class RabbitMQService {
 					return response(message, payload, repaymentService.customers_pay(request));
 				}
 				break;
+			case "importTrans":
+				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+					return response(message, payload, repaymentService.importTrans(request));
+				}
+				break;
+			case "settleTrans":
+					if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+						return response(message, payload, repaymentService.settle(request));
+					}
+					break;
+			case "listTrans":
+					if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+						return response(message, payload, repaymentService.getListTrans(request));
+					}
+					break;
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

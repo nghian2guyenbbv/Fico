@@ -1,22 +1,24 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.dao.FicoCustomerDAO;
+import vn.com.tpf.microservices.dao.FicoImportPayooDAO;
 import vn.com.tpf.microservices.dao.FicoTransPayDAO;
-import vn.com.tpf.microservices.models.FicoCustomer;
-import vn.com.tpf.microservices.models.FicoTransPay;
-import vn.com.tpf.microservices.models.RequestModel;
-import vn.com.tpf.microservices.models.ResponseModel;
+import vn.com.tpf.microservices.models.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.StoredProcedureQuery;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 public class RepaymentService {
@@ -36,6 +38,17 @@ public class RepaymentService {
 
 	@Autowired
 	private FicoTransPayDAO ficoTransPayDAO;
+
+	@Autowired
+	private FicoImportPayooDAO ficoImportPayooDAO;
+
+	@Autowired
+	private TransactionTemplate transactionTemplate;
+
+	@PersistenceContext
+	private EntityManager entityManager;
+
+
 
 	@SuppressWarnings("unchecked")
 
@@ -180,4 +193,174 @@ public class RepaymentService {
 		return true;
 	}
 
+	//---------------------- FUNCTION IMPORT ---------------------
+	public Map<String, Object> importTrans(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		DateTimeFormatter formatterParseInput = DateTimeFormatter.ofPattern("d/M/yyyy H:m:s");
+		DateTimeFormatter formatterParseOutput = DateTimeFormatter.ofPattern("M/d/yyyy H:m:s");
+
+		try{
+			Assert.notNull(request.get("body"), "no body");
+			List<FicoPayooImp> requestModel = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<FicoPayooImp>>(){});
+
+			//parse createDate
+			for (FicoPayooImp ficoPayooImp:requestModel)
+			{
+				ficoPayooImp.setCreateDateTrans(Timestamp.valueOf(LocalDateTime.parse(ficoPayooImp.getCreateDate(),formatterParseInput)));
+			}
+
+			//get ra maxdate
+			Comparator<FicoPayooImp> comparator = Comparator.comparing(FicoPayooImp::getCreateDateTrans);
+			FicoPayooImp maxObject = requestModel.stream().max(comparator).get();
+
+			//set transDate
+			for (FicoPayooImp ficoPayooImp:requestModel)
+			{
+				ficoPayooImp.setTransDate(maxObject.getCreateDateTrans());
+			}
+
+			ficoImportPayooDAO.saveAll(requestModel);
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code("0");
+		}
+		catch (Exception e) {
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code("500");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> settle(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			Date fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Date.class);
+			Date toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Date.class);
+
+			//StoredProcedureQuery query = entityManager.createNamedStoredProcedureQuery("sp_insert_payment_settle").setParameter("p_trans_date",transDate);
+//
+////			StoredProcedureQuery query = entityManager
+////					.createStoredProcedureQuery("payoo.sp_insert_payment_settle")
+////					.registerStoredProcedureParameter("p_trans_date",
+////							Date.class, ParameterMode.IN)
+////					.setParameter("p_trans_date", transDate);
+////			query.execute();
+//
+//
+//			Query query=entityManager.createNativeQuery ("CALL payoo.sp_insert_payment_settle('2019-09-09');");
+//			query.getFirstResult();
+////			ProcedureCall call = session
+////					.createStoredProcedureCall("payoo.sp_insert_payment_settle");
+////			call.registerParameter(1,
+////					Date.class, ParameterMode.IN).bindValue(transDate);
+////
+////			Output output = call.getOutputs().getCurrent();
+//
+//			Connection conn = ((SessionImpl) entityManager.getDelegate()).connection();
+
+//			//CallableStatement callableStatement=conn.prepareCall("{call payoo.sp_insert_payment_settle('2019-09-09')}");
+//
+//			//callableStatement.executeQuery();
+//			Statement statement = conn.createStatement();
+//			String storeProc = String.format("CALL payoo.sp_insert_payment_settle('%s');", transDate);
+//			int result = statement.executeUpdate(storeProc);
+//
+
+//			StoredProcedureQuery query = entityManager
+//					.createStoredProcedureQuery("payoo.getList")
+//					.registerStoredProcedureParameter(
+//							1,
+//							void.class,
+//							ParameterMode.REF_CURSOR
+//					)
+//					.registerStoredProcedureParameter(
+//							2,
+//							Date.class,
+//							ParameterMode.IN
+//					)
+//					.registerStoredProcedureParameter(
+//							3,
+//							Date.class,
+//							ParameterMode.IN
+//					)
+//					.setParameter(2, transDate)
+//					.setParameter(3, transDate);
+//
+//			List<Object[]> postComments = query.getResultList();
+
+//			StoredProcedureQuery query = entityManager
+//					.createStoredProcedureQuery("payoo.GET_REPORT")
+//					.registerStoredProcedureParameter("from_date",
+//							Date.class, ParameterMode.IN)
+//					.registerStoredProcedureParameter("commentCount",
+//							Long.class, ParameterMode.OUT)
+//					.setParameter("from_date", transDate);
+//
+//			query.execute();
+//
+//			Long commentCount = (Long) query
+//					.getOutputParameterValue("commentCount");
+
+
+			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getList");
+			q.setParameter(1, fromDate);
+			q.setParameter(2, toDate);
+			List<FicoPayooImp> reviews = q.getResultList();
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setData(reviews);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code("0");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code("500");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getListTrans(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			Date fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Date.class);
+			Date toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Date.class);
+
+			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getListTrans");
+			q.setParameter(1, fromDate);
+			q.setParameter(2, toDate);
+			List<FicoPayooImp> reviews = q.getResultList();
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setData(reviews);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code("0");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code("500");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+	//---------------------- END FUNCTION IMPORT -----------------
 }
