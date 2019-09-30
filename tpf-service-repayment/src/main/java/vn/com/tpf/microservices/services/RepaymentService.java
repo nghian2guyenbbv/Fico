@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hibernate.Session;
+import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,10 @@ import vn.com.tpf.microservices.models.*;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
+import javax.transaction.Transactional;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -51,7 +57,6 @@ public class RepaymentService {
 
 	@PersistenceContext
 	private EntityManager entityManager;
-
 
 
 	@SuppressWarnings("unchecked")
@@ -283,6 +288,7 @@ public class RepaymentService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+	@Transactional
 	public Map<String, Object> settle(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
@@ -355,14 +361,22 @@ public class RepaymentService {
 //			Long commentCount = (Long) query
 //					.getOutputParameterValue("commentCount");
 
+			Session session = entityManager.unwrap(Session.class);
+			session.doWork(new Work() {
+				@Override
+				public void execute(Connection connection) throws SQLException {
+					//connection, finally!
+					connection.setAutoCommit(true);
+					Statement stmt = connection.createStatement();
 
-			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getList");
-			q.setParameter(1, fromDate);
-			q.setParameter(2, toDate);
-			List<FicoPayooImp> reviews = q.getResultList();
+					String storeProc = String.format("CALL payoo.sp_insert_payment_settle('%s');", "2019-09-09");
+					int result = stmt.executeUpdate(storeProc);
+					System.out.println("settleStore: OK=>" + result);
+					connection.close();
+				}
+			});
 
 			responseModel.setRequest_id(request_id);
-			responseModel.setData(reviews);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
 			responseModel.setResult_code(0);
