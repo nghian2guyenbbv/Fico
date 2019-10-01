@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.dao.FicoCustomerDAO;
@@ -19,14 +20,11 @@ import vn.com.tpf.microservices.models.*;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
-import javax.transaction.Transactional;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.*;
 
 @Service
@@ -295,86 +293,30 @@ public class RepaymentService {
 		Timestamp date_time = new Timestamp(new Date().getTime());
 		try{
 			Date transDate = mapper.convertValue(request.path("body").path("data").path("transDate"), Date.class);
-
-			//StoredProcedureQuery query = entityManager.createNamedStoredProcedureQuery("sp_insert_payment_settle").setParameter("p_trans_date",transDate);
-//
-////			StoredProcedureQuery query = entityManager
-////					.createStoredProcedureQuery("payoo.sp_insert_payment_settle")
-////					.registerStoredProcedureParameter("p_trans_date",
-////							Date.class, ParameterMode.IN)
-////					.setParameter("p_trans_date", transDate);
-////			query.execute();
-//
-//
-//			Query query=entityManager.createNativeQuery ("CALL payoo.sp_insert_payment_settle('2019-09-09');");
-//			query.getFirstResult();
-////			ProcedureCall call = session
-////					.createStoredProcedureCall("payoo.sp_insert_payment_settle");
-////			call.registerParameter(1,
-////					Date.class, ParameterMode.IN).bindValue(transDate);
-////
-////			Output output = call.getOutputs().getCurrent();
-//
-//			Connection conn = ((SessionImpl) entityManager.getDelegate()).connection();
-
-//			//CallableStatement callableStatement=conn.prepareCall("{call payoo.sp_insert_payment_settle('2019-09-09')}");
-//
-//			//callableStatement.executeQuery();
-//			Statement statement = conn.createStatement();
-//			String storeProc = String.format("CALL payoo.sp_insert_payment_settle('%s');", transDate);
-//			int result = statement.executeUpdate(storeProc);
-//
-
-//			StoredProcedureQuery query = entityManager
-//					.createStoredProcedureQuery("payoo.getList")
-//					.registerStoredProcedureParameter(
-//							1,
-//							void.class,
-//							ParameterMode.REF_CURSOR
-//					)
-//					.registerStoredProcedureParameter(
-//							2,
-//							Date.class,
-//							ParameterMode.IN
-//					)
-//					.registerStoredProcedureParameter(
-//							3,
-//							Date.class,
-//							ParameterMode.IN
-//					)
-//					.setParameter(2, transDate)
-//					.setParameter(3, transDate);
-//
-//			List<Object[]> postComments = query.getResultList();
-
-//			StoredProcedureQuery query = entityManager
-//					.createStoredProcedureQuery("payoo.GET_REPORT")
-//					.registerStoredProcedureParameter("from_date",
-//							Date.class, ParameterMode.IN)
-//					.registerStoredProcedureParameter("commentCount",
-//							Long.class, ParameterMode.OUT)
-//					.setParameter("from_date", transDate);
-//
-//			query.execute();
-//
-//			Long commentCount = (Long) query
-//					.getOutputParameterValue("commentCount");
-
 			Session session = entityManager.unwrap(Session.class);
 			session.doWork(new Work() {
 				@Override
 				public void execute(Connection connection) throws SQLException {
 					//connection, finally!
-					connection.setAutoCommit(true);
-					Statement stmt = connection.createStatement();
-
 					String storeProc = String.format("CALL payoo.sp_insert_payment_settle('%s');", transDate);
-					int result = stmt.executeUpdate(storeProc);
-					System.out.println("settleStore: OK=>" + result);
-					connection.close();
+					try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
+//						ResultSet rs = stmt.executeQuery();
+//						while (rs.next()) {
+//							log.info("Found " + rs.getInt(1) + "result");
+//						}
+						int resuk=stmt.executeUpdate();
+						log.info("Found : " + resuk + "result");
+					}
+
+//					Statement stmt = connection.createStatement();
+//
+//					String storeProc = String.format("CALL payoo.sp_insert_payment_settle('%s');", transDate);
+//					int result = stmt.executeUpdate(storeProc);
+//					System.out.println("settleStore: OK=>" + result);
+//					connection.setAutoCommit(false);
+//					connection.close();
 				}
 			});
-
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(date_time);
@@ -420,5 +362,6 @@ public class RepaymentService {
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
+
 	//---------------------- END FUNCTION IMPORT -----------------
 }
