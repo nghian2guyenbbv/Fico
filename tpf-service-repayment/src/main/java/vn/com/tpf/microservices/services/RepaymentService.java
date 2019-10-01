@@ -294,8 +294,7 @@ public class RepaymentService {
 		String request_id = null;
 		Timestamp date_time = new Timestamp(new Date().getTime());
 		try{
-			Date fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Date.class);
-			Date toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Date.class);
+			Date transDate = mapper.convertValue(request.path("body").path("data").path("transDate"), Date.class);
 
 			//StoredProcedureQuery query = entityManager.createNamedStoredProcedureQuery("sp_insert_payment_settle").setParameter("p_trans_date",transDate);
 //
@@ -369,7 +368,7 @@ public class RepaymentService {
 					connection.setAutoCommit(true);
 					Statement stmt = connection.createStatement();
 
-					String storeProc = String.format("CALL payoo.sp_insert_payment_settle('%s');", "2019-09-09");
+					String storeProc = String.format("CALL payoo.sp_insert_payment_settle('%s');", transDate);
 					int result = stmt.executeUpdate(storeProc);
 					System.out.println("settleStore: OK=>" + result);
 					connection.close();
