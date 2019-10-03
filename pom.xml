@@ -36,7 +36,8 @@
 		<module>tpf-service-vinid</module>
 		<module>tpf-service-zuul</module>
         <module>tpf-service-dataentry-automation</module>
-    </modules>
+		<module>tpf-service-dataentry</module>
+	</modules>
 
 	<dependencies>
 		<dependency>
