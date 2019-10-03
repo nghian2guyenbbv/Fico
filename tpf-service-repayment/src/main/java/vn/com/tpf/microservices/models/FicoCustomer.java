@@ -59,7 +59,11 @@ public class FicoCustomer {
     public String getDueDate() {
 //        return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(new java.sql.Date(dueDate.getTime()).toLocalDate());
 //        return DateTimeFormatter.ISO_DATE.format(dueDate.toLocalDateTime());
-        return DateTimeFormatter.ofPattern("dd/MM/yyyy").format(dueDate.toLocalDateTime());
+        if (dueDate != null) {
+            return DateTimeFormatter.ofPattern("dd/MM/yyyy").format(dueDate.toLocalDateTime());
+        }else{
+            return null;
+        }
 //        return dueDate;
     }
 
