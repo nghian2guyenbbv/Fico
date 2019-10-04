@@ -14,8 +14,13 @@ import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
 
 import javax.validation.ConstraintViolation;
@@ -46,6 +51,8 @@ public class DataEntryService {
 
 	@Autowired
 	private ConvertService convertService;
+
+	private RestTemplate restTemplate;
 
 	public Map<String, Object> addProduct(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
@@ -349,10 +356,13 @@ public class DataEntryService {
 						Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
 
 //						--automation fullapp--
-						List<Application> dataFullApp = mongoTemplate.find(query, Application.class);
+						Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+						if (dataFullApp.getQuickLead().getDocumentsComment().size() > 0){
+							dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+						}
 						rabbitMQService.send("tpf-service-dataentry-automation",
 								Map.of("func", "fullInfoApp", "token",
-										String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataFullApp.get(0)));
+										String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataFullApp));
 
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(UUID.randomUUID().toString());
@@ -510,34 +520,54 @@ public class DataEntryService {
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()).and("comment.commentId").is(item.getCommentId()));
 					List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
+//					String typeComment = checkCommentExist.get(0).getComment().get(0).getType();
 
 					if (checkCommentExist.size() <= 0){
-						Query queryAddComment = new Query();
-						queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+						if (item.getType().equals("DIGI-TEX")) {// digitex gui comment
+//							if (typeComment.equals("DIGI-TEX")) {// digitex gui comment
+							Query queryAddComment = new Query();
+							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 
-						Update update = new Update();
-						update.push("comment", item);
-						Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, Application.class);
-
-						//-- cach 2
-//						Update update = new Update();
-//						update.addToSet("comment", item);
-//						Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, FindAndModifyOptions.options().upsert(true), Application.class);
+							Update update = new Update();
+							update.push("comment", item);
+							Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, Application.class);
+						}else{
+							//xu ly tai fail automationfull - fico gui comment
+						}
 					}else {
-						List<CommentModel> listComment = checkCommentExist.get(0).getComment();
-						for (CommentModel itemComment : listComment) {
-							if (itemComment.getCommentId().equals(item.getCommentId())){
-								if (itemComment.getResponse() == null){
-									Update update = new Update();
-									update.set("comment.$.response", item.getResponse());
-									Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+//						if (item.getType().equals("FICO")) {// digitex tra comment
+						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
+							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+							for (CommentModel itemComment : listComment) {
+								if (itemComment.getCommentId().equals(item.getCommentId())) {
+									if (itemComment.getResponse() == null) {
+										Update update = new Update();
+										update.set("comment.$.response", item.getResponse());
+										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+									}
+								}
+							}
+						}else{//fico tra comment
+							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+							for (CommentModel itemComment : listComment) {
+								if (itemComment.getCommentId().equals(item.getCommentId())) {
+									if (itemComment.getResponse() == null) {
+										if (item.getResponse().getDocuments().size() > 0){
+											for (Document itemCommentFico : item.getResponse().getDocuments()) {
+												Link link = new Link();
+												link.setUrlFico(itemCommentFico.getFilename());
+												link.setUrlPartner(itemCommentFico.getUrlId());
+												itemCommentFico.setLink(link);
+											}
+										}
+
+										Update update = new Update();
+										update.set("comment.$.response", item.getResponse());
+										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+									}
 								}
 							}
 						}
-
-//						Update update = new Update();
-//						update.set("comment.$.response", item.getResponse());
-//						Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 					}
 				}
 
@@ -861,6 +891,7 @@ public class DataEntryService {
 	public Map<String, Object> updateAppError(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = null;
+		String urlCommentDigiTex = "http://10.131.21.137:52233/sale_page/api_management/early_check/";
 		try{
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").asText()));
@@ -871,6 +902,28 @@ public class DataEntryService {
 				update.set("description", request.path("body").path("description").asText());
 				update.set("stage", request.path("body").path("stage").asText());
 				Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+
+				//save comment
+				CommentModel commentModel = new CommentModel();
+				commentModel.setCommentId(UUID.randomUUID().toString().substring(0,10));
+				commentModel.setType("FICO");
+				commentModel.setCode("FICO_ERR");
+				commentModel.setState(request.path("body").path("stage").asText());
+				commentModel.setRequest(request.path("body").path("description").asText());
+
+				Query queryAddComment = new Query();
+				queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").asText()));
+				Update updateComment = new Update();
+				updateComment.push("comment", commentModel);
+				Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, updateComment, Application.class);
+
+				//fico gui comment
+//				HttpHeaders headers = new HttpHeaders();
+//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//				HttpEntity<?> entity = new HttpEntity<>(request.path("body").path("data"), headers);
+//				ResponseEntity<?> res = restTemplate.postForEntity(urlCommentDigiTex, entity, Object.class);
+//				JsonNode body = mapper.valueToTree(res.getBody());
+
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());

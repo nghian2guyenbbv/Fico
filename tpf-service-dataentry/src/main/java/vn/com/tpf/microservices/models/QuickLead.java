@@ -29,6 +29,7 @@ public class QuickLead {
     private String communicationTranscript;
     private Date createdDate;
     private Date lastModifiedDate;
-    private List<QLDocument> documents = null;
+    private List<QLDocument> documents;
+    private List<QLDocument> documentsComment;
 
 }

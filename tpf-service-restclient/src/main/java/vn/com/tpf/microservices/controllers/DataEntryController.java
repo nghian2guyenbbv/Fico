@@ -221,45 +221,45 @@ public class DataEntryController {
 		request.put("token", token);
 		request.put("appId", appId);
 		try {
-//			MultiValueMap<String, Object> parts =
-//					new LinkedMultiValueMap<String, Object>();
-//			for (MultipartFile item:
-//				 files) {
-//				parts.add("file", item.getResource());
-//			}
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-//			HttpEntity<?> entity = new HttpEntity<>(parts, headers);
-//			ResponseEntity<?> res = restTemplate.postForEntity("http://192.168.0.205:3001/v1/file", entity, List.class);
-//			JsonNode body = mapper.valueToTree(res.getBody());
-
-//			--------------- Send DigiTex ------------------
-			List bb = new ArrayList();
-			Map<String, String > z = new HashMap<>();
-			z.put("urlId", "id01");
-			z.put("originalname", "TPF_ID_Card.pdf");
-			z.put("filename", "696969699TPF_ID_Card.pdf");
-			bb.add(z);
-			Map<String, String > t = new HashMap<>();
-			t.put("urlId", "id02");
-			t.put("originalname", "TPF_ACCA_Disbursal.pdf");
-			t.put("filename", "1212121212TPF_ID_Card.pdf");
-			bb.add(t);
-
 			MultiValueMap<String, Object> parts =
 					new LinkedMultiValueMap<String, Object>();
 			for (MultipartFile item:
-					files) {
+				 files) {
 				parts.add("file", item.getResource());
 			}
-			parts.add("inputdata", mapper.writeValueAsString(bb));
-
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-			headers.set("Authorization", token);
 			HttpEntity<?> entity = new HttpEntity<>(parts, headers);
-			ResponseEntity<?> res = restTemplate.postForEntity("http://localhost:4000/dataentry/uploadfile22", entity, Object.class);
+			ResponseEntity<?> res = restTemplate.postForEntity("http://192.168.0.205:3001/v1/file", entity, List.class);
 			JsonNode body = mapper.valueToTree(res.getBody());
+
+//			--------------- Send DigiTex ------------------
+//			List bb = new ArrayList();
+//			Map<String, String > z = new HashMap<>();
+//			z.put("urlId", "id01");
+//			z.put("originalname", "TPF_ID_Card.pdf");
+//			z.put("filename", "696969699TPF_ID_Card.pdf");
+//			bb.add(z);
+//			Map<String, String > t = new HashMap<>();
+//			t.put("urlId", "id02");
+//			t.put("originalname", "TPF_ACCA_Disbursal.pdf");
+//			t.put("filename", "1212121212TPF_ID_Card.pdf");
+//			bb.add(t);
+//
+//			MultiValueMap<String, Object> parts =
+//					new LinkedMultiValueMap<String, Object>();
+//			for (MultipartFile item:
+//					files) {
+//				parts.add("file", item.getResource());
+//			}
+//			parts.add("inputdata", mapper.writeValueAsString(bb));
+//
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+//			headers.set("Authorization", token);
+//			HttpEntity<?> entity = new HttpEntity<>(parts, headers);
+//			ResponseEntity<?> res = restTemplate.postForEntity("http://localhost:4000/dataentry/uploadfile22", entity, Object.class);
+//			JsonNode body = mapper.valueToTree(res.getBody());
 
 
 

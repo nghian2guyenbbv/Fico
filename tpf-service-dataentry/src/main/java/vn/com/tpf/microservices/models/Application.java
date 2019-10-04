@@ -29,6 +29,7 @@ public class Application {
     private List<DynamicForm> dynamicForm;
 
     private List<CommentModel> comment;
+    private List<QLDocument> documents;
 
     private String status;
     private String description;
