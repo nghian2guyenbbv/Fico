@@ -52,6 +52,15 @@ public class AutomationService {
 	);
 	final static Queue<LoginDTO> loginDTOQueue = new LinkedBlockingQueue<>(accounts);
 
+	final static List<LoginDTO> momoAccounts= Arrays.asList(
+            LoginDTO.builder().userName("momo_auto1").password("Hcm@12345").build()
+//            LoginDTO.builder().userName("momo_auto2").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto3").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto4").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build()
+	);
+	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccounts);
+
 	@PostConstruct
 	private void init() {
 
@@ -71,7 +80,7 @@ public class AutomationService {
 		return Map.of("status", 200, "data", res);
 	}
 
-	//------------------------ FUNCTION -------------------------------------
+	//------------------------ DATA ENTRY - FUNCTION -------------------------------------
 
 	public Map<String, Object> quickLeadApp(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
@@ -161,5 +170,40 @@ public class AutomationService {
 		//awaitTerminationAfterShutdown(workerThreadPool);
 	}
 
-	//------------------------- END FUNCTION ---------------------------------
+	//------------------------- END DATA ENTRY - FUNCTION ---------------------------------
+
+	//------------------------ MOMO - FUNCTION -------------------------------------
+
+	public Map<String, Object> momoCreateApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		System.out.println(request);
+
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		System.out.println(mapper.writeValueAsString(application));
+
+		new Thread(() -> {
+			try {
+				runAutomationMomo_CreateApp(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application);
+	}
+
+	private void runAutomationMomo_CreateApp(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataMomo(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(momo_loginDTOQueue, browser, mapValue,"momoCreateApp");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+
+		//awaitTerminationAfterShutdown(workerThreadPool);
+	}
+	//------------------------- END MOMO - FUNCTION ---------------------------------
 }
