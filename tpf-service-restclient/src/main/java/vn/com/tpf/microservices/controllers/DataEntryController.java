@@ -41,7 +41,7 @@ public class DataEntryController {
 		restTemplate = new RestTemplate(factory);
 	}
 
-	@PostMapping("/dataentry/addproduct")
+	@PostMapping("/v1/dataentry/addproduct")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> addProduct(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -55,7 +55,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/dataentry/getproductbyname")
+	@GetMapping("/v1/dataentry/getproductbyname")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getProductByName(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -69,7 +69,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/dataentry/getall")
+	@GetMapping("/v1/dataentry/getall")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getAll(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -83,7 +83,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/dataentry/getappid")
+	@GetMapping("/v1/dataentry/getappid")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getByAppId(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -97,7 +97,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/dataentry/getaddress")
+	@GetMapping("/v1/dataentry/getaddress")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getAddress(@RequestHeader("Authorization") String token)
 			throws Exception {
@@ -110,7 +110,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/dataentry/getbranch")
+	@GetMapping("/v1/dataentry/getbranch")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getBranch(@RequestHeader("Authorization") String token)
 			throws Exception {
@@ -123,7 +123,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/dataentry/firstcheck")
+	@PostMapping("/v1/dataentry/firstcheck")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> firstCheck(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -194,7 +194,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/dataentry/quicklead")
+	@PostMapping("/v1/dataentry/quicklead")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> quicklead(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -208,7 +208,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/dataentry/uploadfile")
+	@PostMapping("/v1/dataentry/uploadfile")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> uploadfile(@RequestHeader("Authorization") String token,
 										@RequestPart("files")  MultipartFile[] files,
