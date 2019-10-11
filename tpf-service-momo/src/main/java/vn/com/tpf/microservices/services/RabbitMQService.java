@@ -125,12 +125,8 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
-			case "updateAutomationResult":
-				return response(message, payload, momoService.updateAutomationResult(request));
 			case "updateStatus":
 				return response(message, payload, momoService.updateStatus(request));
-			case "updateSmsResult":
-				return response(message, payload, momoService.updateSmsResult(request));
 			}
 
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
@@ -150,6 +146,16 @@ public class RabbitMQService {
 			case "getDetail":
 				if (scopes.matches(".*(\"tpf-service-momo\"|\"tpf-service-app\").*")) {
 					return response(message, payload, momoService.getDetail(request));
+				}
+				break;
+			case "updateAutomation":
+				if (scopes.matches(".*(\"tpf-service-momo\"|\"tpf-service-esb\").*")) {
+					return response(message, payload, momoService.updateAutomation(request));
+				}
+				break;
+			case "updateSms":
+				if (scopes.matches(".*(\"tpf-service-momo\"|\"tpf-service-sms\").*")) {
+					return response(message, payload, momoService.updateSms(request));
 				}
 				break;
 			default:

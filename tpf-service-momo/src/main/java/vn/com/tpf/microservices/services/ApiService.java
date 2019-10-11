@@ -1,8 +1,6 @@
 package vn.com.tpf.microservices.services;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.StringReader;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +15,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import vn.com.tpf.microservices.utils.PGPHelper;
 
 @Service
 public class ApiService {
@@ -37,53 +33,60 @@ public class ApiService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	private void callApiMomo(String url, ObjectNode data) {
+	@Autowired
+	private RabbitMQService rabbitMQService;
+
+	private JsonNode callApiMomo(String url, JsonNode data) {
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
-			dataLogReq.set("payload", mapper.convertValue(data, JsonNode.class));
+			dataLogReq.set("payload", data);
 			log.info("{}", dataLogReq);
 
 			String dataString = mapper.writeValueAsString(data);
 			dataString = dataString.replace("emi", "EMI");
 
-			PGPHelper pgpHelper = new PGPHelper();
-			ByteArrayOutputStream encStream = new ByteArrayOutputStream();
-			pgpHelper.encryptAndSign(dataString.getBytes(), encStream);
+			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpEncrypt", "body", Map.of("project", "momo", "data", dataString)));
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/pgp-encrypted");
 			headers.set("Content-Type", "application/pgp-encrypted");
 			headers.set("partner-code", "tpbfico");
-			HttpEntity<?> entity = new HttpEntity<>(encStream.toString(), headers);
+			HttpEntity<?> entity = new HttpEntity<>(encrypt.path("data").asText(), headers);
 			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
+
+			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpDecrypt", "body", Map.of("project", "momo", "data", res.getBody().toString())));
 
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
 			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-			dataLogRes.set("payload", mapper.convertValue(data, JsonNode.class));
-			ByteArrayOutputStream desStream = new ByteArrayOutputStream();
-			pgpHelper.decryptAndVerifySignature(new BufferedReader(new StringReader(res.getBody().toString())), desStream);
-			dataLogRes.put("result", desStream.toString());
+			dataLogRes.set("payload", data);
+			dataLogRes.put("result", decrypt.path("data").asText());
 			log.info("{}", dataLogRes);
+
+			return mapper.readTree(decrypt.path("data").asText());
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
 			dataLogRes.put("status", 500);
 			dataLogRes.put("result", e.getMessage());
-			dataLogRes.set("payload", mapper.convertValue(data, JsonNode.class));
+			dataLogRes.set("payload", data);
 			log.info("{}", dataLogRes);
+
+			return mapper.createObjectNode().put("resultCode", 500).put("message", e.getMessage());
 		}
 	}
 
-	public void sendStatusToMomo(ObjectNode data) {
-		callApiMomo(urlMomoStatus, data);
+	public JsonNode sendStatusToMomo(JsonNode data) {
+		return callApiMomo(urlMomoStatus, data);
 	}
 
-	public void sendDisburseToMomo(ObjectNode data) {
-		callApiMomo(urlMomoDisburse, data);
+	public JsonNode sendDisburseToMomo(JsonNode data) {
+		return callApiMomo(urlMomoDisburse, data);
 	}
 
 }

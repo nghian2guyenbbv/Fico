@@ -37,7 +37,6 @@ public class Momo {
 	private String issuePlace;
 	private String email;
 	private String maritalStatus;
-	private String status;
 	private String gender;
 	private String address1;
 	private String address2;
@@ -46,9 +45,11 @@ public class Momo {
 	private String city;
 	private String region;
 	private String smsResult;
-	private String automationResult;
 	private String dateOfBirth;
 	private String issueDate;
+	private String status;
+	private String automationResult;
+	private String error;
 	private long fee;
 	private long salary;
 	private long amount;

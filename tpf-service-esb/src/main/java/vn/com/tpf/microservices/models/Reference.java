@@ -1,17 +1,14 @@
 package vn.com.tpf.microservices.models;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.Set;
 
 import lombok.Data;
 
 @Data
-@JsonInclude(Include.NON_NULL)
 public class Reference {
 
-	private String fullName;
-	private String personalId;
-	private String phoneNumber;
-	private String relation;
+	private String name;
+	private String relationship;
+	private Set<PhoneNumber> phoneNumbers;
 
 }

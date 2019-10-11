@@ -27,8 +27,8 @@ public class AppController {
 
 	@GetMapping("/v1/app")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
-	public ResponseEntity<?> reads(@RequestHeader("Authorization") String token, @RequestParam Map<String, String> param)
-			throws Exception {
+	public ResponseEntity<?> getListApp(@RequestHeader("Authorization") String token,
+			@RequestParam Map<String, String> param) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getListApp");
 		request.put("token", token);
@@ -41,7 +41,7 @@ public class AppController {
 
 	@PostMapping("/v1/app")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
-	public ResponseEntity<?> create(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> createApp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "createApp");
@@ -54,7 +54,7 @@ public class AppController {
 
 	@PutMapping("/v1/app/{id}")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
-	public ResponseEntity<?> update(@RequestHeader("Authorization") String token, @PathVariable String id,
+	public ResponseEntity<?> updateApp(@RequestHeader("Authorization") String token, @PathVariable String id,
 			@RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateApp");

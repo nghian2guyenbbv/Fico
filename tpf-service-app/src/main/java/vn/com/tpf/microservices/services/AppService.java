@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,12 +42,6 @@ public class AppService {
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
-	private JsonNode response(int status, JsonNode data, long total) {
-		ObjectNode response = mapper.createObjectNode();
-		response.put("status", status).put("total", total).set("data", data);
-		return response;
-	}
-
 	private String getDepartment(App entity) {
 		String status = entity.getStatus() != null ? entity.getStatus() : "";
 		String department = "";
@@ -59,6 +54,12 @@ public class AppService {
 			department = LOAN_BOOKING;
 
 		return department;
+	}
+
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -89,7 +90,7 @@ public class AppService {
 		if (!info.path("authorities").toString().matches(".*(\"role_root\").*")) {
 			Set<String> projects = new HashSet<>();
 			if (request.path("param").path("project").isTextual()) {
-				projects.add(request.path("param").path("project").asText());
+				projects = StringUtils.commaDelimitedListToSet(request.path("param").path("project").asText());
 			} else if (info.path("projects").isArray()) {
 				projects = mapper.convertValue(info.path("projects"), Set.class);
 			}
@@ -105,6 +106,10 @@ public class AppService {
 			else if (request.path("param").path("department").asText().equals(LOAN_BOOKING))
 				status.addAll(Arrays.asList("APPROVED", "SUPPLEMENT"));
 			criteria.and("status").in(status);
+		}
+
+		if (request.path("param").path("status").isTextual()) {
+			criteria.and("status").in(StringUtils.commaDelimitedListToSet(request.path("param").path("status").asText()));
 		}
 
 		query.addCriteria(criteria);
@@ -246,4 +251,5 @@ public class AppService {
 
 		return response(200, mapper.convertValue(nEntity, JsonNode.class), 0);
 	}
+
 }

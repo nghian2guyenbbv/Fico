@@ -27,17 +27,24 @@ public class AppService {
 	}
 
 	public JsonNode createApp(JsonNode request) throws Exception {
-		String project = request.path("param").path("project").asText();
-		rabbitMQService.send("tpf-service-automation-" + project,
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation",
 				Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("project", project), "body", mapper.convertValue(request.path("body"), App.class)));
-		return response(200, null);
+						"body", mapper.convertValue(request.path("body"), App.class)));
+		return response(res.path("status").asInt(), res.path("data"));
 	}
 
 	public JsonNode updateApp(JsonNode request) throws Exception {
-		rabbitMQService.send("tpf-service-" + request.path("param").path("project").asText(), Map.of("func", "updateApp",
-				"token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(), "body", request.path("body")));
-		return response(200, null);
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation",
+				Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+						"body", mapper.convertValue(request.path("body"), App.class)));
+		return response(res.path("status").asInt(), res.path("data"));
+	}
+
+	public JsonNode updateAutomation(JsonNode request) throws Exception {
+		JsonNode auto = rabbitMQService.sendAndReceive("tpf-service-" + request.path("body").path("project").asText(),
+				Map.of("func", "updateAutomation", "token",
+						"Bearer " + rabbitMQService.getToken().path("access_token").asText(), "body", request.path("body")));
+		return response(auto.path("status").asInt(), auto.path("data"));
 	}
 
 	public JsonNode getReason(JsonNode request) throws Exception {
