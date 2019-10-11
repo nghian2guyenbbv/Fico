@@ -6,7 +6,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
 import vn.com.tpf.microservices.models.Automation.*;
@@ -26,8 +29,13 @@ import static org.hamcrest.Matchers.is;
 @Service
 public class AutomationHandlerService {
 
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private RabbitMQService rabbitMQService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     private LoginDTO pollAccountFromQueue(Queue<LoginDTO> accounts) throws Exception {
         LoginDTO accountDTO = null;
@@ -102,11 +110,14 @@ public class AutomationHandlerService {
         String appId = "";
         String stage= "";
         Application application= Application.builder().build();
+        log.info("{}", application);
         try {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
             application = (Application) mapValue.get("ApplicationDTO");
             QuickLead quickLead=application.getQuickLead();
+            mongoTemplate.save(application);
+
 
             //*************************** END GET DATA *********************//
 
