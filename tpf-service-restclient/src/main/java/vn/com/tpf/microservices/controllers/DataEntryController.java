@@ -311,7 +311,7 @@ public class DataEntryController {
 //			aaa.addAll(array);
 
 			JsonNode jNode = mergeFile(body, mapper.valueToTree(aa));
-			request.put("body", jNode);
+			request.put("body", body);
 
 //			return ResponseEntity.status(200)
 //					.header("x-pagination-total", "0").body(request);
