@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-opensource-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    hostname: tpf-opensource-elasticsearch
+    environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - discovery.type=single-node
+    volumes:
+      - ./mount/elasticsearch:/usr/share/elasticsearch/data
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 9200:9200
+      - 9300:9300

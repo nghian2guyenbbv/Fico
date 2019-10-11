@@ -1,12 +1,24 @@
 spring:
   application:
-      name: tpf-service-eureka
+    name: tpf-service-eureka
   cloud:
     config:
-      uri: http://localhost:8888
+      uri: http://127.0.0.1:8888
 ---
 spring:
   profiles: dev
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: uat
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: pro
   cloud:
     config:
       uri: http://tpf-service-config:8888

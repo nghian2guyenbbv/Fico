@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-trusting-social:
+    image: openjdk:11
+    hostname: tpf-service-trusting-social
+    working_dir: /opt/tpf-service-trusting-social
+    command: bash -c 'cd /opt/tpf-service-trusting-social && java -jar tpf-service-trusting-social-1.0.jar'
+    volumes:
+      - ./../tpf-service-trusting-social/target:/opt/tpf-service-trusting-social
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4005:4005

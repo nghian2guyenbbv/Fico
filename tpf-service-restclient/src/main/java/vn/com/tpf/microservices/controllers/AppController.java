@@ -3,8 +3,6 @@ package vn.com.tpf.microservices.controllers;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import vn.com.tpf.microservices.services.RabbitMQService;
 
 @RestController
@@ -27,8 +27,8 @@ public class AppController {
 
 	@GetMapping("/v1/app")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
-	public ResponseEntity<?> reads(@RequestHeader("Authorization") String token, @RequestParam Map<String, String> param)
-			throws Exception {
+	public ResponseEntity<?> getListApp(@RequestHeader("Authorization") String token,
+			@RequestParam Map<String, String> param) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getListApp");
 		request.put("token", token);
@@ -41,7 +41,7 @@ public class AppController {
 
 	@PostMapping("/v1/app")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
-	public ResponseEntity<?> create(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> createApp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "createApp");
@@ -54,13 +54,26 @@ public class AppController {
 
 	@PutMapping("/v1/app/{id}")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
-	public ResponseEntity<?> update(@RequestHeader("Authorization") String token, @PathVariable String id,
+	public ResponseEntity<?> updateApp(@RequestHeader("Authorization") String token, @PathVariable String id,
 			@RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateApp");
 		request.put("token", token);
 		request.put("param", Map.of("id", id));
 		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-app", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
+	@GetMapping("/v1/app/{id}")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-app')")
+	public ResponseEntity<?> getApp(@RequestHeader("Authorization") String token, @PathVariable String id)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getApp");
+		request.put("token", token);
+		request.put("param", Map.of("id", id));
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-app", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));

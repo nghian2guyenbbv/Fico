@@ -19,24 +19,24 @@ Vue.component('v-editor', VueEditor)
 Vue.filter('fDateTime', v => Vue.moment(v).format('HH:mm DD/MM/YYYY'))
 
 Vue.mixin({
-  computed: mapState(['s']),
-  methods: {
-    fnCopy, fnIsAuth, ...mapActions([
-      'fnToastr', 'fnLogout', 'fnLogin', 'fnPagination', 'fnRead', 'fnCreate', 'fnUpdate', 'fnDelete',
-      'fnCallResetView', 'fnCallListView', 'fnCallCreateView', 'fnCallUpdateView', 'fnCallDeleteView'
-    ])
-  }
+	computed: mapState(['s']),
+	methods: {
+		fnCopy, fnIsAuth, ...mapActions([
+			'fnToastr', 'fnLogout', 'fnLogin', 'fnPagination', 'fnRead', 'fnCreate', 'fnUpdate', 'fnDelete',
+			'fnCallResetView', 'fnCallListView', 'fnCallCreateView', 'fnCallUpdateView', 'fnCallDeleteView'
+		])
+	}
 })
 
 router.beforeEach(async (to, from, next) => {
-  const user = await store.dispatch('fnGetUserSession')
+	const user = await store.dispatch('fnGetUserSession')
 
-  if (to.matched[0].props.default) {
-    const { auth, opt } = to.matched[0].props.default
-    if (auth && !fnIsAuth(user, opt)) return next('/login')
-  }
+	if (to.matched[0].props.default) {
+		const { auth, opt } = to.matched[0].props.default
+		if (auth && !fnIsAuth(user, opt)) return next('/login')
+	}
 
-  next()
+	next()
 })
 
 new Vue({ router, store, render: h => h(App) }).$mount('#app')

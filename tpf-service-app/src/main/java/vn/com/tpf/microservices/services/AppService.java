@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,13 +18,18 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.App;
 
 @Service
 public class AppService {
 
-	private static final String AUTOMATION = "automation";
+	private static final String DATA_ENTRY = "data_entry";
 	private static final String DOCUMENT_CHECK = "document_check";
 	private static final String LOAN_BOOKING = "loan_booking";
 
@@ -40,21 +42,44 @@ public class AppService {
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
+	private String getDepartment(App entity) {
+		String status = entity.getStatus() != null ? entity.getStatus() : "";
+		String department = "";
+
+		if (status.equals("PROCESSING_FAIL"))
+			department = DATA_ENTRY;
+		else if (status.equals("PROCESSING_PASS") || status.equals("PROCESSING_FIX") || status.equals("RETURNED"))
+			department = DOCUMENT_CHECK;
+		else if (status.equals("APPROVED") || status.equals("SUPPLEMENT"))
+			department = LOAN_BOOKING;
+
+		return department;
+	}
+
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
+	}
+
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> getListApp(JsonNode request, JsonNode info) {
+	public JsonNode getListApp(JsonNode request, JsonNode info) {
 		int page = request.path("param").path("page").asInt(1);
 		int limit = request.path("param").path("limit").asInt(10);
 		String[] sort = request.path("param").path("sort").asText("createdAt,desc").split(",");
 
 		Query query = new Query();
-		Criteria criteria = Criteria.where("assigned").is(null);
+		Criteria criteria = new Criteria();
 
 		if (request.path("param").path("assigned").isTextual()) {
-			if (info.path("authorities").toString()
-					.matches(".*(\"role_root\"|\"role_admin\"|\"role_manager\"|\"role_viewer\").*")) {
-				criteria = Criteria.where("assigned").ne(null);
+			if (request.path("param").path("assigned").asText().isEmpty()) {
+				criteria = Criteria.where("assigned").is(null);
 			} else {
 				criteria = Criteria.where("assigned").is(request.path("param").path("assigned").asText());
+				if (info.path("authorities").toString()
+						.matches(".*(\"role_root\"|\"role_admin\"|\"role_manager\"|\"role_viewer\").*")) {
+					criteria = Criteria.where("assigned").ne(null);
+				}
 			}
 		}
 
@@ -64,24 +89,27 @@ public class AppService {
 
 		if (!info.path("authorities").toString().matches(".*(\"role_root\").*")) {
 			Set<String> projects = new HashSet<>();
-			if (info.path("projects").isArray()) {
+			if (request.path("param").path("project").isTextual()) {
+				projects = StringUtils.commaDelimitedListToSet(request.path("param").path("project").asText());
+			} else if (info.path("projects").isArray()) {
 				projects = mapper.convertValue(info.path("projects"), Set.class);
 			}
 			criteria.and("project").in(projects);
+		}
 
+		if (request.path("param").path("department").isTextual()) {
 			Set<String> status = new HashSet<>();
-			if (info.path("departments").isArray()) {
-				Set<String> departments = mapper.convertValue(info.path("departments"), Set.class);
-				departments.forEach(e -> {
-					if (e.equals(AUTOMATION))
-						status.add("PROCESSING_FAIL");
-					else if (e.equals(DOCUMENT_CHECK))
-						status.addAll(Arrays.asList("PROCESSING_PASS", "PROCESSING_FIX", "RETURNED"));
-					else if (e.equals(LOAN_BOOKING))
-						status.addAll(Arrays.asList("APPROVED", "SUPPLEMENT"));
-				});
-			}
+			if (request.path("param").path("department").asText().equals(DATA_ENTRY))
+				status.add("PROCESSING_FAIL");
+			else if (request.path("param").path("department").asText().equals(DOCUMENT_CHECK))
+				status.addAll(Arrays.asList("PROCESSING_PASS", "PROCESSING_FIX", "RETURNED"));
+			else if (request.path("param").path("department").asText().equals(LOAN_BOOKING))
+				status.addAll(Arrays.asList("APPROVED", "SUPPLEMENT"));
 			criteria.and("status").in(status);
+		}
+
+		if (request.path("param").path("status").isTextual()) {
+			criteria.and("status").in(StringUtils.commaDelimitedListToSet(request.path("param").path("status").asText()));
 		}
 
 		query.addCriteria(criteria);
@@ -91,56 +119,54 @@ public class AppService {
 		query.with(PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0])));
 		List<App> list = mongoTemplate.find(query, App.class);
 
-		return Map.of("status", 200, "data", list, "total", total);
+		return response(200, mapper.convertValue(list, JsonNode.class), total);
 	}
 
-	public Map<String, Object> createApp(JsonNode request) throws Exception {
-		String project = request.path("param").path("project").asText().toLowerCase();
-		if (project.isEmpty()) {
-			project = request.path("body").path("project").asText().toLowerCase();
+	public JsonNode getApp(JsonNode request) throws Exception {
+		Query query = Query.query(Criteria.where("id").is(request.path("param").path("id").asText()));
+		App app = mongoTemplate.findOne(query, App.class);
+
+		if (app == null) {
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
-		Assert.hasText(project, "param project is required");
-		Assert.notNull(request.get("body"), "no body");
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-" + app.getProject(),
+				Map.of("func", "getDetail", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+						"param", Map.of("id", app.getUuid().split("_")[1])));
 
-		App entity = new App();
+		return response(res.path("status").asInt(), res.path("data"), 0);
+	}
 
-		if (project.equals("fpt"))
-			convertFpt(entity, request, "create");
-		else if (project.equals("vinid"))
-			convertVinId(entity, request, "create");
-		else if (project.equals("momo"))
-			convertMomo(entity, request, "create");
-		else if (project.equals("trusting_social"))
-			convertTrustingSocial(entity, request, "create");
-		else
-			return Map.of("status", 400, "data", Map.of("message", "Project Invalid"));
+	public JsonNode createApp(JsonNode request) throws Exception {
+		App entity = mapper.convertValue(request.path("body"), App.class);
+		entity.setUuid(entity.getProject() + "_" + entity.getUuid());
 
-		Date date = new Date();
-		entity.setStatusHistory(new HashSet<>(Arrays.asList(Map.of("status", entity.getStatus(), "createdAt", date))));
-		entity.setAutomationHistory(
-				new HashSet<>(Arrays.asList(Map.of("status", entity.getAutomationResult(), "createdAt", date))));
+		if (entity.getAutomationResult() != null) {
+			entity.setAutomationHistory(
+					new HashSet<>(Arrays.asList(Map.of("status", entity.getAutomationResult(), "createdAt", new Date()))));
+		}
+		if (entity.getStatus() != null) {
+			String status = entity.getStatus().toUpperCase();
+			if (status.equals("PROCESSING") && entity.getAutomationResult() != null) {
+				String auto = entity.getAutomationResult().toUpperCase();
+				status = (auto.equals("PASS") || auto.equals("FIX")) ? (status + "_" + auto) : (status + "_" + "FAIL");
+			}
+			entity.setStatus(status);
+			entity.setStatusHistory(
+					new HashSet<>(Arrays.asList(Map.of("status", entity.getStatus(), "createdAt", new Date()))));
+		}
 
 		mongoTemplate.save(entity);
 
-		String roomTo = "";
-		String status = entity.getStatus();
-		if (status.equals("PROCESSING_FAIL")) {
-			roomTo = AUTOMATION;
-		} else if (status.equals("PROCESSING_PASS") || status.equals("PROCESSING_FIX") || status.equals("RETURNED")) {
-			roomTo = DOCUMENT_CHECK;
-		}
+		String dTo = getDepartment(entity);
+		Map<?, ?> body = Map.of("from", "", "to", dTo, "project", entity.getProject(), "data", entity);
+		Map<?, ?> notify = Map.of("token", "Bearer " + rabbitMQService.getToken().path("access_token"), "body", body);
+		rabbitMQService.send("tpf-service-webportal", notify);
 
-		if (!roomTo.isEmpty()) {
-			Map<?, ?> body = Map.of("from", "", "to", roomTo, "project", entity.getProject(), "data", entity);
-			Map<?, ?> notify = Map.of("token", rabbitMQService.getToken().path("access_token"), "body", body);
-			rabbitMQService.send("tpf-service-webportal", notify);
-		}
-
-		return Map.of("status", 201, "data", entity);
+		return response(201, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> updateApp(JsonNode request) throws Exception {
+	public JsonNode updateApp(JsonNode request) throws Exception {
 		String id = request.path("param").path("id").asText();
 		String project = request.path("param").path("project").asText().toLowerCase();
 		if (project.isEmpty()) {
@@ -149,30 +175,19 @@ public class AppService {
 
 		Assert.hasText(id, "param id is required");
 		Assert.hasText(project, "param project is required");
-		Assert.notNull(request.get("body"), "no body");
+		Assert.notNull(request.path("body"), "no body");
 
 		Query query = Query.query(Criteria.where("uuid").is(project + "_" + id));
 		App oEntity = mongoTemplate.findOne(query, App.class);
 
 		if (oEntity == null) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
-		App entity = new App();
-
-		if (project.equals("fpt"))
-			convertFpt(entity, request, "update");
-		else if (project.equals("vinid"))
-			convertVinId(entity, request, "update");
-		else if (project.equals("momo"))
-			convertMomo(entity, request, "update");
-		else if (project.equals("trusting_social"))
-			convertTrustingSocial(entity, request, "update");
-		else
-			return Map.of("status", 400, "data", Map.of("message", "Project Invalid"));
+		App entity = mapper.convertValue(request.path("body"), App.class);
 
 		Update update = new Update();
-		update.set("project", entity.getProject());
+		update.set("project", project);
 		if (entity.getAppId() != null) {
 			update.set("appId", entity.getAppId());
 		}
@@ -182,16 +197,22 @@ public class AppService {
 		if (entity.getPartnerId() != null) {
 			update.set("partnerId", entity.getPartnerId());
 		}
-		if (entity.getProductCode() != null) {
-			update.set("productCode", entity.getProductCode());
+		if (entity.getOptional() != null) {
+			update.set("optional", entity.getOptional());
 		}
-		if (entity.getSchemeCode() != null) {
-			update.set("schemeCode", entity.getSchemeCode());
+		if (!entity.getDocuments().isEmpty()) {
+			update.set("documents", entity.getDocuments());
 		}
-		if (!entity.getPhotos().isEmpty()) {
-			update.set("photos", entity.getPhotos());
+		if (!entity.getComments().isEmpty()) {
+			update.set("comments", entity.getComments());
 		}
 		if (entity.getStatus() != null) {
+			String status = entity.getStatus().toUpperCase();
+			if (status.equals("PROCESSING") && entity.getAutomationResult() != null) {
+				String auto = entity.getAutomationResult().toUpperCase();
+				status = (auto.equals("PASS") || auto.equals("FIX")) ? (status + "_" + auto) : (status + "_" + "FAIL");
+			}
+			entity.setStatus(status);
 			update.set("status", entity.getStatus());
 			update.push("statusHistory").atPosition(0).value(Map.of("status", entity.getStatus(), "createdAt", new Date()));
 		}
@@ -204,127 +225,31 @@ public class AppService {
 		}
 		if (entity.getAssigned() != null) {
 			update.set("assigned", entity.getAssigned());
-			update.push("assignedHistory").atPosition(0)
-					.value(Map.of("assigned", entity.getAssigned(), "status", oEntity.getStatus(), "createdAt", new Date()));
+			update.push("assignedHistory").atPosition(0).value(Map.of("assigned", entity.getAssigned(), "status",
+					oEntity.getStatus() != null ? oEntity.getStatus() : "", "createdAt", new Date()));
 		}
 		String unassigned = request.path("body").path("unassigned").asText();
 		if (!unassigned.isEmpty() && unassigned.equals(oEntity.getAssigned())) {
 			update.unset("assigned");
 		}
 
-		String roomFrom = "";
-		String oStatus = oEntity.getStatus();
-		if (oStatus.equals("PROCESSING_FAIL"))
-			roomFrom = AUTOMATION;
-		else if (oStatus.equals("PROCESSING_PASS") || oStatus.equals("PROCESSING_FIX") || oStatus.equals("RETURNED"))
-			roomFrom = DOCUMENT_CHECK;
-		else if (oStatus.equals("APPROVED") || oStatus.equals("SUPPLEMENT"))
-			roomFrom = LOAN_BOOKING;
+		String dFrom = getDepartment(oEntity);
+		String dTo = getDepartment(entity);
 
-		String roomTo = roomFrom;
-		String nStatus = entity.getStatus() != null ? entity.getStatus() : "";
-		if (nStatus.equals("PROCESSING_FAIL"))
-			roomTo = AUTOMATION;
-		else if (nStatus.equals("PROCESSING_PASS") || nStatus.equals("PROCESSING_FIX") || nStatus.equals("RETURNED"))
-			roomTo = DOCUMENT_CHECK;
-		else if (nStatus.equals("APPROVED") || nStatus.equals("SUPPLEMENT"))
-			roomTo = LOAN_BOOKING;
-
-		if (!roomFrom.equals(roomTo)) {
+		if (dTo.isEmpty()) {
+			dTo = dFrom;
+		}
+		if (!dFrom.equals(dTo)) {
 			update.unset("assigned");
 		}
 
 		App nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), App.class);
 
-		if (!roomFrom.isEmpty() && !roomTo.isEmpty()) {
-			Map<?, ?> body = Map.of("from", roomFrom, "to", roomTo, "project", nEntity.getProject(), "data", nEntity);
-			Map<?, ?> notify = Map.of("token", rabbitMQService.getToken().path("access_token"), "body", body);
-			rabbitMQService.send("tpf-service-webportal", notify);
-		}
+		Map<?, ?> body = Map.of("from", dFrom, "to", dTo, "project", nEntity.getProject(), "data", nEntity);
+		Map<?, ?> notify = Map.of("token", rabbitMQService.getToken().path("access_token"), "body", body);
+		rabbitMQService.send("tpf-service-webportal", notify);
 
-		return Map.of("status", 200, "data", nEntity);
-	}
-
-	private void convertFpt(App entity, JsonNode request, String type) {
-		JsonNode body = request.path("body");
-		JsonNode id = body.path("id");
-		JsonNode custId = body.path("custId");
-		JsonNode firstName = body.path("firstName");
-		JsonNode middleName = body.path("middleName");
-		JsonNode lastName = body.path("lastName");
-		JsonNode automationResult = body.path("automationResult");
-		JsonNode photos = body.path("photos");
-		JsonNode status = body.path("status");
-		JsonNode scheme = body.path("loanDetail").path("product");
-		JsonNode assigned = body.path("assigned");
-		JsonNode appId = body.path("appId");
-
-		if (type.equals("create")) {
-			Assert.isTrue(id.isNumber(), "id is required");
-			Assert.isTrue(custId.isNumber(), "custId is required");
-			Assert.isTrue(firstName.isTextual() && !firstName.asText().isEmpty(), "firstName is required");
-			Assert.isTrue(middleName.isTextual() && !middleName.asText().isEmpty(), "middleName is required");
-			Assert.isTrue(lastName.isTextual() && !lastName.asText().isEmpty(), "lastName is required");
-			Assert.isTrue(automationResult.isTextual() && !automationResult.asText().isEmpty(),
-					"automationResult is required");
-			Assert.isTrue(status.isTextual() && !status.asText().isEmpty(), "status is required");
-			Assert.isTrue(scheme.isTextual() && !scheme.asText().isEmpty(), "loanDetail.product is required");
-			Assert.isTrue(photos.isArray(), "photos is required");
-		}
-
-		entity.setProject("fpt");
-		if (id.isNumber()) {
-			entity.setUuid("fpt_" + id.asText());
-		}
-		if (assigned.isTextual() && !assigned.asText().isEmpty()) {
-			entity.setAssigned(assigned.asText());
-		}
-		if (appId.isTextual() && !appId.asText().isEmpty()) {
-			entity.setAppId(appId.asText());
-		}
-		if (firstName.isTextual() && !firstName.asText().isEmpty() && middleName.isTextual()
-				&& !middleName.asText().isEmpty() && lastName.isTextual() && !lastName.asText().isEmpty()) {
-			entity.setFullName(firstName.asText() + " " + middleName.asText() + " " + lastName.asText());
-		}
-		if (custId.isNumber()) {
-			entity.setPartnerId(custId.asText());
-		}
-		if (scheme.isTextual() && !scheme.asText().isEmpty()) {
-			entity.setSchemeCode(scheme.asText());
-			entity.setProductCode(entity.getSchemeCode().split("_")[0]);
-		}
-		if (automationResult.isTextual() && !automationResult.asText().isEmpty()) {
-			entity.setAutomationResult(automationResult.asText());
-		}
-		if (status.isTextual() && !status.asText().isEmpty()) {
-			String sts = status.asText().toUpperCase();
-			if (sts.equals("PROCESSING") && entity.getAutomationResult() != null) {
-				String auto = entity.getAutomationResult().toUpperCase();
-				sts = (auto.equals("PASS") || auto.equals("FIX")) ? (sts + "_" + auto) : (sts + "_" + "FAIL");
-			}
-			entity.setStatus(sts);
-		}
-
-		if (photos.isArray()) {
-			Set<Map<?, ?>> pts = new HashSet<>();
-			photos.forEach(e -> {
-				pts.add(
-						Map.of("type", e.path("documentType").asText(), "link", e.path("link").asText(), "createdAt", new Date()));
-			});
-			entity.setPhotos(pts);
-		}
-	}
-
-	private void convertVinId(App entity, JsonNode request, String type) {
-
-	}
-
-	private void convertMomo(App entity, JsonNode request, String type) {
-
-	}
-
-	private void convertTrustingSocial(App entity, JsonNode request, String type) {
-
+		return response(200, mapper.convertValue(nEntity, JsonNode.class), 0);
 	}
 
 }

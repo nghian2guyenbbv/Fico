@@ -15,8 +15,8 @@ const opt = {
 	isLoading: false, isCreate: false, isUpdate: false, isDelete: false, isForm: false
 }
 
-const host = window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'http://192.168.0.200:9000/api'
-const hostSocket = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
+const host = `http://${window.location.hostname}:4000`
+const hostSocket = `http://${window.location.hostname}:3000`
 
 export default new Vuex.Store({
 	state: {
@@ -77,10 +77,10 @@ export default new Vuex.Store({
 					{ value: 'fpt', text: 'Fpt' },
 					{ value: 'momo', text: 'Momo' },
 					{ value: 'vinid', text: 'Vin ID' },
-					{ value: 'trusting_social', text: 'Trusting Social' },
+					{ value: 'trustingsocial', text: 'Trusting Social' },
 				],
 				departments: [
-					{ value: 'automation', text: 'Automation' },
+					{ value: 'data_entry', text: 'Data Entry' },
 					{ value: 'document_check', text: 'Document Check' },
 					{ value: 'loan_booking', text: 'Loan Booking' }
 				],
@@ -155,9 +155,11 @@ export default new Vuex.Store({
 
 		fnHandleError: ({ state, dispatch }, { model, error }) => {
 			state.s[model].isLoading = false
-			const message = error.response.data['message'] || error.response.data['error_description']
-			if (error.response) dispatch('fnToastr', { type: 'error', message })
-			else dispatch('fnRemoveUserSession')
+			if (!error.response || error.response.status === 401) dispatch('fnRemoveUserSession')
+			else {
+				const message = error.response.data['message'] || error.response.data['error_description']
+				dispatch('fnToastr', { type: 'error', message })
+			}
 		},
 
 		fnFilterCreate: ({ state }, { model, data }) => {

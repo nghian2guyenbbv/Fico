@@ -1,11 +1,6 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +11,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.Account;
 
@@ -31,7 +30,13 @@ public class AccountService {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public Map<String, Object> getListAccount(JsonNode request, JsonNode token) {
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
+	}
+
+	public JsonNode getListAccount(JsonNode request, JsonNode token) {
 		int page = request.path("param").path("page").asInt(1);
 		int limit = request.path("param").path("limit").asInt(10);
 		String[] sort = request.path("param").path("sort").asText("createdAt,desc").split(",");
@@ -55,10 +60,10 @@ public class AccountService {
 		query.with(PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0])));
 		List<Account> list = mongoTemplate.find(query, Account.class);
 
-		return Map.of("status", 200, "data", list, "total", total);
+		return response(200, mapper.convertValue(list, JsonNode.class), total);
 	}
 
-	public Map<String, Object> createAccount(JsonNode request) throws Exception {
+	public JsonNode createAccount(JsonNode request) throws Exception {
 		Assert.notNull(request.get("body"), "no body");
 
 		Account body = mapper.treeToValue(request.get("body"), Account.class);
@@ -77,8 +82,9 @@ public class AccountService {
 		entity.setEnabled(body.isEnabled());
 		entity.setProjects(body.getProjects());
 		entity.setDepartments(body.getDepartments());
+		entity.setOptional(body.getOptional());
 
-		Map<String, Object> bodyReq = new HashMap<>();
+		ObjectNode bodyReq = mapper.createObjectNode();
 		bodyReq.put("username", entity.getUsername());
 		bodyReq.put("password", request.path("body").path("password").asText());
 		bodyReq.put("authorities", entity.getAuthorities());
@@ -87,22 +93,22 @@ public class AccountService {
 		bodyReq.put("accountNonLocked", entity.isEnabled());
 		bodyReq.put("accountNonExpired", entity.isEnabled());
 
-		Map<String, Object> req = new HashMap<>();
+		ObjectNode req = mapper.createObjectNode();
 		req.put("func", "createUser");
-		req.put("token", request.path("token"));
-		req.put("body", bodyReq);
+		req.set("token", request.path("token"));
+		req.set("body", bodyReq);
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-authentication", req);
 
 		if (res.path("status").asInt() == 201) {
 			entity.setUserId(res.path("data").path("id").asText());
 			mongoTemplate.save(entity);
-			return Map.of("status", 201, "data", entity);
+			return response(201, mapper.convertValue(entity, JsonNode.class), 0);
 		}
 
-		return Map.of("status", res.path("status").asInt(), "data", res.path("data"));
+		return response(res.path("status").asInt(), res.path("data"), 0);
 	}
 
-	public Map<String, Object> updateAccount(JsonNode request) throws Exception {
+	public JsonNode updateAccount(JsonNode request) throws Exception {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 		Assert.notNull(request.get("body"), "no body");
@@ -118,7 +124,7 @@ public class AccountService {
 		Account entity = mongoTemplate.findById(id, Account.class);
 
 		if (entity == null) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
 		entity.setUsername(body.getUsername());
@@ -127,8 +133,9 @@ public class AccountService {
 		entity.setEnabled(body.isEnabled());
 		entity.setProjects(body.getProjects());
 		entity.setDepartments(body.getDepartments());
+		entity.setOptional(body.getOptional());
 
-		Map<String, Object> bodyReq = new HashMap<>();
+		ObjectNode bodyReq = mapper.createObjectNode();
 		bodyReq.put("username", entity.getUsername());
 		bodyReq.put("authorities", entity.getAuthorities());
 		bodyReq.put("enabled", entity.isEnabled());
@@ -140,43 +147,43 @@ public class AccountService {
 			bodyReq.put("password", request.path("body").path("password").asText());
 		}
 
-		Map<String, Object> req = new HashMap<>();
+		ObjectNode req = mapper.createObjectNode();
 		req.put("func", "updateUser");
-		req.put("token", request.path("token"));
-		req.put("param", Map.of("id", entity.getUserId()));
-		req.put("body", bodyReq);
+		req.set("token", request.path("token"));
+		req.set("param", mapper.createObjectNode().put("id", entity.getUserId()));
+		req.set("body", bodyReq);
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-authentication", req);
 
 		if (res.path("status").asInt() == 200) {
 			mongoTemplate.save(entity);
-			return Map.of("status", 200, "data", entity);
+			return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 		}
 
-		return Map.of("status", res.path("status").asInt(), "data", res.path("data"));
+		return response(res.path("status").asInt(), res.path("data"), 0);
 	}
 
-	public Map<String, Object> deleteAccount(JsonNode request) throws Exception {
+	public JsonNode deleteAccount(JsonNode request) throws Exception {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 
 		Account entity = mongoTemplate.findById(id, Account.class);
 
 		if (entity == null) {
-			return Map.of("status", 404, "data", Map.of("message", "Not  Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
-		Map<String, Object> req = new HashMap<>();
+		ObjectNode req = mapper.createObjectNode();
 		req.put("func", "deleteUser");
-		req.put("token", request.path("token"));
-		req.put("param", Map.of("id", entity.getUserId()));
+		req.set("token", request.path("token"));
+		req.set("param", mapper.createObjectNode().put("id", entity.getUserId()));
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-authentication", req);
 
 		if (res.path("status").asInt() == 200) {
 			mongoTemplate.remove(entity);
-			return Map.of("status", 200, "data", entity);
+			return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 		}
 
-		return Map.of("status", res.path("status").asInt(), "data", res.path("data"));
+		return response(res.path("status").asInt(), res.path("data"), 0);
 	}
 
 	public Account getInfoAccount(String username) {

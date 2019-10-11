@@ -1,13 +1,9 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,6 +15,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.OauthClientDetails;
 import vn.com.tpf.microservices.repositories.ClientRepository;
@@ -48,20 +48,38 @@ public class ClientService {
 			author.setAuthorizedGrantTypes("authorization_code,password,client_credentials,implicit,refresh_token");
 			author.setAccessTokenValidity(60 * 60 * 24 * 30);
 			author.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
-			author.setScope("tpf-service-authorization,tpf-service-authentication");
+			author.setScope("tpf-service-authorization,tpf-service-authentication,tpf-service-app");
 			repository.save(author);
 
 			OauthClientDetails authen = new OauthClientDetails();
 			authen.setClientId("tpf-service-authentication");
 			authen.setClientSecret(passwordEncoder.encode("tpf-service-authentication"));
 			authen.setSecret("tpf-service-authentication");
+			authen.setAuthorizedGrantTypes("client_credentials");
+			authen.setAccessTokenValidity(60 * 60 * 24 * 30);
+			authen.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
+			authen.setScope("tpf-service-authentication");
 			repository.save(authen);
 
 			OauthClientDetails restclient = new OauthClientDetails();
 			restclient.setClientId("tpf-service-restclient");
 			restclient.setClientSecret(passwordEncoder.encode("tpf-service-restclient"));
 			restclient.setSecret("tpf-service-restclient");
+			restclient.setAuthorizedGrantTypes("client_credentials");
+			restclient.setAccessTokenValidity(60 * 60 * 24 * 30);
+			restclient.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
+			restclient.setScope("tpf-service-restclient");
 			repository.save(restclient);
+
+			OauthClientDetails app = new OauthClientDetails();
+			app.setClientId("tpf-service-app");
+			app.setClientSecret(passwordEncoder.encode("tpf-service-app"));
+			app.setSecret("tpf-service-app");
+			app.setAuthorizedGrantTypes("client_credentials");
+			app.setAccessTokenValidity(60 * 60 * 24 * 30);
+			app.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
+			app.setScope("tpf-service-app");
+			repository.save(app);
 
 			System.err.println("CLIENT CREATE SUCCES!!!");
 		} catch (Exception e) {
@@ -69,7 +87,13 @@ public class ClientService {
 		}
 	}
 
-	public Map<String, Object> getListClient(JsonNode request) {
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
+	}
+
+	public JsonNode getListClient(JsonNode request) {
 		int page = request.path("param").path("page").asInt(1);
 		int limit = request.path("param").path("limit").asInt(10);
 		String[] sort = request.path("param").path("sort").asText("createdAt,desc").split(",");
@@ -77,10 +101,10 @@ public class ClientService {
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0]));
 		Page<OauthClientDetails> result = repository.findAll(pageable);
 
-		return Map.of("status", 200, "data", result.getContent(), "total", result.getTotalElements());
+		return response(200, mapper.convertValue(result.getContent(), JsonNode.class), result.getTotalElements());
 	}
 
-	public Map<String, Object> createClient(JsonNode request) throws Exception {
+	public JsonNode createClient(JsonNode request) throws Exception {
 		Assert.notNull(request.get("body"), "no body");
 
 		OauthClientDetails body = mapper.treeToValue(request.get("body"), OauthClientDetails.class);
@@ -102,10 +126,10 @@ public class ClientService {
 		entity.setWebServerRedirectUri(body.getWebServerRedirectUri());
 		repository.save(entity);
 
-		return Map.of("status", 201, "data", entity);
+		return response(201, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> updateClient(JsonNode request) throws Exception {
+	public JsonNode updateClient(JsonNode request) throws Exception {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 		Assert.notNull(request.get("body"), "no body");
@@ -114,7 +138,7 @@ public class ClientService {
 		Optional<OauthClientDetails> exists = repository.findById(UUID.fromString(id));
 
 		if (exists.isEmpty()) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
 		OauthClientDetails entity = exists.get();
@@ -133,17 +157,17 @@ public class ClientService {
 			tokenStore.removeRefreshToken(t.getRefreshToken());
 		});
 
-		return Map.of("status", 200, "data", entity);
+		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> deleteClient(JsonNode request) {
+	public JsonNode deleteClient(JsonNode request) {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 
 		Optional<OauthClientDetails> exists = repository.findById(UUID.fromString(id));
 
 		if (exists.isEmpty()) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
 		OauthClientDetails entity = exists.get();
@@ -154,7 +178,7 @@ public class ClientService {
 			tokenStore.removeRefreshToken(t.getRefreshToken());
 		});
 
-		return Map.of("status", 200, "data", entity);
+		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
 }

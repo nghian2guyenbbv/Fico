@@ -1,13 +1,9 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,6 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.OauthUserDetails;
 import vn.com.tpf.microservices.repositories.UserRepository;
@@ -62,6 +62,12 @@ public class UserService implements UserDetailsService {
 		}
 	}
 
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
+	}
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		OauthUserDetails user = repository.findByUsername(username);
@@ -75,7 +81,7 @@ public class UserService implements UserDetailsService {
 				AuthorityUtils.commaSeparatedStringToAuthorityList(user.getAuthorities()));
 	}
 
-	public Map<String, Object> getListUser(JsonNode request) {
+	public JsonNode getListUser(JsonNode request) {
 		int page = request.path("param").path("page").asInt(1);
 		int limit = request.path("param").path("limit").asInt(10);
 		String[] sort = request.path("param").path("sort").asText("createdAt,desc").split(",");
@@ -83,10 +89,10 @@ public class UserService implements UserDetailsService {
 		Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0]));
 		Page<OauthUserDetails> result = repository.findAll(pageable);
 
-		return Map.of("status", 200, "data", result.getContent(), "total", result.getTotalElements());
+		return response(200, mapper.convertValue(result.getContent(), JsonNode.class), result.getTotalElements());
 	}
 
-	public Map<String, Object> createUser(JsonNode request, JsonNode token) throws Exception {
+	public JsonNode createUser(JsonNode request, JsonNode token) throws Exception {
 		Assert.notNull(request.get("body"), "no body");
 
 		OauthUserDetails body = mapper.treeToValue(request.get("body"), OauthUserDetails.class);
@@ -96,7 +102,7 @@ public class UserService implements UserDetailsService {
 
 		if (token.path("authorities").toString().matches(".*(\"role_admin\").*")
 				&& body.getAuthorities().equals("role_root")) {
-			return Map.of("status", 403, "data", Map.of("message", "Forbidden"));
+			return response(403, mapper.createObjectNode().put("message", "Forbidden"), 0);
 		}
 
 		OauthUserDetails entity = new OauthUserDetails();
@@ -109,10 +115,10 @@ public class UserService implements UserDetailsService {
 		entity.setCredentialsNonExpired(body.isCredentialsNonExpired());
 		repository.save(entity);
 
-		return Map.of("status", 201, "data", entity);
+		return response(201, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> updateUser(JsonNode request, JsonNode token) throws Exception {
+	public JsonNode updateUser(JsonNode request, JsonNode token) throws Exception {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 		Assert.notNull(request.get("body"), "no body");
@@ -121,13 +127,13 @@ public class UserService implements UserDetailsService {
 
 		if (token.path("authorities").toString().matches(".*(\"role_admin\").*")
 				&& body.getAuthorities().equals("role_root")) {
-			return Map.of("status", 403, "data", Map.of("message", "Forbidden"));
+			return response(403, mapper.createObjectNode().put("message", "Forbidden"), 0);
 		}
 
 		Optional<OauthUserDetails> exists = repository.findById(UUID.fromString(id));
 
 		if (exists.isEmpty()) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
 		OauthUserDetails entity = exists.get();
@@ -149,17 +155,17 @@ public class UserService implements UserDetailsService {
 			tokenStore.removeRefreshToken(t.getRefreshToken());
 		});
 
-		return Map.of("status", 200, "data", entity);
+		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> deleteUser(JsonNode request, JsonNode token) {
+	public JsonNode deleteUser(JsonNode request, JsonNode token) {
 		String id = request.path("param").path("id").asText();
 		Assert.hasText(id, "param id is required");
 
 		Optional<OauthUserDetails> exists = repository.findById(UUID.fromString(id));
 
 		if (exists.isEmpty()) {
-			return Map.of("status", 404, "data", Map.of("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
 		}
 
 		OauthUserDetails entity = exists.get();
@@ -170,10 +176,10 @@ public class UserService implements UserDetailsService {
 			tokenStore.removeRefreshToken(t.getRefreshToken());
 		});
 
-		return Map.of("status", 200, "data", entity);
+		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
 
-	public Map<String, Object> logoutUser(JsonNode token) {
+	public JsonNode logoutUser(JsonNode token) {
 		String clientId = token.path("client_id").asText();
 		String username = token.path("user_name").asText();
 
@@ -182,20 +188,20 @@ public class UserService implements UserDetailsService {
 			tokenStore.removeRefreshToken(t.getRefreshToken());
 		});
 
-		return Map.of("status", 200);
+		return response(200, null, 0);
 	}
 
-	public Map<String, Object> changePasswordUser(JsonNode request, JsonNode token) {
+	public JsonNode changePasswordUser(JsonNode request, JsonNode token) {
 		OauthUserDetails entity = repository.findByUsername(token.path("user_name").asText());
 
 		if (!passwordEncoder.matches(request.path("body").path("oldPassword").asText(), entity.getPassword())) {
-			return Map.of("status", 404, "data", Map.of("message", "Old Password Invalid"));
+			return response(404, mapper.createObjectNode().put("message", "Old Password Invalid"), 0);
 		}
 
 		entity.setPassword(passwordEncoder.encode(request.path("body").path("newPassword").asText()));
 		repository.save(entity);
 
-		return Map.of("status", 200);
+		return response(200, null, 0);
 	}
 
 }

@@ -5,9 +5,6 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -22,8 +19,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
 public class RabbitMQService {
@@ -60,21 +60,16 @@ public class RabbitMQService {
 	}
 
 	public JsonNode checkToken(String[] token) {
-		try {
-			if (token.length == 2) {
-				URI url = URI.create(tokenUri + "?token=" + token[1]);
-				HttpMethod method = HttpMethod.GET;
-				HttpHeaders headers = new HttpHeaders();
-				headers.setBasicAuth(clientId, clientSecret);
-				HttpEntity<String> entity = new HttpEntity<String>(headers);
-				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-				return mapper.valueToTree(res.getBody());
-			}
-		} catch (HttpClientErrorException e) {
-			System.err.println(e.getResponseBodyAsString());
+		if (token.length != 2) {
+			return mapper.createObjectNode();
 		}
-
-		return null;
+		URI url = URI.create(tokenUri + "?token=" + token[1]);
+		HttpMethod method = HttpMethod.GET;
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBasicAuth(clientId, clientSecret);
+		HttpEntity<?> entity = new HttpEntity<>(headers);
+		ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
+		return mapper.valueToTree(res.getBody());
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -90,13 +85,21 @@ public class RabbitMQService {
 			return mapper.readTree(new String(response.getBody(), "UTF-8"));
 		}
 
-		return null;
+		return mapper.createObjectNode();
 	}
 
 	public Message response(Message message, byte[] payload, Object object) throws Exception {
 		JsonNode obj = mapper.convertValue(object, JsonNode.class);
-		log.info("[==RABBITMQ-LOG==] : {}", Map.of("payload", new String(payload, "UTF-8"), "result",
-				Map.of("status", obj.path("status"), "message", obj.path("data").path("message"))));
+		ObjectNode dataLog = mapper.createObjectNode();
+		dataLog.put("type", "[==RABBITMQ-LOG==]");
+		dataLog.set("result", mapper.convertValue(
+				Map.of("status", obj.path("status"), "message", obj.path("data").path("message")), JsonNode.class));
+		try {
+			dataLog.set("payload", mapper.readTree(new String(payload, "UTF-8")));
+		} catch (Exception e) {
+			dataLog.put("payload", new String(payload, "UTF-8"));
+		}
+		log.info("{}", dataLog);
 
 		if (message.getMessageProperties().getReplyTo() != null) {
 			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
@@ -111,7 +114,7 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
-			if (token == null) {
+			if (token.isEmpty(null)) {
 				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
 			}
 

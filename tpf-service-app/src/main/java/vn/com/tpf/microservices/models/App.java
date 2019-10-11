@@ -25,18 +25,17 @@ public class App {
 	private String uuid;
 	@Indexed(unique = true, sparse = true)
 	private String appId;
-	private String status;
-	private String fullName;
-	private String partnerId;
-	private String productCode;
-	private String schemeCode;
-	private String automationResult;
 	private String assigned;
-	private Map<?, ?> optional;
-	private Set<Map<?, ?>> photos = new HashSet<>();
-	private Set<Map<?, ?>> statusHistory = new HashSet<>();
-	private Set<Map<?, ?>> assignedHistory = new HashSet<>();
-	private Set<Map<?, ?>> automationHistory = new HashSet<>();
+	private String partnerId;
+	private String fullName;
+	private String status;
+	private String automationResult;
+	private Map<String, Object> optional;
+	private Set<Map<String, Object>> documents = new HashSet<>();
+	private Set<Map<String, Object>> comments = new HashSet<>();
+	private Set<Map<String, Object>> statusHistory = new HashSet<>();
+	private Set<Map<String, Object>> assignedHistory = new HashSet<>();
+	private Set<Map<String, Object>> automationHistory = new HashSet<>();
 
 	@CreatedDate
 	private Date createdAt;

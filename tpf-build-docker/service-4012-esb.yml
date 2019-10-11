@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-esb:
+    image: openjdk:11
+    hostname: tpf-service-esb
+    working_dir: /opt/tpf-service-esb
+    command: bash -c 'cd /opt/tpf-service-esb && java -jar tpf-service-esb-1.0.jar'
+    volumes:
+      - ./../tpf-service-esb/target:/opt/tpf-service-esb
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4012:4012

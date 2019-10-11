@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.models;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -26,6 +27,7 @@ public class Account {
 	@Indexed(unique = true, sparse = true)
 	private String email;
 	private String authorities;
+	private Map<String, Object> optional;
 	private Set<String> departments = new HashSet<>();
 	private Set<String> projects = new HashSet<>();
 	private boolean enabled;
