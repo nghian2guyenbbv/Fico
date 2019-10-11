@@ -30,6 +30,7 @@ public class Account {
 	private Map<String, Object> optional;
 	private Set<String> departments = new HashSet<>();
 	private Set<String> projects = new HashSet<>();
+	private Set<String> branches = new HashSet<>();
 	private boolean enabled;
 
 	@CreatedDate
