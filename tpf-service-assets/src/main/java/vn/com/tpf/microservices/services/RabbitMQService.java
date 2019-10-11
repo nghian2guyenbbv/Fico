@@ -55,6 +55,9 @@ public class RabbitMQService {
 	@Autowired
 	private AddressService addressService;
 
+	@Autowired
+	private PGPService pgpService;
+
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
@@ -125,6 +128,14 @@ public class RabbitMQService {
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
+
+			switch (request.path("func").asText()) {
+			case "pgpEncrypt":
+				return response(message, payload, pgpService.pgpEncrypt(request));
+			case "pgpDecrypt":
+				return response(message, payload, pgpService.pgpDecrypt(request));
+			}
+
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
 			if (token.isEmpty(null)) {

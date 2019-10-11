@@ -54,11 +54,11 @@ public class PGPHelper {
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
-	public PGPHelper() {
-		password = PGPInfo.preshareKey.toCharArray();
-		InputStream pubStream = new ByteArrayInputStream(PGPInfo.publicKey.getBytes());
-		InputStream priStream = new ByteArrayInputStream(PGPInfo.privateKey.getBytes());
+	public PGPHelper(String project) {
 		try {
+			password = PGPInfo.preshareKey.toCharArray();
+			InputStream priStream = new ByteArrayInputStream(PGPInfo.privateKey.getBytes());
+			InputStream pubStream = new ByteArrayInputStream(PGPInfo.publicKey.get(project).getBytes());
 			readKey(pubStream, priStream, null, null);
 		} catch (Exception e) {
 			log.info("PGPHelper " + e.getMessage());

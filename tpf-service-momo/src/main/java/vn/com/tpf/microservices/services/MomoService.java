@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -111,13 +112,13 @@ public class MomoService {
 		error.set("lastName", mapper.convertValue(lastName, JsonNode.class));
 		Map<?, ?> middleName = Map.of("code", 122, "message", "middleName is required string");
 		error.set("middleName", mapper.convertValue(middleName, JsonNode.class));
-		Map<?, ?> gender = Map.of("code", 123, "message", "gender is required male or female");
+		Map<?, ?> gender = Map.of("code", 123, "message", "gender is required Male or Female");
 		error.set("gender", mapper.convertValue(gender, JsonNode.class));
 		Map<?, ?> issueDate = Map.of("code", 124, "message", "issueDate is required string format dd/MM/yyyy");
 		error.set("issueDate", mapper.convertValue(issueDate, JsonNode.class));
 		Map<?, ?> issuePlace = Map.of("code", 125, "message", "issuePlace is required string and not empty");
 		error.set("issuePlace", mapper.convertValue(issuePlace, JsonNode.class));
-		Map<?, ?> maritalStatus = Map.of("code", 126, "message", "maritalStatus is required string and not empty");
+		Map<?, ?> maritalStatus = Map.of("code", 126, "message", "maritalStatus is required Single or Married");
 		error.set("maritalStatus", mapper.convertValue(maritalStatus, JsonNode.class));
 		Map<?, ?> momoLoanId = Map.of("code", 127, "message", "momoLoanId is required string and not empty");
 		error.set("momoLoanId", mapper.convertValue(momoLoanId, JsonNode.class));
@@ -206,8 +207,7 @@ public class MomoService {
 			if (field.equals("data.middleName") && !body.path("data").path("middleName").isTextual()) {
 				return error.get("middleName");
 			}
-			if (field.equals("data.gender")
-					&& !body.path("data").path("gender").asText().toLowerCase().matches("^(male|female)$")) {
+			if (field.equals("data.gender") && !body.path("data").path("gender").asText().matches("^(Male|Female)$")) {
 				return error.get("gender");
 			}
 			if (field.equals("data.issueDate") && !body.path("data").path("issueDate").asText()
@@ -218,8 +218,8 @@ public class MomoService {
 					|| body.path("data").path("issuePlace").asText().isEmpty())) {
 				return error.get("issuePlace");
 			}
-			if (field.equals("data.maritalStatus") && (!body.path("data").path("maritalStatus").isTextual()
-					|| body.path("data").path("maritalStatus").asText().isEmpty())) {
+			if (field.equals("data.maritalStatus")
+					&& !body.path("data").path("maritalStatus").asText().matches("^(Single|Married)$")) {
 				return error.get("maritalStatus");
 			}
 			if (field.equals("data.momoLoanId") && (!body.path("data").path("momoLoanId").isTextual()
@@ -265,7 +265,7 @@ public class MomoService {
 		ObjectNode res = mapper.createObjectNode();
 		res.put("resultCode", code);
 		res.put("requestId", body.path("requestId").asText());
-		res.put("referenceId", body.path("referenceId").asText());
+		res.put("referenceId", body.path("reference_id").asText());
 		if (code == 0) {
 			res.set("data", data);
 		} else {
@@ -331,7 +331,7 @@ public class MomoService {
 
 		rabbitMQService.send("tpf-service-esb",
 				Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("request_id", body.path("requestId"), "reference_id", body.path("referenceId")), "body",
+						"param", Map.of("request_id", body.path("requestId"), "reference_id", body.path("reference_id")), "body",
 						convertService.toAppFinnone(momo)));
 
 		rabbitMQService.send("tpf-service-app",
@@ -341,23 +341,17 @@ public class MomoService {
 		return response(0, body, mapper.convertValue(momo, JsonNode.class));
 	}
 
-	public JsonNode updateAutomationResult(JsonNode request) throws Exception {
+	public JsonNode updateAutomation(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
-		Assert.isTrue(body.path("momo_loan_id").isTextual() && !body.path("momo_loan_id").asText().isEmpty(),
-				"momo_loan_id is required and not empty");
+		Assert.isTrue(body.path("transaction_id").isTextual() && !body.path("transaction_id").asText().isEmpty(),
+				"transaction_id is required and not empty");
 		Assert.isTrue(body.path("app_id").isTextual() && !body.path("app_id").asText().isEmpty(),
 				"app_id is required and not empty");
 		Assert.isTrue(body.path("automation_result").isTextual() && !body.path("automation_result").asText().isEmpty(),
 				"automation_result is required and not empty");
-		Assert.isTrue(body.path("access_key").isTextual() && !body.path("access_key").asText().isEmpty(),
-				"access_key is required and not empty");
 
-		if (!body.path("access_key").asText().equals("access_key_db")) {
-			return response(401, mapper.createObjectNode().put("message", "Unauthorized"));
-		}
-
-		Query query = Query.query(Criteria.where("momoLoanId").is(body.path("momo_loan_id").asText()));
+		Query query = Query.query(Criteria.where("momoLoanId").is(body.path("transaction_id").asText()));
 		Update update = new Update().set("appId", body.path("app_id").asText())
 				.set("automationResult", body.path("automation_result").asText()).set("status", "PROCESSING");
 
@@ -377,8 +371,8 @@ public class MomoService {
 	public JsonNode updateStatus(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
-		Assert.isTrue(body.path("momo_loan_id").isTextual() && !body.path("momo_loan_id").asText().isEmpty(),
-				"momo_loan_id is required and not empty");
+		Assert.isTrue(body.path("transaction_id").isTextual() && !body.path("transaction_id").asText().isEmpty(),
+				"transaction_id is required and not empty");
 		Assert.isTrue(body.path("status").isTextual() && !body.path("status").asText().isEmpty(),
 				"status is required and not empty");
 		Assert.isTrue(body.path("access_key").isTextual() && !body.path("access_key").asText().isEmpty(),
@@ -388,8 +382,8 @@ public class MomoService {
 			return response(401, mapper.createObjectNode().put("message", "Unauthorized"));
 		}
 
-		Momo momo = mongoTemplate.findOne(Query.query(Criteria.where("momoLoanId").is(body.path("momo_loan_id").asText())),
-				Momo.class);
+		Momo momo = mongoTemplate
+				.findOne(Query.query(Criteria.where("momoLoanId").is(body.path("transaction_id").asText())), Momo.class);
 
 		if (momo == null) {
 			return response(404, mapper.createObjectNode().put("message", "Momo Loan Id Not Found"));
@@ -400,6 +394,7 @@ public class MomoService {
 		}
 
 		if (body.path("status").asText().equals("REJECTED") || body.path("status").asText().equals("CANCELLED")) {
+			momo.setStatus(body.path("status").asText());
 			new Thread(() -> {
 				try {
 					JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-esb",
@@ -407,7 +402,7 @@ public class MomoService {
 									"param", Map.of("appId", momo.getAppId(), "status", body.path("status").asText())));
 					if (reason.path("status").asInt() == 200) {
 						ResponseMomoStatus momoStatus = mapper.convertValue(reason.path("data"), ResponseMomoStatus.class);
-						momoStatus.setRequestId(body.path("requestId").asText());
+						momoStatus.setRequestId(UUID.randomUUID().toString());
 						momoStatus.setMomoLoanId(momo.getMomoLoanId());
 						momoStatus.setPhoneNumber(momo.getPhoneNumber());
 						momoStatus.setStatus(status.path(body.path("status").asText()).asInt());
@@ -415,7 +410,7 @@ public class MomoService {
 							momoStatus.setDetail(new ResponseMomoStatusDetail());
 						}
 						momoStatus.getDetail().setApplicationId(momo.getAppId());
-						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, ObjectNode.class));
+						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 					} else {
 						rabbitLog(body, reason);
 					}
@@ -424,6 +419,7 @@ public class MomoService {
 				}
 			}).start();
 		} else if (body.path("status").asText().equals("APPROVED")) {
+			momo.setStatus("APPROVED_FINNONE");
 			JsonNode sms = rabbitMQService.sendAndReceive("tpf-service-sms", Map.of("func", "sendSms", "token",
 					"Bearer " + rabbitMQService.getToken().path("access_token").asText(), "body",
 					Map.of("phone", momo.getPhoneNumber(), "content", "Chuc mung khach hang, CMND " + momo.getPersonalId()
@@ -437,7 +433,7 @@ public class MomoService {
 										"param", Map.of("appId", momo.getAppId())));
 						if (loan.path("status").asInt() == 200) {
 							ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"), ResponseMomoStatus.class);
-							momoStatus.setRequestId(body.path("requestId").asText());
+							momoStatus.setRequestId(UUID.randomUUID().toString());
 							momoStatus.setMomoLoanId(momo.getMomoLoanId());
 							momoStatus.setPhoneNumber(momo.getPhoneNumber());
 							momoStatus.setStatus(status.path("APPROVED_AND_WAITING_SMS").asInt());
@@ -445,7 +441,7 @@ public class MomoService {
 								momoStatus.setDetail(new ResponseMomoStatusDetail());
 							}
 							momoStatus.getDetail().setApplicationId(momo.getAppId());
-							apiService.sendStatusToMomo(mapper.convertValue(momoStatus, ObjectNode.class));
+							apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 						} else {
 							rabbitLog(body, loan);
 						}
@@ -458,6 +454,7 @@ public class MomoService {
 				rabbitLog(body, sms);
 			}
 		} else if (body.path("status").asText().equals("DISBURSED")) {
+			momo.setStatus(body.path("status").asText());
 			new Thread(() -> {
 				try {
 					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
@@ -465,7 +462,7 @@ public class MomoService {
 									"param", Map.of("appId", momo.getAppId())));
 					if (loan.path("status").asInt() == 200) {
 						ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"), ResponseMomoStatus.class);
-						momoStatus.setRequestId(body.path("requestId").asText());
+						momoStatus.setRequestId(UUID.randomUUID().toString());
 						momoStatus.setMomoLoanId(momo.getMomoLoanId());
 						momoStatus.setPhoneNumber(momo.getPhoneNumber());
 						momoStatus.setStatus(status.path(body.path("status").asText()).asInt());
@@ -473,7 +470,7 @@ public class MomoService {
 							momoStatus.setDetail(new ResponseMomoStatusDetail());
 						}
 						momoStatus.getDetail().setApplicationId(momo.getAppId());
-						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, ObjectNode.class));
+						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 					} else {
 						rabbitLog(body, loan);
 					}
@@ -483,7 +480,6 @@ public class MomoService {
 			}).start();
 		}
 
-		momo.setStatus(body.path("status").asText());
 		momo.setAutomationResult(momo.getAutomationResult().equals("Pass") ? momo.getAutomationResult() : "Fix");
 		mongoTemplate.save(momo);
 
@@ -494,19 +490,13 @@ public class MomoService {
 		return response(200, null);
 	}
 
-	public JsonNode updateSmsResult(JsonNode request) throws Exception {
+	public JsonNode updateSms(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
 		Assert.isTrue(body.path("phone_number").isTextual() && !body.path("phone_number").asText().isEmpty(),
 				"phone_number is required and not empty");
 		Assert.isTrue(body.path("sms_result").isTextual() && !body.path("sms_result").asText().isEmpty(),
 				"sms_result is required and not empty");
-		Assert.isTrue(body.path("access_key").isTextual() && !body.path("access_key").asText().isEmpty(),
-				"access_key is required and not empty");
-
-		if (!body.path("access_key").asText().equals("access_key_db")) {
-			return response(401, mapper.createObjectNode().put("message", "Unauthorized"));
-		}
 
 		Query query = Query.query(Criteria.where("phoneNumber").is(body.path("phone_number").asText()));
 		query.with(Sort.by(Direction.DESC, "createdAt")).limit(1);
@@ -532,11 +522,28 @@ public class MomoService {
 									"param", Map.of("appId", momo.getAppId())));
 					if (loan.path("status").asInt() == 200) {
 						ResponseMomoDisburse momoDisburse = mapper.convertValue(loan.path("data"), ResponseMomoDisburse.class);
-						momoDisburse.setRequestId(body.path("requestId").asText());
+						momoDisburse.setRequestId(UUID.randomUUID().toString());
 						momoDisburse.setMomoLoanId(momo.getMomoLoanId());
 						momoDisburse.setPhoneNumber(momo.getPhoneNumber());
 						momoDisburse.setDescription("Khách hàng được giải ngân");
-						apiService.sendDisburseToMomo(mapper.convertValue(momoDisburse, ObjectNode.class));
+
+						JsonNode result = apiService.sendDisburseToMomo(mapper.convertValue(momoDisburse, JsonNode.class));
+
+						if (result.path("resultCode").asText().equals("500")) {
+							momo.setError(result.path("message").asText());
+						} else if (result.path("resultCode").asText().equals("0")) {
+							momo.setStatus("APPROVED");
+						} else {
+							momo.setError(result.path("message").asText());
+							momo.setStatus("MOMO_CANCELLED");
+						}
+
+						mongoTemplate.save(momo);
+
+						rabbitMQService.send("tpf-service-app",
+								Map.of("func", "updateApp", "token",
+										"Bearer " + rabbitMQService.getToken().path("access_token").asText(), "param",
+										Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 					} else {
 						rabbitLog(body, loan);
 					}
@@ -546,14 +553,15 @@ public class MomoService {
 			}).start();
 		} else if (body.path("sms_result").asText().equals("SMS_N")) {
 			momo.setSmsResult("N");
+			momo.setStatus("CUSTOMER_CANCELLED");
 			new Thread(() -> {
 				ResponseMomoStatus momoStatus = new ResponseMomoStatus();
-				momoStatus.setRequestId(body.path("requestId").asText());
+				momoStatus.setRequestId(UUID.randomUUID().toString());
 				momoStatus.setMomoLoanId(momo.getMomoLoanId());
 				momoStatus.setPhoneNumber(momo.getPhoneNumber());
 				momoStatus.setStatus(status.path("CANCELLED").asInt());
 				momoStatus.setDescription("Khách hàng SMS N");
-				apiService.sendStatusToMomo(mapper.convertValue(momoStatus, ObjectNode.class));
+				apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 			}).start();
 		} else if (body.path("sms_result").asText().equals("SMS_F")) {
 			momo.setSmsResult("F");
@@ -567,4 +575,5 @@ public class MomoService {
 
 		return response(200, null);
 	}
+
 }

@@ -142,6 +142,11 @@ public class RabbitMQService {
 					return response(message, payload, appService.updateApp(request));
 				}
 				break;
+			case "updateAutomation":
+				if (scopes.matches(".*(\"tpf-service-esb\").*")) {
+					return response(message, payload, appService.updateAutomation(request));
+				}
+				break;
 			case "getReason":
 				if (scopes.matches(".*(\"tpf-service-esb\").*")) {
 					return response(message, payload, appService.getReason(request));

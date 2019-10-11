@@ -82,6 +82,7 @@ public class AccountService {
 		entity.setEnabled(body.isEnabled());
 		entity.setProjects(body.getProjects());
 		entity.setDepartments(body.getDepartments());
+		entity.setOptional(body.getOptional());
 
 		ObjectNode bodyReq = mapper.createObjectNode();
 		bodyReq.put("username", entity.getUsername());
@@ -132,6 +133,7 @@ public class AccountService {
 		entity.setEnabled(body.isEnabled());
 		entity.setProjects(body.getProjects());
 		entity.setDepartments(body.getDepartments());
+		entity.setOptional(body.getOptional());
 
 		ObjectNode bodyReq = mapper.createObjectNode();
 		bodyReq.put("username", entity.getUsername());

@@ -183,6 +183,9 @@ public class RabbitMQService {
 					if (account != null) {
 						info.put("departments", account.getDepartments());
 						info.put("projects", account.getProjects());
+						if (account.getOptional() != null) {
+							info.put("optional", account.getOptional());
+						}
 					}
 
 					return response(message, payload, Map.of("status", 200, "data", info));
