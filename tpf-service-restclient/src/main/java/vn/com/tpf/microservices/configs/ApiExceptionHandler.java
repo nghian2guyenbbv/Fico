@@ -38,8 +38,7 @@ public class ApiExceptionHandler{
 
 		try {
 
-			JsonNode response = rabbitMQService.sendAndReceive("tpf-service-repayment", requestEror);
-			String aaa = "";
+			rabbitMQService.send("tpf-service-repayment", requestEror);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
