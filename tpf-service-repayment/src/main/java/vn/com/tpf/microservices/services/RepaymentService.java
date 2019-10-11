@@ -186,6 +186,15 @@ public class RepaymentService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
+			if (requestModel.getData().getAmount() <= 0){
+                responseModel.setRequest_id(requestModel.getRequest_id());
+                responseModel.setReference_id(UUID.randomUUID().toString());
+                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                responseModel.setResult_code(500);
+                responseModel.setMessage("Others error");
+                return Map.of("status", 200, "data", responseModel);
+            }
+
 			FicoTransPay getByTransactionId = ficoTransPayDAO.findByTransactionId(requestModel.getData().getTransaction_id());
 			if (getByTransactionId == null) {
 				FicoCustomer ficoLoanId = ficoCustomerDAO.findByLoanId(requestModel.getData().getLoan_id());

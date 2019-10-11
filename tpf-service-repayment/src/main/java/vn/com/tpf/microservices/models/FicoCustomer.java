@@ -45,7 +45,19 @@ public class FicoCustomer {
     @JsonProperty("net_amount")
     private long netAmount;
 
+    @Column(name = "loan_active")
+    @JsonProperty("loan_active")
+    private boolean loanActive;
+
     public FicoCustomer() {
+    }
+
+    public boolean isLoanActive() {
+        return loanActive;
+    }
+
+    public void setLoanActive(boolean loanActive) {
+        this.loanActive = loanActive;
     }
 
     public long getLoanId() {
