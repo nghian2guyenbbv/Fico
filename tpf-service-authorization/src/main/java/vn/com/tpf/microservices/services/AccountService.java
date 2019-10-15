@@ -47,6 +47,7 @@ public class AccountService {
 		Account account = getInfoAccount(token.path("user_name").asText());
 		if (account != null) {
 			criteria.and("departments").in(account.getDepartments());
+			criteria.and("branches").in(account.getBranches());
 		}
 
 		if (request.path("param").path("username").isTextual()) {
@@ -74,6 +75,7 @@ public class AccountService {
 		Assert.hasText(body.getAuthorities(), "authorities is required");
 		Assert.notEmpty(body.getDepartments(), "departments is required");
 		Assert.notEmpty(body.getProjects(), "projects is required");
+		Assert.notEmpty(body.getBranches(), "branches is required");
 
 		Account entity = new Account();
 		entity.setUsername(body.getUsername());
@@ -82,6 +84,7 @@ public class AccountService {
 		entity.setEnabled(body.isEnabled());
 		entity.setProjects(body.getProjects());
 		entity.setDepartments(body.getDepartments());
+		entity.setBranches(body.getBranches());
 		entity.setOptional(body.getOptional());
 
 		ObjectNode bodyReq = mapper.createObjectNode();
@@ -120,6 +123,7 @@ public class AccountService {
 		Assert.hasText(body.getAuthorities(), "authorities is required");
 		Assert.notEmpty(body.getDepartments(), "departments is required");
 		Assert.notEmpty(body.getProjects(), "projects is required");
+		Assert.notEmpty(body.getBranches(), "branches is required");
 
 		Account entity = mongoTemplate.findById(id, Account.class);
 
@@ -133,6 +137,7 @@ public class AccountService {
 		entity.setEnabled(body.isEnabled());
 		entity.setProjects(body.getProjects());
 		entity.setDepartments(body.getDepartments());
+		entity.setBranches(body.getBranches());
 		entity.setOptional(body.getOptional());
 
 		ObjectNode bodyReq = mapper.createObjectNode();

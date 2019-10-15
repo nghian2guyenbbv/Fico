@@ -101,7 +101,7 @@ public class PGPInfo {
 			+ "lthDsOB+DM6rtfxzVQ4pY6DeT5Z5UyiCDrd/JhZkBLNYnH+0XJsVqahOEqp/IEMO\n"
 			+ "gsDvge2KkmgCnPCs4jrOzmG1zpsFpFFy9bb+6lPNcDqPG4QnwQ==\n" + "=V+wD\n" + "-----END PGP PRIVATE KEY BLOCK-----\n";
 
-	public static final Map<String, String> publicKey = Map.of("momo",
+	public static final Map<String, String> publicKey = Map.of("tpf-service-momo",
 			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + "Version: Keybase OpenPGP v1.0.0\n"
 					+ "Comment: https://keybase.io/crypto\n" + "\n"
 					+ "xsBNBFwTg20BCADmQa8nLBDKoZIc5Ih3mg9dzctwSmSjXi6KMj5vaSwzEO1lq8VX\n"
@@ -153,6 +153,36 @@ public class PGPInfo {
 					+ "bRMxtVD1d/oTZybL5Dy0CaGM9dAC34elDwtEVkVy0HqEXGstKD4+zpY72gqZP8IB\n"
 					+ "gC68sROaA2zR2tPtHGd8ANTMRVmBp0tMaMnDHdJ0HIiN2bw6GpA6ytTaWWLJNNpQ\n" + "CyDrKmFnscz5mqEx/zYpCUo=\n"
 					+ "=/jPH\n" + "-----END PGP PUBLIC KEY BLOCK-----\n" + "",
-			"fpt", "fpt");
+			"tpf-service-fpt",
+			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + "Version: Keybase OpenPGP v1.0.0\n"
+					+ "Comment: https://keybase.io/crypto\n" + "\n"
+					+ "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\n" + "=o+JZ\n"
+					+ "-----END PGP PUBLIC KEY BLOCK-----\n" + "");
 
 }
