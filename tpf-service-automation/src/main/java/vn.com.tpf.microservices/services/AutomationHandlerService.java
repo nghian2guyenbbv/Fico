@@ -120,13 +120,14 @@ public class AutomationHandlerService {
 
 
             //*************************** END GET DATA *********************//
-
+            Actions actions=new Actions(driver);
             System.out.println(stage + ": DONE" );
             stage="LOGIN FINONE";
             HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
+            actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
 
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -762,9 +763,10 @@ public class AutomationHandlerService {
     }
 
     private void updateStatusRabbit(Application application,String func) throws Exception {
-        rabbitMQService.send("tpf-service-dataentry",
+        JsonNode jsonNode= rabbitMQService.sendAndReceive("tpf-service-dataentry",
                 Map.of("func", func, "token",
                         String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
+        System.out.println("rabit:=>" + jsonNode.toString());
 
     }
 

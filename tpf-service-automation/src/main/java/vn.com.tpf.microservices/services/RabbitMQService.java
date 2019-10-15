@@ -139,22 +139,22 @@ public class RabbitMQService {
 
 			switch (request.path("func").asText()) {
 			case "quickLeadApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry-automation\"|\"tpf-service-esb\").*")) {
+				if (scopes.matches(".*(\"tpf-service-automation\"|\"tpf-service-esb\"|\"tpf-service-app\").*")) {
 					return response(message, payload, automationService.quickLeadApp(request));
 				}
 				break;
 			case "fullInfoApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry-automation\"|\"tpf-service-esb\").*")) {
+				if (scopes.matches(".*(\"tpf-service-automation\"|\"tpf-service-esb\"|\"tpf-service-app\").*")) {
 					return response(message, payload, automationService.fullInfoApp(request));
 				}
 				break;
 			case "updateAppError":
-					if (scopes.matches(".*(\"tpf-service-dataentry-automation\"|\"tpf-service-esb\").*")) {
+					if (scopes.matches(".*(\"tpf-service-automation\"|\"tpf-service-esb\"|\"tpf-service-app\").*")) {
 						return response(message, payload, automationService.updateAppError(request));
 					}
 					break;
 			case "createApp":
-					if (scopes.matches(".*(\"tpf-service-dataentry-automation\"|\"tpf-service-esb\").*")) {
+					if (scopes.matches(".*(\"tpf-service-automation\"|\"tpf-service-esb\"|\"tpf-service-app\").*")) {
 						return response(message, payload, automationService.momoCreateApp(request));
 					}
 					break;

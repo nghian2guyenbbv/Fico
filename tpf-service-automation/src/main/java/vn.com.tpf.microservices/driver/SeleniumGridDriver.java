@@ -20,8 +20,8 @@ public class SeleniumGridDriver {
     public SeleniumGridDriver(String os, String browser, String baseUrl, String hub) throws MalformedURLException {
     	// String host = System.getProperty("seleniumHubHost"); // TODO: uncomment this line if deploy on docker
     	//String host = "10.10.10.10";
-        String host = "localhost";
-        //String host="selenium-hub";
+        //String host = "localhost";
+        String host="tpf-opensource-selenium-hub";
 
     	this.browser = browser;
         this.os = os;
@@ -31,13 +31,16 @@ public class SeleniumGridDriver {
 //        Platform platform = Platform.fromString(os.toUpperCase());
         if (browser.equalsIgnoreCase("chrome")) {
             ChromeOptions chromeOptions = new ChromeOptions();
+            chromeOptions.addArguments("--no-sandbox");
             chromeOptions.addArguments("headless");
             chromeOptions.addArguments("--incognito");
+            chromeOptions.addArguments("--disable-gpu");
+            chromeOptions.addArguments("--disable-dev-shm-usage");
 //            chromeOptions.addArguments("start-maximized");
             chromeOptions.addArguments("window-size=2560x3000");
             //chromeOptions.addArguments("window-size=1920x1080");
 //            chromeOptions.setCapability("platform", platform);
-            this.driver = new RemoteWebDriver(new URL("http://" + host + ":4545/wd/hub"), chromeOptions);
+            this.driver = new RemoteWebDriver(new URL("http://" + host + ":4646/wd/hub"), chromeOptions);
         } else if (browser.equalsIgnoreCase("firefox")) {
             FirefoxOptions firefoxOptions = new FirefoxOptions();
             this.driver = new RemoteWebDriver(new URL("http://" + host + ":4444/wd/hub"), firefoxOptions);

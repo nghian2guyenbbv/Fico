@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 
 import lombok.Getter;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -18,9 +19,11 @@ import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -257,8 +260,12 @@ public class LeadDetailPage {
             await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentContainerElement.isDisplayed());
 
-            String toFile = "D:\\FILE_TEST_HE_THONG_\\";
+            //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
             //String toFile = SCREENSHOT_PRE_PATH_DOC;
+
+           //String fromFile = "http://192.168.0.205:3001/v1/file/5da5442d67695fa4b91d51d0-APPLICATION_ACCA.pdf";
+            String fromFile = "http://tpf-service-file:3001/v1/file/5da3e6bb04f1ea9decefaff6-TPF_ID_Card.pdf";
+            //String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD;
 
 
             int index = 0;
@@ -270,12 +277,16 @@ public class LeadDetailPage {
             for (WebElement element : docNameElement) {
                 final int _tempIndex = index;
                 String docName = element.getText();
+                //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
+                String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD;
                 if (requiredFiled.contains(docName)) {
-
-                    File file = new File(toFile +  docName +".pdf");
+                    toFile+=UUID.randomUUID().toString()+"_"+ docName +".pdf";
+                    FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
+                    File file = new File(toFile);
                     if(file.exists()) {
+                        //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
                         String photoUrl = file.getAbsolutePath();
-
+                        System.out.println("paht;" + photoUrl);
                         // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 
