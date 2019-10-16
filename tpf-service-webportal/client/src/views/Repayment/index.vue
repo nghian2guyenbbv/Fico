@@ -113,7 +113,7 @@ import XLSX from 'xlsx'
 import axios from 'axios'
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API_REPAYMENT,
-  timeout: 5000
+  // timeout: 5000
 })
 import { MessageBox, Message } from 'element-ui'
 import Pagination from '@/components/Pagination'
@@ -208,7 +208,7 @@ export default {
       service.post(
           '/repayment/getListTrans',
           inputData,
-          { headers: { Authorization: 'Bearer ' + "813ec0cc-5e99-4cfd-a59c-1034e42111dc" }
+          { headers: { Authorization: 'Bearer ' + this.state.user.token }
         })
         .then(success => {
           this.listLoading = false
@@ -239,7 +239,7 @@ export default {
       service.post(
         '/repayment/settleTrans',
         inputData,
-        { headers: { Authorization: 'Bearer ' + "813ec0cc-5e99-4cfd-a59c-1034e42111dc" }
+        { headers: { Authorization: 'Bearer ' + this.state.user.token }
       })
       .then(success => {
         this.listLoading = false
@@ -311,7 +311,7 @@ export default {
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
       
       const inputData = {
-        "request_id": "d062b2f8-dc3c-4366-afbe-87aadae8818e",
+        "request_id": "",
         "date_time": dateTime,
         "data": this.dataexcel
       }
@@ -319,7 +319,7 @@ export default {
       service.post(
         '/repayment/importTrans',
         inputData,
-        { headers: { Authorization: 'Bearer ' + '813ec0cc-5e99-4cfd-a59c-1034e42111dc' }
+        { headers: { Authorization: 'Bearer ' + this.state.user.token }
       })
       .then(success => {
         this.pushLoading = false

@@ -4,9 +4,10 @@
   "private": true,
   "author": "Doan Vu Long <longdv1@tpb.com.vn>",
   "scripts": {
-    "dev": "vue-cli-service serve",
-    "build:prod": "vue-cli-service build",
-    "build:stage": "vue-cli-service build --mode staging",
+    "start": "vue-cli-service serve --mode dev",
+    "build:dev": "vue-cli-service build --mode dev",
+    "build:pro": "vue-cli-service build --mode pro",
+    "build:uat": "vue-cli-service build --mode uat",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "nprogress": "0.2.0",
     "register-service-worker": "1.6.2",
     "screenfull": "5.0.0",
+    "script-ext-html-webpack-plugin": "^2.1.4",
     "socket.io-client": "2.2.0",
     "vue": "2.6.10",
     "vue-count-to": "1.0.13",
