@@ -42,8 +42,6 @@ Vue.mixin({
     checkPermission,
     fnCookie: () => cookie
 	}
-
-
 })
 
 new Vue({
