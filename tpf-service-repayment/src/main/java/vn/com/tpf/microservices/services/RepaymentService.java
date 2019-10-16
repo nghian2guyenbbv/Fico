@@ -73,6 +73,7 @@ public class RepaymentService {
             try{
 				OffsetDateTime.parse(requestModel.getDate_time());
             }catch (Exception e) {
+				log.info("Error: " + e);
                 responseModel.setRequest_id(requestModel.getRequest_id());
                 responseModel.setReference_id(UUID.randomUUID().toString());
                 responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -104,6 +105,7 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
+			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -126,6 +128,7 @@ public class RepaymentService {
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
 			}catch (Exception e) {
+				log.info("Error: " + e);
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -153,6 +156,7 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
+			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -178,6 +182,7 @@ public class RepaymentService {
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
 			}catch (Exception e) {
+				log.info("Error: " + e);
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -230,6 +235,7 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
+			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
