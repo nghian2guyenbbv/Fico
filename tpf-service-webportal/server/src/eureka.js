@@ -6,7 +6,7 @@ class Eureka {
 		this.client = new eureka({
 			instance: {
 				app: process.env.APP_ID,
-				hostName: `${process.env.APP_ID}:${process.env.PORT}`,
+				hostName: `${Math.random()}.${process.env.APP_ID}:${process.env.PORT}`,
 				ipAddr: '127.0.0.1',
 				port: { '$': 3000, '@enabled': true },
 				vipAddress: process.env.APP_ID,

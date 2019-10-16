@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>vn.com.tpf.microservices</groupId>
@@ -15,7 +15,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.1.3.RELEASE</version>
-		<relativePath/>
+		<relativePath />
 	</parent>
 
 	<modules>
@@ -26,17 +26,17 @@
 		<module>tpf-service-config</module>
 		<module>tpf-service-esb</module>
 		<module>tpf-service-eureka</module>
-    	<module>tpf-service-finnone</module>
+		<module>tpf-service-finnone</module>
 		<module>tpf-service-fpt</module>
 		<module>tpf-service-momo</module>
 		<module>tpf-service-restclient</module>
-    	<module>tpf-service-sms</module>
+		<module>tpf-service-sms</module>
 		<module>tpf-service-trusting-social</module>
 		<module>tpf-service-vinid</module>
 		<module>tpf-service-zuul</module>
 		<module>tpf-service-repayment</module>
-        <module>tpf-service-dataentry-automation</module>
 		<module>tpf-service-dataentry</module>
+		<module>tpf-service-automation</module>
 	</modules>
 
 
