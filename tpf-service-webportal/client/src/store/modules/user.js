@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import { apiLogin, apiLogout, apiGetInfo } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import * as cookie from '@/utils/cookie'
 import router, { resetRouter } from '@/router'
 
 const state = {
-  token: getToken(),
+  token: cookie.getToken(),
   avatar: '',
   active: false,
   exp: 0,
@@ -18,9 +18,9 @@ const state = {
 }
 
 const mutations = {
-  SET_TOKEN: (state, token) => {
-    state.token = token
-  },
+  // SET_TOKEN: (state, token) => {
+  //   state.token = token
+  // },
   SET_INFOR_USER: (state, value) => {
     Object.assign(state, value)
   },
@@ -40,8 +40,7 @@ const actions = {
           access_token: 'abc1234',
           expires_in: 1000000
         }
-        commit('SET_TOKEN', response.access_token)
-        setToken(response.access_token, response.expires_in)
+        cookie.setToken(response.access_token, response.expires_in)
         dispatch('getInfo').then((data) => {
             resolve(data)
         })
@@ -49,8 +48,7 @@ const actions = {
         apiLogin({ username: username.trim(), password: password })
         .then(res => {
           let response = res.data
-          commit('SET_TOKEN', response.access_token)
-          setToken(response.access_token, response.expires_in)
+          cookie.setToken(response.access_token, response.expires_in)
           dispatch('getInfo').then((data) => {
             resolve(data)
           })
@@ -110,9 +108,8 @@ const actions = {
           }
   
           commit('SET_INFOR_USER', response)
-          commit('SET_ROLES_USER', roles)
+          cookie.setRoles(roles)
           resolve(roles)
-  
         }).catch(error => {
           reject(error)
         })
@@ -125,8 +122,7 @@ const actions = {
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
       apiLogout(state.token).then(() => {
-        commit('SET_TOKEN', '')
-        removeToken()
+        cookie.clearCookie()
         resetRouter()
         resolve()
       }).catch(error => {
@@ -138,8 +134,7 @@ const actions = {
   // // remove token
   resetToken({ commit }) {
     return new Promise(resolve => {
-      commit('SET_TOKEN', '')
-      removeToken()
+      cookie.clearCookie()
       resolve()
     })
   },
@@ -150,7 +145,7 @@ const actions = {
   //     const token = role + '-token'
 
   //     commit('SET_TOKEN', token)
-  //     setToken(token)
+  //     cookie.setToken(token)
 
   //     const { roles } = await dispatch('getInfo')
 

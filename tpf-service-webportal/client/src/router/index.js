@@ -6,7 +6,7 @@ Vue.use(Router)
 import Layout from '@/layout'
 import dataentryRouter from './modules/dataentry'
 import repaymentRouter from './modules/repayment'
-// import componentsRouter from './modules/components'
+import adminRouter from './modules/admin'
 
 // route default all user
 export const constantRoutes = [
@@ -45,6 +45,7 @@ export const constantRoutes = [
 export const asyncRoutes = [
   dataentryRouter,
   repaymentRouter,
+  adminRouter,
   { path: '*', redirect: '/404', hidden: true }
 ]
 
