@@ -8,6 +8,15 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
+@NamedStoredProcedureQuery(
+        name = "getListTrans",
+        procedureName = "payoo.getListTrans",
+        resultClasses = FicoTransPay.class,
+        parameters = {
+                @StoredProcedureParameter(mode = ParameterMode.IN, type = Timestamp.class),
+                @StoredProcedureParameter(mode = ParameterMode.IN, type = Timestamp.class)
+        }
+)
 @Entity
 @Table(name = "fico_trans_pay", schema = "payoo")
 public class FicoTransPay implements Serializable {

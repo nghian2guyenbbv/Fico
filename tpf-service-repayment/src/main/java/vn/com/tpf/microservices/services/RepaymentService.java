@@ -352,13 +352,15 @@ public class RepaymentService {
 		String request_id = request.path("body").path("request_id").textValue();
 		Timestamp date_time = new Timestamp(new Date().getTime());
 		try{
-			Date fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Date.class);
-			Date toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Date.class);
+			Timestamp fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Timestamp.class);
+			Timestamp toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Timestamp.class);
+
+			System.out.println("fromdate:" + fromDate + ", todate:" + toDate);
 
 			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getListTrans");
 			q.setParameter(1, fromDate);
 			q.setParameter(2, toDate);
-			List<FicoPayooImp> list=q.getResultList();
+			List<FicoTransPay> list=q.getResultList();
 
 			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"data",list,"result_code",0));
 		}
