@@ -58,7 +58,7 @@
       <el-tag
         type="success"
         v-show="statusData == 'server' && dataexcel.length > 0 "
-      >Data: Server, Total: {{ dataexcel.length}}, From {{value[0]}} to {{value[1]}}</el-tag>
+      >Data: Server, Total: {{ dataexcel.length}}, From {{value[0] | moment("DD/MM/YYYY")}} to {{value[1] | moment("DD/MM/YYYY ")}}</el-tag>
     </div>
 
     <el-table
@@ -72,10 +72,9 @@
       v-show="dataexcel.length>0 | show "
       v-if="isheadersImport"
     >
-      <el-table-column label="#" prop="_id" width="50px"  align="left">
-
-          <template slot-scope="scope">
-          <span>{{ parseInt(scope.row['_id']) + 1   }}</span>
+      <el-table-column label="#" prop="number" width="50px" align="left">
+        <template slot-scope="scope">
+          <span>{{ parseInt(scope.row['number']) + 1 }}</span>
         </template>
       </el-table-column>
 
@@ -126,35 +125,16 @@
       height="70vh"
       v-show="dataexcel.length>0 | show "
       v-if="!isheadersImport"
-        >
-              <el-table-column label="#" prop="id" width="50px"  align="left">
-
-          <template slot-scope="scope">
-          <span>{{ parseInt(scope.row['id']) + 1   }}</span>
+    >
+      <el-table-column label="#" prop="number" width="50px" align="left">
+        <template slot-scope="scope">
+          <span>{{ parseInt(scope.row['number']) + 1 }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="Trans Date" prop="transDate" align="left">
+      <el-table-column label="ID" prop="id" align="left">
         <template slot-scope="scope">
-          <span>{{ scope.row['transDate'] | moment("MMM DD YYYY HH:mm") }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="Vendor Code" prop="vendorCode" align="left">
-        <template slot-scope="scope">
-          <span>{{ scope.row['vendorCode'] | moment("MMM DD YYYY HH:mm") }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="Order Code" prop="orderCode" align="left">
-        <template slot-scope="scope">
-          <span>{{ scope.row['orderCode'] }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="Client Code" prop="clientCode" align="left">
-        <template slot-scope="scope">
-          <span>{{ scope.row['clientCode'] }}</span>
+          <span>{{ (scope.row['id']) }}</span>
         </template>
       </el-table-column>
 
@@ -164,17 +144,21 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="Full Name" prop="fullName" align="left">
+      <el-table-column label="Create Date" prop="create_date" align="left">
         <template slot-scope="scope">
-          <span>{{ scope.row['fullName'] }}</span>
+          <span>{{ scope.row['create_date'] | moment("MMM DD YYYY HH:mm") }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="Completed" prop="isCompleted" align="center" width="110px">
+      <el-table-column label="Loan Account No" prop="loan_account_no" align="left">
         <template slot-scope="scope">
-          <span
-            :style="'color: '+getCompleted(scope.row['isCompleted']).color"
-          >{{ getCompleted(scope.row['isCompleted']).name }}</span>
+          <span>{{ scope.row['loan_account_no'] }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="Identification Number" prop="identification_number" align="left">
+        <template slot-scope="scope">
+          <span>{{ scope.row['identification_number'] }}</span>
         </template>
       </el-table-column>
     </el-table>
@@ -212,7 +196,6 @@ export default {
   components: { Pagination },
   data() {
     return {
-
       pushLoading: false,
       show: true,
       dateRange: "",
@@ -225,11 +208,11 @@ export default {
         },
         disabledDate: time => {
           let timeRange = 7 * 24 * 60 * 60 * 1000; // 7day
-          const maxDate1 = this.$moment()
+          const maxDate = this.$moment()
             .date(Number)
             ._d.getTime();
-          const minDate1 = maxDate1 - timeRange;
-          return time.getTime() < minDate1 || time.getTime() > maxDate1;
+          const minDate = maxDate - timeRange;
+          return time.getTime() < minDate || time.getTime() > maxDate;
         }
       },
       files: null,
@@ -264,7 +247,7 @@ export default {
       this.loadData([fromDate, toDate]);
     }
   },
-  
+
   methods: {
     setDateFirst() {
       var moment = require("moment");
@@ -273,7 +256,6 @@ export default {
         .format("YYYY-MM-DD");
       let toDate = this.$moment().format("YYYY-MM-DD");
       this.value = [fromDate, toDate];
-
       this.loadData(this.value);
     },
 
@@ -286,8 +268,8 @@ export default {
         request_id: "",
         date_time: dateTime,
         data: {
-          fromDate: value[0] + "T00:00:00",
-          toDate: value[1] + "T00:00:00"
+          fromDate: value[0] + "T00:00:00.000",
+          toDate: value[1] + "T23:59:59.999"
         }
       };
 
@@ -299,11 +281,14 @@ export default {
           this.isheadersImport = false;
           this.statusData = "server";
           this.listLoading = false;
-          this.dataexcel = success.data && success.data.data ? success.data.data : [];
-
+          this.dataexcel =
+            success.data && success.data.data ? success.data.data : [];
           this.pagina.page = 1;
           let from = this.pagina.limit * (this.pagina.page - 1);
-          this.data = this.fnAddSttInData(this.dataexcel).slice(from, from + this.pagina.limit);
+          this.data = this.fnAddSttInData(this.dataexcel).slice(
+            from,
+            from + this.pagina.limit
+          );
 
           this.show = this.data.length > 0;
         })
@@ -361,7 +346,7 @@ export default {
       var data = [];
       for (const key in this.dataJson) {
         var obj = {
-          _id: 0,
+          number: 0,
           transDate: null,
           createDate: "",
           vendorCode: "",
@@ -373,7 +358,7 @@ export default {
         };
         if (this.dataJson.hasOwnProperty(key)) {
           const element = this.dataJson[key];
-          obj._id = key;
+          obj.number = key;
           obj.createDate = element["__EMPTY"];
           obj.vendorCode = element["__EMPTY_1"];
           obj.orderCode = element["__EMPTY_2"];
@@ -512,11 +497,11 @@ export default {
       }
     },
 
-    fnAddSttInData(data){
+    fnAddSttInData(data) {
       for (const key in data) {
-        data[key].id = key
+        data[key].number = key;
       }
-      return data
+      return data;
     }
   }
 };
