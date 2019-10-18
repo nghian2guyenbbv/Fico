@@ -31,6 +31,7 @@
           >Push Data</el-button>
           <el-date-picker
             v-model="value"
+            :clearable="false"
             type="daterange"
             start-placeholder="Start date"
             end-placeholder="End date"
@@ -132,21 +133,15 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="ID" prop="id" align="left">
+      <el-table-column label="Create Date" prop="create_date" align="left">
         <template slot-scope="scope">
-          <span>{{ (scope.row['id']) }}</span>
+          <span>{{ scope.row['create_date'] | moment("MMM DD YYYY HH:mm") }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="Amount" prop="amount" align="left">
         <template slot-scope="scope">
           <span>{{ currencyFormat(scope.row['amount']) }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="Create Date" prop="create_date" align="left">
-        <template slot-scope="scope">
-          <span>{{ scope.row['create_date'] | moment("MMM DD YYYY HH:mm") }}</span>
         </template>
       </el-table-column>
 
@@ -202,6 +197,9 @@ export default {
       value: [],
       pickerOptions: {
         onPick: ({ maxDate, minDate }) => {
+          if ((this.$moment(maxDate).format("YYYY-MM-DD") == this.$moment().format("YYYY-MM-DD")) && (this.$moment(minDate).format("YYYY-MM-DD") == this.$moment().format("YYYY-MM-DD"))) {
+            this.off = true
+          }
           maxDate
             ? (this.value = [minDate, maxDate])
             : (this.value = [minDate, minDate]);
@@ -215,6 +213,7 @@ export default {
           return time.getTime() < minDate || time.getTime() > maxDate;
         }
       },
+      off: false,
       files: null,
       listLoading: false,
       importLoading: false,
@@ -289,12 +288,23 @@ export default {
             from,
             from + this.pagina.limit
           );
-
           this.show = this.data.length > 0;
+          if (success.data.result_code != 0) {
+            Message({
+              message: success.data.message,
+              type: "error",
+              duration: 5 * 1000
+            });
+          }
         })
         .catch(error => {
           this.show = false;
           this.listLoading = false;
+          Message({
+            message: error,
+            type: "error",
+            duration: 5 * 1000
+          });
         });
     },
 
@@ -325,16 +335,24 @@ export default {
           let fromDate = moment(this.value[0]).format("YYYY-MM-DD");
           let toDate = moment(this.value[1]).format("YYYY-MM-DD");
           this.loadData([fromDate, toDate]);
-          Message({
-            message: "Settel Success",
-            type: "success",
-            duration: 5 * 1000
-          });
+          if (success.data.result_code != 0) {
+            Message({
+              message: success.data.message,
+              type: "error",
+              duration: 5 * 1000
+            });
+          } else {
+            Message({
+              message: "Settel Success",
+              type: "success",
+              duration: 5 * 1000
+            });
+          }
         })
         .catch(error => {
           this.listLoading = false;
           Message({
-            message: "error.message",
+            message: error,
             type: "error",
             duration: 5 * 1000
           });
@@ -416,17 +434,25 @@ export default {
           let fromDate = moment(this.value[0]).format("YYYY-MM-DD");
           let toDate = moment(this.value[1]).format("YYYY-MM-DD");
           this.loadData([fromDate, toDate]);
-          Message({
-            message:
-              "Import data success total row: " + success.data.data.totalRow,
-            type: "success",
-            duration: 5 * 1000
-          });
+          if (success.data.result_code != 0) {
+            Message({
+              message: success.data.message,
+              type: "error",
+              duration: 5 * 1000
+            });
+          } else {
+            Message({
+              message:
+                "Import data success total row: " + success.data.data.totalRow,
+              type: "success",
+              duration: 5 * 1000
+            });
+          }
         })
         .catch(error => {
           this.pushLoading = false;
           Message({
-            message: error.message,
+            message: error,
             type: "error",
             duration: 5 * 1000
           });
