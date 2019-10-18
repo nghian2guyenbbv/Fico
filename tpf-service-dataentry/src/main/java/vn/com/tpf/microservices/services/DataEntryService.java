@@ -629,6 +629,15 @@ public class DataEntryService {
 								}
 							}
                             responseCommnentFullAPPFromDigiTex = true;
+
+							// update automation
+							if (item.getResponse().getData() != null){
+								Application dataUpdate = item.getResponse().getData();
+								rabbitMQService.send("tpf-service-automation",
+										Map.of("func", "fullInfoApp", "token",
+												String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataUpdate));
+							}
+
 						}else{//fico tra comment
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							for (CommentModel itemComment : listComment) {
