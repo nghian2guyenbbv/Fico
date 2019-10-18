@@ -144,88 +144,99 @@ public class RabbitMQService {
 
 			switch (request.path("func").asText()) {
 			case "addProduct":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
 					return response(message, payload, dataEntryService.addProduct(request));
 				}
 				break;
 			case "getProductByName":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
 					return response(message, payload, dataEntryService.getProductByName(request));
 				}
 				break;
 			case "getAll":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
 					return response(message, payload, dataEntryService.getAll(request));
 				}
 				break;
 			case "getByAppId":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
 					return response(message, payload, dataEntryService.getByAppId(request));
 				}
 				break;
 			case "getDetail":
 				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
-					return response(message, payload, dataEntryService.getDetail(request));
+					return response(message, payload, dataEntryService.getDetail(request, token));
 				}
 				break;
 			case "getAddress":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
 					return response(message, payload, dataEntryService.getAddress(request));
 				}
 				break;
 			case "getBranch":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
 					return response(message, payload, dataEntryService.getBranch(request));
 				}
 				break;
 			case "firstCheck":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.firstCheck(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.firstCheck(request, token));
 				}
 				break;
 			case "quickLead":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.quickLead(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+//				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+					return response(message, payload, dataEntryService.quickLead(request, token));
 				}
 				break;
 			case "sendApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.sendApp(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.sendApp(request, token));
 				}
 				break;
 			case "updateApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.updateApp(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.updateApp(request, token));
 				}
 				break;
 			case "commentApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.commentApp(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.commentApp(request, token));
 				}
 				break;
 			case "cancelApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.cancelApp(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.updateStatus(request, token));
 				}
 				break;
 			case "uploadFile":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.uploadFile(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.uploadFile(request, token));
 				}
 				break;
 			case "updateAutomation":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.updateAutomation(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.updateAutomation(request, token));
 				}
 				break;
 			case "updateFullApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.updateFullApp(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.updateFullApp(request, token));
 				}
 				break;
 			case "updateAppError":
-				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
-					return response(message, payload, dataEntryService.updateAppError(request));
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.updateAppError(request, token));
+				}
+				break;
+			case "getTATReport":
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.getTATReport(request, token));
+				}
+				break;
+			case "getStatusReport":
+				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+					return response(message, payload, dataEntryService.getStatusReport(request, token));
 				}
 				break;
 			default:

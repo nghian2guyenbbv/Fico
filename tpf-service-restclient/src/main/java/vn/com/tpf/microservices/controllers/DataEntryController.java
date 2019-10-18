@@ -1,11 +1,13 @@
 package vn.com.tpf.microservices.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +25,9 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.com.tpf.microservices.services.RabbitMQService;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.*;
@@ -32,6 +37,9 @@ public class DataEntryController {
 
 	@Autowired
 	private RabbitMQService rabbitMQService;
+
+	@Autowired
+	private ObjectMapper mapper;
 
 	private RestTemplate restTemplate;
 
@@ -224,7 +232,7 @@ public class DataEntryController {
 			MultiValueMap<String, Object> parts =
 					new LinkedMultiValueMap<String, Object>();
 			for (MultipartFile item:
-				 files) {
+					files) {
 				parts.add("file", item.getResource());
 			}
 			HttpHeaders headers = new HttpHeaders();
@@ -262,6 +270,15 @@ public class DataEntryController {
 //			JsonNode body = mapper.valueToTree(res.getBody());
 
 
+			int i=0;
+			do {
+				Thread.sleep(30000);
+				try{
+
+				} catch (Exception e) {
+				}
+				i = i +1;
+			}while(i<6);
 
 
 
@@ -327,29 +344,54 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	//	@RequestMapping(path = "/dataentry/uploadfile", method = RequestMethod.POST,
-//			consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
-	@RequestMapping(value={"/dataentry/uploadfile22"}, method={RequestMethod.POST},
-		consumes={"multipart/form-data"}, headers={"Accept=application/json"})
-//	@PostMapping("/dataentry/uploadfile22")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry')")
-	public ResponseEntity<?> uploadfile22(@RequestHeader("Authorization") String token,
-										  @RequestPart("file")  MultipartFile[] file,
-										  @RequestPart("inputdata") String inputData)
+	@RequestMapping("/v1/dataentry/gettatreport")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	public ResponseEntity<?> getTATReport(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-		try {
-			String a ="";
-		} catch (HttpClientErrorException e) {
-			String a ="";
-		} catch (Exception e) {
-			String b = "";
-		}
+		mapper = new ObjectMapper();
+		request.put("func", "getTATReport");
+		request.put("token", token);
+		request.put("body", body);
 
-		return ResponseEntity.status(200)
-				.header("x-pagination-total", "0").body(Map.of("status", file[0].getOriginalFilename(), "data", inputData));
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Disposition", "attachment; filename=TATReport_"+new Date().getTime()+".xlsx");
+
+		Base64.Decoder dec = Base64.getDecoder();
+		byte[] decbytes = dec.decode(response.path("data").asText());
+
+		ByteArrayInputStream in = new ByteArrayInputStream(decbytes);
+
+		return ResponseEntity
+				.ok()
+				.headers(headers)
+				.body(new InputStreamResource(in));
+	}
+
+	@RequestMapping("/v1/dataentry/getstatusreport")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	public ResponseEntity<?> getStatusReport(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getStatusReport");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+
+		Base64.Decoder dec = Base64.getDecoder();
+		byte[] decbytes = dec.decode(response.path("data").asText());
+		ByteArrayInputStream in = new ByteArrayInputStream(decbytes);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Disposition", "attachment; filename=StatusReport_"+new Date().getTime()+".xlsx");
+
+		return ResponseEntity
+				.ok()
+				.headers(headers)
+				.body(new InputStreamResource(in));
 	}
 
 	public Optional<String> getExtensionByStringHandling(String filename) {

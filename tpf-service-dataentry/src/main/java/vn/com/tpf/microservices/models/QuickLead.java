@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 //@Document(collection = "dataentry")
 public class QuickLead {
-    private UUID quickLeadId;
+    private String quickLeadId;
 //    private String applicationId;
     private String productTypeCode;
     private String customerType;

@@ -22,6 +22,9 @@ import vn.com.tpf.microservices.models.FirstCheckRequest;
 import vn.com.tpf.microservices.models.FirstCheckResponse;
 
 import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
@@ -65,6 +68,33 @@ public class ApiService {
 			requestFirstCheck.setCurrent_address(request.path("body").path("data").path("currentAddress").textValue());
 			requestFirstCheck.setArea_id(request.path("body").path("data").path("areaId").textValue());
 
+//			--- test pgp
+//			PGPHelper pgpHelper = new PGPHelper(1,1);
+//			ByteArrayOutputStream encStream = new ByteArrayOutputStream();
+//			pgpHelper.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream);
+//
+//			PGPHelper pgpHelper2 = new PGPHelper(1);
+//			ByteArrayOutputStream desStream = new ByteArrayOutputStream();
+//			pgpHelper2.decryptAndVerifySignature(encStream.toString().getBytes(), desStream);
+
+//			PGPHelper pgpHelper = new PGPHelper(PGPInfo.preshareKey_4,PGPInfo.publicKey_6,PGPInfo.privateKey_4);
+//			ByteArrayOutputStream encStream = new ByteArrayOutputStream();
+//			pgpHelper.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream);
+//
+//			PGPHelper pgpHelper2 = new PGPHelper(PGPInfo.preshareKey_6,PGPInfo.publicKey_4,PGPInfo.privateKey_6);
+//			ByteArrayOutputStream desStream = new ByteArrayOutputStream();
+//			pgpHelper2.decryptAndVerifySignature(encStream.toString().getBytes(), desStream);
+//
+//
+//			PGPHelper pgpHelper3 = new PGPHelper(PGPInfo.preshareKey_6,PGPInfo.publicKey_4,PGPInfo.privateKey_6);
+//			ByteArrayOutputStream encStream3 = new ByteArrayOutputStream();
+//			pgpHelper3.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream3);
+//
+//			PGPHelper pgpHelper4 = new PGPHelper(PGPInfo.preshareKey_4,PGPInfo.publicKey_6,PGPInfo.privateKey_4);
+//			ByteArrayOutputStream desStrea4 = new ByteArrayOutputStream();
+//			pgpHelper4.decryptAndVerifySignature(encStream3.toString().getBytes(), desStrea4);
+
+//			test pgp ---
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -73,7 +103,6 @@ public class ApiService {
 			JsonNode body = mapper.valueToTree(res.getBody());
 
 			FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
-
 			FirstCheck firstCheck = new FirstCheck();
 			firstCheck.setRequest(requestFirstCheck);
 			firstCheck.setResponse(firstCheckResponse);

@@ -23,6 +23,7 @@ public class ConvertService {
 		app.put("fullName",
 				(application.getQuickLead().getFirstName() + application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
 		app.put("automationResult", application.getDescription());
+		app.put("assigned", application.getUserName());
 		ArrayNode documents = mapper.createArrayNode();
 		if(application.getQuickLead().getDocuments() != null) {
 			application.getQuickLead().getDocuments().forEach(e -> {
@@ -55,7 +56,9 @@ public class ConvertService {
 			app.set("comments", comments);
 		}
 		ObjectNode optional = mapper.createObjectNode();
-//		optional.put("smsResult", momo.getSmsResult());
+		if (application.getApplicationInformation() != null) {
+			optional.put("identificationNumber", application.getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
+		}
 		app.set("optional", optional);
 		return app;
 	}
