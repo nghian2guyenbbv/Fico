@@ -8,77 +8,35 @@ import getPageTitle from '@/utils/get-page-title'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/login'] // no redirect whitelist
+const whiteList = ['/login']
 
-router.beforeEach(async(to, from, next) => {
-  // start progress bar
-  NProgress.start()
-  // set page title
+router.beforeEach(async (to, from, next) => {
   document.title = getPageTitle(to.meta.title)
+  NProgress.start()
 
   const hasToken = cookie.getToken()
   if (hasToken) {
     const roles = cookie.getRoles()
     if (roles && roles.length > 0) {
-      // has role
-      // const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-      // router.addRoutes(accessRoutes)
       if (to.path === '/login') {
         next({ path: '/' })
       } else {
         next()
       }
-      NProgress.done()
     } else {
-      // not has roles
       await store.dispatch('user/resetToken')
-      Message.error('Has Error')
+      Message.error('Token has been expires, login again!')
       next(`/login?redirect=${to.path}`)
-      NProgress.done()
     }
   } else {
-    // not has token
     if (whiteList.indexOf(to.path) !== -1) {
       next()
     } else {
       next(`/login?redirect=${to.path}`)
-      NProgress.done()
     }
   }
-  // if (hasToken) {
-  //   if (to.path === '/login') {
-  //     next({ path: '/' })
-  //     NProgress.done()
-  //   } else {
-  //     const hasRoles = store.getters.roles && store.getters.roles.length > 0
-  //     if (hasRoles) {
-  //       // console.log('1')
-  //       const accessRoutes = await store.dispatch('permission/generateRoutes', store.getters.roles)
-  //       router.addRoutes(accessRoutes)
-  //       next()
-  //     } else {
-  //       try {
-  //         await store.dispatch('user/getInfo')
-  //         const accessRoutes = await store.dispatch('permission/generateRoutes', store.getters.roles)
-  //         router.addRoutes(accessRoutes)
 
-  //         next({ ...to, replace: true })
-  //       } catch (error) {
-  //         await store.dispatch('user/resetToken')
-  //         Message.error(error || 'Has Error')
-  //         next(`/login?redirect=${to.path}`)
-  //         NProgress.done()
-  //       }
-  //     }
-  //   }
-  // } else {
-  //   if (whiteList.indexOf(to.path) !== -1) {
-  //     next()
-  //   } else {
-  //     next(`/login?redirect=${to.path}`)
-  //     NProgress.done()
-  //   }
-  // }
+  NProgress.done()
 })
 
 router.afterEach(() => {

@@ -20,6 +20,7 @@ import * as filters from './filters' // global filters
 import { pagination, opt } from './utils/const-config'
 import './utils/socket'
 import checkPermission from '@/utils/permission'
+import * as cookie from '@/utils/cookie'
 
 Vue.use(Element, {
   locale,
@@ -36,7 +37,8 @@ Vue.config.productionTip = false
 Vue.mixin({
   computed: mapState({ state: state => state }),
   methods: {
-		checkPermission
+    checkPermission,
+    fnCookie: () => cookie
 	}
 
 
