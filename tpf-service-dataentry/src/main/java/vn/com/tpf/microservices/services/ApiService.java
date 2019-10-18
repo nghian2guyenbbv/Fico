@@ -52,13 +52,13 @@ public class ApiService {
 	}
 
 	public String firstCheck(JsonNode request) {
-		urlFirstCheck = "http://10.131.21.137:52233/sale_page/api_management/early_check/";
+		urlFirstCheck = "http://10.131.21.126:52233/sale_page/api_management/pregate/";
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		try {
 			Assert.notNull(request.get("body"), "no body");
 //			FirstCheckRequest requestFirstCheck = mapper.treeToValue(request.path("body").path("data"), FirstCheckRequest.class);
 			FirstCheckRequest requestFirstCheck = new FirstCheckRequest();
-			requestFirstCheck.setProject_name("data-entry");
+			requestFirstCheck.setProject_name("de");
 
 			requestFirstCheck.setRequest_id("de-"+ UUID.randomUUID().toString().substring(0,11));
 			requestFirstCheck.setFull_name(request.path("body").path("data").path("customerName").textValue());
@@ -66,9 +66,30 @@ public class ApiService {
 			requestFirstCheck.setDsa_code(request.path("body").path("data").path("dsaCode").textValue());
 			requestFirstCheck.setBank_card_number(request.path("body").path("data").path("bankCardNumber").textValue());
 			requestFirstCheck.setCurrent_address(request.path("body").path("data").path("currentAddress").textValue());
-			requestFirstCheck.setArea_id(request.path("body").path("data").path("areaId").textValue());
+			requestFirstCheck.setArea_code(request.path("body").path("data").path("areaId").textValue());
+			requestFirstCheck.setBirthday("");
+			requestFirstCheck.setGender("");
+			requestFirstCheck.setPhoneNumber("");
 
-//			--- test pgp
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
+			ResponseEntity<?> res = restTemplate.postForEntity(urlFirstCheck, entity, Object.class);
+			JsonNode body = mapper.valueToTree(res.getBody());
+
+			FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
+			FirstCheck firstCheck = new FirstCheck();
+			firstCheck.setRequest(requestFirstCheck);
+			firstCheck.setResponse(firstCheckResponse);
+			mongoTemplate.save(firstCheck);
+
+			if (firstCheckResponse.getFirst_check_result().equals("pass")){
+				return "pass";
+			}
+			return "fail";
+
+
+			//			--- test pgp
 //			PGPHelper pgpHelper = new PGPHelper(1,1);
 //			ByteArrayOutputStream encStream = new ByteArrayOutputStream();
 //			pgpHelper.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream);
@@ -95,23 +116,6 @@ public class ApiService {
 //			pgpHelper4.decryptAndVerifySignature(encStream3.toString().getBytes(), desStrea4);
 
 //			test pgp ---
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			HttpEntity<?> entity = new HttpEntity<>(request.path("body").path("data"), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(urlFirstCheck, entity, Object.class);
-			JsonNode body = mapper.valueToTree(res.getBody());
-
-			FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
-			FirstCheck firstCheck = new FirstCheck();
-			firstCheck.setRequest(requestFirstCheck);
-			firstCheck.setResponse(firstCheckResponse);
-			mongoTemplate.save(firstCheck);
-
-			if (firstCheckResponse.isAll()){
-				return "pass";
-			}
-			return "fail";
 
 		} catch (HttpClientErrorException e) {
 			log.info("[==HTTP-LOG-RESPONSE==] : {}",

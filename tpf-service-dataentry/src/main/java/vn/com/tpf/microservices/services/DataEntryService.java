@@ -324,25 +324,25 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{
-			responseModel.setRequest_id(requestId);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("0");
-			responseModel.setData(Map.of("first_check_result", "pass"));
+//			responseModel.setRequest_id(requestId);
+//			responseModel.setReference_id(UUID.randomUUID().toString());
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code("0");
+//			responseModel.setData(Map.of("first_check_result", "pass"));
 
-//			String resultFirstCheck = apiService.firstCheck(request);
-//			if (resultFirstCheck.equals("pass")){
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("0");
-//			}else{
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("1");
-//				responseModel.setMessage(resultFirstCheck);
-//			}
+			String resultFirstCheck = apiService.firstCheck(request);
+			if (resultFirstCheck.equals("pass")){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+			}else{
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("1");
+				responseModel.setMessage(resultFirstCheck);
+			}
 
 
 
