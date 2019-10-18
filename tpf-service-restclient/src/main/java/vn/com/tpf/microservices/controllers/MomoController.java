@@ -69,6 +69,7 @@ public class MomoController {
 	}
 
 	@PostMapping("/momo/{transaction_id}/update_status/{status}")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-momo')")
 	public ResponseEntity<?> updateStatus(@PathVariable String transaction_id, @PathVariable String status,
 			@RequestParam(required = true) String access_key) throws Exception {
 		Map<String, Object> request = new HashMap<>();

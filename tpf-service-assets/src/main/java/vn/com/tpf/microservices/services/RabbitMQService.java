@@ -105,11 +105,9 @@ public class RabbitMQService {
 	}
 
 	public Message response(Message message, byte[] payload, Object object) throws Exception {
-		JsonNode obj = mapper.convertValue(object, JsonNode.class);
 		ObjectNode dataLog = mapper.createObjectNode();
 		dataLog.put("type", "[==RABBITMQ-LOG==]");
-		dataLog.set("result", mapper.convertValue(
-				Map.of("status", obj.path("status"), "message", obj.path("data").path("message")), JsonNode.class));
+		dataLog.set("result", mapper.convertValue(object, JsonNode.class));
 		try {
 			dataLog.set("payload", mapper.readTree(new String(payload, "UTF-8")));
 		} catch (Exception e) {

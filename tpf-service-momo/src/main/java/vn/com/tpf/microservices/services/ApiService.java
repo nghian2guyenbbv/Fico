@@ -68,7 +68,7 @@ public class ApiService {
 			dataLogRes.put("result", decrypt.path("data").asText());
 			log.info("{}", dataLogRes);
 
-			return mapper.readTree(decrypt.path("data").asText());
+			return decrypt.path("data");
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");

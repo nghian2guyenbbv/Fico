@@ -35,18 +35,14 @@ public class HttpServletRequestWrapperExtension extends HttpServletRequestWrappe
 				private boolean hasGetted = false;
 
 				@Override
-				public String nextElement() {
-					if (hasGetted) {
-						return "";
-					} else {
-						hasGetted = true;
-						return MediaType.APPLICATION_JSON_UTF8_VALUE;
-					}
+				public boolean hasMoreElements() {
+					return !hasGetted;
 				}
 
 				@Override
-				public boolean hasMoreElements() {
-					return !hasGetted;
+				public String nextElement() {
+					hasGetted = true;
+					return MediaType.APPLICATION_JSON_UTF8_VALUE;
 				}
 			};
 		}
