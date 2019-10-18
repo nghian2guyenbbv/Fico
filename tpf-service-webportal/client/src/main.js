@@ -1,42 +1,50 @@
 import Vue from 'vue'
-import Vuetify from 'vuetify'
 import VueMoment from 'vue-moment'
-import { VueEditor } from 'vue2-editor'
 import { mapState, mapActions } from 'vuex'
-import { fnCopy, fnIsAuth } from './utils'
-import App from './App.vue'
-import router from './router'
-import store from './store'
-import Chart from './components/Chart'
-import colors from 'vuetify/es5/util/colors'
-import 'vuetify/dist/vuetify.min.css'
-import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import 'normalize.css/normalize.css' // a modern alternative to CSS resets
 
-Vue.use(Vuetify, { theme: { primary: colors.purple } })
+import Element from 'element-ui'
+import './styles/element-variables.scss'
+import locale from 'element-ui/lib/locale/lang/en'
+import '@/styles/index.scss' // global css
+
+import App from './App'
+import store from './store'
+import router from './router'
+
+import './icons' // icon
+import './permission' // permission control
+import './utils/error-log' // error log
+
+import * as filters from './filters' // global filters
+import { pagination, opt } from './utils/const-config'
+import './utils/socket'
+import checkPermission from '@/utils/permission'
+
+Vue.use(Element, {
+  locale,
+  size: 'small' // set element-ui default size
+})
 Vue.use(VueMoment)
-Vue.component('v-chart', Chart)
-Vue.component('v-editor', VueEditor)
-Vue.filter('fDateTime', v => Vue.moment(v).format('HH:mm DD/MM/YYYY'))
+// register global utility filters
+Object.keys(filters).forEach(key => {
+  Vue.filter(key, filters[key])
+})
+
+Vue.config.productionTip = false
 
 Vue.mixin({
-	computed: mapState(['s']),
-	methods: {
-		fnCopy, fnIsAuth, ...mapActions([
-			'fnToastr', 'fnLogout', 'fnLogin', 'fnPagination', 'fnRead', 'fnCreate', 'fnUpdate', 'fnDelete',
-			'fnCallResetView', 'fnCallListView', 'fnCallCreateView', 'fnCallUpdateView', 'fnCallDeleteView'
-		])
-	}
-})
-
-router.beforeEach(async (to, from, next) => {
-	const user = await store.dispatch('fnGetUserSession')
-
-	if (to.matched[0].props.default) {
-		const { auth, opt } = to.matched[0].props.default
-		if (auth && !fnIsAuth(user, opt)) return next('/login')
+  computed: mapState({ state: state => state }),
+  methods: {
+		checkPermission
 	}
 
-	next()
+
 })
 
-new Vue({ router, store, render: h => h(App) }).$mount('#app')
+new Vue({
+  el: '#app',
+  router,
+  store,
+  render: h => h(App)
+})
