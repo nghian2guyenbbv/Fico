@@ -145,6 +145,18 @@
         </template>
       </el-table-column>
 
+      <el-table-column label="Transaction ID" prop="transaction_id" align="left">
+        <template slot-scope="scope">
+          <span>{{ scope.row['transaction_id'] }}</span>
+        </template>
+      </el-table-column>
+
+            <el-table-column label="Loan ID" prop="loan_id" align="left">
+        <template slot-scope="scope">
+          <span>{{ scope.row['loan_id'] }}</span>
+        </template>
+      </el-table-column>
+
       <el-table-column label="Loan Account No" prop="loan_account_no" align="left">
         <template slot-scope="scope">
           <span>{{ scope.row['loan_account_no'] }}</span>
@@ -197,8 +209,13 @@ export default {
       value: [],
       pickerOptions: {
         onPick: ({ maxDate, minDate }) => {
-          if ((this.$moment(maxDate).format("YYYY-MM-DD") == this.$moment().format("YYYY-MM-DD")) && (this.$moment(minDate).format("YYYY-MM-DD") == this.$moment().format("YYYY-MM-DD"))) {
-            this.off = true
+          if (
+            this.$moment(maxDate).format("YYYY-MM-DD") ==
+              this.$moment().format("YYYY-MM-DD") &&
+            this.$moment(minDate).format("YYYY-MM-DD") ==
+              this.$moment().format("YYYY-MM-DD")
+          ) {
+            this.off = true;
           }
           maxDate
             ? (this.value = [minDate, maxDate])
