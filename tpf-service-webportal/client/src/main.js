@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueMoment from 'vue-moment'
-import { mapState, mapActions } from 'vuex'
+import { mapState } from 'vuex'
 import 'normalize.css/normalize.css' // a modern alternative to CSS resets
 
 import Element from 'element-ui'
@@ -15,7 +15,9 @@ import router from './router'
 import './icons' // icon
 import './permission' // permission control
 import './utils/error-log' // error log
+import TableDefault from '@/components/Table/TableDefault'
 
+Vue.component('table-default', TableDefault)
 import * as filters from './filters' // global filters
 import { pagination, opt } from './utils/const-config'
 import './utils/socket'
@@ -28,9 +30,9 @@ Vue.use(Element, {
 })
 Vue.use(VueMoment)
 // register global utility filters
-Object.keys(filters).forEach(key => {
-  Vue.filter(key, filters[key])
-})
+// Object.keys(filters).forEach(key => {
+//   Vue.filter(key, filters[key])
+// })
 
 Vue.config.productionTip = false
 

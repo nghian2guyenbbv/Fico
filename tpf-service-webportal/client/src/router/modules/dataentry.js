@@ -7,8 +7,7 @@ const dataentryRouter = {
   name: 'DataEntry',
   meta: {
     title: 'Data Entry',
-    icon: 'chart',
-    roles: ['de_lead_view', 'de_return_view']
+    icon: 'chart'
   },
   children: [
     {

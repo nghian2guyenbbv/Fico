@@ -24,11 +24,9 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
 import Logo from "./Logo";
 import SidebarItem from "./SidebarItem";
 import variables from "@/styles/variables.scss";
-import * as cookie from '@/utils/cookie'
 import router from '@/router'
 
 export default {
@@ -39,11 +37,9 @@ export default {
     };
   },
   created() {
-    console.log(this.fnCookie())
     this.permission_routes = this.generateRoutes()
   },
   computed: {
-    ...mapGetters(["permission_routes", "sidebar"]),
     activeMenu() {
       const route = this.$route;
       const { meta, path } = route;
@@ -54,17 +50,17 @@ export default {
       return path;
     },
     showLogo() {
-      return this.$store.state.settings.sidebarLogo;
+      return this.state.settings.sidebarLogo;
     },
     variables() {
       return variables;
     },
     isCollapse() {
-      return !this.sidebar.opened;
+      return !this.state.app.sidebar.opened;
     }
   },
   methods: {
-    hasPermission(url) {
+    hasPermission(roles, route) {
       if (route.meta && route.meta.roles) {
         return roles.some(role => route.meta.roles.includes(role));
       } else {
@@ -72,14 +68,14 @@ export default {
       }
     },
 
-    filterAsyncRoutes(url) {
+    filterAsyncRoutes(routes, roles) {
       const res = [];
 
       routes.forEach(route => {
         const tmp = { ...route };
-        if (hasPermission(roles, tmp)) {
+        if (this.hasPermission(roles, tmp)) {
           if (tmp.children) {
-            tmp.children = filterAsyncRoutes(tmp.children, roles);
+            tmp.children = this.filterAsyncRoutes(tmp.children, roles);
           }
           res.push(tmp);
         }
@@ -89,16 +85,22 @@ export default {
     },
 
     generateRoutes() {
-      let roles = cookie.getRoles()
-      console.log(roles)
-      console.log(router.options.routes)
-      return router.options.routes
-      // if (roles.includes("admin")) {
-      //   accessedRoutes = asyncRoutes || [];
-      // } else {
-      //   accessedRoutes = filterAsyncRoutes(asyncRoutes, roles);
-      // }
-      // commit("SET_ROUTES", accessedRoutes);
+      let roles = this.fnCookie().getRoles()
+      let accessedRoutes = []
+      let tmpRoutes
+      if (roles.includes("admin")) {
+        tmpRoutes = router.options.routes
+      } else {
+        tmpRoutes = this.filterAsyncRoutes(router.options.routes, roles);
+      }
+      
+      for (let i in tmpRoutes) {
+        if (tmpRoutes[i].children && tmpRoutes[i].children.length != 0) {
+          accessedRoutes.push(tmpRoutes[i])
+        }
+      }
+      
+      return accessedRoutes
     }
   }
 };
