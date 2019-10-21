@@ -65,7 +65,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = {
-          authorities: ['role_user'],
+          authorities: ['role_root'],
           avatar: '',
           active: true,
           optional: {
@@ -88,7 +88,7 @@ const actions = {
         }
 
         commit('SET_INFOR_USER', response)
-        commit('SET_ROLES_USER', roles)
+        cookie.setRoles(roles)
         resolve(response)
       } else {
         apiGetInfo()

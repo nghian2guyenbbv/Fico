@@ -2,7 +2,6 @@ import Vue from 'vue'
 import * as dataentry from '@/api/dataentry'
 
 const state = {
-  list: [],
   newCustomer: {
     requestID: '123456',
     customerName: '',
@@ -11,6 +10,19 @@ const state = {
     bankCardNumber: '',
     currentAddress: '',
     areaId: '100001'
+  },
+  table: {
+    _list: [],
+    _total: 0,
+    _detail: {},
+    _page: 1,
+    _rowsPerPage: 10,
+    _loading: false,
+    _search: {},
+    _sortBy: 'createdAt',
+    _isCreate: false,
+    _isUpdate: false,
+    _isDelete: false
   }
 }
 

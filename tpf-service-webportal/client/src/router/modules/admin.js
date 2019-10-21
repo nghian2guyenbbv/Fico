@@ -15,6 +15,12 @@ const adminRouter = {
             component: () => import('@/views/Admin/users'),
             name: 'Users',
             meta: { title: 'Users', roles: ['admin_user'] }
+        },
+        {
+            path: 'clients',
+            component: () => import('@/views/Admin/clients'),
+            name: 'Clients',
+            meta: { title: 'Clients', roles: ['admin_client'] }
         }
     ]
 }
