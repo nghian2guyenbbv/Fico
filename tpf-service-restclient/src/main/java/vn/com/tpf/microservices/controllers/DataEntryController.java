@@ -63,7 +63,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/v1/dataentry/getproductbyname")
+	@RequestMapping("/v1/dataentry/getproductbyname")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getProductByName(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -77,7 +77,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/v1/dataentry/getall")
+	@RequestMapping("/v1/dataentry/getall")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getAll(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -91,7 +91,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/v1/dataentry/getappid")
+	@RequestMapping("/v1/dataentry/getappid")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getByAppId(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -105,7 +105,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/v1/dataentry/getaddress")
+	@RequestMapping("/v1/dataentry/getaddress")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getAddress(@RequestHeader("Authorization") String token)
 			throws Exception {
@@ -118,7 +118,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/v1/dataentry/getbranch")
+	@RequestMapping("/v1/dataentry/getbranch")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
 	public ResponseEntity<?> getBranch(@RequestHeader("Authorization") String token)
 			throws Exception {
@@ -224,10 +224,18 @@ public class DataEntryController {
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
+		String urlFico = "http://192.168.0.205:3001/v1/file";
+//		String urlFico = "http://tpf-service-file:3001/v1/file";
+		String urlDigiTex = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/documentAPI";
+		String urlDigiTexResubmit = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/resubmitDocumentAPI";
 		mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+
+		JsonNode body = null;
+
 		request.put("func", "uploadFile");
 		request.put("token", token);
 		request.put("appId", appId);
+
 		try {
 			MultiValueMap<String, Object> parts =
 					new LinkedMultiValueMap<String, Object>();
@@ -238,105 +246,91 @@ public class DataEntryController {
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			HttpEntity<?> entity = new HttpEntity<>(parts, headers);
-			ResponseEntity<?> res = restTemplate.postForEntity("http://192.168.0.205:3001/v1/file", entity, List.class);
-			JsonNode body = mapper.valueToTree(res.getBody());
+			ResponseEntity<?> res = restTemplate.postForEntity(urlFico, entity, List.class);
 
-//			--------------- Send DigiTex ------------------
-//			List bb = new ArrayList();
-//			Map<String, String > z = new HashMap<>();
-//			z.put("urlId", "id01");
-//			z.put("originalname", "TPF_ID_Card.pdf");
-//			z.put("filename", "696969699TPF_ID_Card.pdf");
-//			bb.add(z);
-//			Map<String, String > t = new HashMap<>();
-//			t.put("urlId", "id02");
-//			t.put("originalname", "TPF_ACCA_Disbursal.pdf");
-//			t.put("filename", "1212121212TPF_ID_Card.pdf");
-//			bb.add(t);
-//
-//			MultiValueMap<String, Object> parts =
-//					new LinkedMultiValueMap<String, Object>();
-//			for (MultipartFile item:
-//					files) {
-//				parts.add("file", item.getResource());
-//			}
-//			parts.add("inputdata", mapper.writeValueAsString(bb));
-//
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-//			headers.set("Authorization", token);
-//			HttpEntity<?> entity = new HttpEntity<>(parts, headers);
-//			ResponseEntity<?> res = restTemplate.postForEntity("http://localhost:4000/dataentry/uploadfile22", entity, Object.class);
-//			JsonNode body = mapper.valueToTree(res.getBody());
+			if (res.getStatusCodeValue() == 200){
+				JsonNode outputDT = null;
+				body = mapper.valueToTree(res.getBody());
 
+				MultiValueMap<String, Object> parts_02 =
+						new LinkedMultiValueMap<String, Object>();
 
-			int i=0;
-			do {
-				Thread.sleep(30000);
-				try{
+				if (appId == null){
+					ArrayNode documents = mapper.createArrayNode();
+					if(files != null) {
+						for (MultipartFile item :files) {
+							ObjectNode doc = mapper.createObjectNode();
+							MessageDigest md5 = MessageDigest.getInstance("MD5");
+							byte[] digest = md5.digest(item.getBytes());
+							String hashString = new BigInteger(1, digest).toString(16);
 
-				} catch (Exception e) {
+							doc.put("file-name", item.getOriginalFilename());
+							doc.put("md5", hashString);
+
+							documents.add(doc);
+//							parts.add("ACCA_From", documents);
+						}
+						parts_02.add("description", Map.of("files", documents));
+						parts_02.add("ACCA_From", files[0].getResource());
+					}
+					HttpHeaders headers_DT = new HttpHeaders();
+					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
+
+//					outputDT = mapper.readTree(res_DT.getBody().toString());
+
+				} else{
+					ArrayNode documents = mapper.createArrayNode();
+					if(files != null) {
+						for (MultipartFile item :files) {
+							ObjectNode doc = mapper.createObjectNode();
+							MessageDigest md5 = MessageDigest.getInstance("MD5");
+							byte[] digest = md5.digest(item.getBytes());
+							String hashString = new BigInteger(1, digest).toString(16);
+
+							doc.put("file-name", item.getOriginalFilename());
+							doc.put("md5", hashString);
+
+							documents.add(doc);
+						}
+						parts.add("files", documents);
+					}
+					HttpHeaders headers_DT = new HttpHeaders();
+					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+					HttpEntity<?> entity_DT = new HttpEntity<>(parts, headers_DT);
+					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, String.class);
+
+					outputDT = mapper.readTree(res_DT.getBody().toString());
 				}
-				i = i +1;
-			}while(i<6);
 
+//				JsonNode jNode = mergeFile(body, mapper.valueToTree(outputDT));
+				request.put("body", body);
 
-
-			ArrayNode documents = mapper.createArrayNode();
-			if(files != null) {
-				for (MultipartFile item :files) {
-					ObjectNode doc = mapper.createObjectNode();
-
-					String nameExtension = getExtensionByStringHandling(item.getOriginalFilename()).get();
-					String fileNameNotExtension = item.getOriginalFilename().replace(nameExtension, "");
-
-					MessageDigest md5 = MessageDigest.getInstance("MD5");
-					byte[] digest = md5.digest(item.getBytes());
-					String hashString = new BigInteger(1, digest).toString(16);
-
-					doc.put("document-type", fileNameNotExtension);
-					doc.put("file-type", item.getContentType());
-					doc.put("file-content", Base64.getEncoder().encodeToString(item.getBytes()));
-					doc.put("file-checksum", hashString);
-
-					documents.add(doc);
-				}
+//				return ResponseEntity.status(200)
+//						.header("x-pagination-total", "0").body(jNode);
 			}
-//			HttpHeaders headers_DT = new HttpHeaders();
-//			headers_DT.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//			HttpEntity<?> entity_DT = new HttpEntity<>(mapper.writeValueAsString(documents), headers_DT);
-//			ResponseEntity<?> res_DT = restTemplate.postForEntity("http://192.168.0.222", entity_DT, List.class);
-//			JsonNode body_DT = mapper.valueToTree(res_DT.getBody());
+			
 
+//			int i=0;
+//			do {
+//				Thread.sleep(30000);
+//				try{
+//
+//				} catch (Exception e) {
+//				}
+//				i = i +1;
+//			}while(i<6);
 
-			List aa = new ArrayList();
-			Map<String, String > dddd = new HashMap<>();
-			dddd.put("urlId", "id01");
-			dddd.put("originalname", "TPF_ID_Card.pdf");
-			dddd.put("filename", "696969699TPF_ID_Card.pdf");
-			aa.add(dddd);
-			Map<String, String > dddd2 = new HashMap<>();
-			dddd2.put("urlId", "id02");
-			dddd2.put("originalname", "TPF_ACCA_Disbursal.pdf");
-			dddd2.put("filename", "1212121212TPF_ID_Card.pdf");
-			aa.add(dddd2);
-
-//			ArrayNode array = mapper.valueToTree(aa);
-//			((ArrayNode) body).addAll(array);
-//			ArrayNode aaa = mapper.createArrayNode();
-//			aaa.add(body);
-//			aaa.addAll(array);
-
-			JsonNode jNode = mergeFile(body, mapper.valueToTree(aa));
-			request.put("body", body);
-
-//			return ResponseEntity.status(200)
-//					.header("x-pagination-total", "0").body(request);
 
 		} catch (HttpClientErrorException e) {
-			String a ="";
+			return ResponseEntity.status(500)
+					.header("x-pagination-total", "0").body(e.toString());
 		} catch (Exception e) {
-			String b = "";
+			return ResponseEntity.status(500)
+					.header("x-pagination-total", "0").body(e.toString());
 		}
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);

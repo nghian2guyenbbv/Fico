@@ -11,6 +11,7 @@ import java.util.UUID;
 public class QuickLead {
     private String quickLeadId;
 //    private String applicationId;
+    private String identificationNumber;
     private String productTypeCode;
     private String customerType;
     private String productCode;

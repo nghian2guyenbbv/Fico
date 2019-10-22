@@ -18,6 +18,7 @@ public class ConvertService {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "dataentry");
 		app.put("uuid", application.getId());
+		app.put("status", application.getStatus());
 		app.put("appId", application.getApplicationId());
 //		app.put("partnerId", "");// chua co
 		app.put("fullName",
@@ -58,6 +59,9 @@ public class ConvertService {
 		ObjectNode optional = mapper.createObjectNode();
 		if (application.getApplicationInformation() != null) {
 			optional.put("identificationNumber", application.getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
+		}
+		if (application.getQuickLeadId() != null) {
+			optional.put("quickLeadId", application.getQuickLeadId());
 		}
 		app.set("optional", optional);
 		return app;

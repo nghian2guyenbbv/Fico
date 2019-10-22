@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.operation.GroupOperation;
 import org.apache.poi.ss.usermodel.*;
@@ -23,11 +25,15 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
 
+import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.validation.ConstraintViolation;
@@ -66,6 +72,13 @@ public class DataEntryService {
 	private ConvertService convertService;
 
 	private RestTemplate restTemplate;
+
+	@PostConstruct
+	private void init() {
+		ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
+		restTemplate = new RestTemplate(factory);
+		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
+	}
 
 	public Map<String, Object> addProduct(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
@@ -127,8 +140,8 @@ public class DataEntryService {
 
 
 //			responseModel.setData(quickLeadId);
-
-
+//
+//
 			Assert.notNull(request.get("body"), "no body");
 			RequestProductModel requestModel = mapper.treeToValue(request.get("body"), RequestProductModel.class);
 
@@ -324,25 +337,25 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{
-//			responseModel.setRequest_id(requestId);
-//			responseModel.setReference_id(UUID.randomUUID().toString());
-//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//			responseModel.setResult_code("0");
-//			responseModel.setData(Map.of("first_check_result", "pass"));
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			responseModel.setData(Map.of("first_check_result", "pass"));
 
-			String resultFirstCheck = apiService.firstCheck(request);
-			if (resultFirstCheck.equals("pass")){
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
-			}else{
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("1");
-				responseModel.setMessage(resultFirstCheck);
-			}
+//			String resultFirstCheck = apiService.firstCheck(request);
+//			if (resultFirstCheck.equals("pass")){
+//				responseModel.setRequest_id(requestId);
+//				responseModel.setReference_id(UUID.randomUUID().toString());
+//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//				responseModel.setResult_code("0");
+//			}else{
+//				responseModel.setRequest_id(requestId);
+//				responseModel.setReference_id(UUID.randomUUID().toString());
+//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//				responseModel.setResult_code("1");
+//				responseModel.setMessage(resultFirstCheck);
+//			}
 
 
 
@@ -427,6 +440,10 @@ public class DataEntryService {
 								Map.of("func", "fullInfoApp", "token",
 										String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataFullApp));
 
+						rabbitMQService.send("tpf-service-app",
+								Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+
                         Report report = new Report();
                         report.setApplicationId(data.getApplicationId());
                         report.setFunction("SENDAPP");
@@ -503,6 +520,11 @@ public class DataEntryService {
 //						responseModel.setMessage(map.toString());
 //					}
 				}
+
+				// test tich hop digitex
+//				updateFullApp(request, token);
+//				updateAppError(request, token);
+				//
 			}
 		}
 		catch (Exception e) {
@@ -575,7 +597,10 @@ public class DataEntryService {
 		String referenceId = UUID.randomUUID().toString();
 		boolean requestCommnentFromDigiTex = false;
         boolean responseCommnentToDigiTex = false;
-
+		String applicationId = "";
+		String commentId = "";
+		String comment = "";
+		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
 		try{
 			Assert.notNull(request.get("body"), "no body");
@@ -583,6 +608,7 @@ public class DataEntryService {
 			requestId = requestModel.getRequest_id();
 			Application data = requestModel.getData();
 			data.setLastModifiedDate(new Timestamp(new Date().getTime()));
+			applicationId = data.getApplicationId();
 
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
@@ -596,6 +622,8 @@ public class DataEntryService {
 				responseModel.setMessage("applicationId not exists.");
 			}else{
 				for (CommentModel item : data.getComment()) {
+					documentCommnet = item.getResponse().getDocuments();
+					commentId = item.getCommentId();
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()).and("comment.commentId").is(item.getCommentId()));
 					List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
@@ -655,10 +683,13 @@ public class DataEntryService {
 										Update update = new Update();
 										update.set("comment.$.response", item.getResponse());
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+										comment = item.getResponse().getComment();
 									}
 								}
 							}
                             responseCommnentToDigiTex = true;
+
 						}
 					}
 				}
@@ -679,6 +710,23 @@ public class DataEntryService {
             }
 
             if (responseCommnentToDigiTex){
+				String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/resubmitCommentAPI";
+				ArrayNode documents = mapper.createArrayNode();
+				for (Document item: documentCommnet) {
+					ObjectNode doc = mapper.createObjectNode();
+					doc.put("document-type", item.getType());
+					doc.put("document-id", item.getLink().getUrlPartner());
+					documents.add(doc);
+				}
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+						"comment", comment, "documents", documents)), headers);
+				ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+				JsonNode body = mapper.valueToTree(res.getBody());
+
+
                 Report report = new Report();
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("COMMENT");
@@ -787,6 +835,7 @@ public class DataEntryService {
 
 				Update update = new Update();
 				update.set("quickLead.quickLeadId", data.getQuickLeadId());
+				update.set("quickLead.identificationNumber", data.getIdentificationNumber());
 				update.set("quickLead.productTypeCode", data.getProductTypeCode());
 				update.set("quickLead.customerType", data.getCustomerType());
 				update.set("quickLead.productCode", data.getProductCode());
@@ -818,7 +867,7 @@ public class DataEntryService {
 
 				rabbitMQService.send("tpf-service-app",
 				Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("project", "momo"), "body", convertService.toAppDisplay(appData.get(0))));
+						"param", Map.of("project", "dataentry"), "body", convertService.toAppDisplay(appData.get(0))));
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -831,6 +880,9 @@ public class DataEntryService {
 				responseModel.setResult_code("1");
 				responseModel.setMessage("quickLeadId not exist.");
 			}
+			// test tich hop digitex
+//			updateAutomation(request, token);
+			//
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
@@ -962,6 +1014,7 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+		String urlCmInfoAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/cmInfoAPI";
 		try{
 			Query query = new Query();
 			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").asText()));
@@ -970,6 +1023,22 @@ public class DataEntryService {
 				Update update = new Update();
 				update.set("applicationId", request.path("body").path("applicationId").asText());
 				Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+
+				String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
+						resultUpdatetest.getQuickLead().getFirstName();
+				String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
+				String applicationId = resultUpdatetest.getApplicationId();
+				ArrayList<String> inputQuery = new ArrayList<String>();
+				for (QLDocument item: resultUpdatetest.getQuickLead().getDocuments()) {
+					inputQuery.add(item.getUrlid());
+				}
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+						"application-id", applicationId, "document-ids", inputQuery)), headers);
+				ResponseEntity<?> res = restTemplate.postForEntity(urlCmInfoAPI, entity, Object.class);
+				JsonNode body = mapper.valueToTree(res.getBody());
 
                 Report report = new Report();
                 report.setApplicationId(request.path("body").path("applicationId").asText());
@@ -1006,7 +1075,9 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+		String applicationId = "";
 		try{
+			applicationId = request.path("body").path("applicationId").textValue();
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").asText()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
@@ -1015,6 +1086,14 @@ public class DataEntryService {
 				update.set("status", request.path("body").path("status").asText());
 				update.set("description", request.path("body").path("description").asText());
 				Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+
+				String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/feedbackAPI";
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
+				ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+				JsonNode body = mapper.valueToTree(res.getBody());
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -1042,8 +1121,13 @@ public class DataEntryService {
 	public Map<String, Object> updateAppError(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
-		String urlCommentDigiTex = "http://10.131.21.137:52233/sale_page/api_management/early_check/";
+		String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/feedbackAPI";
+		String applicationId = "";
+		String commentId = UUID.randomUUID().toString().substring(0,10);
+		String errors = "";
 		try{
+			applicationId = request.path("body").path("applicationId").textValue();
+			errors = request.path("body").path("description").textValue();
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").asText()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
@@ -1056,7 +1140,7 @@ public class DataEntryService {
 
 				//save comment
 				CommentModel commentModel = new CommentModel();
-				commentModel.setCommentId(UUID.randomUUID().toString().substring(0,10));
+				commentModel.setCommentId(commentId);
 				commentModel.setType("FICO");
 				commentModel.setCode("FICO_ERR");
 				commentModel.setState(request.path("body").path("stage").asText());
@@ -1077,12 +1161,14 @@ public class DataEntryService {
                 mongoTemplate.save(report);
 
 				//fico gui comment
-//				HttpHeaders headers = new HttpHeaders();
-//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//				HttpEntity<?> entity = new HttpEntity<>(request.path("body").path("data"), headers);
-//				ResponseEntity<?> res = restTemplate.postForEntity(urlCommentDigiTex, entity, Object.class);
-//				JsonNode body = mapper.valueToTree(res.getBody());
 
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+						"commend-id", commentId, "errors", errors)), headers);
+				ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+				JsonNode body = mapper.valueToTree(res.getBody());
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -1122,84 +1208,7 @@ public class DataEntryService {
 
             List<Report> listData = mongoTemplate.find(query, Report.class);
             // export excel
-//			Workbook workbook = new XSSFWorkbook();
-//			Sheet sheet = workbook.createSheet("TATReport");
-//			sheet.setColumnWidth(0, 6000);
-//			sheet.setColumnWidth(1, 4000);
-//
-//			Row header = sheet.createRow(0);
-//
-//			CellStyle headerStyle = workbook.createCellStyle();
-////			headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
-////			headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-//
-//			XSSFFont font = ((XSSFWorkbook) workbook).createFont();
-//			font.setFontName("Arial");
-////			font.setFontHeightInPoints((short) 16);
-////			font.setBold(true);
-//			headerStyle.setFont(font);
-//
-//			Cell headerCell = header.createCell(0);
-//			headerCell.setCellValue("Seq");
-//			headerCell.setCellStyle(headerStyle);
-//
-//			headerCell = header.createCell(1);
-//			headerCell.setCellValue("App no.");
-//			headerCell.setCellStyle(headerStyle);
-//
-//			headerCell = header.createCell(2);
-//			headerCell.setCellValue("Create Date");
-//			headerCell.setCellStyle(headerStyle);
-//
-//			headerCell = header.createCell(3);
-//			headerCell.setCellValue("Create By");
-//			headerCell.setCellStyle(headerStyle);
-//
-//			headerCell = header.createCell(4);
-//			headerCell.setCellValue("Status");
-//			headerCell.setCellStyle(headerStyle);
-//
-//			CellStyle style = workbook.createCellStyle();
-//			style.setWrapText(true);
-//
-//			int i = 0;
-//			Row row;
-//			for (Report item : listData) {
-//				i = i + 1;
-//				row = sheet.createRow(i);
-//				Cell cell = row.createCell(0);
-//				cell.setCellValue(i);
-//				cell.setCellStyle(style);
-//
-//				cell = row.createCell(1);
-//				cell.setCellValue(item.getApplicationId());
-//				cell.setCellStyle(style);
-//
-//				cell = row.createCell(2);
-//				cell.setCellValue(item.getCreatedDate());
-//				cell.setCellStyle(style);
-//
-//				cell = row.createCell(3);
-//				cell.setCellValue(item.getCreatedBy());
-//				cell.setCellStyle(style);
-//
-//				cell = row.createCell(4);
-//				cell.setCellValue(item.getStatus());
-//				cell.setCellStyle(style);
-//			}
-//
-//			File currDir = new File(".");
-//			String path = currDir.getAbsolutePath();
-//			String fileLocation = path.substring(0, path.length() - 1) +"temp"+ new Date().getTime()+".xlsx";
-//
-//			FileOutputStream outputStream = new FileOutputStream(fileLocation);
-//			workbook.write(outputStream);
-//			workbook.close();
-
-//			Base64.getEncoder().encodeToString(item.getBytes())
 			in = tatReportToExcel(listData);
-
-//			Base64.getEncoder().encodeToString(in.readAllBytes());
 
             if (listData.size() > 0){
                 responseModel.setRequest_id(requestId);
