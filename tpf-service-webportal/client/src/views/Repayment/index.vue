@@ -55,7 +55,7 @@
       <el-tag
         type="success"
         v-show="statusData == 'import'"
-      >Data: Excel, Total: {{ dataexcel.length}}</el-tag>
+      >Data: Excel, {{ infoExcel }}</el-tag>
       <el-tag
         type="success"
         v-show="statusData == 'server' && dataexcel.length > 0 "
@@ -151,7 +151,7 @@
         </template>
       </el-table-column>
 
-            <el-table-column label="Loan ID" prop="loan_id" align="left">
+      <el-table-column label="Loan ID" prop="loan_id" align="left">
         <template slot-scope="scope">
           <span>{{ scope.row['loan_id'] }}</span>
         </template>
@@ -230,6 +230,7 @@ export default {
           return time.getTime() < minDate || time.getTime() > maxDate;
         }
       },
+      infoExcel: '',
       off: false,
       files: null,
       listLoading: false,
@@ -353,12 +354,16 @@ export default {
           let toDate = moment(this.value[1]).format("YYYY-MM-DD");
           this.loadData([fromDate, toDate]);
           if (success.data.result_code != 0) {
+            this.settelLoading = false;
+            this.listLoading = false;
             Message({
               message: success.data.message,
               type: "error",
               duration: 5 * 1000
             });
           } else {
+            this.settelLoading = false;
+            this.listLoading = false;
             Message({
               message: "Settel Success",
               type: "success",
@@ -367,6 +372,7 @@ export default {
           }
         })
         .catch(error => {
+          this.settelLoading = false;
           this.listLoading = false;
           Message({
             message: error,
@@ -515,15 +521,28 @@ export default {
         var wsname = wb.SheetNames[0];
         var ws = wb.Sheets[wsname];
         // delete row A1 A2
-        delete ws.A1;
-        delete ws.A2;
-        // result Json
-        var resultJson = XLSX.utils.sheet_to_json(ws);
-        this.dataJson = resultJson.slice(1);
-        this.show = this.dataJson.length > 0;
+
+        if ((ws.A1 && ws.A2) && (ws.A1.h && ws.A2.h) && (ws.A1.h.includes("Tổng tiền:") && ws.A2.h.includes("Tổng số lượng giao dịch")) && (ws.A3.h.includes("Thời điểm thanh toán") && ws.B3.h.includes("Nhà cung cấp") && ws.C3.h.includes("Mã đơn hàng") && ws.D3.h.includes("Mã khách hàng") && ws.E3.h.includes("Số tiền(VND)") && ws.F3.h.includes("Họ tên") )) {
+          this.infoExcel = ws.A1.h +' VND'+' - ' + ws.A2.h
+          delete ws.A1;
+          delete ws.A2;
+          // result Json
+          var resultJson = XLSX.utils.sheet_to_json(ws);
+          this.dataJson = resultJson.slice(1);
+          this.show = this.dataJson.length > 0;
+        } else {
+          this.importLoading = false;
+          Message({
+            message: "File format error",
+            type: "error",
+            duration: 5 * 1000
+          });
+        }
       };
       reader.onloadend = e => {
-        this.fnSubmit();
+        if (this.dataJson && (this.dataJson.length > 0)) {
+          this.fnSubmit();
+        }
       };
       reader.readAsArrayBuffer(this.files);
     },
