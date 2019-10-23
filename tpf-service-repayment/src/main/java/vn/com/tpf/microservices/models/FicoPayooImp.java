@@ -7,15 +7,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 
-@NamedStoredProcedureQuery(
-        name = "getListTrans",
-        procedureName = "payoo.getListTrans",
-        resultClasses = FicoPayooImp.class,
-        parameters = {
-                @StoredProcedureParameter(mode = ParameterMode.IN, type = Date.class),
-                @StoredProcedureParameter(mode = ParameterMode.IN, type = Date.class)
-        }
-)
+
 @Data
 @Entity
 @Table(name = "fico_payoo_imp", schema = "payoo")

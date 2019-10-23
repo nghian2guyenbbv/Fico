@@ -28,6 +28,7 @@ public class ApiExceptionHandler {
 		Map<String, Object> requestEror = new HashMap<>();
 		requestEror.put("func", "CALLERROR");
 		requestEror.put("reference_id", reference_id);
+		requestEror.put("errorDetail", ex.toString());
 
 		try {
 			rabbitMQService.send("tpf-service-repayment", requestEror);
