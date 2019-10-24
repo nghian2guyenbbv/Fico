@@ -112,80 +112,39 @@ public class RabbitMQService {
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
-
-			if (token.isEmpty(null)) {
-				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
-			}
-
-			String scopes = token.path("scope").toString();
-			String authorities = token.path("authorities").toString();
+			String[] token = request.path("token").asText("Bearer ").split(" ");
 
 			switch (request.path("func").asText()) {
 			case "getListUser":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, userService.getListUser(request));
-				}
-				break;
+				return response(message, payload, userService.getListUser(request));
 			case "createUser":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, userService.createUser(request, token));
-				}
-				break;
+				return response(message, payload, userService.createUser(request, checkToken(token)));
 			case "updateUser":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, userService.updateUser(request, token));
-				}
-				break;
+				return response(message, payload, userService.updateUser(request, checkToken(token)));
 			case "deleteUser":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-					return response(message, payload, userService.deleteUser(request, token));
-				}
-				break;
+				return response(message, payload, userService.deleteUser(request, checkToken(token)));
 			case "logout":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*")) {
-					return response(message, payload, userService.logoutUser(token));
-				}
-				break;
+				return response(message, payload, userService.logoutUser(checkToken(token)));
 			case "changePassword":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*")) {
-					return response(message, payload, userService.changePasswordUser(request, token));
-				}
-				break;
+				return response(message, payload, userService.changePasswordUser(request, checkToken(token)));
 			case "getListClient":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-					return response(message, payload, clientService.getListClient(request));
-				}
-				break;
+				return response(message, payload, clientService.getListClient(request));
 			case "createClient":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-					return response(message, payload, clientService.createClient(request));
-				}
-				break;
+				return response(message, payload, clientService.createClient(request));
 			case "updateClient":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-					return response(message, payload, clientService.updateClient(request));
-				}
-				break;
+				return response(message, payload, clientService.updateClient(request));
 			case "deleteClient":
-				if (scopes.matches(".*(\"tpf-service-authentication\").*") && authorities.matches(".*(\"role_root\").*")) {
-					return response(message, payload, clientService.deleteClient(request));
-				}
-				break;
+				return response(message, payload, clientService.deleteClient(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
 
-			return response(message, payload, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
 		} catch (IllegalArgumentException e) {
 			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
 		} catch (DataIntegrityViolationException e) {
 			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
+			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
 		}
 	}
 

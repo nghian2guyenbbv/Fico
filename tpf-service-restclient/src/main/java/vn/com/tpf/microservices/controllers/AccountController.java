@@ -27,7 +27,7 @@ public class AccountController {
 	private RabbitMQService rabbitMQService;
 
 	@GetMapping("/v1/account")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> reads(@RequestHeader("Authorization") String token, @RequestParam Map<String, String> param)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -41,7 +41,7 @@ public class AccountController {
 	}
 
 	@PostMapping("/v1/account")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> create(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -54,7 +54,7 @@ public class AccountController {
 	}
 
 	@PutMapping("/v1/account/{id}")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> update(@RequestHeader("Authorization") String token, @PathVariable String id,
 			@RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -68,7 +68,7 @@ public class AccountController {
 	}
 
 	@DeleteMapping("/v1/account/{id}")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-authorization') and hasAnyAuthority('role_root')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root')")
 	public ResponseEntity<?> delete(@RequestHeader("Authorization") String token, @PathVariable String id)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
