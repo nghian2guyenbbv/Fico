@@ -868,6 +868,7 @@ public class DataEntryService {
 					update.set("quickLead.preferredModeOfCommunication", data.getPreferredModeOfCommunication());
 					update.set("quickLead.leadStatus", data.getLeadStatus());
 					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
+                    update.set("quickLead.$.documents", data.getDocuments());
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 

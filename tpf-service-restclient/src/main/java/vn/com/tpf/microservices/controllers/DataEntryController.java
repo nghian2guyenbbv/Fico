@@ -1,17 +1,14 @@
 package vn.com.tpf.microservices.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sun.net.httpserver.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -26,10 +23,7 @@ import vn.com.tpf.microservices.services.RabbitMQService;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
+import java.sql.Timestamp;
 import java.util.*;
 
 @RestController
@@ -238,16 +232,35 @@ public class DataEntryController {
 		request.put("appId", appId);
 
 		try {
+			ResponseEntity<?> res = new ResponseEntity<Authenticator.Success>(HttpStatus.CREATED);
+
 			MultiValueMap<String, Object> parts =
 					new LinkedMultiValueMap<String, Object>();
 			for (MultipartFile item:
 					files) {
 				parts.add("file", item.getResource());
 			}
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-			HttpEntity<?> entity = new HttpEntity<>(parts, headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(urlFico, entity, List.class);
+			try {
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+				HttpEntity<?> entity = new HttpEntity<>(parts, headers);
+				res = restTemplate.postForEntity(urlFico, entity, List.class);
+			}
+			catch (Exception e) {
+				int i=0;
+				do {
+					Thread.sleep(30000);
+					try{
+						HttpHeaders headers = new HttpHeaders();
+						headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+						HttpEntity<?> entity = new HttpEntity<>(parts, headers);
+						res = restTemplate.postForEntity(urlFico, entity, List.class);
+						break;
+					} catch (Exception ex) {
+					}
+					i = i +1;
+				}while(i<2);
+			}
 
 			if (res.getStatusCodeValue() == 200){
 				JsonNode outputDT = null;
@@ -279,15 +292,36 @@ public class DataEntryController {
 						}
 						parts_02.add("description", Map.of("files", documents));
 					}
-					HttpHeaders headers_DT = new HttpHeaders();
-					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
+					try {
+						HttpHeaders headers_DT = new HttpHeaders();
+						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
 
-					String  sss = "[{\"document-type\":\"ID-Card\",\"document-id\":263556},{\"document-type\":\"Household\",\"document-id\":263557}]";
+						String  sss = "[{\"document-type\":\"ID-Card\",\"document-id\":263556},{\"document-type\":\"Household\",\"document-id\":263557}]";
+						outputDT = mapper.readTree(sss);
+					}
+					catch (Exception e) {
+						int i=0;
+						do {
+							Thread.sleep(30000);
+							try{
+								HttpHeaders headers_DT = new HttpHeaders();
+								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
 
-					outputDT = mapper.readTree(sss);
+								String  sss = "[{\"document-type\":\"ID-Card\",\"document-id\":263556},{\"document-type\":\"Household\",\"document-id\":263557}]";
+								outputDT = mapper.readTree(sss);
+
+								break;
+							} catch (Exception ex) {
+							}
+							i = i +1;
+						}while(i<2);
+					}
 
 				} else{
 					ArrayNode documents = mapper.createArrayNode();
@@ -324,27 +358,19 @@ public class DataEntryController {
 					outputDT = mapper.readTree(res_DT.getBody().toString());
 				}
 
-				JsonNode jNode = mergeFile(body, mapper.valueToTree(outputDT));
-				request.put("body", jNode);
-
-//				return ResponseEntity.status(200)
-//						.header("x-pagination-total", "0").body(jNode);
+				if (outputDT == null){
+					return ResponseEntity.status(200)
+							.header("x-pagination-total", "0").body(Map.of("reference_id",UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+									"result_code", 1, "message", "uploadFile DigiTex fail!"));
+				}else {
+					JsonNode jNode = mergeFile(body, mapper.valueToTree(outputDT));
+					request.put("body", jNode);
+				}
+			}else{
+				return ResponseEntity.status(200)
+						.header("x-pagination-total", "0").body(Map.of("reference_id",UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+								"result_code", 1, "message", "uploadFile TPF fail!"));
 			}
-
-
-//			int i=0;
-//			do {
-//				Thread.sleep(30000);
-//				try{
-//
-//				} catch (Exception e) {
-//				}
-//				i = i +1;
-//			}while(i<6);
-
-
-//			return ResponseEntity.status(200)
-//					.header("x-pagination-total", "0").body(request);
 
 		} catch (HttpClientErrorException e) {
 			return ResponseEntity.status(500)
@@ -418,7 +444,6 @@ public class DataEntryController {
 	public JsonNode mergeFile(JsonNode mainNode, JsonNode updateNode) {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode resultNode = mapper.createArrayNode();
-		String originalName = updateNode.findPath("originalname").textValue();
 		for (JsonNode item : mainNode) {
 			for (JsonNode item2 : updateNode) {
 				if (item.findPath("originalname").textValue().equals("TPF_ID Card.pdf") || item.findPath("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
