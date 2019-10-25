@@ -73,6 +73,7 @@ public class RepaymentService {
             try{
 				OffsetDateTime.parse(requestModel.getDate_time());
             }catch (Exception e) {
+				log.info("Error: " + e);
                 responseModel.setRequest_id(requestModel.getRequest_id());
                 responseModel.setReference_id(UUID.randomUUID().toString());
                 responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -104,6 +105,7 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
+			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -126,6 +128,7 @@ public class RepaymentService {
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
 			}catch (Exception e) {
+				log.info("Error: " + e);
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -153,6 +156,7 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
+			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -178,6 +182,7 @@ public class RepaymentService {
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
 			}catch (Exception e) {
+				log.info("Error: " + e);
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -230,6 +235,7 @@ public class RepaymentService {
 			}
 		}
 		catch (Exception e) {
+			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -252,7 +258,7 @@ public class RepaymentService {
 	//---------------------- FUNCTION IMPORT ---------------------
 	public Map<String, Object> importTrans(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		String request_id = request.path("body").path("request_id").textValue();
 		Timestamp date_time = new Timestamp(new Date().getTime());
 		DateTimeFormatter formatterParseInput = DateTimeFormatter.ofPattern("d/M/yyyy H:m:s");
 		DateTimeFormatter formatterParseOutput = DateTimeFormatter.ofPattern("M/d/yyyy H:m:s");
@@ -298,7 +304,7 @@ public class RepaymentService {
 	@Transactional
 	public Map<String, Object> settle(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		String request_id = request.path("body").path("request_id").textValue();
 		Timestamp date_time = new Timestamp(new Date().getTime());
 		try{
 			Date transDate = mapper.convertValue(request.path("body").path("data").path("transDate"), Date.class);
@@ -343,33 +349,25 @@ public class RepaymentService {
 	}
 
 	public Map<String, Object> getListTrans(JsonNode request) {
-		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		String request_id = request.path("body").path("request_id").textValue();
 		Timestamp date_time = new Timestamp(new Date().getTime());
 		try{
-			Date fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Date.class);
-			Date toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Date.class);
+			Timestamp fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Timestamp.class);
+			Timestamp toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Timestamp.class);
+
+			System.out.println("fromdate:" + fromDate + ", todate:" + toDate);
 
 			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getListTrans");
 			q.setParameter(1, fromDate);
 			q.setParameter(2, toDate);
-			List<FicoPayooImp> reviews = q.getResultList();
+			List<FicoTransPay> list=q.getResultList();
 
-			responseModel.setRequest_id(request_id);
-			responseModel.setData(reviews);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(date_time);
-			responseModel.setResult_code(0);
+			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"data",list,"result_code",0));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			responseModel.setRequest_id(request_id);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(date_time);
-			responseModel.setResult_code(500);
-			responseModel.setMessage(e.getMessage());
+			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"result_code",500,"message",e.getMessage()));
 		}
-		return Map.of("status", 200, "data", responseModel);
 	}
 
 	//---------------------- END FUNCTION IMPORT -----------------
