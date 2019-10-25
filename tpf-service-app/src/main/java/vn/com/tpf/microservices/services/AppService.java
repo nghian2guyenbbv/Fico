@@ -131,8 +131,7 @@ public class AppService {
 		}
 
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-" + app.getProject(),
-				Map.of("func", "getDetail", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("id", app.getUuid().split("_")[1])));
+				Map.of("func", "getDetail", "param", Map.of("id", app.getUuid().split("_")[1])));
 
 		return response(res.path("status").asInt(), res.path("data"), 0);
 	}
@@ -159,8 +158,7 @@ public class AppService {
 		mongoTemplate.save(entity);
 
 		String dTo = getDepartment(entity);
-		Map<?, ?> body = Map.of("from", "", "to", dTo, "project", entity.getProject(), "data", entity);
-		Map<?, ?> notify = Map.of("token", "Bearer " + rabbitMQService.getToken().path("access_token"), "body", body);
+		Map<?, ?> notify = Map.of("body", Map.of("from", "", "to", dTo, "project", entity.getProject(), "data", entity));
 		rabbitMQService.send("tpf-service-webportal", notify);
 
 		return response(201, mapper.convertValue(entity, JsonNode.class), 0);
@@ -245,11 +243,36 @@ public class AppService {
 
 		App nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), App.class);
 
-		Map<?, ?> body = Map.of("from", dFrom, "to", dTo, "project", nEntity.getProject(), "data", nEntity);
-		Map<?, ?> notify = Map.of("token", rabbitMQService.getToken().path("access_token"), "body", body);
+		Map<?, ?> notify = Map.of("body",
+				Map.of("from", dFrom, "to", dTo, "project", nEntity.getProject(), "data", nEntity));
 		rabbitMQService.send("tpf-service-webportal", notify);
 
 		return response(200, mapper.convertValue(nEntity, JsonNode.class), 0);
 	}
 
+	public JsonNode updateStatus(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		Assert.isTrue(body.path("app_id").isTextual() && !body.path("app_id").asText().isEmpty(),
+				"app_id is required and not empty");
+		Assert.isTrue(body.path("status").isTextual() && !body.path("status").asText().isEmpty(),
+				"status is required and not empty");
+		Assert.isTrue(body.path("access_key").isTextual() && !body.path("access_key").asText().isEmpty(),
+				"access_key is required and not empty");
+
+		if (!body.path("access_key").asText().equals("access_key_db")) {
+			return response(401, mapper.createObjectNode().put("message", "Unauthorized"), 0);
+		}
+
+		Query query = Query.query(Criteria.where("appId").is(body.path("app_id").asText()));
+		App app = mongoTemplate.findOne(query, App.class);
+
+		if (app == null) {
+			return response(404, mapper.createObjectNode().put("message", "Not Found"), 0);
+		}
+
+		rabbitMQService.send("tpf-service-" + app.getProject(), Map.of("func", "updateStatus", "body", body));
+
+		return response(200, null, 0);
+	}
 }

@@ -4,38 +4,39 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import lombok.extern.slf4j.Slf4j;
-import vn.com.tpf.microservices.services.RabbitMQService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestControllerAdvice
-@Slf4j
 public class ApiExceptionHandler {
 
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
+
 	@Autowired
-	private RabbitMQService rabbitMQService;
+	private ObjectMapper mapper;
 
 	@ExceptionHandler(value = { Exception.class })
-	public ResponseEntity<?> exception(Exception ex, WebRequest request) {
-		log.error("handling valid Exception ");
+	public ResponseEntity<?> exception(Exception e, WebRequest request) {
 		String reference_id = UUID.randomUUID().toString();
 		Map<String, Object> requestEror = new HashMap<>();
-		requestEror.put("func", "CALLERROR");
 		requestEror.put("reference_id", reference_id);
-		requestEror.put("errorDetail", ex.toString());
+		requestEror.put("error", e.toString());
 
-		try {
-			rabbitMQService.send("tpf-service-repayment", requestEror);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+		ObjectNode dataLog = mapper.createObjectNode();
+		dataLog.put("type", "[==HTTP-LOG==]");
+		dataLog.set("result", mapper.convertValue(requestEror, JsonNode.class));
+		log.error("{}", dataLog);
+
+		return ResponseEntity.status(500)
 				.body(Map.of("request_id", "", "reference_id", reference_id, "result_code", 500, "message", "Others error"));
 	}
 

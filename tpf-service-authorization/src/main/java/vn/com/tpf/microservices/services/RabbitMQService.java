@@ -128,80 +128,48 @@ public class RabbitMQService {
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
+			String[] token = request.path("token").asText("Bearer ").split(" ");
 
-			if (request.path("func").asText().equals("login")) {
+			switch (request.path("func").asText()) {
+			case "login":
 				String username = request.path("body").path("username").asText();
 				String password = request.path("body").path("password").asText();
 				JsonNode data = getToken(username, password);
-
 				if (data != null) {
 					return response(message, payload, Map.of("status", 200, "data", data));
 				}
-
 				return response(message, payload,
 						Map.of("status", 400, "data", Map.of("message", "Username or Password Invalid")));
-			}
-
-			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
-
-			if (token == null) {
-				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
-			}
-
-			String scopes = token.path("scope").toString();
-			String authorities = token.path("authorities").toString();
-
-			switch (request.path("func").asText()) {
 			case "getListAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, accountService.getListAccount(request, token));
-				}
-				break;
+				return response(message, payload, accountService.getListAccount(request, checkToken(token)));
 			case "createAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, accountService.createAccount(request));
-				}
-				break;
+				return response(message, payload, accountService.createAccount(request));
 			case "updateAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")
-						&& authorities.matches(".*(\"role_root\"|\"role_admin\").*")) {
-					return response(message, payload, accountService.updateAccount(request));
-				}
-				break;
+				return response(message, payload, accountService.updateAccount(request));
 			case "deleteAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*") && authorities.matches(".*(\"role_root\").*")) {
-					return response(message, payload, accountService.deleteAccount(request));
-				}
-				break;
+				return response(message, payload, accountService.deleteAccount(request));
 			case "getInfoAccount":
-				if (scopes.matches(".*(\"tpf-service-authorization\").*")) {
-					Map<String, Object> info = mapper.convertValue(token, Map.class);
-					Account account = accountService.getInfoAccount(token.path("user_name").asText());
-
-					if (account != null) {
-						info.put("departments", account.getDepartments());
-						info.put("projects", account.getProjects());
-						if (account.getOptional() != null) {
-							info.put("optional", account.getOptional());
-						}
+				JsonNode tk = checkToken(token);
+				Map<String, Object> info = mapper.convertValue(tk, Map.class);
+				Account account = accountService.getInfoAccount(tk.path("user_name").asText());
+				if (account != null) {
+					info.put("departments", account.getDepartments());
+					info.put("projects", account.getProjects());
+					if (account.getOptional() != null) {
+						info.put("optional", account.getOptional());
 					}
-
-					return response(message, payload, Map.of("status", 200, "data", info));
 				}
-				break;
+				return response(message, payload, Map.of("status", 200, "data", info));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
 
-			return response(message, payload, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
 		} catch (IllegalArgumentException e) {
 			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
 		} catch (DataIntegrityViolationException e) {
 			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.getMessage())));
+			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
 		}
 	}
 
