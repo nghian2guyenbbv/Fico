@@ -1,0 +1,22 @@
+version: "3"
+
+networks:
+  service_network:
+    driver: overlay
+
+services:
+  tpf-service-repayment:
+    image: openjdk:11
+    hostname: tpf-service-repayment
+    working_dir: /opt/tpf-service-repayment
+    command: bash -c 'cd /opt/tpf-service-repayment && java -jar tpf-service-repayment-1.0.jar'
+    volumes:
+      - ./../tpf-service-repayment/target:/opt/tpf-service-repayment
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    deploy:
+      replicas: 1
+    networks:
+      - service_network
+    ports:
+      - 4011:4011
