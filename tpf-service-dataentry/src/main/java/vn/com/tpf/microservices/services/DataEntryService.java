@@ -818,6 +818,11 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{// check lai id
+			// test tich hop digitex
+//			updateAutomation(request, token);
+//			return Map.of("status", 200, "data", "ok");
+			//
+
 			Assert.notNull(request.get("body"), "no body");
 			RequestQuickLeadModel requestModel = mapper.treeToValue(request.get("body"), RequestQuickLeadModel.class);
 			requestId = requestModel.getRequest_id();
@@ -830,44 +835,56 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 
 			if (checkExist.size() > 0){
-				Query queryUpdate = new Query();
-				queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+				if (request.path("body").path("data").path("retry").textValue() != null && request.path("body").path("data").path("retry").equals("") != true &&
+						request.path("body").path("data").path("retry").textValue().equals("") != true) {
+					Query queryGetApp = new Query();
+					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-				Update update = new Update();
-				update.set("quickLead.quickLeadId", data.getQuickLeadId());
-				update.set("quickLead.identificationNumber", data.getIdentificationNumber());
-				update.set("quickLead.productTypeCode", data.getProductTypeCode());
-				update.set("quickLead.customerType", data.getCustomerType());
-				update.set("quickLead.productCode", data.getProductCode());
-				update.set("quickLead.loanAmountRequested", data.getLoanAmountRequested());
-				update.set("quickLead.firstName", data.getFirstName());
-				update.set("quickLead.lastName", data.getLastName());
-				update.set("quickLead.city", data.getCity());
-				update.set("quickLead.sourcingChannel", data.getSourcingChannel());
-				update.set("quickLead.dateOfBirth", data.getDateOfBirth());
-				update.set("quickLead.sourcingBranch", data.getSourcingBranch());
-				update.set("quickLead.natureOfOccupation", data.getNatureOfOccupation());
-				update.set("quickLead.schemeCode", data.getSchemeCode());
-				update.set("quickLead.comment", data.getComment());
-				update.set("quickLead.preferredModeOfCommunication", data.getPreferredModeOfCommunication());
-				update.set("quickLead.leadStatus", data.getLeadStatus());
-				update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp", "token",
+									String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "body",
+									appData.get(0)));
+				}else {
+					Query queryUpdate = new Query();
+					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 
-				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+					Update update = new Update();
+					update.set("quickLead.quickLeadId", data.getQuickLeadId());
+					update.set("quickLead.identificationNumber", data.getIdentificationNumber());
+					update.set("quickLead.productTypeCode", data.getProductTypeCode());
+					update.set("quickLead.customerType", data.getCustomerType());
+					update.set("quickLead.productCode", data.getProductCode());
+					update.set("quickLead.loanAmountRequested", data.getLoanAmountRequested());
+					update.set("quickLead.firstName", data.getFirstName());
+					update.set("quickLead.lastName", data.getLastName());
+					update.set("quickLead.city", data.getCity());
+					update.set("quickLead.sourcingChannel", data.getSourcingChannel());
+					update.set("quickLead.dateOfBirth", data.getDateOfBirth());
+					update.set("quickLead.sourcingBranch", data.getSourcingBranch());
+					update.set("quickLead.natureOfOccupation", data.getNatureOfOccupation());
+					update.set("quickLead.schemeCode", data.getSchemeCode());
+					update.set("quickLead.comment", data.getComment());
+					update.set("quickLead.preferredModeOfCommunication", data.getPreferredModeOfCommunication());
+					update.set("quickLead.leadStatus", data.getLeadStatus());
+					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
+
+					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 //				--automation QuickLead--
-				Query queryGetApp = new Query();
-				queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
-				List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
+					Query queryGetApp = new Query();
+					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-				rabbitMQService.send("tpf-service-automation",
-						Map.of("func", "quickLeadApp", "token",
-								String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body",
-								appData.get(0)));
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp", "token",
+									String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "body",
+									appData.get(0)));
 
-				rabbitMQService.send("tpf-service-app",
-				Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("project", "dataentry"), "body", convertService.toAppDisplay(appData.get(0))));
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+									"param", Map.of("project", "dataentry"), "body", convertService.toAppDisplay(appData.get(0))));
+				}
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -910,18 +927,18 @@ public class DataEntryService {
 					e.printStackTrace();
 				}
 
-				//begin update urlid
-				for (QLDocument item : dataUpload) {
-					List<QLDocument> listDocumentPartner = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
-					for (QLDocument item2 : listDocumentPartner) {
-						if (item.getOriginalname().equals(item2.getOriginalname())){
-							item.setUrlid(item2.getUrlid());
-						}
-						//tesst
-						item.setUrlid("001");
-					}
-				}
-				//end
+//				//begin update urlid
+//				for (QLDocument item : dataUpload) {
+//					List<QLDocument> listDocumentPartner = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
+//					for (QLDocument item2 : listDocumentPartner) {
+//						if (item.getOriginalname().equals(item2.getOriginalname())){
+//							item.setUrlid(item2.getUrlid());
+//						}
+//						//tesst
+////						item.setUrlid("001");
+//					}
+//				}
+//				//end
 
 				QuickLead quickLead = new QuickLead();
 				quickLead.setDocuments(dataUpload);
@@ -1020,33 +1037,62 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").asText()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
-				Update update = new Update();
-				update.set("applicationId", request.path("body").path("applicationId").asText());
-				Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+				if (request.path("body").path("applicationId").textValue() != null && request.path("body").path("applicationId").equals("") != true &&
+						request.path("body").path("applicationId").textValue().equals("") != true) {
+					Update update = new Update();
+					update.set("applicationId", request.path("body").path("applicationId").asText());
+					update.set("status", "PROCESSING");
+					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
-				String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
-						resultUpdatetest.getQuickLead().getFirstName();
-				String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
-				String applicationId = resultUpdatetest.getApplicationId();
-				ArrayList<String> inputQuery = new ArrayList<String>();
-				for (QLDocument item: resultUpdatetest.getQuickLead().getDocuments()) {
-					inputQuery.add(item.getUrlid());
+					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
+							resultUpdatetest.getQuickLead().getFirstName();
+					String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
+					String applicationId = resultUpdatetest.getApplicationId();
+					ArrayList<String> inputQuery = new ArrayList<String>();
+					if (resultUpdatetest.getQuickLead().getDocuments() != null) {
+						for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
+							inputQuery.add(item.getUrlid());
+						}
+					}
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+							"application-id", applicationId, "document-ids", inputQuery)), headers);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlCmInfoAPI, entity, Object.class);
+					JsonNode body = mapper.valueToTree(res.getBody());
+
+					Report report = new Report();
+					report.setApplicationId(request.path("body").path("applicationId").asText());
+					report.setFunction("QUICKLEAD");
+					report.setStatus("PROCESSING");
+					report.setCreatedBy("AUTOMATION");
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
+
+					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+				}else{
+					Report report = new Report();
+					report.setApplicationId("UNKNOWN");
+					report.setFunction("QUICKLEAD");
+					report.setStatus("AUTO_QL_FAIL");
+					report.setCreatedBy("AUTOMATION");
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
+
+					Update update = new Update();
+					update.set("applicationId", "UNKNOWN");
+					update.set("status", "AUTO_QL_FAIL");
+					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+
+					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 				}
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
-						"application-id", applicationId, "document-ids", inputQuery)), headers);
-				ResponseEntity<?> res = restTemplate.postForEntity(urlCmInfoAPI, entity, Object.class);
-				JsonNode body = mapper.valueToTree(res.getBody());
-
-                Report report = new Report();
-                report.setApplicationId(request.path("body").path("applicationId").asText());
-                report.setFunction("QUICKLEAD");
-                report.setStatus("PROCESSING");
-                report.setCreatedBy("AUTOMATION");
-                report.setCreatedDate(new Date());
-                mongoTemplate.save(report);
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
