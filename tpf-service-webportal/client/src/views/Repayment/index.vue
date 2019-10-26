@@ -130,9 +130,9 @@ export default {
           maxDate ? this.value = [minDate,maxDate] : this.value = [minDate,minDate]
         }, disabledDate: (time) => {
         let timeRange = 7*24*60*60*1000 // 7day
-            const maxDate1 = this.$moment().date(Number)._d.getTime() 
-            const minDate1 = maxDate1 - timeRange
-            return time.getTime() < minDate1 || time.getTime() >   maxDate1
+        const maxDate1 = this.$moment().date(Number)._d.getTime() 
+        const minDate1 = maxDate1 - timeRange
+        return time.getTime() < minDate1 || time.getTime() >   maxDate1
         }
       },
       files: null,

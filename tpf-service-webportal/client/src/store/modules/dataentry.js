@@ -9,7 +9,28 @@ const state = {
     dsaCode: '',
     bankCardNumber: '',
     currentAddress: '',
-    areaId: '100001'
+    areaId: ''
+  },
+  quickLeadData: {
+    quickLeadId: '',
+    documents: [],
+    productTypeCode: 'Personal Finance',
+    customerType: 'Individual',
+    productCode: 'UNSECURED CASHLOAN',
+    loanAmountRequested: '10000000',
+    firstName: '',
+    lastName: '',
+    city: '',
+    sourcingChannel: 'DIRECT',
+    dateOfBirth: '01/01/1990',
+    sourcingBranch: '',
+    natureOfOccupation: 'Others',
+    schemeCode: '',
+    comment: 'dummy',
+    preferredModeOfCommunication: 'Web-Portal Comments',
+    leadStatus: 'Converted',
+    communicationTranscript: 'dummy',
+    identificationNumber: ''
   },
   table: {
     _list: [],
@@ -77,7 +98,72 @@ const actions = {
           reject(error)
         })
       }
-      
+    })
+  },
+
+  uploadFiles({ commit, dispatch }, data) {
+    return new Promise((resolve, reject) => {
+      dataentry.uploadFiles(data)
+        .then(response => {
+          resolve(response)
+        }).catch(error => {
+          reject(error)
+        })
+    })
+  },
+
+  createQuicklead({ commit, dispatch }) {
+    return new Promise((resolve, reject) => {
+      dataentry.createQuicklead(state.quickLeadData)
+        .then(response => {
+          resolve(response)
+        }).catch(error => {
+          reject(error)
+        })
+    })
+  },
+
+  getAriaCode({ commit, dispatch }) {
+    return new Promise((resolve, reject) => {
+      dataentry.getAriaCode()
+      .then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  getBranch({ commit, dispatch }) {
+    return new Promise((resolve, reject) => {
+      dataentry.getBranch()
+      .then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  
+  retryQuickLead({ commit, dispatch }, data) {
+    return new Promise((resolve, reject) => {
+      dataentry.retryQuickLead(data)
+      .then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  updateStatusManualy({ commit, dispatch }, data) {
+    return new Promise((resolve, reject) => {
+      dataentry.updateStatusManualy(data)
+      .then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
     })
   },
 }
