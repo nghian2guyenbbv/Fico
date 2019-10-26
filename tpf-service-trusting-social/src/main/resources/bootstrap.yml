@@ -1,9 +1,9 @@
 spring:
   application:
-    name: tpf-service-trusting-social
+    name: tpf-service-trustingsocial
   cloud:
     config:
-      uri: http://192.168.0.205:8888
+      uri: http://127.0.0.1:8888
 ---
 spring:
   profiles: dev
