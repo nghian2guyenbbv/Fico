@@ -16,8 +16,8 @@ export default {
     if (this.roles) {
 
     }
-    console.log(this.roles)
-    if (this.roles.includes('admin')) {
+
+    if (this.roles && this.roles.includes('admin')) {
       this.currentRole = 'editorDashboard'
     }
   }

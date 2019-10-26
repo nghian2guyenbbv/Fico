@@ -30,14 +30,12 @@ public class PGPFilter implements Filter {
 	}
 
 	private String convertBufferedReadertoString(BufferedReader bufferedReader) throws IOException {
-		StringBuilder stringBuilder = new StringBuilder();
-		String line = null;
-
-		while ((line = bufferedReader.readLine()) != null) {
-			stringBuilder.append(line);
+		int intValueOfChar;
+		String targetString = "";
+		while ((intValueOfChar = bufferedReader.read()) != -1) {
+			targetString += (char) intValueOfChar;
 		}
-
-		return stringBuilder.toString();
+		return targetString.replaceAll("\\\\r", "\r").replaceAll("\\\\n", "\n");
 	}
 
 	@Override
@@ -46,46 +44,45 @@ public class PGPFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
 		HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-		HttpServletRequestWrapperExtension req = new HttpServletRequestWrapperExtension(request);
-		HttpServletResponseWrapperExtension res = new HttpServletResponseWrapperExtension(response);
-
-		req.updateInputStream(convertBufferedReadertoString(servletRequest.getReader()).getBytes());
-
 		if (request.getUserPrincipal() != null && request.getContentType() != null
 				&& request.getContentType().equals("application/pgp-encrypted")) {
+			HttpServletRequestWrapperExtension req = new HttpServletRequestWrapperExtension(request);
+			HttpServletResponseWrapperExtension res = new HttpServletResponseWrapperExtension(response);
+
+			String data = convertBufferedReadertoString(request.getReader());
 			JsonNode body = mapper.createObjectNode();
+			String[] projects = request.getUserPrincipal().getName().split("-");
+			String project = projects[projects.length - 1];
+
 			try {
 				JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-						Map.of("func", "pgpDecrypt", "body", Map.of("project", request.getUserPrincipal().getName(), "data",
-								convertBufferedReadertoString(servletRequest.getReader()))));
+						Map.of("func", "pgpDecrypt", "body", Map.of("project", project, "data", data)));
 				if (decrypt.path("data").isObject()) {
 					body = decrypt;
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
 			req.updateInputStream(body.toString().getBytes());
-		}
+			chain.doFilter(req, res);
+			String respString = res.getContent();
 
-		chain.doFilter(req, res);
-
-		String respString = res.getContent();
-
-		if (request.getUserPrincipal() != null && request.getContentType() != null
-				&& request.getContentType().equals("application/pgp-encrypted")) {
 			try {
-				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "pgpEncrypt", "body",
-						Map.of("project", request.getUserPrincipal().getName(), "data", respString)));
+				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+						Map.of("func", "pgpEncrypt", "body", Map.of("project", project, "data", respString)));
 				respString = encrypt.path("data").asText();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
 
-		PrintWriter printWriter = servletResponse.getWriter();
-		printWriter.write(respString);
-		printWriter.flush();
-		printWriter.close();
+			PrintWriter printWriter = servletResponse.getWriter();
+			printWriter.write(respString);
+			printWriter.flush();
+			printWriter.close();
+		} else {
+			chain.doFilter(request, response);
+		}
 	}
 
 }

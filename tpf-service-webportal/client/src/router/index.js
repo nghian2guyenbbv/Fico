@@ -43,7 +43,6 @@ export const constantRoutes = [
 
 // route with roles user
 export const asyncRoutes = [
-  dataentryRouter,
   repaymentRouter,
   { path: '*', redirect: '/404', hidden: true }
 ]

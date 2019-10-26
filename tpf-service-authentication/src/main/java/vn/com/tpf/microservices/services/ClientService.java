@@ -41,45 +41,15 @@ public class ClientService {
 	@PostConstruct
 	private void init() {
 		try {
-			OauthClientDetails author = new OauthClientDetails();
-			author.setClientId("tpf-service-authorization");
-			author.setClientSecret(passwordEncoder.encode("tpf-service-authorization"));
-			author.setSecret("tpf-service-authorization");
-			author.setAuthorizedGrantTypes("authorization_code,password,client_credentials,implicit,refresh_token");
-			author.setAccessTokenValidity(60 * 60 * 24 * 30);
-			author.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
-			author.setScope("tpf-service-authorization,tpf-service-authentication,tpf-service-app");
-			repository.save(author);
-
-			OauthClientDetails authen = new OauthClientDetails();
-			authen.setClientId("tpf-service-authentication");
-			authen.setClientSecret(passwordEncoder.encode("tpf-service-authentication"));
-			authen.setSecret("tpf-service-authentication");
-			authen.setAuthorizedGrantTypes("client_credentials");
-			authen.setAccessTokenValidity(60 * 60 * 24 * 30);
-			authen.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
-			authen.setScope("tpf-service-authentication");
-			repository.save(authen);
-
-			OauthClientDetails restclient = new OauthClientDetails();
-			restclient.setClientId("tpf-service-restclient");
-			restclient.setClientSecret(passwordEncoder.encode("tpf-service-restclient"));
-			restclient.setSecret("tpf-service-restclient");
-			restclient.setAuthorizedGrantTypes("client_credentials");
-			restclient.setAccessTokenValidity(60 * 60 * 24 * 30);
-			restclient.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
-			restclient.setScope("tpf-service-restclient");
-			repository.save(restclient);
-
-			OauthClientDetails app = new OauthClientDetails();
-			app.setClientId("tpf-service-app");
-			app.setClientSecret(passwordEncoder.encode("tpf-service-app"));
-			app.setSecret("tpf-service-app");
-			app.setAuthorizedGrantTypes("client_credentials");
-			app.setAccessTokenValidity(60 * 60 * 24 * 30);
-			app.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
-			app.setScope("tpf-service-app");
-			repository.save(app);
+			OauthClientDetails client = new OauthClientDetails();
+			client.setClientId("tpf-service-root");
+			client.setClientSecret(passwordEncoder.encode("tpf-service-root"));
+			client.setSecret("tpf-service-root");
+			client.setAuthorizedGrantTypes("authorization_code,password,client_credentials,implicit,refresh_token");
+			client.setAccessTokenValidity(60 * 60 * 24 * 30);
+			client.setRefreshTokenValidity(60 * 60 * 24 * 30 * 6);
+			client.setScope("tpf-service-root");
+			repository.save(client);
 
 			System.err.println("CLIENT CREATE SUCCES!!!");
 		} catch (Exception e) {
