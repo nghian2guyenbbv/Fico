@@ -437,12 +437,10 @@ public class DataEntryService {
 							dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
 						}
 						rabbitMQService.send("tpf-service-automation",
-								Map.of("func", "fullInfoApp", "token",
-										String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataFullApp));
+								Map.of("func", "fullInfoApp","body", dataFullApp));
 
 						rabbitMQService.send("tpf-service-app",
-								Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+								Map.of("func", "updateApp", "body", convertService.toAppDisplay(dataFullApp)));
 
                         Report report = new Report();
                         report.setApplicationId(data.getApplicationId());
@@ -662,8 +660,7 @@ public class DataEntryService {
 							if (item.getResponse().getData() != null){
 								Application dataUpdate = item.getResponse().getData();
 								rabbitMQService.send("tpf-service-automation",
-										Map.of("func", "fullInfoApp", "token",
-												String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataUpdate));
+										Map.of("func", "fullInfoApp","body", dataUpdate));
 							}
 
 						}else{//fico tra comment
@@ -842,8 +839,7 @@ public class DataEntryService {
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
 					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp", "token",
-									String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "body",
+							Map.of("func", "quickLeadApp","body",
 									appData.get(0)));
 				}else {
 					Query queryUpdate = new Query();
@@ -878,13 +874,11 @@ public class DataEntryService {
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
 					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp", "token",
-									String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "body",
+							Map.of("func", "quickLeadApp", "body",
 									appData.get(0)));
 
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-									"param", Map.of("project", "dataentry"), "body", convertService.toAppDisplay(appData.get(0))));
+							Map.of("func", "createApp","body", convertService.toAppDisplay(appData.get(0))));
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1073,8 +1067,7 @@ public class DataEntryService {
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+							Map.of("func", "updateApp","body", convertService.toAppDisplay(dataFullApp)));
 				}else{
 					Report report = new Report();
 					report.setApplicationId("UNKNOWN");
@@ -1091,8 +1084,7 @@ public class DataEntryService {
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+							Map.of("func", "updateApp","body", convertService.toAppDisplay(dataFullApp)));
 				}
 
 				responseModel.setRequest_id(requestId);
