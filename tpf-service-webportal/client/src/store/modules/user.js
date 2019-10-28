@@ -35,6 +35,7 @@ const actions = {
     const { username, password } = userInfo
     
     return new Promise((resolve, reject) => {
+      // this.$store.dispatch('app/fnSocket', null)
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = {
           access_token: 'abc1234',
