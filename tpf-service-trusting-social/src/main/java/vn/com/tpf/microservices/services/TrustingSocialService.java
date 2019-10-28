@@ -241,8 +241,8 @@ public class TrustingSocialService {
 		}
 
 		ObjectNode data = (ObjectNode) body.path("data");
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "param", Map.of("areaCode", data.path("district_code").asInt())));
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress", "reference_id",
+				body.path("reference_id"), "param", Map.of("areaCode", data.path("district_code").asInt())));
 
 		if (address.path("status").asInt() != 200) {
 			rabbitLog(body, address);
@@ -279,8 +279,8 @@ public class TrustingSocialService {
 		}
 
 		ObjectNode data = (ObjectNode) body.path("data");
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "param", Map.of("areaCode", data.path("district_code").asInt())));
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress", "reference_id",
+				body.path("reference_id"), "param", Map.of("areaCode", data.path("district_code").asInt())));
 
 		if (address.path("status").asInt() != 200) {
 			rabbitLog(body, address);
@@ -298,8 +298,8 @@ public class TrustingSocialService {
 		ts.getDocuments().forEach(e -> e.setUpdatedAt(new Date()));
 		mongoTemplate.save(ts);
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "param", Map.of("project", "trustingsocial"),
-				"body", convertService.toAppDisplay(ts)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "trustingsocial"), "body", convertService.toAppDisplay(ts)));
 
 		return response(0, body, mapper.convertValue(ts, JsonNode.class));
 	}
@@ -390,8 +390,9 @@ public class TrustingSocialService {
 		TrustingSocial nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				TrustingSocial.class);
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "trustingsocial", "id", nEntity.getId()), "body", convertService.toAppDisplay(nEntity)));
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "updateApp", "reference_id", body.path("reference_id"), "param",
+						Map.of("project", "trustingsocial", "id", nEntity.getId()), "body", convertService.toAppDisplay(nEntity)));
 
 		return response(0, body, mapper.convertValue(nEntity, JsonNode.class));
 	}

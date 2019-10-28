@@ -111,12 +111,11 @@ public class FptService {
 		fpt.getPhotos().forEach(e -> e.setUpdatedAt(new Date()));
 		// mongoTemplate.save(fpt);
 
-		rabbitMQService.send("tpf-service-esb",
-				Map.of("func", "createApp", "param",
-						Map.of("request_id", body.path("request_id"), "reference_id", body.path("reference_id")), "body",
-						convertService.toAppFinnone(fpt)));
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppFinnone(fpt)));
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "body", convertService.toAppDisplay(fpt)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppDisplay(fpt)));
 
 		return response(0, body, mapper.convertValue(fpt, JsonNode.class));
 	}
@@ -140,8 +139,8 @@ public class FptService {
 			return response(404, mapper.createObjectNode().put("message", "Cust Id Not Found"));
 		}
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "fpt", "id", fpt.getId()), "body", convertService.toAppDisplay(fpt)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "fpt", "id", fpt.getId()), "body", convertService.toAppDisplay(fpt)));
 
 		return response(200, null);
 	}

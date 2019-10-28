@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -314,8 +313,8 @@ public class MomoService {
 		}
 
 		JsonNode data = body.path("data");
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "param", Map.of("areaCode", data.path("district").asText())));
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress", "reference_id",
+				body.path("reference_id"), "param", Map.of("areaCode", data.path("district").asText())));
 
 		if (address.path("status").asInt() != 200) {
 			rabbitLog(body, address);
@@ -334,12 +333,11 @@ public class MomoService {
 		momo.setRegion(address.path("data").path("region").asText());
 		mongoTemplate.save(momo);
 
-		rabbitMQService.send("tpf-service-esb",
-				Map.of("func", "createApp", "param",
-						Map.of("request_id", body.path("request_id"), "reference_id", body.path("reference_id")), "body",
-						convertService.toAppFinnone(momo)));
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppFinnone(momo)));
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "body", convertService.toAppDisplay(momo)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppDisplay(momo)));
 
 		return response(0, body, mapper.convertValue(momo, JsonNode.class));
 	}
@@ -364,8 +362,8 @@ public class MomoService {
 			return response(404, mapper.createObjectNode().put("message", "Momo Loan Id Not Found"));
 		}
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", request.path("reference_id"),
+				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
 		return response(200, null);
 	}
@@ -384,11 +382,12 @@ public class MomoService {
 			momo.setStatus(body.path("status").asText());
 			new Thread(() -> {
 				try {
-					JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getReason", "param",
-							Map.of("appId", momo.getAppId(), "status", body.path("status").asText())));
+					JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-esb",
+							Map.of("func", "getReason", "reference_id", body.path("reference_id"), "param",
+									Map.of("appId", momo.getAppId(), "status", body.path("status").asText())));
 					if (reason.path("status").asInt() == 200) {
 						ResponseMomoStatus momoStatus = mapper.convertValue(reason.path("data"), ResponseMomoStatus.class);
-						momoStatus.setRequestId(UUID.randomUUID().toString());
+						momoStatus.setRequestId(body.path("reference_id").asText());
 						momoStatus.setMomoLoanId(momo.getMomoLoanId());
 						momoStatus.setPhoneNumber(momo.getPhoneNumber());
 						momoStatus.setStatus(status.path(body.path("status").asText()).asInt());
@@ -406,18 +405,19 @@ public class MomoService {
 			}).start();
 		} else if (body.path("status").asText().equals("APPROVED")) {
 			momo.setStatus("APPROVED_FINNONE");
-			JsonNode sms = rabbitMQService.sendAndReceive("tpf-service-sms", Map.of("func", "sendSms", "body",
+			JsonNode sms = rabbitMQService.sendAndReceive("tpf-service-sms", Map.of("func", "sendSms", "reference_id",
+					body.path("reference_id"), "body",
 					Map.of("phone", momo.getPhoneNumber(), "content", "Chuc mung khach hang, CMND " + momo.getPersonalId()
 							+ " duoc phe duyet voi tong so tien vay Sanction Loan Amount vnd, thoi han vay Sanction Tenure va khoan tra moi thang Installment Amount. Vui long tra loi tin nhan voi cu phap TPB MOMO Y den so 8089 de xac nhan khoan vay hoac TPB MOMO N de tu choi khoan vay")));
 			if (sms.path("status").asInt() == 200) {
 				momo.setSmsResult("W");
 				new Thread(() -> {
 					try {
-						JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
-								Map.of("func", "getLoan", "param", Map.of("appId", momo.getAppId())));
+						JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getLoan", "reference_id",
+								body.path("reference_id"), "param", Map.of("appId", momo.getAppId())));
 						if (loan.path("status").asInt() == 200) {
 							ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"), ResponseMomoStatus.class);
-							momoStatus.setRequestId(UUID.randomUUID().toString());
+							momoStatus.setRequestId(body.path("reference_id").asText());
 							momoStatus.setMomoLoanId(momo.getMomoLoanId());
 							momoStatus.setPhoneNumber(momo.getPhoneNumber());
 							momoStatus.setStatus(status.path("APPROVED_AND_WAITING_SMS").asInt());
@@ -441,11 +441,11 @@ public class MomoService {
 			momo.setStatus(body.path("status").asText());
 			new Thread(() -> {
 				try {
-					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
-							Map.of("func", "getLoan", "param", Map.of("appId", momo.getAppId())));
+					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getLoan", "reference_id",
+							body.path("reference_id"), "param", Map.of("appId", momo.getAppId())));
 					if (loan.path("status").asInt() == 200) {
 						ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"), ResponseMomoStatus.class);
-						momoStatus.setRequestId(UUID.randomUUID().toString());
+						momoStatus.setRequestId(body.path("reference_id").asText());
 						momoStatus.setMomoLoanId(momo.getMomoLoanId());
 						momoStatus.setPhoneNumber(momo.getPhoneNumber());
 						momoStatus.setStatus(status.path(body.path("status").asText()).asInt());
@@ -466,8 +466,8 @@ public class MomoService {
 		momo.setAutomationResult(momo.getAutomationResult().equals("Pass") ? momo.getAutomationResult() : "Fix");
 		mongoTemplate.save(momo);
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
 		return response(200, null);
 	}
@@ -499,11 +499,11 @@ public class MomoService {
 			momo.setSmsResult("Y");
 			new Thread(() -> {
 				try {
-					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
-							Map.of("func", "getLoan", "param", Map.of("appId", momo.getAppId())));
+					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getLoan", "reference_id",
+							body.path("reference_id"), "param", Map.of("appId", momo.getAppId())));
 					if (loan.path("status").asInt() == 200) {
 						ResponseMomoDisburse momoDisburse = mapper.convertValue(loan.path("data"), ResponseMomoDisburse.class);
-						momoDisburse.setRequestId(UUID.randomUUID().toString());
+						momoDisburse.setRequestId(body.path("reference_id").asText());
 						momoDisburse.setMomoLoanId(momo.getMomoLoanId());
 						momoDisburse.setPhoneNumber(momo.getPhoneNumber());
 						momoDisburse.setDescription("Khách hàng được giải ngân");
@@ -521,8 +521,9 @@ public class MomoService {
 
 						mongoTemplate.save(momo);
 
-						rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-								Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+						rabbitMQService.send("tpf-service-app",
+								Map.of("func", "updateApp", "reference_id", body.path("reference_id"), "param",
+										Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 					} else {
 						rabbitLog(body, loan);
 					}
@@ -535,7 +536,7 @@ public class MomoService {
 			momo.setStatus("CUSTOMER_CANCELLED");
 			new Thread(() -> {
 				ResponseMomoStatus momoStatus = new ResponseMomoStatus();
-				momoStatus.setRequestId(UUID.randomUUID().toString());
+				momoStatus.setRequestId(body.path("reference_id").asText());
 				momoStatus.setMomoLoanId(momo.getMomoLoanId());
 				momoStatus.setPhoneNumber(momo.getPhoneNumber());
 				momoStatus.setStatus(status.path("CANCELLED").asInt());
@@ -548,8 +549,8 @@ public class MomoService {
 
 		mongoTemplate.save(momo);
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
 		return response(200, null);
 	}
