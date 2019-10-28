@@ -18,21 +18,11 @@
 
         <template v-else-if="i.value == 'status'">
           <div>
-            <!-- <v-chip
-          :style="'background-color: ' +  getTypeStatus(item.status).bgcolor"
-          class="chip_status"
-        >
-          <v-avatar>
-            <v-icon
-              small
-              :color="getTypeStatus(item.status).color"
-              style="margin-right: 5px;"
-            >{{ getTypeStatus(item.status).img }}</v-icon>
-          </v-avatar>
-         
-            </v-chip>-->
-
-            <font :color="getTypeStatus(item.row.status).color">{{getNameStatus(item.row.status)}}</font>
+            <el-tag :color="getTypeStatus(item.status).bgcolor">
+              <font
+                :color="getTypeStatus(item.row.status).bgcolor"
+              >{{getNameStatus(item.row.status)}}</font>
+            </el-tag>
           </div>
         </template>
         <template v-else-if="i.value == 'assigned'">
@@ -42,7 +32,6 @@
             v-if="item.row.assigned"
             @click="fnUnassign(item.row)"
           >Unassigned</el-button>
-          <!-- product_state[department + 'UnAss']).isLoading -->
           <el-button
             :disabled="([department + 'UnAss']).isLoading"
             type="success"
@@ -165,7 +154,7 @@ export default {
         }
         return item;
       } else {
-        return item.replace("_", " ");
+        return item ? item.replace("_", " ") :  ''
       }
     },
     getColorSms(item) {

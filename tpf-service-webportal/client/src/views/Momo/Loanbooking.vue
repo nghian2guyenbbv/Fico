@@ -1,5 +1,18 @@
 <template>
   <div>
+        <el-card :body-style="{ padding: '5px' }">
+      <el-input
+        placeholder="Search"
+        v-model="valueSearch"
+        style="width: 500px"
+        @keyup.enter.native="handleSearch"
+      >
+        <el-select v-model="keySearch" slot="prepend" placeholder="Key" style="width: 150px">
+          <el-option label="App ID" value="appId"></el-option>
+        </el-select>
+        <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+      </el-input>
+    </el-card>
     <tpf-table-momo
       v-loading="this.state.momo.MomoLoanBookingAss.isLoading"
       :data="this.state.momo.MomoLoanBookingAss.list"
@@ -28,6 +41,8 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
+            keySearch: "",
+      valueSearch: "",
       headers: [],
     };
   },
@@ -114,17 +129,15 @@ export default {
   },
 
   methods: {
-    searchAppID() {
-      this.product_state.MomoLoanBookingAss._search = {
-        ...this.product_state.MomoLoanBookingAss._search,
-        appId: this.search
-      };
-      this.$store.dispatch("app_state/fnCallListView", "MomoLoanBookingAss");
-      this.product_state.MomoLoanBookingUnAss._search = {
-        ...this.product_state.MomoLoanBookingUnAss._search,
-        appId: this.search
-      };
-      this.$store.dispatch("app_state/fnCallListView", "MomoLoanBookingUnAss");
+        handleSearch() {
+      this.state.momo.MomoLoanBookingAss._search[
+        this.keySearch
+      ] = this.valueSearch;
+      this.$store.dispatch("momo/fnCallListView", "MomoLoanBookingAss");
+      this.state.momo.MomoLoanBookingUnAss._search[
+        this.keySearch
+      ] = this.valueSearch;
+      this.$store.dispatch("momo/fnCallListView", "MomoLoanBookingUnAss");
     }
   }
 };
