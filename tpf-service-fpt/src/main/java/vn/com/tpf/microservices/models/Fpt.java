@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.models;
 
 import java.util.Date;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -20,7 +21,6 @@ public class Fpt {
 
 	@Id
 	private String id;
-
 	@Indexed(unique = true, sparse = true)
 	private String appId;
 	@Indexed(unique = true, sparse = true)
@@ -36,9 +36,6 @@ public class Fpt {
 	private String employeeCard;
 	private String maritalStatus;
 	private String mobilePhone;
-	private long salary;
-	private long durationYear;
-	private long durationMonth;
 	private String map;
 	private String ownerNationalId;
 	private String contactAddress;
@@ -47,6 +44,17 @@ public class Fpt {
 	private String taxCode;
 	private String status;
 	private String automationResult;
+	private long salary;
+	private long durationYear;
+	private long durationMonth;
+	private LoanDetail loanDetail;
+	private Set<Address> addresses;
+	private Set<Photo> photos;
+	private Set<ProductDetail> productDetails;
+	private Set<Reference> references;
+	private Set<Returned> returned;
+	private Set<Supplement> supplement;
+	private Set<DocPostApproved> docPostApproved;
 
 	@CreatedDate
 	private Date createdAt;

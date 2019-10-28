@@ -17,6 +17,18 @@ import java.sql.Timestamp;
                 @StoredProcedureParameter(mode = ParameterMode.IN, type = Timestamp.class)
         }
 )
+@NamedStoredProcedureQuery(
+        name = "getreport",
+        procedureName = "payoo.getreport",
+        parameters = {
+                @StoredProcedureParameter(mode = ParameterMode.IN, type = Timestamp.class),
+                @StoredProcedureParameter(mode = ParameterMode.IN, type = Timestamp.class)
+        }
+)
+@NamedStoredProcedureQuery(
+        name = "getTransDate",
+        procedureName = "payoo.getTransDate"
+)
 @Entity
 @Table(name = "fico_trans_pay", schema = "payoo")
 public class FicoTransPay implements Serializable {

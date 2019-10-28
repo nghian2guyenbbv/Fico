@@ -74,7 +74,7 @@ public class ApiService {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
 			dataLogRes.put("status", 500);
-			dataLogRes.put("result", e.getMessage());
+			dataLogRes.put("result", e.toString());
 			dataLogRes.set("payload", mapper.convertValue(data, JsonNode.class));
 			log.info("{}", dataLogRes);
 		}

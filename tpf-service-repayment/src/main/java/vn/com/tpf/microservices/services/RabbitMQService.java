@@ -176,6 +176,16 @@ public class RabbitMQService {
 						return response(message, payload, repaymentService.getListTrans(request));
 					}
 					break;
+			case "getReport":
+					if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
+						return response(message, payload, repaymentService.getReport(request));
+					}
+					break;
+			case "getTransDate":
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
+					return response(message, payload, repaymentService.getTransDate(request));
+				}
+				break;
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

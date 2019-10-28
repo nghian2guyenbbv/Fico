@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
@@ -20,11 +22,13 @@ import vn.com.tpf.microservices.models.*;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.*;
 
 @Service
@@ -363,6 +367,58 @@ public class RepaymentService {
 			List<FicoTransPay> list=q.getResultList();
 
 			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"data",list,"result_code",0));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"result_code",500,"message",e.getMessage()));
+		}
+	}
+
+	public Map<String, Object> getReport(JsonNode request) {
+		String request_id = request.path("body").path("request_id").textValue();
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			Timestamp fromDate = mapper.convertValue(request.path("body").path("data").path("fromDate"), Timestamp.class);
+			Timestamp toDate = mapper.convertValue(request.path("body").path("data").path("toDate"), Timestamp.class);
+
+			System.out.println("fromdate:" + fromDate + ", todate:" + toDate);
+
+			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getreport");
+			q.setParameter(1, fromDate);
+			q.setParameter(2, toDate);
+			List<Object[]> list=q.getResultList();
+
+			ArrayNode documents = mapper.createArrayNode();
+			for (Object item: list) {
+				ObjectNode doc = mapper.createObjectNode();
+				doc.put("row", item.toString());
+				documents.add(doc);
+			}
+
+			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"data",documents,"result_code",0));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"result_code",500,"message",e.getMessage()));
+		}
+	}
+
+	public Map<String, Object> getTransDate(JsonNode request) {
+		String request_id = request.path("body").path("request_id").textValue();
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+
+			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getTransDate");
+			List<Object[]> list=q.getResultList();
+
+			ArrayNode documents = mapper.createArrayNode();
+			for (Object item: list) {
+				ObjectNode doc = mapper.createObjectNode();
+				doc.put("date", item.toString());
+				documents.add(doc);
+			}
+
+			return Map.of("status", 200, "data", Map.of("request_id",request_id,"reference_id",UUID.randomUUID().toString(),"date_time",date_time,"data",documents,"result_code",0));
 		}
 		catch (Exception e) {
 			e.printStackTrace();

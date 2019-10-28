@@ -13,7 +13,9 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/daongoc315/tpf-config.git
+          uri: http://127.0.0.1:8088/tpf-service/tpf-config.git
+          username: tpf-service
+          password: tpf-service
 ---
 spring:
   profiles: dev
@@ -23,9 +25,9 @@ spring:
     config:
       server:
         git:
-          uri: http://tpf-opensource-git/service-app/tpf-config.git
-          username: service-app
-          password: service-app
+          uri: http://tpf-opensource-git/tpf-service/tpf-config.git
+          username: tpf-service
+          password: tpf-service
 ---
 spring:
   profiles: uat
@@ -35,9 +37,9 @@ spring:
     config:
       server:
         git:
-          uri: http://tpf-opensource-git/service-app/tpf-config.git
-          username: service-app
-          password: service-app
+          uri: http://tpf-opensource-git/tpf-service/tpf-config.git
+          username: tpf-service
+          password: tpf-service
 ---
 spring:
   profiles: pro
@@ -47,6 +49,6 @@ spring:
     config:
       server:
         git:
-          uri: http://tpf-opensource-git/service-app/tpf-config.git
-          username: service-app
-          password: service-app
+          uri: http://tpf-opensource-git/tpf-service/tpf-config.git
+          username: tpf-service
+          password: tpf-service
