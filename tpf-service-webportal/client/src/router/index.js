@@ -6,7 +6,7 @@ Vue.use(Router)
 import Layout from '@/layout'
 import dataentryRouter from './modules/dataentry'
 import repaymentRouter from './modules/repayment'
-// import componentsRouter from './modules/components'
+import adminRouter from './modules/admin'
 
 // route default all user
 export const constantRoutes = [
@@ -44,13 +44,13 @@ export const constantRoutes = [
 // route with roles user
 export const asyncRoutes = [
   repaymentRouter,
+  adminRouter,
   { path: '*', redirect: '/404', hidden: true }
 ]
 
 const createRouter = () => new Router({
-  // mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
+  routes: constantRoutes.concat(asyncRoutes)
 })
 
 const router = createRouter()
