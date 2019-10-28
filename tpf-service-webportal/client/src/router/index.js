@@ -7,6 +7,8 @@ import Layout from '@/layout'
 import dataentryRouter from './modules/dataentry'
 import repaymentRouter from './modules/repayment'
 import adminRouter from './modules/admin'
+import momoRouter from './modules/momo'
+
 
 // route default all user
 export const constantRoutes = [
@@ -45,6 +47,8 @@ export const constantRoutes = [
 export const asyncRoutes = [
   repaymentRouter,
   adminRouter,
+  momoRouter,
+  dataentryRouter,
   { path: '*', redirect: '/404', hidden: true }
 ]
 
