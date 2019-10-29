@@ -213,12 +213,12 @@ public class DataEntryController {
 	@PostMapping("/v1/dataentry/uploadfile")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> uploadfile(@RequestHeader("Authorization") String token,
-										@RequestPart("file")  MultipartFile[] files,
+										@RequestPart("files")  MultipartFile[] files,
 										@RequestPart(value = "appId", required = false)  String appId)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
-		String urlFico = "http://192.168.0.205:3001/v1/file";
+		String urlFico = "http://192.168.0.203:3001/v1/file";
 //		String urlFico = "http://tpf-service-file:3001/v1/file";
 		String urlDigiTex = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/documentAPI";
 		String urlDigiTexResubmit = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/resubmitDocumentAPI";

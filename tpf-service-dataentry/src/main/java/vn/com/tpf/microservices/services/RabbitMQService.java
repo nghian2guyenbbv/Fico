@@ -110,16 +110,16 @@ public class RabbitMQService {
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
-			mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-			mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+//			mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+//			mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
-			if (token == null) {
-				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
-			}
-
-			String scopes = token.path("scope").toString();
+//			if (token == null) {
+//				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
+//			}
+//
+//			String scopes = token.path("scope").toString();
 
 			switch (request.path("func").asText()) {
 				case "addProduct":

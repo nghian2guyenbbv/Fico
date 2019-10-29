@@ -20,7 +20,7 @@ public class ConvertService {
 		app.put("uuid", application.getId());
 		app.put("status", application.getStatus());
 		app.put("appId", application.getApplicationId());
-//		app.put("partnerId", "");// chua co
+		app.put("status", application.getStatus());
 		app.put("fullName",
 				(application.getQuickLead().getFirstName() + application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
 		app.put("automationResult", application.getDescription());
@@ -32,6 +32,7 @@ public class ConvertService {
 				doc.put("documentType", e.getOriginalname());
 				doc.put("viewUrl", e.getFilename());
 				doc.put("downloadUrl", e.getFilename());
+				doc.put("type", e.getType());
 //			doc.set("updatedAt", mapper.convertValue(e.getUpdatedAt(), JsonNode.class));
 				documents.add(doc);
 			});
@@ -59,9 +60,14 @@ public class ConvertService {
 		ObjectNode optional = mapper.createObjectNode();
 		if (application.getApplicationInformation() != null) {
 			optional.put("identificationNumber", application.getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
+		}else if (application.getQuickLead().getIdentificationNumber() != null){
+			optional.put("identificationNumber", application.getQuickLead().getIdentificationNumber());
 		}
 		if (application.getQuickLeadId() != null) {
 			optional.put("quickLeadId", application.getQuickLeadId());
+		}
+		if (application.getQuickLead().getSchemeCode() != null) {
+			optional.put("schemeCode", application.getQuickLead().getSchemeCode());
 		}
 		app.set("optional", optional);
 		return app;
