@@ -7,15 +7,16 @@ const momoRouter = {
   name: 'Momo',
   meta: {
     title: 'MoMo',
-    icon: 'fas fa-spinner',
-    roles: ['momo_view', ]
+    iconSub: 'el-icon-delete',
+    roles: ['momo_view'], 
+    
   },
   children: [
     {
       path: 'automation',
       component: () => import('@/views/Momo/Automation'),
       name: 'AutomationMomo',
-      meta: { title: 'Automation', projects: ['momo']}
+      meta: { title: 'Automation', projects: ['momo'], iconSub: 'el-icon-setting'}
     },
     {
       path: 'documentcheck',

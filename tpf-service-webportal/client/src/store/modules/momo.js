@@ -46,6 +46,10 @@ const state = {
   ACCA: {
     ...opt,
     _id: ''
+  },
+  Documents: {
+    show: false,
+    items: []
   }
 }
 

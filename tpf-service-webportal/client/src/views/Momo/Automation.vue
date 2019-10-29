@@ -153,7 +153,6 @@ export default {
           ...this.state.momo.MomoDataentyAss,
           _page: this.params.page,
           _rowsPerPage: this.params.limit,
-
           _search: {
             project: "momo",
             department: "data_entry",
@@ -166,7 +165,6 @@ export default {
           ...this.state.momo.MomoDataentyUnAss,
           _page: this.paramsUnAss.page,
           _rowsPerPage: this.paramsUnAss.limit,
-
           _search: {
             project: "momo",
             department: "data_entry",
@@ -277,6 +275,8 @@ export default {
 
     this.state.momo.MomoDataentyAss = {
       ...this.state.momo.MomoDataentyAss,
+      _page: this.params.page,
+      _rowsPerPage: this.params.limit,
       _search: {
         project: "momo",
         department: "data_entry",
@@ -286,6 +286,8 @@ export default {
 
     this.state.momo.MomoDataentyUnAss = {
       ...this.state.momo.MomoDataentyUnAss,
+      _page: this.paramsUnAss.page,
+      _rowsPerPage: this.paramsUnAss.limit,
       _search: {
         project: "momo",
         department: "data_entry",
