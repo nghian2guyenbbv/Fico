@@ -27,7 +27,8 @@ import java.sql.Timestamp;
 import java.util.*;
 
 @RestController
-public class DataEntryController {
+public class
+DataEntryController {
 
 	@Autowired
 	private RabbitMQService rabbitMQService;

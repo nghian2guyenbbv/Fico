@@ -6,4 +6,5 @@ import lombok.Data;
 public class QL_Document {
     public String documentName;
     public String documentURL;
+
 }

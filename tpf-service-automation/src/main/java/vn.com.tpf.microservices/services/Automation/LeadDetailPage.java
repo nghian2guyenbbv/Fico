@@ -14,12 +14,14 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import vn.com.tpf.microservices.models.Document;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.io.File;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -263,8 +265,8 @@ public class LeadDetailPage {
             //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
             //String toFile = SCREENSHOT_PRE_PATH_DOC;
 
-           //String fromFile = "http://192.168.0.205:3001/v1/file/5da5442d67695fa4b91d51d0-APPLICATION_ACCA.pdf";
-            String fromFile = "http://tpf-service-file:3001/v1/file/5da3e6bb04f1ea9decefaff6-TPF_ID_Card.pdf";
+           String fromFile = "http://192.168.0.203:3001/v1/file/";
+            //String fromFile = "http://tpf-service-file:3001/v1/file/";
             //String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD;
 
 
@@ -278,22 +280,28 @@ public class LeadDetailPage {
                 final int _tempIndex = index;
                 String docName = element.getText();
                 //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
-                String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD;
+                String toFile = Constant.SCREENSHOT_PRE_PATH;
                 if (requiredFiled.contains(docName)) {
                     toFile+=UUID.randomUUID().toString()+"_"+ docName +".pdf";
-                    FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
-                    File file = new File(toFile);
-                    if(file.exists()) {
-                        //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
-                        String photoUrl = file.getAbsolutePath();
-                        System.out.println("paht;" + photoUrl);
-                        // Added sleep to make you see the difference.
-                        Thread.sleep(2000);
 
-                        photoElement.get(_tempIndex).sendKeys(photoUrl);
+                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(docName)).findAny().orElse(null);
+
+                    if(doc!=null)
+                    {
+                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                        File file = new File(toFile);
+                        if(file.exists()) {
+                            //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
+                            String photoUrl = file.getAbsolutePath();
+                            System.out.println("paht;" + photoUrl);
+                            // Added sleep to make you see the difference.
+                            Thread.sleep(2000);
+
+                            photoElement.get(_tempIndex).sendKeys(photoUrl);
 
 //                        // Added sleep to make you see the difference.
 //                        Thread.sleep(2000);
+                        }
                     }
                 }
                 index++;

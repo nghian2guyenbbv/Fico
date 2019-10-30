@@ -12,6 +12,7 @@ import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.utilities.Constant;
+import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.List;
 import java.util.Objects;
@@ -138,10 +139,11 @@ public class QuickLeadPage {
         await("cityContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> cityContainerElement.isDisplayed());
 
-        await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> cityOptionElement.size() > 0);
+
         for(WebElement e: cityOptionElement) {
-            if(!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals(quickLead.getCity())) {
+            if(!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals(Utilities.convertToTitleCaseSplitting(quickLead.getCity()))) {
                 e.click();
                 break;
             }
