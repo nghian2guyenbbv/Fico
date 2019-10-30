@@ -947,6 +947,7 @@ public class DataEntryService {
 				app.setQuickLeadId(quickLeadId.toString());
 				app.setQuickLead(quickLead);
 				app.setUserName(token.path("user_name").textValue());
+				app.setCreatedDate(new Date());
 				mongoTemplate.save(app);
 
 				Map<String, Object> responseUI = new HashMap<>();
