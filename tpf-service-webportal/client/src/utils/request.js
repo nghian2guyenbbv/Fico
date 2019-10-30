@@ -5,7 +5,7 @@ import * as cookie from '@/utils/cookie'
 
 // tao axios goi api
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API + process.env.VUE_APP_VERSION_API,
+  baseURL: process.env.VUE_APP_BASE_API,
 })
 
 // setting truoc khi api dang gui di

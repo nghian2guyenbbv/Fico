@@ -17,7 +17,7 @@
     
     <el-table
       v-loading="listLoading"
-      :data="list"
+      :data="state.dataentry.list"
       border
       fit
       highlight-current-row
@@ -85,11 +85,11 @@
     <el-pagination class="pagination-container"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-      :current-page.sync="params.page"
-      :page-sizes="params.sizes"
-      :page-size="params.limit"
+      :current-page.sync="state.dataentry.quicklead.pagination.page"
+      :page-sizes="[10, 15, 20, 100]"
+      :page-size="state.dataentry.quicklead.pagination.limit"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="parseInt(total)">
+      :total="parseInt(state.dataentry.quicklead.total)">
     </el-pagination>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogDetail" width="95%" top="3vh">
@@ -364,14 +364,14 @@ export default {
         list: [],
         total: 0,
         listLoading: true,
-        params: {
-            page: 1,
-            limit: 20,
-            importance: undefined,
-            title: undefined,
-            type: undefined,
-            sort: '+id'
-        },
+        // params: {
+        //     page: 1,
+        //     limit: 20,
+        //     importance: undefined,
+        //     title: undefined,
+        //     type: undefined,
+        //     sort: '+id'
+        // },
         headers: [
           { key: 'action', title: 'Action', align: 'center', header_align: 'center' },
           { key: 'appId', title: 'App ID', align: 'center', header_align: 'center' },
@@ -412,12 +412,12 @@ export default {
         },
         dialogPvVisible: false,
         pvData: [],
-        params: {
-          page: 1,
-          limit: 10,
-          sort: 'createdAt,asc',
-          project: 'dataentry'
-        }
+        // params: {
+        //   page: 1,
+        //   limit: 10,
+        //   sort: 'createdAt,asc',
+        //   project: 'dataentry'
+        // }
         
     }
   },
@@ -444,10 +444,10 @@ export default {
     // get all data first time
     getList() {
       this.listLoading = true
-      this.$store.dispatch('dataentry/getQuickList', this.params)
+      this.$store.dispatch('dataentry/getQuickList')
         .then((data) => {
-          this.list = data.data
-          this.total = data.total
+          // this.list = data.data
+          // this.total = data.total
           this.listLoading = false
         })
         .catch(() => {
@@ -480,21 +480,22 @@ export default {
     },
     // for list app
     handleSizeChange(a) {
-      this.params.limit = a
+      this.state.dataentry.quicklead.pagination.limit = a
       this.getList()
     },
     handleCurrentChange(a) {
-      this.params.page = a
+      this.state.dataentry.quicklead.pagination.page = a
       this.getList()
     },
     handleSearch() {
-      this.params = {
-        page: 1,
-        limit: 10,
-        sort: 'createdAt,asc',
-        project: 'dataentry'
-      }
-      this.params[this.keySearch] = this.valueSearch
+      // this.params = {
+      //   page: 1,
+      //   limit: 10,
+      //   sort: 'createdAt,asc',
+      //   project: 'dataentry'
+      // }
+      this.state.dataentry.quicklead.pagination.page = 1
+      this.state.dataentry.quicklead.pagination[this.keySearch] = this.valueSearch
       this.getList()
     },
     // action in 1 of apps
@@ -723,20 +724,20 @@ export default {
         })
     },
     clearFormCreate() {
-      this.listObj_scheme = {}
-      this.countFile = 0
-      this.cityStatus = []
-      this.listScheme = []
-      this.dialogImageUrl = ''
-      this.dialogImageName = ''
+      // this.listObj_scheme = {}
+      // this.countFile = 0
+      // this.cityStatus = []
+      // this.listScheme = []
+      // this.dialogImageUrl = ''
+      // this.dialogImageName = ''
       this.innerVisible = false
       this.outerVisible = false
-      this.disabled = false
-      this.checked = false
-      this.checkPass = false
-      this.checkLoading = false
-      this.uploadDone = false
-      this.uploadFileLoading = false
+      // this.disabled = false
+      // this.checked = false
+      // this.checkPass = false
+      // this.checkLoading = false
+      // this.uploadDone = false
+      // this.uploadFileLoading = false
     },
     // for comment detail 1 app
     handleUpdate(row, column) {

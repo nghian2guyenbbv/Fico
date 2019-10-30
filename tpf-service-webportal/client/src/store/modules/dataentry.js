@@ -11,6 +11,7 @@ const state = {
     currentAddress: '',
     areaId: ''
   },
+  list: [],
   quickLeadData: {
     quickLeadId: '',
     documents: [],
@@ -31,13 +32,38 @@ const state = {
     leadStatus: 'Converted',
     communicationTranscript: 'dummy',
     identificationNumber: ''
-  }
+  },
+  quicklead: {
+    total: 0,
+    
+    obj: {},
+    _search: {},
+    _sort: '',
+    _select: '',
+    selected: [],
+    isLoading: false,
+    pagination: {
+      page: 1,
+      limit: 10,
+      sort: 'createdAt,asc',
+      project: 'dataentry'
+    }
+  },
 }
 
 const mutations = {
+  PUSH_NEW_QUICKLEAD: (state, data) => {
+    // state.quicklead.list.push(data)
+    let array = state.list
+    Vue.set(state.list, array.length, data)
+  }
 }
 
 const actions = {
+  pushNewQuicklead({commit, dispatch}, quicklead) {
+    commit('PUSH_NEW_QUICKLEAD', quicklead)
+  },
+
   clearDataState({commit, dispatch}) {
     state.newCustomer = {
       requestID: '123456',
@@ -71,14 +97,16 @@ const actions = {
     }
   },
 
-  getQuickList({ commit, dispatch }, params) {
+  getQuickList({ commit, dispatch }) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')
         resolve(response)
       } else {
-        dataentry.apiGetApp(params)
+        dataentry.apiGetApp(state.quicklead.pagination)
           .then(response => {
+            state.list = response.data
+            state.quicklead.total = response.total
             resolve(response)
           }).catch(error => {
             reject(error)
