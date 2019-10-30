@@ -1,25 +1,18 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <!-- <el-input v-model="listQuery.title" placeholder="Title" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" /> -->
-      <!-- <el-select v-model="listQuery.importance" placeholder="Imp" clearable style="width: 90px" class="filter-item">
-        <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item" />
-      </el-select> -->
-      <!-- <el-select v-model="listQuery.sort" style="width: 140px" class="filter-item" @change="handleFilter">
-        <el-option v-for="item in sortOptions" :key="item.key" :label="item.label" :value="item.key" />
-      </el-select>
-      <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-        Search
-      </el-button> -->
-      <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">
+      <el-input placeholder="Search" v-model="valueSearch" style="width: 500px" @keyup.enter.native="handleSearch">
+        <el-select v-model="keySearch" slot="prepend" placeholder="Key" style="width: 150px">
+          <el-option label="App ID" value="appId"></el-option>
+          <el-option label="Full Name" value="fullName"></el-option>
+          <el-option label="National ID" value="identificationNumber"></el-option>
+        </el-select>
+        <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+      </el-input>
+      <!-- <el-button v-waves class="filter-item" type="primary" icon="el-icon-search"></el-button> -->
+      <el-button class="filter-item" style="margin-left: 10px; float: right" type="primary" icon="el-icon-edit" @click="handleCreate">
         New
       </el-button>
-      <!-- <el-button v-waves :loading="downloadLoading" class="filter-item" type="primary" icon="el-icon-download" >
-        Export
-      </el-button> -->
-      <!-- <el-checkbox v-model="showReviewer" class="filter-item" style="margin-left:15px;" @change="tableKey=tableKey+1">
-        reviewer
-      </el-checkbox> -->
     </div>
     
     <el-table
@@ -28,17 +21,15 @@
       border
       fit
       highlight-current-row
-      style="width: 100%;"
+      style="width: 100%"
       @row-click="handleUpdate"
-      height="60vh"
+      height="70vh"
     >
         <div v-for="item in headers" :key="item.key">
             <el-table-column 
                 :label="item.title" 
                 :prop="item.key" 
-                sortable="custom" 
-                align="center" 
-                :class-name="getSortClass('id')"
+                align="center"
                 v-if="item.key=='createdAt'"
             >
             <template slot-scope="scope">
@@ -48,10 +39,8 @@
             <el-table-column 
                 :label="item.title" 
                 :prop="item.key" 
-                sortable="custom" 
-                align="center" 
-                :class-name="getSortClass('id')"
-                v-if="item.key=='updatedAt'"
+                align="center"
+                v-else-if="item.key=='updatedAt'"
             >
             <template slot-scope="scope">
                 <span>{{ scope.row[item.key] | moment("MMM DD YYYY HH:mm") }}</span>
@@ -60,39 +49,67 @@
             <el-table-column 
                 :label="item.title" 
                 :prop="item.key" 
-                sortable="custom" 
-                align="center" 
-                :class-name="getSortClass('id')"
+                align="center"
+                v-else-if="item.key=='lastComment'"
+            >
+            <template slot-scope="scope">
+                <span>{{ scope.row['comments'] && scope.row['comments'].length != 0 ? scope.row['comments'][(scope.row['comments'].length) - 1].request : '' }}</span>
+            </template>
+            </el-table-column>
+            <el-table-column 
+                :label="item.title" 
+                :prop="item.key" 
+                align="center"
+                v-else-if="item.key=='action'"
+            >
+            <template slot-scope="scope">
+              <el-button type="primary" size="mini" icon="el-icon-refresh-left" circle @click="retryQuickLead($event, scope.row)"
+                v-if="scope.row['appId'] == null || scope.row['appId'] == '' || scope.row['appId'] == 'UNKNOWN' || scope.row['appId'] == 'Unknown' || scope.row['appId'] == 'unknown'">
+              </el-button>
+              <el-button type="primary" size="mini" icon="el-icon-edit" circle @click="updateStatusManualy($event, scope.row)"></el-button>
+            </template>
+            </el-table-column>
+            <el-table-column 
+                :label="item.title" 
+                :prop="item.key" 
+                align="center"
                 v-else
             >
             <template slot-scope="scope">
-                <span>{{ scope.row[item.key] | moment("MMM DD YYYY HH:mm") }}</span>
+                <span>{{ scope.row[item.key] }}</span>
             </template>
             </el-table-column>
         </div>
     </el-table>
 
-    <pagination v-show="list.length>0" :total="list.length" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+    <el-pagination class="pagination-container"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page.sync="params.page"
+      :page-sizes="params.sizes"
+      :page-size="params.limit"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="parseInt(total)">
+    </el-pagination>
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogDetail" width="95%">
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogDetail" width="95%" top="3vh">
       <el-row>
-        <el-col :span="12">
-          <el-row>
-            <el-col :span="12">
-                <p><span>APP ID: </span> <span>{{ temp.appId }}</span></p>
-                <p><span>FULL NAME: </span> <span>{{ temp.fullName }}</span></p>
-                <p><span>NATIONAL ID: </span> <span>{{ temp.nationalId }}</span></p>
+        <el-col :span="12" style="padding: 5px;">
+          <el-alert title="Information Customer" type="success" effect="dark" :closable="false"></el-alert>
+          <el-row style="border: 1px solid; border-radius: 5px;">
+            <el-col :span="12" style="border-right: 1px solid; padding: 5px 15px;">
+                <p><span style="font-weight: 600;">APP ID: </span> <span style="font-style: italic;">{{ temp.appId || 'Unknown' }}</span></p>
+                <p><span style="font-weight: 600;">FULL NAME: </span> <span style="font-style: italic;">{{ temp.fullName }}</span></p>
+                <p><span style="font-weight: 600;">NATIONAL ID: </span> <span style="font-style: italic;">{{ temp.optional && temp.optional.identificationNumber }}</span></p>
             </el-col>
-            <el-col :span="12">
-                <p><span>SCHEME: </span> <span>{{ temp.scheme }}</span></p>
-                <p><span>STATUS: </span> <span>{{ temp.status }}</span></p>
-                <p><span>CREATED AT: </span> <span>{{ temp.createdAt | moment("MMM DD YYYY HH:mm") }}</span></p>
+            <el-col :span="12" style="padding: 5px 15px;">
+                <p><span style="font-weight: 600;">SCHEME: </span> <span style="font-style: italic;">{{ temp.optional && temp.optional.schemeCode }}</span></p>
+                <p><span style="font-weight: 600;">STATUS: </span> <span style="font-style: italic;">{{ temp.status || 'Processing' }}</span></p>
+                <p><span style="font-weight: 600;">CREATED AT: </span> <span style="font-style: italic;">{{ temp.createdAt | moment("MMM DD YYYY HH:mm") }}</span></p>
             </el-col>
           </el-row>
           <el-row>
-            <p>Comments: </p>
-          </el-row>
-          <el-row>
+            <el-alert title="Comments" type="success" effect="dark" :closable="false"></el-alert>
             <el-table :data="temp.comments" style="width: 100%" @row-click="handleComment">
               <el-table-column prop="createdAt" label="Created At">
                 <template slot-scope="scope">
@@ -108,9 +125,9 @@
             </el-table>
           </el-row>
         </el-col>
-        <el-col :span="12">
+        <el-col :span="12" style="padding: 5px;">
           <el-row>
-            <p>Comment Detail: {{ tempCmt.comment }}</p>
+            <el-alert :title="'Comment Detail: ' + tempCmt.comment" type="success" effect="dark" :closable="false"></el-alert>
             <input
               type="file"
               id="file"
@@ -120,21 +137,31 @@
               style="display: none"
             />
           </el-row>
-           <el-button v-waves class="filter-item" type="primary" icon="el-icon-download" @click="select" >
-            Export
-          </el-button>
           <el-row>
-            <el-col :span="12">
-              <div>TPF_ID Card:</div>
-              <div class="sheme-doc-name">
-                <p class="sheme-doc-name--filename">
-                  {{ files ? files.name.substring(0, files.name.length - 4) : 'Unknow' }}
-                </p>
-                <p class="sheme-doc-name--filetype">
-                  {{ files && files.name.substring(files.name.length - 4) }}
-                </p>
-              </div>
-              <el-input placeholder="Comment" v-model="input"></el-input>
+            <el-collapse v-model="activeNames">
+            <el-col :span="12" v-for="(i, j) in listSchemeComments" :key="i+j" style="padding: 3px 5px;">
+              <el-collapse-item :title="j" :name="j">
+                <div class="sheme-doc-name">
+                  <p class="sheme-doc-name--filename">
+                    {{ files ? files.name.substring(0, files.name.length - 4) : j }}
+                  </p>
+                  <p class="sheme-doc-name--filetype">
+                    {{ files ? files.name.substring(files.name.length - 4) : '.pdf' }}
+                  </p>
+                </div>
+                <div style="float: right; padding: 5px 5px; margin: 4px 0;">
+                  <el-button icon="el-icon-view" circle size="mini" @click="handlePictureCardPreview('')"></el-button>
+                  <el-button icon="el-icon-upload" circle size="mini" @click="select(i, j)"></el-button>
+                </div>
+                <el-input placeholder="Comment" v-model="i.comment"></el-input>
+              </el-collapse-item>
+              
+            </el-col>
+            </el-collapse>
+          </el-row>
+          <el-row>
+            <el-col :span="24">
+              <el-input placeholder="Comment" v-model="commentsAll"></el-input>
             </el-col>
           </el-row>
         </el-col>
@@ -150,7 +177,7 @@
       </div>
     </el-dialog>
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="outerVisible" width="95%">
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="outerVisible" width="95%" top="5vh" :destroy-on-close="true">
       <el-alert title="Check Customer Information" type="success" effect="dark" :closable="false"></el-alert>
       <el-row :gutter="20" style="margin-top: 10px; margin-bottom: 10px">
         <el-col :span="6">
@@ -169,19 +196,19 @@
 
       <el-row :gutter="20" style="margin-top: 10px; margin-bottom: 10px">
         <el-col :span="6">
-          <el-select v-model="value" placeholder="Branch" class="el-fullwidth-custom">
-            <el-option v-for="item in [1,2,3]" :key="item" :label="item" :value="item" :disabled="checkPass"></el-option>
+          <el-select v-model="state.dataentry.newCustomer.branch" placeholder="Branch" class="el-fullwidth-custom">
+            <el-option v-for="item in listBranch.data" :key="item.branchName" :label="item.branchName" :value="item.branchName" :disabled="checkPass"></el-option>
           </el-select>
         </el-col>
         <el-col :span="6">
-          <el-select v-model="value" placeholder="City" class="el-fullwidth-custom">
-            <el-option v-for="item in [1,2,3]" :key="item" :label="item" :value="item" :disabled="checkPass">
+          <el-select v-model="cityStatus" placeholder="City" class="el-fullwidth-custom" ref="citySelect">
+            <el-option v-for="item in listAriaCode.data" :key="item._id" :label="item.cityName" :value="item.data" :disabled="checkPass">
             </el-option>
           </el-select>
         </el-col>
         <el-col :span="6">
-          <el-select v-model="value" placeholder="District" class="el-fullwidth-custom">
-            <el-option v-for="item in [1,2,3]" :key="item" :label="item" :value="item" :disabled="checkPass">
+          <el-select v-model="state.dataentry.newCustomer.areaId" placeholder="District" class="el-fullwidth-custom">
+            <el-option v-for="item in ariaCodeSelect" :key="item.areaCode" :label="item.areaName" :value="item.areaCode" :disabled="checkPass">
             </el-option>
           </el-select>
         </el-col>
@@ -193,41 +220,73 @@
       <el-alert title="Upload ACCA" type="success" effect="dark" :closable="false"></el-alert>
       <el-row :gutter="20" style="margin-top: 10px; margin-bottom: 10px">
         <el-col :span="12">
-          <el-select v-model="value" placeholder="Product" class="el-fullwidth-custom" disabled>
+          <el-select v-model="state.dataentry.newCustomer.product" placeholder="Product" class="el-fullwidth-custom" disabled>
             <el-option v-for="item in [1,2,3]" :key="item" :label="item" :value="item"></el-option>
           </el-select>
         </el-col>
         <el-col :span="12">
-          <el-select v-model="value" placeholder="Scheme" class="el-fullwidth-custom">
-            <el-option v-for="item in [1,2,3]" :key="item" :label="item" :value="item">
+          <el-select v-model="listScheme" placeholder="Scheme" class="el-fullwidth-custom" @change="onChangeScheme" ref="schemeSelect">
+            <el-option v-for="item in listSchemeDoc.data" :key="item.productName" :label="item.productName" :value="item.documentName">
             </el-option>
           </el-select>
         </el-col>
       </el-row>
-      <el-row :gutter="20" style="margin-top: 10px; margin-bottom: 10px">
+      <el-row :gutter="20" style="margin-top: 10px; margin-bottom: 10px" v-if="listScheme">
         <el-col :span="24">
-        <el-upload action="#" list-type="picture-card" :auto-upload="false" multiple>
-          <i slot="default" class="el-icon-plus"></i>
-          <div slot="file" slot-scope="{file}">
-            <div class="type-card-docs">Notarization of ID card</div>
-            <img class="el-upload-list__item-thumbnail" :src="file.url" :alt="file.name" style="height: 90px">
-            <div style="display: block; margin: auto; width: 125px; height: 20px;">
-              <p class="sheme-doc-name--filename--create">
-                {{ file ? file.name.substring(0, file.name.length - 4) : 'Unknow' }}
-              </p>
-              <p class="sheme-doc-name--filetype--create">
-                {{ file && file.name.substring(file.name.length - 4) }}
-              </p>
-            </div>
-            <span class="el-upload-list__item-actions">
-              <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)"><i class="el-icon-zoom-in"></i></span>
-              <span class="el-upload-list__item-delete" @click="handleRemove(file)"><i class="el-icon-delete"></i></span>
-            </span>
-          </div>
-        </el-upload>
-        <el-dialog :visible.sync="innerVisible" append-to-body>
-          <img width="100%" :src="dialogImageUrl" alt="">
-        </el-dialog>
+            <el-badge :value="countFile" class="item-badge">
+              <el-upload
+                action="#"
+                list-type="picture-card" 
+                :auto-upload="false"
+                multiple 
+                ref="upload" 
+                name="files"
+                :on-change="onChangeScheme"
+                :disabled="uploadFileLoading"
+              >
+              <i slot="default" class="el-icon-plus"></i>
+            
+              <div slot="file" slot-scope="{file}">
+                  <div v-if="renderComponent">
+                    <div v-if="file.scheme" class="type-card-docs">{{ file.scheme }}</div>
+                    <div v-else-if="handleTypeScheme(file).file" class="type-card-docs">{{ handleTypeScheme(file).file }}</div>
+                    <div v-else class="type-card-docs Unknown" style="text-align: center;">Warning
+                        <i class="el-icon-warning" style="float: right; margin: 5px;"></i>
+                    </div>
+                      
+                    <embed :src="file.url" :alt="file.name" style="height: 90px"/>
+
+                    <div style="display: block; margin: auto; width: 125px; height: 20px;">
+                      <p class="sheme-doc-name--filename--create">
+                        {{ file ? file.name.substring(0, file.name.length - 4) : 'Unknow' }}
+                      </p>
+                      <p class="sheme-doc-name--filetype--create">
+                        {{ file && file.name.substring(file.name.length - 4) }}
+                      </p>
+                    </div>
+                  
+                    <el-tooltip class="item" effect="dark" :content="handleTypeScheme(file).result" placement="right-start">
+                      <span class="el-upload-list__item-actions">
+                        <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)"><i class="el-icon-zoom-in"></i></span>
+                        <el-dropdown trigger="click" @command="handleCommand">
+                          <span class="el-upload-list__item-edit">
+                            <i class="el-icon-edit" style="font-size: 20px; color: white;"></i>
+                          </span>
+                          <el-dropdown-menu slot="dropdown" >
+                            <el-dropdown-item v-for="(i, j) in listObj_scheme" :key="j" :command="{type: j, file: file}">
+                              <span style="display: inline-block; width: 20px;"><i v-if="i" class="el-icon-check"></i></span><span>{{ j }}</span>
+                            </el-dropdown-item>
+                          </el-dropdown-menu>
+                        </el-dropdown>
+                        
+                        <span class="el-upload-list__item-delete" @click="handleRemove(file)"><i class="el-icon-delete"></i></span>
+                      </span>
+                    </el-tooltip>
+                  </div>
+              </div>
+              
+            </el-upload>
+            </el-badge>
         </el-col>
       </el-row>
       </div>
@@ -235,23 +294,19 @@
         <el-button @click="outerVisible = false">
           Cancel
         </el-button>
-        <el-button type="primary" v-if="checked" @click="createData()">
+        <el-button type="primary" v-if="checked && uploadDone" @click="createData()">
           Save
+        </el-button>
+        <el-button type="primary" v-else-if="checked && !uploadDone" @click="submitUpload()" :disabled="!$refs.upload || !$refs.upload.uploadFiles || !$refs.upload.uploadFiles.length">
+          UploadFiles
         </el-button>
         <el-button type="primary" v-else  @click="checkData()" :disabled="checkPass">
           Check
         </el-button>
       </div>
     </el-dialog>
-
-    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
-      <el-table :data="pvData" border fit highlight-current-row style="width: 100%">
-        <el-table-column prop="key" label="Channel" />
-        <el-table-column prop="pv" label="Pv" />
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="dialogPvVisible = false">Confirm</el-button>
-      </span>
+    <el-dialog :title="dialogImageName" :visible.sync="innerVisible" append-to-body width="80%" top="9vh">
+      <embed :src="dialogImageUrl" style="width: 100%; height: 70vh;"/>
     </el-dialog>
   </div>
 </template>
@@ -259,13 +314,12 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import { parseTime } from '@/utils'
-import Pagination from './pagination' // secondary package based on el-pagination
 import DialogCreate from './dialogCreate'
-import axios from 'axios'
+import { MessageBox, Message } from 'element-ui'
 
 export default {
   name: 'LeadDE',
-  components: { Pagination, DialogCreate },
+  components: { DialogCreate },
   directives: { waves },
   filters: {
     statusFilter(status) {
@@ -282,27 +336,35 @@ export default {
   },
   data() {
     return {
+      renderComponent: true,
+      fileList: [], 
+      valueSearch: '',
+      keySearch: '',
       listSchemeDoc: [],
+      listObj_scheme: {},
+      countFile: 0,
+      listAriaCode: [],
+      listBranch: [],
+      cityStatus: [],
+      listScheme: [],
       dialogImageUrl: '',
+      dialogImageName: '',
       innerVisible: false,
       disabled: false,
       checked: false,
       checkPass: false,
       checkLoading: false,
-      newCustomer: {
-        requestID: '123456',
-        customerName: '',
-        customerId: '',
-        dsaCode: '',
-        bankCardNumber: '',
-        currentAddress: '',
-        areaId: '100001'
-      },
+      uploadDone: false,
+      uploadFileLoading: false,
+      
+      listSchemeComments: {},
+      commentsAll: '',
+      activeNames: [],
         files: null,
         list: [],
         total: 0,
         listLoading: true,
-        listQuery: {
+        params: {
             page: 1,
             limit: 20,
             importance: undefined,
@@ -311,51 +373,16 @@ export default {
             sort: '+id'
         },
         headers: [
-            {
-                key: 'createdAt', //key columns with data key
-                title: 'Created At', //title columns will display
-                align: 'center', //position of column body
-                // width: '230',
-                // expand: false,
-                // checkbox: false,
-                header_align: 'center' //position of column header
-            },
-            {
-                key: 'updatedAt', //key columns with data key
-                title: 'Updated At', //title columns will display
-                align: 'center', //position of column body
-                // width: '230',
-                // expand: false,
-                // checkbox: false,
-                header_align: 'center' //position of column header
-            },
-            {
-                key: 'appId', //key columns with data key
-                title: 'App ID', //title columns will display
-                align: 'center', //position of column body
-                // width: '230',
-                // expand: false,
-                // checkbox: false,
-                header_align: 'center' //position of column header
-            },
-            {
-                key: 'status', //key columns with data key
-                title: 'Status', //title columns will display
-                align: 'center', //position of column body
-                // width: '230',
-                // expand: false,
-                // checkbox: false,
-                header_align: 'center' //position of column header
-            },
-            {
-                key: 'fullName', //key columns with data key
-                title: 'Full Name', //title columns will display
-                align: 'center', //position of column body
-                // width: '230',
-                // expand: false,
-                // checkbox: false,
-                header_align: 'center' //position of column header
-            }
+          { key: 'action', title: 'Action', align: 'center', header_align: 'center' },
+          { key: 'appId', title: 'App ID', align: 'center', header_align: 'center' },
+          { key: 'status', title: 'Status', align: 'center', header_align: 'center' },
+          { key: 'fullName', title: 'Full Name', align: 'center', header_align: 'center' },
+          { key: 'identificationNumber', title: 'National ID', align: 'center', header_align: 'center' },
+          { key: 'lastComment', title: 'Last Comment', align: 'center', header_align: 'center' },
+          { key: 'assigned', title: 'Create By', align: 'center', header_align: 'center' },
+          { key: 'createdAt', title: 'Created At', align: 'center', header_align: 'center' },
+          { key: 'updatedAt', title: 'Updated At', align: 'center', header_align: 'center' },
+          
         ],
         importanceOptions: [1, 2, 3],
         sortOptions: [{ label: 'ID Ascending', key: '+id' }, { label: 'ID Descending', key: '-id' }],
@@ -385,24 +412,36 @@ export default {
         },
         dialogPvVisible: false,
         pvData: [],
-        // rules: {
-        //     type: [{ required: true, message: 'type is required', trigger: 'change' }],
-        //     timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-        //     title: [{ required: true, message: 'title is required', trigger: 'blur' }]
-        // },
         params: {
           page: 1,
-          limit: 13,
+          limit: 10,
+          sort: 'createdAt,asc',
           project: 'dataentry'
         }
         
     }
   },
+  computed: {
+    ariaCodeSelect: function () {
+      return this.cityStatus
+    },
+    listSchemeSelect: function () {
+      this.countFile = this.listScheme.length
+      this.listObj_scheme = {}
+      for (let i = 0; i < this.listScheme.length; i++) {
+        this.listObj_scheme[this.listScheme[i]] = false
+      }
+      return this.listScheme
+    }
+  },
   created() {
     this.getList()
     this.getListScheme()
+    this.getListAreaCode()
+    this.getBranch()
   },
   methods: {
+    // get all data first time
     getList() {
       this.listLoading = true
       this.$store.dispatch('dataentry/getQuickList', this.params)
@@ -423,9 +462,86 @@ export default {
         .catch(() => {
         })
     },
+    getListAreaCode() {
+      this.$store.dispatch('dataentry/getAriaCode')
+        .then((data) => {
+          this.listAriaCode = data.data
+        })
+        .catch(() => {
+        })
+    },
+    getBranch() {
+      this.$store.dispatch('dataentry/getBranch')
+        .then((data) => {
+          this.listBranch = data.data
+        })
+        .catch(() => {
+        })
+    },
+    // for list app
+    handleSizeChange(a) {
+      this.params.limit = a
+      this.getList()
+    },
+    handleCurrentChange(a) {
+      this.params.page = a
+      this.getList()
+    },
+    handleSearch() {
+      this.params = {
+        page: 1,
+        limit: 10,
+        sort: 'createdAt,asc',
+        project: 'dataentry'
+      }
+      this.params[this.keySearch] = this.valueSearch
+      this.getList()
+    },
+    // action in 1 of apps
+    retryQuickLead(e, data) {
+      let a = e.currentTarget
+      a.setAttribute('disabled', 'disabled')
+      if (data && data.optional && data.optional.quickLeadId) {
+        this.$store.dispatch('dataentry/retryQuickLead', data.optional.quickLeadId)
+          .then((res) => {
+            if (res.data.result_code == "0") {
+              Message({
+                message:'Automation did receive, wait a few minutes for upgrade',
+                type: 'success',
+                duration: 5 * 1000
+              })
+            }
+            a.setAttribute('disabled', false)
+          })
+          .catch(() => {
+            a.setAttribute('disabled', false)
+          })
+      }
+    },
+    updateStatusManualy(e, data) {
+      let a = e.currentTarget
+      a.setAttribute('disabled', 'disabled')
+      if (data && data.appId) {
+        this.$store.dispatch('dataentry/updateStatusManualy', data.appId)
+          .then((res) => {
+            if (res.data.result_code == "0") {
+              Message({
+                message:'Automation did receive, wait a little for upgrade',
+                type: 'success',
+                duration: 5 * 1000
+              })
+            }
+            a.setAttribute('disabled', false)
+          })
+          .catch(() => {
+            a.setAttribute('disabled', false)
+          })
+      }
+    },
+    // for create new quicklead
     checkData() {
       this.checkPass = true
-      this.$store.dispatch('dataentry/postFirstCheck', this.newCustomer)
+      this.$store.dispatch('dataentry/postFirstCheck', this.state.dataentry.newCustomer)
         .then((data) => {
           this.checkPass = false
           if (data.data.data.first_check_result == 'pass') {
@@ -436,50 +552,272 @@ export default {
         .catch(() => {
         })
     },
+    handleTypeScheme(file) {
+      const isPDF = file.raw.type === 'application/pdf'
+      const isLt2M = file.raw.size / 1024 / 1024 < 2;
+      let mess = undefined
+      let typeScheme = false
+      if (!isPDF) {
+        mess = 'Docs must be PDF format!'
+      }
+      if (!isLt2M) {
+        mess = 'Docs size can not exceed 2MB!'
+      }
+
+      if (isPDF && isLt2M) {
+        let a = this.checkFiles(file.name)
+        if (!a.checked) {
+          mess = 'Can not read Type_Scheme this file, get 1 Type_Scheme for it!'
+        } else {
+          typeScheme = a.type
+        }
+      }
+
+      return { result: mess, file: typeScheme }
+    },
+    onChangeScheme () {
+      if (this.$refs && this.$refs.upload && this.$refs.upload.uploadFiles) {
+        for (let j in this.$refs.upload.uploadFiles) {
+          let a = this.checkFiles(this.$refs.upload.uploadFiles[j].name)
+          if (a.checked) {
+            this.listObj_scheme[a.type] = this.$refs.upload.uploadFiles[j]
+          }
+        }
+      }
+      this.countFile = 0
+      for (let i in this.listObj_scheme) {
+        if (!this.listObj_scheme[i]) {
+          this.countFile++
+        }
+      }
+    },
+    handleCommand(command) {
+      this.renderComponent = false;
+      for (let j in this.$refs.upload.uploadFiles) {
+        if (this.$refs.upload.uploadFiles[j].name == command.file.name) {
+          this.$refs.upload.uploadFiles[j].scheme = command.type
+        }
+      }
+      this.listObj_scheme[command.type] = command.file
+      this.$set(this.listObj_scheme, command.type, command.file)
+      this.countFile = 0
+      for (let i in this.listObj_scheme) {
+        if (!this.listObj_scheme[i]) {
+          this.countFile++
+        }
+      }
+      this.$nextTick(() => {
+        this.renderComponent = true;
+      });
+    },
+    checkFiles(fileName) {
+      let type = ''
+      return {
+        checked: this.listSchemeSelect.some(scheme => {
+          let keyCheck = scheme
+          let regex = new RegExp(keyCheck)
+          if (fileName.search(regex, 'i') != -1) {
+            type = keyCheck
+            return true
+          } else {
+            return false
+          }
+        }),
+        type: type
+      } 
+    },
     handleRemove(file) {
-      console.log(file);
+      let listFile = this.$refs.upload.uploadFiles
+      for (let i in listFile) {
+        if (listFile[i].name == file.name) {
+          this.$refs.upload.uploadFiles.splice(i, 1)
+        }
+      }
+      for (let j in this.listObj_scheme) {
+        if (this.listObj_scheme[j] && this.listObj_scheme[j].name == file.name) {
+          this.listObj_scheme[j] = false
+        }
+      }
     },
     handlePictureCardPreview(file) {
-      this.dialogImageUrl = file.url;
-      this.innerVisible = true;
+      this.dialogImageUrl = file.url || '';
+      this.dialogImageName = file.name || 'Unknown';
+      let that = this 
+      setTimeout(function(){ that.innerVisible = true; }, 100);
+      
     },
-    select() {
+    submitUpload() {
+      let formData = new FormData();
+      this.uploadFileLoading = true
+      for (let i in this.$refs.upload.uploadFiles) {
+        let file = this.$refs.upload.uploadFiles[i].raw
+        formData.append('files', file)
+      }
+      
+      this.$store.dispatch('dataentry/uploadFiles', formData)
+        .then((data) => {
+          if (data.data.result_code == '0') {
+            let res = data.data.data
+            let revertDoc = res.documents
+            for (let i in revertDoc) {
+              for (let j in this.listObj_scheme) {
+                if (this.listObj_scheme[j]) {
+                  if (revertDoc[i].originalname == this.listObj_scheme[j].name) {
+                    revertDoc[i].type = j
+                  }
+                }
+              }
+            }
+            this.state.dataentry.quickLeadData.documents = revertDoc
+            this.state.dataentry.quickLeadData.quickLeadId = res.quickLeadId
+            let fullName = this.state.dataentry.newCustomer.customerName.split(' ')
+            this.state.dataentry.quickLeadData.firstName = fullName[0]
+            this.state.dataentry.quickLeadData.lastName = fullName[fullName.length - 1]
+            this.state.dataentry.quickLeadData.city = this.$refs.citySelect.selectedLabel
+            this.state.dataentry.quickLeadData.sourcingBranch = this.state.dataentry.newCustomer.branch
+            this.state.dataentry.quickLeadData.schemeCode = this.$refs.schemeSelect.selectedLabel
+            this.state.dataentry.quickLeadData.identificationNumber = this.state.dataentry.newCustomer.customerId
+            
+            this.uploadDone = true
+            Message({
+              message:'Upload Files success',
+              type: 'success',
+              duration: 5 * 1000
+            })
+          }
+        })
+        .catch(() => {
+          this.uploadDone = true
+          Message({
+            message:'Upload Files failed',
+            type: 'error',
+            duration: 5 * 1000
+          })
+        })
+    },
+    createData() {
+      this.$store.dispatch('dataentry/createQuicklead')
+        .then((data) => {
+          if (data.data.result_code == '0') {
+            Message({
+              message:'Create Quick Lead success, waiting for automation process!',
+              type: 'success',
+              duration: 5 * 1000
+            })
+            this.clearFormCreate()
+            this.$store.dispatch('dataentry/clearDataState')
+          } else {
+            Message({
+              message:'Create Quick Lead failed',
+              type: 'error',
+              duration: 5 * 1000
+            })
+          }
+        })
+        .catch(() => {
+          Message({
+            message:'Create Quick Lead failed',
+            type: 'error',
+            duration: 5 * 1000
+          })
+        })
+    },
+    clearFormCreate() {
+      this.listObj_scheme = {}
+      this.countFile = 0
+      this.cityStatus = []
+      this.listScheme = []
+      this.dialogImageUrl = ''
+      this.dialogImageName = ''
+      this.innerVisible = false
+      this.outerVisible = false
+      this.disabled = false
+      this.checked = false
+      this.checkPass = false
+      this.checkLoading = false
+      this.uploadDone = false
+      this.uploadFileLoading = false
+    },
+    // for comment detail 1 app
+    handleUpdate(row, column) {
+      if (column.property != 'action') {
+        this.temp = Object.assign({}, row)
+        // console.log(this.listSchemeDoc)
+        console.log(row)
+        if (row.optional.schemeCode) {
+          try {
+            this.listSchemeDoc.data && this.listSchemeDoc.data.forEach(scheme => {
+              console.log(scheme)
+              if (scheme.productName == row.optional.schemeCode) {
+                scheme.documentName.forEach(docs => {
+                  this.listSchemeComments[docs] = { file: '', comment: '' }
+                })
+              }
+            })
+          }
+          catch(err) {
+            console.log('sdf')
+          }
+        } else {
+
+        }
+        
+
+      //   listSchemeComments: {
+      //   'ID Card': { file: '', comment: '' },
+      //   'Notarization of ID card': { file: '', comment: '' },
+      //   'Family Book': { file: '', comment: '' },
+      //   'Notarization of Family Book': { file: '', comment: '' },
+      //   'Health Insurance Card': { file: '', comment: '' },
+      //   'Banking Statement': { file: '', comment: '' },
+      //   'Employer Confirmation': { file: '', comment: '' },
+      //   'Labor Contract': { file: '', comment: '' },
+      //   'Salary slip': { file: '', comment: '' },
+      //   'Customer Photograph': { file: '', comment: '' },
+      //   'Map to Customer House': { file: '', comment: '' },
+      //   'Customer Signature': { file: '', comment: '' }
+      // },
+        this.dialogStatus = 'update'
+        this.dialogDetail = true
+      }
+    },
+    select(scheme) {
+      console.log(scheme)
       this.$refs.myFiles.click();
     },
     previewFiles() {
       let listFile = this.$refs.myFiles.files
       this.files = listFile[0]
-      console.log(this.files)
     },
-    rowClicked(a) {
-        console.log(a)
-    },
+    // rowClicked(a) {
+    //     console.log(a)
+    // },
     
-    handleFilter() {
-      this.listQuery.page = 1
-      this.getList()
-    },
-    handleModifyStatus(row, status) {
-      this.$message({
-        message: '操作Success',
-        type: 'success'
-      })
-      row.status = status
-    },
-    sortChange(data) {
-      const { prop, order } = data
-      if (prop === 'id') {
-        this.sortByID(order)
-      }
-    },
-    sortByID(order) {
-      if (order === 'ascending') {
-        this.listQuery.sort = '+id'
-      } else {
-        this.listQuery.sort = '-id'
-      }
-      this.handleFilter()
-    },
+    // handleFilter() {
+    //   this.listQuery.page = 1
+    //   this.getList()
+    // },
+    // handleModifyStatus(row, status) {
+    //   this.$message({
+    //     message: '操作Success',
+    //     type: 'success'
+    //   })
+    //   row.status = status
+    // },
+    // sortChange(data) {
+    //   const { prop, order } = data
+    //   if (prop === 'id') {
+    //     this.sortByID(order)
+    //   }
+    // },
+    // sortByID(order) {
+    //   if (order === 'ascending') {
+    //     this.listQuery.sort = '+id'
+    //   } else {
+    //     this.listQuery.sort = '-id'
+    //   }
+    //   this.handleFilter()
+    // },
     resetTemp() {
       this.temp = {
         id: undefined,
@@ -495,79 +833,52 @@ export default {
       this.resetTemp()
       this.dialogStatus = 'create'
       this.outerVisible = true
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
     },
-    createData() {
-      this.$refs['dataForm'].validate((valid) => {
-        if (valid) {
-          this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-          this.temp.author = 'vue-element-admin'
-          createArticle(this.temp).then(() => {
-            this.list.unshift(this.temp)
-            this.dialogFormVisible = false
-            this.$notify({
-              title: 'Success',
-              message: 'Created Successfully',
-              type: 'success',
-              duration: 2000
-            })
-          })
-        }
-      })
-    },
-    handleUpdate(row) {
-      this.temp = Object.assign({}, row)
-      this.dialogStatus = 'update'
-      this.dialogDetail = true
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
-    },
+    
+    
     handleComment(cmt) {
       this.tempCmt = Object.assign({}, cmt)
     },
-    updateData() {
-      this.$refs['dataForm'].validate((valid) => {
-        if (valid) {
-          const tempData = Object.assign({}, this.temp)
-          tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateArticle(tempData).then(() => {
-            for (const v of this.list) {
-              if (v.id === this.temp.id) {
-                const index = this.list.indexOf(v)
-                this.list.splice(index, 1, this.temp)
-                break
-              }
-            }
-            this.dialogFormVisible = false
-            this.$notify({
-              title: 'Success',
-              message: 'Update Successfully',
-              type: 'success',
-              duration: 2000
-            })
-          })
-        }
-      })
-    },
-    handleDelete(row) {
-      this.$notify({
-        title: 'Success',
-        message: 'Delete Successfully',
-        type: 'success',
-        duration: 2000
-      })
-      const index = this.list.indexOf(row)
-      this.list.splice(index, 1)
-    },
-    handleFetchPv(pv) {
-      fetchPv(pv).then(response => {
-        this.pvData = response.data.pvData
-        this.dialogPvVisible = true
-      })
-    },
+    // updateData() {
+    //   this.$refs['dataForm'].validate((valid) => {
+    //     if (valid) {
+    //       const tempData = Object.assign({}, this.temp)
+    //       tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
+    //       updateArticle(tempData).then(() => {
+    //         for (const v of this.list) {
+    //           if (v.id === this.temp.id) {
+    //             const index = this.list.indexOf(v)
+    //             this.list.splice(index, 1, this.temp)
+    //             break
+    //           }
+    //         }
+    //         this.dialogFormVisible = false
+    //         this.$notify({
+    //           title: 'Success',
+    //           message: 'Update Successfully',
+    //           type: 'success',
+    //           duration: 2000
+    //         })
+    //       })
+    //     }
+    //   })
+    // },
+    // handleDelete(row) {
+    //   this.$notify({
+    //     title: 'Success',
+    //     message: 'Delete Successfully',
+    //     type: 'success',
+    //     duration: 2000
+    //   })
+    //   const index = this.list.indexOf(row)
+    //   this.list.splice(index, 1)
+    // },
+    // handleFetchPv(pv) {
+    //   fetchPv(pv).then(response => {
+    //     this.pvData = response.data.pvData
+    //     this.dialogPvVisible = true
+    //   })
+    // },
     // handleDownload() {
     //   this.downloadLoading = true
     //   import('@/vendor/Export2Excel').then(excel => {
@@ -582,38 +893,48 @@ export default {
     //     this.downloadLoading = false
     //   })
     // },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
-        } else {
-          return v[j]
-        }
-      }))
-    },
-    getSortClass: function(key) {
-      const sort = this.listQuery.sort
-      return sort === `+${key}`
-        ? 'ascending'
-        : sort === `-${key}`
-          ? 'descending'
-          : ''
-    }
+    // formatJson(filterVal, jsonData) {
+    //   return jsonData.map(v => filterVal.map(j => {
+    //     if (j === 'timestamp') {
+    //       return parseTime(v[j])
+    //     } else {
+    //       return v[j]
+    //     }
+    //   }))
+    // },
+    // getSortClass: function(key) {
+    //   const sort = this.listQuery.sort
+    //   return sort === `+${key}`
+    //     ? 'ascending'
+    //     : sort === `-${key}`
+    //       ? 'descending'
+    //       : ''
+    // }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+.el-button + .el-button {
+  margin-left: 3px;
+}
+.el-select .el-input {
+  width: 110px;
+}
+.pagination-container {
+  background: #fff;
+  margin-top: 10px;
+}
 .sheme-doc-name {
-  background-color: black;
+  background-color: #b3d8ff;
   padding: 5px 15px;
   margin: 10px 0;
   border-radius: 15px;
   display: inline-block;
   &--filename {
-    color: white;
+    color: black;
     margin: 0 !important;
-    max-width: 150px;
+    max-width: 130px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -630,7 +951,7 @@ export default {
     }
   }
   &--filetype {
-    color: white;
+    color: black;
     margin: 0 !important;
     display: inline-block;
     &--create {
@@ -650,5 +971,14 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.type-card-docs {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.Unknown {
+  background-color: #ce1313;
+  color: white;
 }
 </style>

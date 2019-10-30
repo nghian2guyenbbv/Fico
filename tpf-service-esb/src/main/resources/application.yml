@@ -1,0 +1,7 @@
+spring:
+  rabbitmq:
+    host: 192.168.0.203
+eureka:
+  client:
+    serviceUrl:
+      defaultZone:  http://192.168.0.203:8761/eureka

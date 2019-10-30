@@ -1,20 +1,19 @@
 import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
-import { getToken } from '@/utils/auth'
+import * as cookie from '@/utils/cookie'
 
 // tao axios goi api
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API + process.env.VUE_APP_VERSION_API,
-  // withCredentials: true, // send cookies when cross-domain requests
-  // timeout: 5000
 })
 
 // setting truoc khi api dang gui di
 service.interceptors.request.use(
   config => {
-    if (store.getters.token) {
-      config.headers['Authorization'] = 'Bearer ' + getToken()
+    const token = cookie.getToken()
+    if (token) {
+      config.headers['Authorization'] = 'Bearer ' + token
     }
     return config
   },

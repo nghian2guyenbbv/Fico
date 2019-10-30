@@ -35,6 +35,10 @@ public class HomePage {
 	@CacheLookup
 	private WebElement menuApplicationElement;
 
+	@FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Application Manager')]")
+	@CacheLookup
+	private WebElement applicationManagerElement;
+
 	public HomePage(WebDriver driver) {
         PageFactory.initElements(driver, this);
     }

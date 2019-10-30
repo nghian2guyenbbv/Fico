@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import { apiLogin, apiLogout, apiGetInfo } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import * as cookie from '@/utils/cookie'
 import router, { resetRouter } from '@/router'
 
 const state = {
-  token: getToken(),
+  token: cookie.getToken(),
   avatar: '',
   active: false,
   exp: 0,
@@ -18,9 +18,9 @@ const state = {
 }
 
 const mutations = {
-  SET_TOKEN: (state, token) => {
-    state.token = token
-  },
+  // SET_TOKEN: (state, token) => {
+  //   state.token = token
+  // },
   SET_INFOR_USER: (state, value) => {
     Object.assign(state, value)
   },
@@ -35,13 +35,13 @@ const actions = {
     const { username, password } = userInfo
     
     return new Promise((resolve, reject) => {
+      // this.$store.dispatch('app/fnSocket', null)
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = {
           access_token: 'abc1234',
           expires_in: 1000000
         }
-        commit('SET_TOKEN', response.access_token)
-        setToken(response.access_token, response.expires_in)
+        cookie.setToken(response.access_token, response.expires_in)
         dispatch('getInfo').then((data) => {
             resolve(data)
         })
@@ -49,8 +49,7 @@ const actions = {
         apiLogin({ username: username.trim(), password: password })
         .then(res => {
           let response = res.data
-          commit('SET_TOKEN', response.access_token)
-          setToken(response.access_token, response.expires_in)
+          cookie.setToken(response.access_token, response.expires_in)
           dispatch('getInfo').then((data) => {
             resolve(data)
           })
@@ -67,7 +66,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = {
-          authorities: ['role_user'],
+          authorities: ['role_root'],
           avatar: '',
           active: true,
           optional: {
@@ -85,12 +84,12 @@ const actions = {
             if (response.authorities.includes('role_root')) {
                 roles = ['admin']
             } else {
-                roles = response.optional.roles
+              roles = response.optional.roles
             }
         }
 
         commit('SET_INFOR_USER', response)
-        commit('SET_ROLES_USER', roles)
+        cookie.setRoles(roles)
         resolve(response)
       } else {
         apiGetInfo()
@@ -99,20 +98,21 @@ const actions = {
           if (!response || response.error) {
             reject('Verification failed, please Login again.')
           }
-  
           let roles = undefined
+          let projects = undefined
           if (response && response.authorities) {
             if (response.authorities.includes('role_root')) {
               roles = ['admin']
             } else {
+              projects = response.projects
               roles = response.optional.roles
+              Vue.set(state, 'projects', [...projects])
             }
           }
-  
+          
           commit('SET_INFOR_USER', response)
-          commit('SET_ROLES_USER', roles)
+          cookie.setRoles(roles)
           resolve(roles)
-  
         }).catch(error => {
           reject(error)
         })
@@ -125,8 +125,7 @@ const actions = {
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
       apiLogout(state.token).then(() => {
-        commit('SET_TOKEN', '')
-        removeToken()
+        cookie.clearCookie()
         resetRouter()
         resolve()
       }).catch(error => {
@@ -138,8 +137,7 @@ const actions = {
   // // remove token
   resetToken({ commit }) {
     return new Promise(resolve => {
-      commit('SET_TOKEN', '')
-      removeToken()
+      cookie.clearCookie()
       resolve()
     })
   },
@@ -150,7 +148,7 @@ const actions = {
   //     const token = role + '-token'
 
   //     commit('SET_TOKEN', token)
-  //     setToken(token)
+  //     cookie.setToken(token)
 
   //     const { roles } = await dispatch('getInfo')
 

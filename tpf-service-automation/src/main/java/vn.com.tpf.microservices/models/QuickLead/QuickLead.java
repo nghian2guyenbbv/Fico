@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.models.QuickLead;
 
 import lombok.Data;
+import vn.com.tpf.microservices.models.Document;
 
 import java.util.List;
 
@@ -22,5 +23,5 @@ public class QuickLead {
     public String preferredModeOfCommunication;
     public String leadStatus;
     public String communicationTranscript;
-    public List<QL_Document> documents = null;
+    public List<Document> documents = null;
 }

@@ -8,14 +8,10 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.models.Automation.MiscFptDTO;
-import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static org.awaitility.Awaitility.await;
 
 @Getter
 public class DE_MiscFptPage {
@@ -68,14 +64,14 @@ public class DE_MiscFptPage {
     }
 
     public void setData(MiscFptDTO data) {
-        modelElement.sendKeys(data.getModel());
-        goodCodeElement.sendKeys(data.getGoodCode());
-        goodTypeElement.click();
-        await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> goodTypeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getGoodType(), goodTypeOptionElement);
-        quantityElement.sendKeys(data.getQuantity());
-        goodPriceElement.sendKeys(data.getGoodPrice());
+//        modelElement.sendKeys(data.getModel());
+//        goodCodeElement.sendKeys(data.getGoodCode());
+//        goodTypeElement.click();
+//        await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> goodTypeOptionElement.size() > 0);
+//        Utilities.chooseDropdownValue(data.getGoodType(), goodTypeOptionElement);
+//        quantityElement.sendKeys(data.getQuantity());
+//        goodPriceElement.sendKeys(data.getGoodPrice());
         downPaymentElement.sendKeys(data.getDownPayment());
         employeeCardNumElement.sendKeys(data.getEmployeeCardNum());
     }
