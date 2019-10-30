@@ -1,21 +1,19 @@
 <template>
   <el-table
-    v-loading
-    :data="data"
-    border
-    fit
-    highlight-current-row
-    style="width: 100%;"
-    height="70vh"
-  >
-    <div v-for="item in headers" :key="item.key">
-      <el-table-column :label="item.title" :prop="item.key" sortable="custom" align="center">
+      v-loading
+      :data="data"
+      border
+      fit
+      highlight-current-row
+      style="width: 100%;"
+      height="70vh"
+    >
+      <el-table-column v-for="(item) in headers" :key="item.key" :label="item.title">
         <template slot-scope="scope">
-          <span>{{ renderCol(scope.row[item.key], item.type) }}</span>
+          {{ renderCol(scope.row[item.key], item.type) }}
         </template>
       </el-table-column>
-    </div>
-  </el-table>
+    </el-table>
 </template>
 
 <script>
