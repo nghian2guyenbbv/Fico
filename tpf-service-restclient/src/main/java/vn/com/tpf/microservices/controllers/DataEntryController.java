@@ -12,6 +12,7 @@ import org.springframework.http.*;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -27,8 +28,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 @RestController
-public class
-DataEntryController {
+public class DataEntryController {
 
 	@Autowired
 	private RabbitMQService rabbitMQService;
@@ -227,11 +227,9 @@ DataEntryController {
 		MultiValueMap<String, Object> parts_02 =
 				new LinkedMultiValueMap<String, Object>();
 		JsonNode body = null;
-
 		request.put("func", "uploadFile");
 		request.put("token", token);
 		request.put("appId", appId);
-
 		try {
 			ResponseEntity<?> res = new ResponseEntity<Authenticator.Success>(HttpStatus.CREATED);
 
@@ -273,20 +271,38 @@ DataEntryController {
 						int i = 0;
 						for (JsonNode item :body){
 							ObjectNode doc = mapper.createObjectNode();
-							doc.put("file-name", item.path("originalname").textValue());
-							doc.put("md5", item.path("md5").textValue());
 
 							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
+								doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
-								parts_02.add("ID-Card", files[i].getResource());
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
+										"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("ID-Card", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().equals("TPF_Family Book.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
+								doc.put("file-name", "Household_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
-								parts_02.add("Household", files[i].getResource());
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
+										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("Household", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
+								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
-								parts_02.add("Personal-Image", files[i].getResource());
-							}else if (item.path("originalname").textValue().equals("ACCA.pdf")){
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
+										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("Personal-Image", multipartFileToSend.getResource());
+							}else if (item.path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
+								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
+										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("ACCA-Form", files[i].getResource());
 							}
 							i = i + 1;
@@ -330,20 +346,37 @@ DataEntryController {
 						int i = 0;
 						for (JsonNode item :body){
 							ObjectNode doc = mapper.createObjectNode();
-							doc.put("file-name", item.path("originalname").textValue());
-							doc.put("md5", item.path("md5").textValue());
-
 							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
+								doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
-								parts_02.add("ID-Card", files[i].getResource());
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
+										"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("ID-Card", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().equals("TPF_Family Book.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
+								doc.put("file-name", "Household_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
-								parts_02.add("Household", files[i].getResource());
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
+										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("Household", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
+								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
-								parts_02.add("Personal-Image", files[i].getResource());
-							}else if (item.path("originalname").textValue().equals("ACCA.pdf")){
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
+										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("Personal-Image", multipartFileToSend.getResource());
+							}else if (item.path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
+								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
+								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
+
+								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
+										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("ACCA-Form", files[i].getResource());
 							}
 							i = i + 1;

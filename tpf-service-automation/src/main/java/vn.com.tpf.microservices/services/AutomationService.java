@@ -62,7 +62,7 @@ public class AutomationService {
 	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccounts);
 
 	final static List<LoginDTO> fptAccounts= Arrays.asList(
-			LoginDTO.builder().userName("fpt_auto1").password("Hcm@12345").build()
+			LoginDTO.builder().userName("auto_1").password("Hcm@12345").build()
 //            LoginDTO.builder().userName("momo_auto2").password("Hcm@12345").build(),
 //            LoginDTO.builder().userName("momo_auto3").password("Hcm@12345").build(),
 //            LoginDTO.builder().userName("momo_auto4").password("Hcm@12345").build(),
