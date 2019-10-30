@@ -26,18 +26,6 @@ public class RabbitMQService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	@Value("${security.oauth2.client.access-token-uri}")
-	private String accessTokenUri;
-
-	@Value("${security.oauth2.resource.token-info-uri}")
-	private String tokenUri;
-
-	@Value("${security.oauth2.client.client-id}")
-	private String clientId;
-
-	@Value("${security.oauth2.client.client-secret}")
-	private String clientSecret;
-
 	@Autowired
 	private ObjectMapper mapper;
 
@@ -53,42 +41,6 @@ public class RabbitMQService {
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
-	}
-
-	public JsonNode getToken() {
-		try {
-			URI url = URI.create(accessTokenUri);
-			HttpMethod method = HttpMethod.POST;
-			HttpHeaders headers = new HttpHeaders();
-			headers.setBasicAuth(clientId, clientSecret);
-			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			String body = "grant_type=client_credentials";
-			HttpEntity<?> entity = new HttpEntity<>(body, headers);
-			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-			return mapper.valueToTree(res.getBody());
-		} catch (HttpClientErrorException e) {
-			System.err.println(e.getResponseBodyAsString());
-		}
-
-		return null;
-	}
-
-	public JsonNode checkToken(String[] token) {
-		try {
-			if (token.length == 2) {
-				URI url = URI.create(tokenUri + "?token=" + token[1]);
-				HttpMethod method = HttpMethod.GET;
-				HttpHeaders headers = new HttpHeaders();
-				headers.setBasicAuth(clientId, clientSecret);
-				HttpEntity<?> entity = new HttpEntity<>(headers);
-				ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-				return mapper.valueToTree(res.getBody());
-			}
-		} catch (HttpClientErrorException e) {
-			System.err.println(e.getResponseBodyAsString());
-		}
-
-		return null;
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -133,64 +85,27 @@ public class RabbitMQService {
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
-
-			if (request.path("func").asText().equals("CALLERROR")){
-				return response(message, payload, Map.of("status", 500, "data", Map.of("message", "reference_id: "+ request.path("reference_id").textValue() + "ERROR: " +  request.path("errorDetail").textValue())));
-			}
-
-			if (token == null) {
-				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
-			}
-
-			String scopes = token.path("scope").toString();
 
 			switch (request.path("func").asText()) {
 			case "getCustomers":
-				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-					return response(message, payload, repaymentService.getCustomers(request));
-				}
-				break;
+				return response(message, payload, repaymentService.getCustomers(request));
 			case "getCustomers_pay":
-				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-					return response(message, payload, repaymentService.getCustomers_pay(request));
-				}
-				break;
+				return response(message, payload, repaymentService.getCustomers_pay(request));
 			case "customers_pay":
-				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-					return response(message, payload, repaymentService.customers_pay(request));
-				}
-				break;
+				return response(message, payload, repaymentService.customers_pay(request));
 			case "importTrans":
-				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-					return response(message, payload, repaymentService.importTrans(request));
-				}
-				break;
+				return response(message, payload, repaymentService.importTrans(request));
 			case "settleTrans":
-				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-						return response(message, payload, repaymentService.settle(request));
-					}
-					break;
+				return response(message, payload, repaymentService.settle(request));
 			case "getListTrans":
-				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-						return response(message, payload, repaymentService.getListTrans(request));
-					}
-					break;
+				return response(message, payload, repaymentService.getListTrans(request));
 			case "getReport":
-					if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-						return response(message, payload, repaymentService.getReport(request));
-					}
-					break;
+				return response(message, payload, repaymentService.getReport(request));
 			case "getTransDate":
-				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
-					return response(message, payload, repaymentService.getTransDate(request));
-				}
-				break;
+				return response(message, payload, repaymentService.getTransDate(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
-
-			return response(message, payload, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
 		} catch (IllegalArgumentException e) {
 			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
 		} catch (DataIntegrityViolationException e) {
