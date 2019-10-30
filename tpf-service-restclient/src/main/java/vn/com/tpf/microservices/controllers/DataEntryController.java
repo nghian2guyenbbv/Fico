@@ -45,7 +45,7 @@ DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/addproduct")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> addProduct(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -59,7 +59,7 @@ DataEntryController {
 	}
 
 	@RequestMapping("/v1/dataentry/getproductbyname")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> getProductByName(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -73,7 +73,7 @@ DataEntryController {
 	}
 
 	@RequestMapping("/v1/dataentry/getall")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> getAll(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -87,7 +87,7 @@ DataEntryController {
 	}
 
 	@RequestMapping("/v1/dataentry/getappid")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> getByAppId(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -101,7 +101,7 @@ DataEntryController {
 	}
 
 	@RequestMapping("/v1/dataentry/getaddress")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> getAddress(@RequestHeader("Authorization") String token)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -114,7 +114,7 @@ DataEntryController {
 	}
 
 	@RequestMapping("/v1/dataentry/getbranch")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> getBranch(@RequestHeader("Authorization") String token)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -127,7 +127,7 @@ DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/firstcheck")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> firstCheck(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -142,7 +142,7 @@ DataEntryController {
 
 
 	@PostMapping("/dataentry/sendapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> sendapp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -156,7 +156,7 @@ DataEntryController {
 	}
 
 	@PostMapping("/dataentry/updateapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> updateapp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -170,7 +170,7 @@ DataEntryController {
 	}
 
 	@PostMapping("/dataentry/commentapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> comment(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -184,7 +184,7 @@ DataEntryController {
 	}
 
 	@PostMapping("/dataentry/updatestatus")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app ')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> cancel(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -198,7 +198,7 @@ DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/quicklead")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> quicklead(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -212,14 +212,14 @@ DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/uploadfile")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> uploadfile(@RequestHeader("Authorization") String token,
-										@RequestPart("file")  MultipartFile[] files,
+										@RequestPart("files")  MultipartFile[] files,
 										@RequestPart(value = "appId", required = false)  String appId)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
-		String urlFico = "http://192.168.0.205:3001/v1/file";
+		String urlFico = "http://192.168.0.203:3001/v1/file";
 //		String urlFico = "http://tpf-service-file:3001/v1/file";
 		String urlDigiTex = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/documentAPI";
 		String urlDigiTexResubmit = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/resubmitDocumentAPI";
@@ -387,7 +387,7 @@ DataEntryController {
 	}
 
 	@RequestMapping("/v1/dataentry/gettatreport")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> getTATReport(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -413,7 +413,7 @@ DataEntryController {
 	}
 
 	@RequestMapping("/v1/dataentry/getstatusreport")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> getStatusReport(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();

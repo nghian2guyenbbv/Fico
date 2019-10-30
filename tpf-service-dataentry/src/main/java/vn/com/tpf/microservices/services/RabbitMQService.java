@@ -29,9 +29,6 @@ public class RabbitMQService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	@Value("${security.oauth2.client.access-token-uri}")
-	private String accessTokenUri;
-
 	@Value("${security.oauth2.resource.token-info-uri}")
 	private String tokenUri;
 
@@ -56,24 +53,6 @@ public class RabbitMQService {
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
-	}
-
-	public JsonNode getToken() {
-		try {
-			URI url = URI.create(accessTokenUri);
-			HttpMethod method = HttpMethod.POST;
-			HttpHeaders headers = new HttpHeaders();
-			headers.setBasicAuth(clientId, clientSecret);
-			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			String body = "grant_type=client_credentials";
-			HttpEntity<?> entity = new HttpEntity<>(body, headers);
-			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-			return mapper.valueToTree(res.getBody());
-		} catch (HttpClientErrorException e) {
-			System.err.println(e.getResponseBodyAsString());
-		}
-
-		return null;
 	}
 
 	public JsonNode checkToken(String[] token) {
@@ -131,119 +110,59 @@ public class RabbitMQService {
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
-			mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-			mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+//			mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+//			mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
-			if (token == null) {
-				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
-			}
-
-			String scopes = token.path("scope").toString();
+//			if (token == null) {
+//				return response(message, payload, Map.of("status", 401, "data", Map.of("message", "Unauthorized")));
+//			}
+//
+//			String scopes = token.path("scope").toString();
 
 			switch (request.path("func").asText()) {
-			case "addProduct":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "addProduct":
 					return response(message, payload, dataEntryService.addProduct(request));
-				}
-				break;
-			case "getProductByName":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getProductByName":
 					return response(message, payload, dataEntryService.getProductByName(request));
-				}
-				break;
-			case "getAll":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getAll":
 					return response(message, payload, dataEntryService.getAll(request));
-				}
-				break;
-			case "getByAppId":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getByAppId":
 					return response(message, payload, dataEntryService.getByAppId(request));
-				}
-				break;
-			case "getDetail":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getDetail":
 					return response(message, payload, dataEntryService.getDetail(request, token));
-				}
-				break;
-			case "getAddress":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getAddress":
 					return response(message, payload, dataEntryService.getAddress(request));
-				}
-				break;
-			case "getBranch":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getBranch":
 					return response(message, payload, dataEntryService.getBranch(request));
-				}
-				break;
-			case "firstCheck":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "firstCheck":
 					return response(message, payload, dataEntryService.firstCheck(request, token));
-				}
-				break;
-			case "quickLead":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
-//				if (scopes.matches(".*(\"tpf-service-dataentry\").*")) {
+				case "quickLead":
 					return response(message, payload, dataEntryService.quickLead(request, token));
-				}
-				break;
-			case "sendApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "sendApp":
 					return response(message, payload, dataEntryService.sendApp(request, token));
-				}
-				break;
-			case "updateApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "updateApp":
 					return response(message, payload, dataEntryService.updateApp(request, token));
-				}
-				break;
-			case "commentApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "commentApp":
 					return response(message, payload, dataEntryService.commentApp(request, token));
-				}
-				break;
-			case "cancelApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "cancelApp":
 					return response(message, payload, dataEntryService.updateStatus(request, token));
-				}
-				break;
-			case "uploadFile":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "uploadFile":
 					return response(message, payload, dataEntryService.uploadFile(request, token));
-				}
-				break;
-			case "updateAutomation":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "updateAutomation":
 					return response(message, payload, dataEntryService.updateAutomation(request, token));
-				}
-				break;
-			case "updateFullApp":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "updateFullApp":
 					return response(message, payload, dataEntryService.updateFullApp(request, token));
-				}
-				break;
-			case "updateAppError":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "updateAppError":
 					return response(message, payload, dataEntryService.updateAppError(request, token));
-				}
-				break;
-			case "getTATReport":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getTATReport":
 					return response(message, payload, dataEntryService.getTATReport(request, token));
-				}
-				break;
-			case "getStatusReport":
-				if (scopes.matches(".*(\"tpf-service-dataentry\"|\"tpf-service-app\").*")) {
+				case "getStatusReport":
 					return response(message, payload, dataEntryService.getStatusReport(request, token));
-				}
-				break;
-			default:
-				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+				default:
+					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
-
-			return response(message, payload, Map.of("status", 403, "data", Map.of("message", "Forbidden")));
 		} catch (IllegalArgumentException e) {
 			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
 		} catch (DataIntegrityViolationException e) {

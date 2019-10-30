@@ -437,11 +437,10 @@ public class DataEntryService {
 							dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
 						}
 						rabbitMQService.send("tpf-service-automation",
-								Map.of("func", "fullInfoApp", "token",
-										String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataFullApp));
+								Map.of("func", "fullInfoApp","body", dataFullApp));
 
 						rabbitMQService.send("tpf-service-app",
-								Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
+								Map.of("func", "updateApp","reference_id", referenceId,
 										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 
                         Report report = new Report();
@@ -600,6 +599,7 @@ public class DataEntryService {
 		String applicationId = "";
 		String commentId = "";
 		String comment = "";
+		String stageAuto = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
 		try{
@@ -636,6 +636,7 @@ public class DataEntryService {
 							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 
 							Update update = new Update();
+							item.setCreatedDate(new Date());
 							update.push("comment", item);
 							Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, Application.class);
 
@@ -650,6 +651,7 @@ public class DataEntryService {
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
 									if (itemComment.getResponse() == null) {
+										stageAuto = itemComment.getState();
 										Update update = new Update();
 										update.set("comment.$.response", item.getResponse());
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
@@ -661,9 +663,9 @@ public class DataEntryService {
 							// update automation
 							if (item.getResponse().getData() != null){
 								Application dataUpdate = item.getResponse().getData();
+								dataUpdate.setStage(stageAuto);
 								rabbitMQService.send("tpf-service-automation",
-										Map.of("func", "fullInfoApp", "token",
-												String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataUpdate));
+										Map.of("func", "updateAppError","body", dataUpdate));
 							}
 
 						}else{//fico tra comment
@@ -842,8 +844,7 @@ public class DataEntryService {
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
 					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp", "token",
-									String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "body",
+							Map.of("func", "quickLeadApp","body",
 									appData.get(0)));
 				}else {
 					Query queryUpdate = new Query();
@@ -878,13 +879,11 @@ public class DataEntryService {
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
 					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp", "token",
-									String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()), "body",
+							Map.of("func", "quickLeadApp", "body",
 									appData.get(0)));
 
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-									"param", Map.of("project", "dataentry"), "body", convertService.toAppDisplay(appData.get(0))));
+							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1035,24 +1034,26 @@ public class DataEntryService {
 		String urlCmInfoAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/cmInfoAPI";
 		try{
 			Query query = new Query();
-			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").asText()));
+			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
 				if (request.path("body").path("applicationId").textValue() != null && request.path("body").path("applicationId").equals("") != true &&
-						request.path("body").path("applicationId").textValue().equals("") != true) {
+						request.path("body").path("applicationId").textValue().equals("") != true && request.path("body").path("applicationId").equals("UNKNOWN") != true) {
 					Update update = new Update();
-					update.set("applicationId", request.path("body").path("applicationId").asText());
+					update.set("applicationId", request.path("body").path("applicationId").textValue());
 					update.set("status", "PROCESSING");
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
 							resultUpdatetest.getQuickLead().getFirstName();
 					String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
-					String applicationId = resultUpdatetest.getApplicationId();
+					String applicationId = request.path("body").path("applicationId").textValue();
 					ArrayList<String> inputQuery = new ArrayList<String>();
 					if (resultUpdatetest.getQuickLead().getDocuments() != null) {
 						for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
-							inputQuery.add(item.getUrlid());
+							if (item.getUrlid() != null) {
+								inputQuery.add(item.getUrlid());
+							}
 						}
 					}
 					HttpHeaders headers = new HttpHeaders();
@@ -1064,7 +1065,7 @@ public class DataEntryService {
 					JsonNode body = mapper.valueToTree(res.getBody());
 
 					Report report = new Report();
-					report.setApplicationId(request.path("body").path("applicationId").asText());
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("PROCESSING");
 					report.setCreatedBy("AUTOMATION");
@@ -1073,11 +1074,11 @@ public class DataEntryService {
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 				}else{
 					Report report = new Report();
-					report.setApplicationId("UNKNOWN");
+//					report.setApplicationId("UNKNOWN");
 					report.setFunction("QUICKLEAD");
 					report.setStatus("AUTO_QL_FAIL");
 					report.setCreatedBy("AUTOMATION");
@@ -1085,14 +1086,14 @@ public class DataEntryService {
 					mongoTemplate.save(report);
 
 					Update update = new Update();
-					update.set("applicationId", "UNKNOWN");
+//					update.set("applicationId", "UNKNOWN");
 					update.set("status", "AUTO_QL_FAIL");
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1122,25 +1123,90 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+		String commentId = UUID.randomUUID().toString().substring(0,10);
+		String errors = "";
 		String applicationId = "";
+		String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/feedbackAPI";
 		try{
 			applicationId = request.path("body").path("applicationId").textValue();
 			Query query = new Query();
-			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").asText()));
+			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
-				Update update = new Update();
-				update.set("status", request.path("body").path("status").asText());
-				update.set("description", request.path("body").path("description").asText());
-				Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+				if (request.path("body").path("status").textValue().equals("OK")) {
+					Update update = new Update();
+					update.set("status", request.path("body").path("status").textValue());
+					update.set("description", request.path("body").path("description").textValue());
+					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
-				String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/feedbackAPI";
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-				ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
-				JsonNode body = mapper.valueToTree(res.getBody());
+					Report report = new Report();
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setFunction("SENDFULLAPP");
+					report.setStatus("COMPLETED");
+					report.setCreatedBy("AUTOMATION");
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
+
+					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
+
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					JsonNode body = mapper.valueToTree(res.getBody());
+
+				}else{
+					errors = request.path("body").path("stage").textValue();
+
+					Update update = new Update();
+					update.set("status", request.path("body").path("status").textValue());
+					update.set("description", request.path("body").path("description").textValue());
+					update.set("stage", request.path("body").path("stage").textValue());
+					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+
+					//save comment
+					CommentModel commentModel = new CommentModel();
+					commentModel.setCommentId(commentId);
+					commentModel.setType("FICO");
+					commentModel.setCode("FICO_ERR");
+					commentModel.setState(request.path("body").path("stage").textValue());
+					commentModel.setRequest(request.path("body").path("description").textValue());
+
+					Query queryAddComment = new Query();
+					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
+					Update updateComment = new Update();
+					commentModel.setCreatedDate(new Date());
+					updateComment.push("comment", commentModel);
+					Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, updateComment, Application.class);
+
+					Report report = new Report();
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setFunction("SENDFULLAPP");
+					report.setStatus("RESPONSED");
+					report.setCreatedBy("AUTOMATION");
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
+
+					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
+					//fico gui comment
+
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+							"commend-id", commentId, "errors", errors)), headers);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					JsonNode body = mapper.valueToTree(res.getBody());
+				}
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -1171,51 +1237,89 @@ public class DataEntryService {
 		String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/feedbackAPI";
 		String applicationId = "";
 		String commentId = UUID.randomUUID().toString().substring(0,10);
+		String referenceId = UUID.randomUUID().toString();
 		String errors = "";
 		try{
 			applicationId = request.path("body").path("applicationId").textValue();
 			errors = request.path("body").path("description").textValue();
 			Query query = new Query();
-			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").asText()));
+			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
-				Update update = new Update();
-				update.set("status", request.path("body").path("status").asText());
-				update.set("description", request.path("body").path("description").asText());
-				update.set("stage", request.path("body").path("stage").asText());
-				Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+				if (request.path("body").path("status").textValue().equals("OK")) {
+					Update update = new Update();
+					update.set("status", request.path("body").path("status").textValue());
+					update.set("description", request.path("body").path("description").textValue());
+					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
-				//save comment
-				CommentModel commentModel = new CommentModel();
-				commentModel.setCommentId(commentId);
-				commentModel.setType("FICO");
-				commentModel.setCode("FICO_ERR");
-				commentModel.setState(request.path("body").path("stage").asText());
-				commentModel.setRequest(request.path("body").path("description").asText());
+					Report report = new Report();
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setFunction("UPDATEFULLAPP");
+					report.setStatus("COMPLETED");
+					report.setCreatedBy("AUTOMATION");
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
 
-				Query queryAddComment = new Query();
-				queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").asText()));
-				Update updateComment = new Update();
-				updateComment.push("comment", commentModel);
-				Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, updateComment, Application.class);
+					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
-                Report report = new Report();
-                report.setApplicationId(request.path("body").path("applicationId").asText());
-                report.setFunction("COMMENT");
-                report.setStatus("RESPONSED");
-                report.setCreatedBy("AUTOMATION");
-                report.setCreatedDate(new Date());
-                mongoTemplate.save(report);
 
-				//fico gui comment
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					JsonNode body = mapper.valueToTree(res.getBody());
 
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
-						"commend-id", commentId, "errors", errors)), headers);
-				ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
-				JsonNode body = mapper.valueToTree(res.getBody());
+				}else{
+					errors = request.path("body").path("stage").textValue();
+
+					Update update = new Update();
+					update.set("status", request.path("body").path("status").textValue());
+					update.set("description", request.path("body").path("description").textValue());
+					update.set("stage", request.path("body").path("stage").textValue());
+					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
+
+					//save comment
+					CommentModel commentModel = new CommentModel();
+					commentModel.setCommentId(commentId);
+					commentModel.setType("FICO");
+					commentModel.setCode("FICO_ERR");
+					commentModel.setState(request.path("body").path("stage").textValue());
+					commentModel.setRequest(request.path("body").path("description").textValue());
+
+					Query queryAddComment = new Query();
+					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
+					Update updateComment = new Update();
+					commentModel.setCreatedDate(new Date());
+					updateComment.push("comment", commentModel);
+					Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, updateComment, Application.class);
+
+					Report report = new Report();
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setFunction("UPDATEFULLAPP");
+					report.setStatus("RESPONSED");
+					report.setCreatedBy("AUTOMATION");
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
+
+					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
+					//fico gui comment
+
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+							"commend-id", commentId, "errors", errors)), headers);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					JsonNode body = mapper.valueToTree(res.getBody());
+				}
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
