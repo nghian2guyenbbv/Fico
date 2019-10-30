@@ -18,11 +18,13 @@ public class ConvertService {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "dataentry");
 		app.put("uuid", application.getId());
+		app.put("status", application.getStatus());
 		app.put("appId", application.getApplicationId());
-//		app.put("partnerId", "");// chua co
+		app.put("status", application.getStatus());
 		app.put("fullName",
 				(application.getQuickLead().getFirstName() + application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
 		app.put("automationResult", application.getDescription());
+		app.put("assigned", application.getUserName());
 		ArrayNode documents = mapper.createArrayNode();
 		if(application.getQuickLead().getDocuments() != null) {
 			application.getQuickLead().getDocuments().forEach(e -> {
@@ -30,6 +32,7 @@ public class ConvertService {
 				doc.put("documentType", e.getOriginalname());
 				doc.put("viewUrl", e.getFilename());
 				doc.put("downloadUrl", e.getFilename());
+				doc.put("type", e.getType());
 //			doc.set("updatedAt", mapper.convertValue(e.getUpdatedAt(), JsonNode.class));
 				documents.add(doc);
 			});
@@ -55,7 +58,17 @@ public class ConvertService {
 			app.set("comments", comments);
 		}
 		ObjectNode optional = mapper.createObjectNode();
-//		optional.put("smsResult", momo.getSmsResult());
+		if (application.getApplicationInformation() != null) {
+			optional.put("identificationNumber", application.getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
+		}else if (application.getQuickLead().getIdentificationNumber() != null){
+			optional.put("identificationNumber", application.getQuickLead().getIdentificationNumber());
+		}
+		if (application.getQuickLeadId() != null) {
+			optional.put("quickLeadId", application.getQuickLeadId());
+		}
+		if (application.getQuickLead().getSchemeCode() != null) {
+			optional.put("schemeCode", application.getQuickLead().getSchemeCode());
+		}
 		app.set("optional", optional);
 		return app;
 	}

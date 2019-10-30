@@ -16,7 +16,7 @@ public class Application {
     private String id;
 
     private String applicationId;
-    private UUID quickLeadId;
+    private String quickLeadId;
     private QuickLead quickLead;
 
     @Valid
@@ -34,7 +34,7 @@ public class Application {
     private String status;
     private String description;
     private String stage;
-
+    private String userName;
     private Date createdDate;
     private Date lastModifiedDate;
 

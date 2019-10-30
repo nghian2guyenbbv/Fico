@@ -1,13 +1,7 @@
 spring:
   rabbitmq:
-    host: 192.168.0.205
-security:
-  oauth2:
-    client:
-      access-token-uri: http://192.168.0.205:1100/oauth/token
-    resource:
-      token-info-uri: http://192.168.0.205:1100/oauth/check_token
+    host: 192.168.0.203
 eureka:
   client:
     serviceUrl:
-      defaultZone:  http://192.168.0.205:8761/eureka
+      defaultZone:  http://192.168.0.203:8761/eureka

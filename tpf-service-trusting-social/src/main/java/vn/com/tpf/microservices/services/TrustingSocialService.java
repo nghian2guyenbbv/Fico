@@ -10,6 +10,8 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -26,6 +28,8 @@ import vn.com.tpf.microservices.models.TrustingSocial;
 
 @Service
 public class TrustingSocialService {
+
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private ObjectNode error;
 
@@ -190,7 +194,7 @@ public class TrustingSocialService {
 		res.put("result_code", code);
 		res.put("request_id", body.path("request_id").asText());
 		res.put("reference_id", body.path("reference_id").asText());
-		res.put("date_time", new Date().toString());
+		res.set("date_time", mapper.convertValue(new Date(), JsonNode.class));
 		if (code == 0) {
 			res.set("data", data);
 		} else {
@@ -198,6 +202,14 @@ public class TrustingSocialService {
 		}
 		response.put("status", 200).set("data", res);
 		return response;
+	}
+
+	private void rabbitLog(JsonNode body, JsonNode data) {
+		ObjectNode dataLog = mapper.createObjectNode();
+		dataLog.put("type", "[==RABBITMQ-LOG==]");
+		dataLog.set("result", data);
+		dataLog.set("payload", body);
+		log.info("{}", dataLog);
 	}
 
 	private Map<String, Object> getComment(String document_type, String view_url, String download_url, String comment) {
@@ -229,11 +241,11 @@ public class TrustingSocialService {
 		}
 
 		ObjectNode data = (ObjectNode) body.path("data");
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("areaCode", data.path("district_code").asInt())));
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress", "reference_id",
+				body.path("reference_id"), "param", Map.of("areaCode", data.path("district_code").asInt())));
 
 		if (address.path("status").asInt() != 200) {
+			rabbitLog(body, address);
 			return response(error.get("districtNotExists").get("code").asInt(), body,
 					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
 		}
@@ -267,11 +279,11 @@ public class TrustingSocialService {
 		}
 
 		ObjectNode data = (ObjectNode) body.path("data");
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("areaCode", data.path("district_code").asInt())));
+		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress", "reference_id",
+				body.path("reference_id"), "param", Map.of("areaCode", data.path("district_code").asInt())));
 
 		if (address.path("status").asInt() != 200) {
+			rabbitLog(body, address);
 			return response(error.get("districtNotExists").get("code").asInt(), body,
 					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
 		}
@@ -286,9 +298,8 @@ public class TrustingSocialService {
 		ts.getDocuments().forEach(e -> e.setUpdatedAt(new Date()));
 		mongoTemplate.save(ts);
 
-		rabbitMQService.send("tpf-service-app",
-				Map.of("func", "createApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("project", "trustingsocial"), "body", convertService.toAppDisplay(ts)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "trustingsocial"), "body", convertService.toAppDisplay(ts)));
 
 		return response(0, body, mapper.convertValue(ts, JsonNode.class));
 	}
@@ -380,9 +391,8 @@ public class TrustingSocialService {
 				TrustingSocial.class);
 
 		rabbitMQService.send("tpf-service-app",
-				Map.of("func", "updateApp", "token", "Bearer " + rabbitMQService.getToken().path("access_token").asText(),
-						"param", Map.of("project", "trustingsocial", "id", nEntity.getId()), "body",
-						convertService.toAppDisplay(nEntity)));
+				Map.of("func", "updateApp", "reference_id", body.path("reference_id"), "param",
+						Map.of("project", "trustingsocial", "id", nEntity.getId()), "body", convertService.toAppDisplay(nEntity)));
 
 		return response(0, body, mapper.convertValue(nEntity, JsonNode.class));
 	}

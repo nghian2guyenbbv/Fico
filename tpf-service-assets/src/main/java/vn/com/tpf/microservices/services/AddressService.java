@@ -33,7 +33,7 @@ public class AddressService {
 		Address address = mongoTemplate.findOne(query, Address.class);
 
 		if (address == null) {
-			return response(404, mapper.createObjectNode().put("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "AreaCode Not Found"));
 		}
 
 		return response(200, mapper.convertValue(address, JsonNode.class));

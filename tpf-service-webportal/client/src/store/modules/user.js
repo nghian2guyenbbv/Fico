@@ -35,6 +35,7 @@ const actions = {
     const { username, password } = userInfo
     
     return new Promise((resolve, reject) => {
+      // this.$store.dispatch('app/fnSocket', null)
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = {
           access_token: 'abc1234',
@@ -83,7 +84,7 @@ const actions = {
             if (response.authorities.includes('role_root')) {
                 roles = ['admin']
             } else {
-                roles = response.optional.roles
+              roles = response.optional.roles
             }
         }
 
@@ -97,16 +98,18 @@ const actions = {
           if (!response || response.error) {
             reject('Verification failed, please Login again.')
           }
-  
           let roles = undefined
+          let projects = undefined
           if (response && response.authorities) {
             if (response.authorities.includes('role_root')) {
               roles = ['admin']
             } else {
+              projects = response.projects
               roles = response.optional.roles
+              Vue.set(state, 'projects', [...projects])
             }
           }
-  
+          
           commit('SET_INFOR_USER', response)
           cookie.setRoles(roles)
           resolve(roles)

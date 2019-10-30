@@ -14,8 +14,8 @@ public class FirstCheckRequest {
     private String dsa_code;
     private String bank_card_number;
     private String current_address;
-    private String area_id;
-
+    private String area_code;
+    private String phoneNumber;
 
 //    private String requestID;
 //    private String customerName;

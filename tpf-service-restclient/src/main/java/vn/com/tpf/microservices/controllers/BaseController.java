@@ -39,7 +39,7 @@ public class BaseController {
 	}
 
 	@GetMapping("/v1/logout")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-authentication')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authentication')")
 	public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "logout");
@@ -50,7 +50,7 @@ public class BaseController {
 	}
 
 	@PostMapping("/v1/change-password")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-authentication')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authentication')")
 	public ResponseEntity<?> changePassword(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -63,7 +63,7 @@ public class BaseController {
 	}
 
 	@GetMapping("/v1/me")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-authorization')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authorization')")
 	public ResponseEntity<?> me(@RequestHeader("Authorization") String token) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getInfoAccount");

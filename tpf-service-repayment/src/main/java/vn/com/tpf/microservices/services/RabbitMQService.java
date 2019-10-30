@@ -136,7 +136,7 @@ public class RabbitMQService {
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
 			if (request.path("func").asText().equals("CALLERROR")){
-				return response(message, payload, Map.of("status", 500, "data", Map.of("message", "CALL API WRONG.")));
+				return response(message, payload, Map.of("status", 500, "data", Map.of("message", "reference_id: "+ request.path("reference_id").textValue() + "ERROR: " +  request.path("errorDetail").textValue())));
 			}
 
 			if (token == null) {
@@ -147,35 +147,45 @@ public class RabbitMQService {
 
 			switch (request.path("func").asText()) {
 			case "getCustomers":
-				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
 					return response(message, payload, repaymentService.getCustomers(request));
 				}
 				break;
 			case "getCustomers_pay":
-				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
 					return response(message, payload, repaymentService.getCustomers_pay(request));
 				}
 				break;
 			case "customers_pay":
-				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
 					return response(message, payload, repaymentService.customers_pay(request));
 				}
 				break;
 			case "importTrans":
-				if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
 					return response(message, payload, repaymentService.importTrans(request));
 				}
 				break;
 			case "settleTrans":
-					if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
 						return response(message, payload, repaymentService.settle(request));
 					}
 					break;
 			case "getListTrans":
-					if (scopes.matches(".*(\"tpf-service-repayment\").*")) {
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
 						return response(message, payload, repaymentService.getListTrans(request));
 					}
 					break;
+			case "getReport":
+					if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
+						return response(message, payload, repaymentService.getReport(request));
+					}
+					break;
+			case "getTransDate":
+				if (scopes.matches(".*(\"tpf-service-repayment\"|\"tpf-service-app\").*")) {
+					return response(message, payload, repaymentService.getTransDate(request));
+				}
+				break;
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
