@@ -90,7 +90,7 @@ export default {
         appId: "",
         project: "momo",
         department: "document_check",
-        assigned: "user"
+        assigned: this.$store.getters.name
       }
     };
 
@@ -209,7 +209,7 @@ export default {
           _search: {
             project: "momo",
             department: "document_check",
-            assigned: "user"
+            assigned: this.$store.getters.name
           }
         };
         this.$store.dispatch("momo/fnCallListView", "MomoDocumentCheckAss");

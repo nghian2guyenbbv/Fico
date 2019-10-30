@@ -156,7 +156,7 @@ export default {
           _search: {
             project: "momo",
             department: "data_entry",
-            assigned: "user"
+            assigned: this.$store.getters.name
           }
         };
         this.$store.dispatch("momo/fnCallListView", "MomoDataentyAss");
@@ -280,7 +280,7 @@ export default {
       _search: {
         project: "momo",
         department: "data_entry",
-        assigned: "user"
+        assigned: this.$store.getters.name
       }
     };
 

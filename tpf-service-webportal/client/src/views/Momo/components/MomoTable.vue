@@ -188,7 +188,7 @@ export default {
     },
 
     fnAssign(app) {
-      this.state.momo[this.department + "Ass"].obj.assigned = "user";
+      this.state.momo[this.department + "Ass"].obj.assigned = this.$store.getters.name;
       this.state.momo[this.department + "Ass"].obj.project = app.project;
       this.state.momo[this.department + "Ass"].obj.id = app.uuid.split("_")[1];
       this.$store.dispatch("momo/fnUpdata", this.department + "Ass");
