@@ -49,7 +49,8 @@ const state = {
   },
   Documents: {
     show: false,
-    items: []
+    items: [],
+    disabledDown: false
   }
 }
 
@@ -133,7 +134,7 @@ const actions = {
 
   fnFilterCreate: async ({ dispatch }, { model, data }) => {
     const idx = this.state.momo[model].list.findIndex(e => e.id === data.id)
-    if (idx !== -1) Vue.set(this.state.momo[model].list, idx, { ...this.state.momo[model].list[idx], ...data })
+    if (idx !== -1) Vue.set(this.state.momo[model].list, idx, { ...this.state.momo[model].list[idx], ...data })// update
     else {
       this.state.momo[model].list.unshift(data)
       this.state.momo[model].total += 1

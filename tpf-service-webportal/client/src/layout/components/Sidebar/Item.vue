@@ -9,7 +9,7 @@ export default {
     },
     iconSub: {
       type: String,
-      default: "el-icon-setting"
+      default: ""
     },
     title: {
       type: String,
@@ -17,7 +17,7 @@ export default {
     }
   },
   render(h, context) {
-    const { icon,iconSub, title } = context.props;
+    const { icon, iconSub, title } = context.props;
     const vnodes = [];
 
     if (icon) {
@@ -27,7 +27,7 @@ export default {
     if (title || iconSub) {
       vnodes.push(
         <span slot="title">
-          <i class={iconSub} ></i> {title}
+          <i class={iconSub}></i> {title}
         </span>
       );
     }

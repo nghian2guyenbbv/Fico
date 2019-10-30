@@ -9,10 +9,10 @@
         <template v-else-if="i.value == 'documents'">
           <el-tooltip class="item" effect="light" content="Dowload All" placement="left">
             <el-button
-              :disabled="item.row.documents.length == 0"
+              :disabled="(item.row.documents.length == 0) || (state.momo['Documents'].disabledDown)"
               @click="fnDowloadAll(item.row.documents)"
             >
-              <i class="el-icon-download"></i>
+              <i :class="!state.momo['Documents'].disabledDown?'el-icon-download':'el-icon-loading'"></i> 
             </el-button>
           </el-tooltip>
           <el-badge type="warning" :value="item.row.documents.length" :max="99" class="item">
@@ -67,7 +67,6 @@ export default {
   name: "tpf-table-momo",
   data() {
     return {
-      disabledDown: false,
       colorSmS: {
         W: {
           color: "#ffbf00"
@@ -205,6 +204,7 @@ export default {
 
     fnDowloadAll(items) {
       for (const key in items) {
+        this.state.momo["Documents"].disabledDown = true
         if (items.hasOwnProperty(key)) {
           const element = items[key];
           axios({
@@ -213,8 +213,6 @@ export default {
             responseType: "blob"
           })
             .then(response => {
-              console.log(response);
-
               var fileURL = window.URL.createObjectURL(
                 new Blob([response.data])
               );
@@ -223,6 +221,7 @@ export default {
               fileLink.setAttribute("download", element.documentType + ".jpg");
               document.body.appendChild(fileLink);
               fileLink.click();
+              this.state.momo["Documents"].disabledDown = false
               this.$notify.success({
                 title: "Success",
                 message: "Dowload " + element.documentType,
@@ -230,6 +229,7 @@ export default {
               });
             })
             .catch(error => {
+              this.state.momo["Documents"].disabledDown = false
               this.$notify.error({
                 title: "Error Dowload " + element.documentType,
                 message: error,
