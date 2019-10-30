@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class QLDocument {
 //    private String documentName;
-//    private String documentURL;
+    private String type;
     private String originalname;
     private String filename;
     private String urlid;

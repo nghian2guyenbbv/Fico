@@ -20,9 +20,11 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Utilities {
     public static HashMap<String, Object> createMqObject(String userName, String password) {
@@ -68,7 +70,7 @@ public class Utilities {
     public static void captureScreenShot(WebDriver ldriver) {
         File src = ((TakesScreenshot) ldriver).getScreenshotAs(OutputType.FILE);
         try {
-            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -129,5 +131,22 @@ public class Utilities {
             textSendkey = webElement.getAttribute("value");
             i++;
         } while (!textSendkey.equals(inputValue) &&  i < 5);
+    }
+
+    private static final String WORD_SEPARATOR = " ";
+
+    public static String convertToTitleCaseSplitting(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        return Arrays
+                .stream(text.split(WORD_SEPARATOR))
+                .map(word -> word.isEmpty()
+                        ? word
+                        : Character.toTitleCase(word.charAt(0)) + word
+                        .substring(1)
+                        .toLowerCase())
+                .collect(Collectors.joining(WORD_SEPARATOR));
     }
 }
