@@ -1,5 +1,5 @@
 <template>
-  <el-card class="box-card" :header="title" :body-style="{ padding: '5px' }">
+  <el-card class="box-card" :header="title" :body-style="{ padding: '5px'}" style="color: #42b983">
     <el-table :data="data" border style="width: 100%">
       <el-table-column v-for="i in headers" :key="i.key" :label="i.text" v-slot="item">
         <template v-if="i.value == 'createdAt'">{{ item.row.createdAt|moment("Y-MM-DD h:mm a") }}</template>
@@ -7,15 +7,30 @@
           <el-button type="success" plain @click="fnAppData(item.row.id)">App Data</el-button>
         </template>
         <template v-else-if="i.value == 'documents'">
-          <span>{{item.row.documents.length}}</span>
+          <el-tooltip class="item" effect="light" content="Dowload All" placement="left">
+            <el-button
+              :disabled="(item.row.documents.length == 0) || (state.momo['Documents'].disabledDown)"
+              @click="fnDowloadAll(item.row.documents)"
+            >
+              <i :class="!state.momo['Documents'].disabledDown?'el-icon-download':'el-icon-loading'"></i> 
+            </el-button>
+          </el-tooltip>
+          <el-badge type="warning" :value="item.row.documents.length" :max="99" class="item">
+            <el-tooltip class="item" effect="light" content="View All" placement="right">
+              <el-button
+                :disabled="item.row.documents.length == 0 "
+                @click="funcShowDialog(item.row.documents)"
+              >
+                <i class="el-icon-document-copy"></i>
+              </el-button>
+            </el-tooltip>
+          </el-badge>
         </template>
-
         <template v-else-if="i.value == 'optional.smsResult'">
           <font
             :color=" getColorSms(item.row.optional.smsResult).color"
           >{{ item.row.optional.smsResult }}</font>
         </template>
-
         <template v-else-if="i.value == 'status'">
           <div>
             <el-tag :color="getTypeStatus(item.status).bgcolor">
@@ -47,13 +62,11 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   name: "tpf-table-momo",
-
   data() {
     return {
-      imagesShow: undefined,
-      imagesDow: undefined,
       colorSmS: {
         W: {
           color: "#ffbf00"
@@ -135,6 +148,13 @@ export default {
   computed: {},
 
   methods: {
+    funcShowDialog(images) {
+      this.state.momo["Documents"].items = [];
+      this.state.momo["Documents"].show = false;
+      this.state.momo["Documents"].items = images;
+      this.state.momo["Documents"].show = true;
+    },
+
     getTypeStatus(item) {
       if (this.typeStatus[item]) {
         return this.typeStatus[item];
@@ -154,7 +174,7 @@ export default {
         }
         return item;
       } else {
-        return item ? item.replace("_", " ") :  ''
+        return item ? item.replace("_", " ") : "";
       }
     },
     getColorSms(item) {
@@ -166,11 +186,7 @@ export default {
         };
       }
     },
-    overlayOpen(images) {
-      this.imagesShow = null;
-      this.imagesShow = images;
-      this.app_state.overlay = true;
-    },
+
     fnAssign(app) {
       this.state.momo[this.department + "Ass"].obj.assigned = "user";
       this.state.momo[this.department + "Ass"].obj.project = app.project;
@@ -187,7 +203,41 @@ export default {
     },
 
     fnDowloadAll(items) {
-      this.$store.dispatch("momo/fnDownloadDocument", items);
+      for (const key in items) {
+        this.state.momo["Documents"].disabledDown = true
+        if (items.hasOwnProperty(key)) {
+          const element = items[key];
+          axios({
+            url: element.downloadUrl,
+            method: "GET",
+            responseType: "blob"
+          })
+            .then(response => {
+              var fileURL = window.URL.createObjectURL(
+                new Blob([response.data])
+              );
+              var fileLink = document.createElement("a");
+              fileLink.href = fileURL;
+              fileLink.setAttribute("download", element.documentType + ".jpg");
+              document.body.appendChild(fileLink);
+              fileLink.click();
+              this.state.momo["Documents"].disabledDown = false
+              this.$notify.success({
+                title: "Success",
+                message: "Dowload " + element.documentType,
+                offset: 100
+              });
+            })
+            .catch(error => {
+              this.state.momo["Documents"].disabledDown = false
+              this.$notify.error({
+                title: "Error Dowload " + element.documentType,
+                message: error,
+                offset: 100
+              });
+            });
+        }
+      }
     },
     fnAppData(id) {
       window.open("/#/momo/appdatamomo/" + id, "_blank");
@@ -199,4 +249,25 @@ export default {
 };
 </script>
 
+<style>
+.el-badge__content {
+  margin-top: 7px;
+  margin-right: 1px;
+  font-size: 9px;
+}
+.el-button--small {
+  margin-right: 5px;
+  padding: 5px;
+}
+.el-tooltip__popper {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #42b983;
+    border: 1px solid #6b8bcc !important;
+}
+.el-tooltip__popper.popper__arrow {
+    border-right-color: #6b8bcc !important;
+}
+
+</style>
 

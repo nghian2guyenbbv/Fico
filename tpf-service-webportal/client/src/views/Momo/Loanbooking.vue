@@ -21,7 +21,17 @@
       :assigned="true"
       title="Assigned"
     ></tpf-table-momo>
-
+            <el-card :body-style="{ padding: '5px' }">
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page.sync="params.page"
+        :page-sizes="[5, 10, 20, 30, 50, 100]"
+        :page-size="params.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="parseInt(this.state.momo.MomoLoanBookingAss.total)"
+      ></el-pagination>
+    </el-card>
     <tpf-table-momo
       v-loading="this.state.momo.MomoLoanBookingUnAss.isLoading"
       :data="this.state.momo.MomoLoanBookingUnAss.list"
@@ -30,6 +40,17 @@
       :assigned="false"
       title="UnAssigned"
     ></tpf-table-momo>
+        <el-card :body-style="{ padding: '5px' }">
+      <el-pagination
+        @size-change="handleSizeChangeUnAss"
+        @current-change="handleCurrentChangeUnAss"
+        :current-page.sync="paramsUnAss.page"
+        :page-sizes="[ 10, 20, 30, 50, 100]"
+        :page-size="paramsUnAss.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="parseInt(this.state.momo.MomoLoanBookingUnAss.total)"
+      ></el-pagination>
+    </el-card>
   </div>
 </template>
 
@@ -41,6 +62,14 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
+                  params: {
+        page: 1,
+        limit: 5
+      },
+      paramsUnAss: {
+        page: 1,
+        limit: 10
+      },
             keySearch: "",
       valueSearch: "",
       headers: [],
@@ -54,20 +83,24 @@ export default {
   created() {
         this.state.momo.MomoLoanBookingAss = {
       ...this.state.momo.MomoLoanBookingAss,
+             _page: this.params.page,
+          _rowsPerPage: this.params.limit,
       _search: {
         appId: "",
         project: "momo",
-        department: "document_check",
+        department: "loan_booking",
         assigned: "user"
       }
     };
 
     this.state.momo.MomoLoanBookingUnAss = {
       ...this.state.momo.MomoLoanBookingUnAss,
+                   _page: this.paramsUnAss.page,
+          _rowsPerPage: this.paramsUnAss.limit,
       _search: {
         appId: "",
         project: "momo",
-        department: "document_check",
+        department: "loan_booking",
         assigned: ""
       }
     };
@@ -138,6 +171,51 @@ export default {
         this.keySearch
       ] = this.valueSearch;
       this.$store.dispatch("momo/fnCallListView", "MomoLoanBookingUnAss");
+    },
+    handleSizeChange(a) {
+      this.params.limit = a;
+      this.getList();
+    },
+    handleCurrentChange(a) {
+      this.params.page = a;
+      this.getList();
+    },
+
+    handleSizeChangeUnAss(a) {
+      this.paramsUnAss.limit = a;
+      this.getList("UnAss");
+    },
+    handleCurrentChangeUnAss(a) {
+      this.paramsUnAss.page = a;
+      this.getList("UnAss");
+    },
+    getList(v) {
+      if (v != "UnAss") {
+        this.state.momo.MomoLoanBookingAss = {
+          ...this.state.momo.MomoLoanBookingAss,
+          _page: this.params.page,
+          _rowsPerPage: this.params.limit,
+
+          _search: {
+            project: "momo",
+            department: "loan_booking",
+            assigned: "user"
+          }
+        };
+        this.$store.dispatch("momo/fnCallListView", "MomoLoanBookingAss");
+      } else {
+        this.state.momo.MomoLoanBookingUnAss = {
+          ...this.state.momo.MomoLoanBookingUnAss,
+          _page: this.paramsUnAss.page,
+          _rowsPerPage: this.paramsUnAss.limit,
+          _search: {
+            project: "momo",
+            department: "loan_booking",
+            assigned: ""
+          }
+        };
+        this.$store.dispatch("momo/fnCallListView", "MomoLoanBookingUnAss");
+      }
     }
   }
 };

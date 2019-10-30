@@ -57,6 +57,8 @@ export default {
   computed: {},
 
   created() {
+    this.state.momo.MomoStatus._page = this.params.page;
+    this.state.momo.MomoStatus._rowsPerPage = this.params.limit;
     this.state.momo.MomoStatus._search = { project: "momo" };
     this.$store.dispatch("momo/fnCallListView", "MomoStatus");
     this.headers = [
@@ -75,7 +77,7 @@ export default {
         value: "optional.smsResult",
         width: "100px"
       },
-      { text: "Action", align: "left", value: "documents", width: "120px" }
+      { text: "DOCUMENTS", align: "left", value: "documents", width: "120px" }
     ];
   },
 
@@ -95,7 +97,7 @@ export default {
     getList() {
       this.listLoading = true;
       this.state.momo.MomoStatus._page = this.params.page;
-      this.state.momo.MomoStatus.rowsPerPage = this.params.limit;
+      this.state.momo.MomoStatus._rowsPerPage = this.params.limit;
       this.state.momo.MomoStatus._search = { project: "momo" };
       this.$store.dispatch("momo/fnCallListView", "MomoStatus");
     }
