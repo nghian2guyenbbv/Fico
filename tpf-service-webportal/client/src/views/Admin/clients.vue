@@ -1,5 +1,6 @@
 <template>
-  <table-default></table-default>
+  <div></div>
+  <!-- <table-default></table-default> -->
 </template>
 
 <script>

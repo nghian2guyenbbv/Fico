@@ -40,7 +40,6 @@ export function uploadFiles(files) {
   return request({
     url: 'dataentry/uploadfile',
     method: 'post',
-    // headers: {'Content-Type': 'multipart/form-data'},
     data: files
   })
 }
@@ -51,12 +50,11 @@ export function createQuicklead(quicklead) {
     date_time: "1565667082",
     data: quicklead
   }
-  console.log(body)
+  
   return request({
     url: 'dataentry/quicklead',
     method: 'post',
-    // headers: {'Content-Type': 'application/json'},
-    body
+    data: body
   })
 }
 

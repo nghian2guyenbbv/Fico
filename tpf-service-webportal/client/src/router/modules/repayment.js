@@ -6,7 +6,7 @@ const repaymentRouter = {
   redirect: '/repayment',
   children: [
     {
-      path: '/repayment',
+      path: '',
       component: () => import('@/views/Repayment/index'),
       name: 'Repayment',
       meta: { title: 'Repayment',  roles: ['repayment_view'], icon: 'icon' }
