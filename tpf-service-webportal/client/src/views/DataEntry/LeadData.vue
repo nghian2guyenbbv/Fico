@@ -16,11 +16,9 @@
     </div>
     
     <el-table
-      v-loading="listLoading"
+      v-loading="state.dataentry.isLoading"
       :data="state.dataentry.list"
-      border
-      fit
-      highlight-current-row
+      border fit highlight-current-row
       style="width: 100%"
       @row-click="handleUpdate"
       height="70vh"
@@ -85,11 +83,11 @@
     <el-pagination class="pagination-container"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-      :current-page.sync="state.dataentry.quicklead.pagination.page"
+      :current-page.sync="state.dataentry.pagination.page"
       :page-sizes="[10, 15, 20, 100]"
-      :page-size="state.dataentry.quicklead.pagination.limit"
+      :page-size="state.dataentry.pagination.limit"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="parseInt(state.dataentry.quicklead.total)">
+      :total="parseInt(state.dataentry.total)">
     </el-pagination>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogDetail" width="95%" top="3vh">
@@ -410,15 +408,6 @@ export default {
             update: 'Detail App',
             create: 'Create App'
         },
-        dialogPvVisible: false,
-        pvData: [],
-        // params: {
-        //   page: 1,
-        //   limit: 10,
-        //   sort: 'createdAt,asc',
-        //   project: 'dataentry'
-        // }
-        
     }
   },
   computed: {
@@ -443,16 +432,7 @@ export default {
   methods: {
     // get all data first time
     getList() {
-      this.listLoading = true
       this.$store.dispatch('dataentry/getQuickList')
-        .then((data) => {
-          // this.list = data.data
-          // this.total = data.total
-          this.listLoading = false
-        })
-        .catch(() => {
-          this.listLoading = false
-        })
     },
     getListScheme() {
       this.$store.dispatch('dataentry/getDocsCheme')
@@ -480,22 +460,16 @@ export default {
     },
     // for list app
     handleSizeChange(a) {
-      this.state.dataentry.quicklead.pagination.limit = a
+      this.state.dataentry.pagination.limit = a
       this.getList()
     },
     handleCurrentChange(a) {
-      this.state.dataentry.quicklead.pagination.page = a
+      this.state.dataentry.pagination.page = a
       this.getList()
     },
     handleSearch() {
-      // this.params = {
-      //   page: 1,
-      //   limit: 10,
-      //   sort: 'createdAt,asc',
-      //   project: 'dataentry'
-      // }
-      this.state.dataentry.quicklead.pagination.page = 1
-      this.state.dataentry.quicklead.pagination[this.keySearch] = this.valueSearch
+      this.state.dataentry.pagination.page = 1
+      this.state.dataentry.pagination[this.keySearch] = this.valueSearch
       this.getList()
     },
     // action in 1 of apps

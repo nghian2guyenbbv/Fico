@@ -1,6 +1,7 @@
 import * as io from 'socket.io-client'
 import * as cookie from '@/utils/cookie'
 import Vue from 'vue'
+import { register } from "register-service-worker";
 
 const state = {
   socket: null,
@@ -64,11 +65,57 @@ const actions = {
   fnSocket ({ dispatch, rootState }) {
     state.socket = io.connect(`${process.env.VUE_APP_BASE_SOCKET_HOST}?token=${cookie.getToken()}`, { transports: ['websocket'] });
 
-    state.socket.on('connect', () => { console.log("connect") });
+    state.socket.on('connect', () => { 
+      console.log(process.env.BASE_URL)
+      register(`${process.env.BASE_URL}service-worker.js`, {
+        ready() {
+          Notification.requestPermission(function (permission) {
+            // If the user accepts, let's create a notification
+            if (permission === "granted") {
+              var notification = new Notification(
+              payload.data.title, 
+              {
+                  icon: './tpb_icon.png',
+                  body: 'payload.data.body',
+              });
+            }
+          });
+
+          console.log(
+            "App is being served from cache by a service worker.\n" +
+              "For more details, visit https://goo.gl/AFskqB"
+          );
+        },
+        registered() {
+          
+          console.log("Service worker has been registered.");
+        },
+        cached() {
+          console.log("Content has been cached for offline use.");
+        },
+        updatefound() {
+          console.log("New content is downloading.");
+        },
+        updated() {
+          console.log("New content is available; please refresh.");
+        },
+        offline() {
+          console.log(
+            "No internet connection found. App is running in offline mode."
+          );
+        },
+        error(error) {
+          console.error("Error during service worker registration:", error);
+        }
+      });
+
+    });
 
     state.socket.on('disconnect', () => { console.log("disconnect") });
 
     state.socket.on('error', () => { console.log("error") });
+    
+    let userInfor = JSON.parse(localStorage.getItem('INFOR_USER'))
 
     state.socket.on('message', ({ action, project, data, from, to }) => {
       const departments = {
@@ -84,24 +131,42 @@ const actions = {
       
       switch (action) {
         case 'CREATE':
-          dispatch('fnFilterCreate', { model: model[project].departments[to].u, data })
+          if (project == 'dataentry') {
+            dispatch('dataentry/pushNewQuicklead', data)
+          } else {
+            dispatch('fnFilterCreate', { model: model[project].departments[to].u, data })
+          }
           break
         case 'UPDATE':
-          if (data.assigned
-            && (data.assigned === rootState.user.user_name
-              || rootState.user.authorities[0] !== 'role_user')) 
+          if (data.assigned && userInfor
+            && (data.assigned === userInfor.user_name
+              || userInfor.authorities[0] !== 'role_user')) 
           {
-            dispatch('fnFilterCreate', { model: model[project].departments[to].a, data })
+            if (project == 'dataentry') {
+              dispatch('dataentry/pushNewQuicklead', data)
+            } else {
+              dispatch('fnFilterCreate', { model: model[project].departments[to].a, data })
+            }
           } else {
-            dispatch('fnFilterDelete', { model: model[project].departments[to].a, data })
+            if (project == 'dataentry') {
+              dispatch('dataentry/deleteQuicklead', data)
+            } else {
+              dispatch('fnFilterDelete', { model: model[project].departments[to].a, data })
+            }
           }
-
-          if (!data.assigned) dispatch('fnFilterCreate', { model: model[project].departments[to].u, data })
-          else dispatch('fnFilterDelete', { model: model[project].departments[to].u, data })
+          if (project != 'dataentry') {
+            if (!data.assigned) dispatch('fnFilterCreate', { model: model[project].departments[to].u, data })
+            else dispatch('fnFilterDelete', { model: model[project].departments[to].u, data })
+          }
           break
         case 'DELETE':
-          dispatch('fnFilterDelete', { model: model[project].departments[from].a, data })
-          dispatch('fnFilterDelete', { model: model[project].departments[from].u, data })
+          if (project == 'dataentry') {
+            dispatch('dataentry/deleteQuicklead', data)
+          } else {
+            dispatch('fnFilterDelete', { model: model[project].departments[from].a, data })
+            dispatch('fnFilterDelete', { model: model[project].departments[from].u, data })
+          }
+          
           break
       }
     })
@@ -109,26 +174,15 @@ const actions = {
 
   fnFilterCreate: async ({ dispatch, rootState }, { model, data }) => {
     let page = await dispatch('fnRootState', model)
-    // console.log(page,'fnFilterCreate');
-    console.log(model)
-    dispatch('dataentry/pushNewQuicklead', data, { root: true })
-    // const idx = rootState[page][model].list.findIndex(e => e.id === data.id)
     
-    
-    // if (idx !== -1) Vue.set(rootState[page][model].list, idx, { ...rootState[page][model].list[idx], ...data })
-    // else {
-    //   if (page == 'dataentry') {
-    //     dispatch('dataentry/pushNewQuicklead', data, { root: true })
-    //     // let array = rootState[page][model].list
-    //     // console.log(array.length)
-    //     // Vue.set(rootState[page][model].list, array.length, data)
-    //     // console.log(rootState[page][model].list);
-    //   } else {
-    //     rootState[page][model].list.unshift(data)
-    //   }
-    //   rootState[page][model].total = (parseInt(rootState[page][model].total) + 1).toString()
-    //   if (rootState[page][model].list.length > rootState[page][model].pagination.limit) rootState[page][model].list.pop()
-    // }
+    const idx = rootState[page][model].list.findIndex(e => e.id === data.id)
+			
+    if (idx !== -1) Vue.set(rootState[page][model].list, idx, { ...rootState[page][model].list[idx], ...data })
+    else {
+      rootState[page][model].list.unshift(data)
+      rootState[page][model].total += 1
+      if (rootState[page][model].list.length > rootState[page][model].rowsPerPage) rootState[page][model].list.pop()
+    }
   },
 
   // fnFilterUpdate: async ({ dispatch, rootState }, { model, data }) => {
