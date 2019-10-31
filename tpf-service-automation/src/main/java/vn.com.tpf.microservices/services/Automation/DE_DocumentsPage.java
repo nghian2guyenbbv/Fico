@@ -18,9 +18,11 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -127,7 +129,8 @@ public class DE_DocumentsPage {
         await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
 
-        String toFile = "D:\\FILE_TEST_HE_THONG_\\";
+        String fromFile = "http://192.168.0.203:3001/v1/file/";
+        String toFile = Constant.SCREENSHOT_PRE_PATH;
         //do index=0 la 1 element khac
         int index = 0;
 
@@ -145,9 +148,12 @@ public class DE_DocumentsPage {
             final int _tempIndex = index;
             String docName = element.getText();
             if (updateField.contains(docName)) {
-                DocumentDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalname.equals(docName)).findAny().orElse(null);
+                DocumentDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.type.equals(docName)).findAny().orElse(null);
                 if(documentDTO!=null){
-                    File file = new File(toFile + documentDTO.getFilename());
+                    toFile+= UUID.randomUUID().toString()+"_"+ docName +".pdf";
+                    //File file = new File(toFile + documentDTO.getFilename());
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();
                         System.out.println(photoUrl);

@@ -27,4 +27,5 @@ public class Application {
     private String description;
     private String stage;
     private String error;
+    private String reference_id;
 }

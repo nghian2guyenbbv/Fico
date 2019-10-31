@@ -2,7 +2,7 @@ package vn.com.tpf.microservices.models;
 
 import lombok.Data;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 @Data
 public class CommentModel {
@@ -12,6 +12,6 @@ public class CommentModel {
     private String code;
     private String request;
     private CommentResponseModel response;
-    private Timestamp createdDate;
-    private Timestamp lastModifiedDate;
+    private Date createdDate;
+    private Date lastModifiedDate;
 }

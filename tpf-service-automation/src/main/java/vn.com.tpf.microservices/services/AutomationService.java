@@ -43,11 +43,11 @@ public class AutomationService {
 	private WebDriver driver;
 	final static ExecutorService workerThreadPool = Executors.newFixedThreadPool(Constant.THREAD_NUM);
 	final static List<LoginDTO> accounts= Arrays.asList(
-//            LoginDTO.builder().userName("vin_auto1").password("Hcm@12345").build(),
-//            LoginDTO.builder().userName("vin_auto2").password("Hcm@12345").build(),
-//            LoginDTO.builder().userName("vin_auto3").password("Hcm@12345").build(),
-//            LoginDTO.builder().userName("vin_auto4").password("Hcm@12345").build(),
-//            LoginDTO.builder().userName("vin_auto5").password("Hcm@12345").build()
+//            LoginDTO.builder().userName("auto_data_entry_1").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("auto_data_entry_2").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("auto_data_entry_3").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("auto_data_entry_4").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("auto_data_entry_5").password("Hcm@12345").build(),
 			LoginDTO.builder().userName("anhdlh").password("Tpf@1234").build()
 	);
 	final static Queue<LoginDTO> loginDTOQueue = new LinkedBlockingQueue<>(accounts);
@@ -60,6 +60,15 @@ public class AutomationService {
 //            LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build()
 	);
 	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccounts);
+
+	final static List<LoginDTO> fptAccounts= Arrays.asList(
+			LoginDTO.builder().userName("auto_1").password("Hcm@12345").build()
+//            LoginDTO.builder().userName("momo_auto2").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto3").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto4").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build()
+	);
+	final static Queue<LoginDTO> fpt_loginDTOQueue = new LinkedBlockingQueue<>(fptAccounts);
 
 	@PostConstruct
 	private void init() {
@@ -85,6 +94,7 @@ public class AutomationService {
 	public Map<String, Object> quickLeadApp(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
+		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
 		Application application = mapper.treeToValue(request.path("body"), Application.class);
 
@@ -176,11 +186,13 @@ public class AutomationService {
 
 	public Map<String, Object> momoCreateApp(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
 
 		System.out.println(request);
 
 		Assert.notNull(request.get("body"), "no body");
 		Application application = mapper.treeToValue(request.path("body"), Application.class);
+		application.setReference_id(reference_id);
 
 		System.out.println(mapper.writeValueAsString(application));
 
@@ -205,5 +217,40 @@ public class AutomationService {
 
 		//awaitTerminationAfterShutdown(workerThreadPool);
 	}
+
+	public Map<String, Object> fptCreateApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+
+		System.out.println(request);
+
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+		application.setReference_id(reference_id);
+
+		System.out.println(mapper.writeValueAsString(application));
+
+		new Thread(() -> {
+			try {
+				runAutomationFpt_CreateApp(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application);
+	}
+
+	private void runAutomationFpt_CreateApp(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFpt(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(fpt_loginDTOQueue, browser, mapValue,"fptCreateApp");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+
+		//awaitTerminationAfterShutdown(workerThreadPool);
+	}
+
 	//------------------------- END MOMO - FUNCTION ---------------------------------
 }

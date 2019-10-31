@@ -18,8 +18,6 @@ let opt = {
   _select: '',
   selected: [],
   pagination,
-  ...pagination,
-  pages: [10, 20, 50, 100],
   isLoading: false
 }
 
@@ -48,6 +46,11 @@ const state = {
   ACCA: {
     ...opt,
     _id: ''
+  },
+  Documents: {
+    show: false,
+    items: [],
+    disabledDown: false
   }
 }
 
@@ -62,11 +65,10 @@ const actions = {
         resolve(response)
       } else {
         this.state.momo[model].isLoading = true
-        const { rowsPerPage, _page, _sort, _search, _select } = this.state.momo[model]
-        var params = {
-          page: _page,
-          limit: rowsPerPage
-        }
+        const { _rowsPerPage, _page, _sort, _search, _select } = this.state.momo[model]
+        var params = { }
+        if (_page) params = { ...params, page: _page }
+        if (_rowsPerPage) params = { ...params, limit: _rowsPerPage }
         if (_select) params = { ...params, select: _select }
         if (_sort) params = { ...params, sort: _select }
         for (const i in _search) params = { ...params, [i]: _search[i] }
@@ -120,7 +122,6 @@ const actions = {
               this.state.momo[model].total = success.total || 0
             } else {
               this.state.momo[model].obj = success.data
-              console.log(this.state.momo[model].obj);
             }
             this.state.momo[model].isLoading = false
             resolve(success.data)
@@ -129,7 +130,28 @@ const actions = {
           })
       }
     })
-  }
+  },
+
+  fnFilterCreate: async ({ dispatch }, { model, data }) => {
+    const idx = this.state.momo[model].list.findIndex(e => e.id === data.id)
+    if (idx !== -1) Vue.set(this.state.momo[model].list, idx, { ...this.state.momo[model].list[idx], ...data })// update
+    else {
+      this.state.momo[model].list.unshift(data)
+      this.state.momo[model].total += 1
+      if (this.state.momo[model].list.length > this.state.momo[model].rowsPerPage) this.state.momo[model].list.pop()
+    }
+  },
+
+  fnFilterUpdate: async ({ dispatch }, { model, data }) => {
+    const idx = this.state.momo[model].list.findIndex(e => e.id === data.id)
+    if (idx !== -1) Vue.set(this.state.momo[model].list, idx, { ...this.state.momo[model].list[idx], ...data })
+  },
+
+  fnFilterDelete: async ({ dispatch }, { model, data }) => {
+    this.state.momo[model].list = this.state.momo[model].list.filter(e => e.id !== data.id)
+    this.state.momo[model].total += -1
+    if (this.state.momo[model].list.length === 0) dispatch('fnCallListView', model)
+  },
 
 }
 

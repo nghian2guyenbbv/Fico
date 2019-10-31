@@ -98,13 +98,13 @@
           <el-alert title="Information Customer" type="success" effect="dark" :closable="false"></el-alert>
           <el-row style="border: 1px solid; border-radius: 5px;">
             <el-col :span="12" style="border-right: 1px solid; padding: 5px 15px;">
-                <p><span style="font-weight: 600;">APP ID: </span> <span style="font-style: italic;">{{ temp.appId }}</span></p>
+                <p><span style="font-weight: 600;">APP ID: </span> <span style="font-style: italic;">{{ temp.appId || 'Unknown' }}</span></p>
                 <p><span style="font-weight: 600;">FULL NAME: </span> <span style="font-style: italic;">{{ temp.fullName }}</span></p>
-                <p><span style="font-weight: 600;">NATIONAL ID: </span> <span style="font-style: italic;">{{ temp.identificationNumber }}</span></p>
+                <p><span style="font-weight: 600;">NATIONAL ID: </span> <span style="font-style: italic;">{{ temp.optional && temp.optional.identificationNumber }}</span></p>
             </el-col>
             <el-col :span="12" style="padding: 5px 15px;">
-                <p><span style="font-weight: 600;">SCHEME: </span> <span style="font-style: italic;">{{ temp.scheme }}</span></p>
-                <p><span style="font-weight: 600;">STATUS: </span> <span style="font-style: italic;">{{ temp.status }}</span></p>
+                <p><span style="font-weight: 600;">SCHEME: </span> <span style="font-style: italic;">{{ temp.optional && temp.optional.schemeCode }}</span></p>
+                <p><span style="font-weight: 600;">STATUS: </span> <span style="font-style: italic;">{{ temp.status || 'Processing' }}</span></p>
                 <p><span style="font-weight: 600;">CREATED AT: </span> <span style="font-style: italic;">{{ temp.createdAt | moment("MMM DD YYYY HH:mm") }}</span></p>
             </el-col>
           </el-row>
@@ -197,7 +197,7 @@
       <el-row :gutter="20" style="margin-top: 10px; margin-bottom: 10px">
         <el-col :span="6">
           <el-select v-model="state.dataentry.newCustomer.branch" placeholder="Branch" class="el-fullwidth-custom">
-            <el-option v-for="item in listBranch.data" :key="item.branchCode" :label="item.branchName" :value="item.branchCode" :disabled="checkPass"></el-option>
+            <el-option v-for="item in listBranch.data" :key="item.branchName" :label="item.branchName" :value="item.branchName" :disabled="checkPass"></el-option>
           </el-select>
         </el-col>
         <el-col :span="6">
@@ -314,13 +314,12 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import { parseTime } from '@/utils'
-import Pagination from './pagination' // secondary package based on el-pagination
 import DialogCreate from './dialogCreate'
 import { MessageBox, Message } from 'element-ui'
 
 export default {
   name: 'LeadDE',
-  components: { Pagination, DialogCreate },
+  components: { DialogCreate },
   directives: { waves },
   filters: {
     statusFilter(status) {
@@ -358,20 +357,7 @@ export default {
       uploadDone: false,
       uploadFileLoading: false,
       
-      listSchemeComments: {
-        'ID Card': { file: '', comment: '' },
-        'Notarization of ID card': { file: '', comment: '' },
-        'Family Book': { file: '', comment: '' },
-        'Notarization of Family Book': { file: '', comment: '' },
-        'Health Insurance Card': { file: '', comment: '' },
-        'Banking Statement': { file: '', comment: '' },
-        'Employer Confirmation': { file: '', comment: '' },
-        'Labor Contract': { file: '', comment: '' },
-        'Salary slip': { file: '', comment: '' },
-        'Customer Photograph': { file: '', comment: '' },
-        'Map to Customer House': { file: '', comment: '' },
-        'Customer Signature': { file: '', comment: '' }
-      },
+      listSchemeComments: {},
       commentsAll: '',
       activeNames: [],
         files: null,
@@ -426,11 +412,6 @@ export default {
         },
         dialogPvVisible: false,
         pvData: [],
-        // rules: {
-        //     type: [{ required: true, message: 'type is required', trigger: 'change' }],
-        //     timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-        //     title: [{ required: true, message: 'title is required', trigger: 'blur' }]
-        // },
         params: {
           page: 1,
           limit: 10,
@@ -448,7 +429,7 @@ export default {
       this.countFile = this.listScheme.length
       this.listObj_scheme = {}
       for (let i = 0; i < this.listScheme.length; i++) {
-        this.listObj_scheme[this.listScheme[i].substring(4)] = false
+        this.listObj_scheme[this.listScheme[i]] = false
       }
       return this.listScheme
     }
@@ -460,59 +441,7 @@ export default {
     this.getBranch()
   },
   methods: {
-    onChangeScheme () {
-      if (this.$refs && this.$refs.upload && this.$refs.upload.uploadFiles) {
-        for (let j in this.$refs.upload.uploadFiles) {
-          let a = this.checkFiles(this.$refs.upload.uploadFiles[j].name)
-          if (a.checked) {
-            this.listObj_scheme[a.type] = this.$refs.upload.uploadFiles[j]
-          }
-        }
-      }
-      this.countFile = 0
-      for (let i in this.listObj_scheme) {
-        if (!this.listObj_scheme[i]) {
-          this.countFile++
-        }
-      }
-    },
-    handleCommand(command) {
-      this.renderComponent = false;
-      for (let j in this.$refs.upload.uploadFiles) {
-        if (this.$refs.upload.uploadFiles[j].name == command.file.name) {
-          this.$refs.upload.uploadFiles[j].scheme = command.type
-        }
-      }
-      this.listObj_scheme[command.type] = command.file
-      this.$set(this.listObj_scheme, command.type, command.file)
-      this.countFile = 0
-      for (let i in this.listObj_scheme) {
-        if (!this.listObj_scheme[i]) {
-          this.countFile++
-        }
-      }
-      this.$nextTick(() => {
-        this.renderComponent = true;
-      });
-    },
-    handleSizeChange(a) {
-      this.params.limit = a
-      this.getList()
-    },
-    handleCurrentChange(a) {
-      this.params.page = a
-      this.getList()
-    },
-    handleSearch() {
-      this.params = {
-        page: 1,
-        limit: 10,
-        sort: 'createdAt,asc',
-        project: 'dataentry'
-      }
-      this.params[this.keySearch] = this.valueSearch
-      this.getList()
-    },
+    // get all data first time
     getList() {
       this.listLoading = true
       this.$store.dispatch('dataentry/getQuickList', this.params)
@@ -524,26 +453,6 @@ export default {
         .catch(() => {
           this.listLoading = false
         })
-    },
-    retryQuickLead(e, data) {
-      let a = e.currentTarget
-      a.setAttribute('disabled', 'disabled')
-      if (data && data.optional && data.optional.quickLeadId) {
-        this.$store.dispatch('dataentry/retryQuickLead', data.optional.quickLeadId)
-          .then((res) => {
-            if (res.data.result_code == "0") {
-              Message({
-                message:'Automation did receive, wait a few minutes for upgrade',
-                type: 'success',
-                duration: 5 * 1000
-              })
-            }
-            a.setAttribute('disabled', false)
-          })
-          .catch(() => {
-            a.setAttribute('disabled', false)
-          })
-      }
     },
     getListScheme() {
       this.$store.dispatch('dataentry/getDocsCheme')
@@ -569,6 +478,67 @@ export default {
         .catch(() => {
         })
     },
+    // for list app
+    handleSizeChange(a) {
+      this.params.limit = a
+      this.getList()
+    },
+    handleCurrentChange(a) {
+      this.params.page = a
+      this.getList()
+    },
+    handleSearch() {
+      this.params = {
+        page: 1,
+        limit: 10,
+        sort: 'createdAt,asc',
+        project: 'dataentry'
+      }
+      this.params[this.keySearch] = this.valueSearch
+      this.getList()
+    },
+    // action in 1 of apps
+    retryQuickLead(e, data) {
+      let a = e.currentTarget
+      a.setAttribute('disabled', 'disabled')
+      if (data && data.optional && data.optional.quickLeadId) {
+        this.$store.dispatch('dataentry/retryQuickLead', data.optional.quickLeadId)
+          .then((res) => {
+            if (res.data.result_code == "0") {
+              Message({
+                message:'Automation did receive, wait a few minutes for upgrade',
+                type: 'success',
+                duration: 5 * 1000
+              })
+            }
+            a.setAttribute('disabled', false)
+          })
+          .catch(() => {
+            a.setAttribute('disabled', false)
+          })
+      }
+    },
+    updateStatusManualy(e, data) {
+      let a = e.currentTarget
+      a.setAttribute('disabled', 'disabled')
+      if (data && data.appId) {
+        this.$store.dispatch('dataentry/updateStatusManualy', data.appId)
+          .then((res) => {
+            if (res.data.result_code == "0") {
+              Message({
+                message:'Automation did receive, wait a little for upgrade',
+                type: 'success',
+                duration: 5 * 1000
+              })
+            }
+            a.setAttribute('disabled', false)
+          })
+          .catch(() => {
+            a.setAttribute('disabled', false)
+          })
+      }
+    },
+    // for create new quicklead
     checkData() {
       this.checkPass = true
       this.$store.dispatch('dataentry/postFirstCheck', this.state.dataentry.newCustomer)
@@ -605,31 +575,46 @@ export default {
 
       return { result: mess, file: typeScheme }
     },
-    updateStatusManualy(e, data) {
-      let a = e.currentTarget
-      a.setAttribute('disabled', 'disabled')
-      if (data && data.appId) {
-        this.$store.dispatch('dataentry/updateStatusManualy', data.appId)
-          .then((res) => {
-            if (res.data.result_code == "0") {
-              Message({
-                message:'Automation did receive, wait a little for upgrade',
-                type: 'success',
-                duration: 5 * 1000
-              })
-            }
-            a.setAttribute('disabled', false)
-          })
-          .catch(() => {
-            a.setAttribute('disabled', false)
-          })
+    onChangeScheme () {
+      if (this.$refs && this.$refs.upload && this.$refs.upload.uploadFiles) {
+        for (let j in this.$refs.upload.uploadFiles) {
+          let a = this.checkFiles(this.$refs.upload.uploadFiles[j].name)
+          if (a.checked) {
+            this.listObj_scheme[a.type] = this.$refs.upload.uploadFiles[j]
+          }
+        }
       }
+      this.countFile = 0
+      for (let i in this.listObj_scheme) {
+        if (!this.listObj_scheme[i]) {
+          this.countFile++
+        }
+      }
+    },
+    handleCommand(command) {
+      this.renderComponent = false;
+      for (let j in this.$refs.upload.uploadFiles) {
+        if (this.$refs.upload.uploadFiles[j].name == command.file.name) {
+          this.$refs.upload.uploadFiles[j].scheme = command.type
+        }
+      }
+      this.listObj_scheme[command.type] = command.file
+      this.$set(this.listObj_scheme, command.type, command.file)
+      this.countFile = 0
+      for (let i in this.listObj_scheme) {
+        if (!this.listObj_scheme[i]) {
+          this.countFile++
+        }
+      }
+      this.$nextTick(() => {
+        this.renderComponent = true;
+      });
     },
     checkFiles(fileName) {
       let type = ''
       return {
         checked: this.listSchemeSelect.some(scheme => {
-          let keyCheck = scheme.substring(4)
+          let keyCheck = scheme
           let regex = new RegExp(keyCheck)
           if (fileName.search(regex, 'i') != -1) {
             type = keyCheck
@@ -713,7 +698,21 @@ export default {
     createData() {
       this.$store.dispatch('dataentry/createQuicklead')
         .then((data) => {
-          
+          if (data.data.result_code == '0') {
+            Message({
+              message:'Create Quick Lead success, waiting for automation process!',
+              type: 'success',
+              duration: 5 * 1000
+            })
+            this.clearFormCreate()
+            this.$store.dispatch('dataentry/clearDataState')
+          } else {
+            Message({
+              message:'Create Quick Lead failed',
+              type: 'error',
+              duration: 5 * 1000
+            })
+          }
         })
         .catch(() => {
           Message({
@@ -722,6 +721,65 @@ export default {
             duration: 5 * 1000
           })
         })
+    },
+    clearFormCreate() {
+      this.listObj_scheme = {}
+      this.countFile = 0
+      this.cityStatus = []
+      this.listScheme = []
+      this.dialogImageUrl = ''
+      this.dialogImageName = ''
+      this.innerVisible = false
+      this.outerVisible = false
+      this.disabled = false
+      this.checked = false
+      this.checkPass = false
+      this.checkLoading = false
+      this.uploadDone = false
+      this.uploadFileLoading = false
+    },
+    // for comment detail 1 app
+    handleUpdate(row, column) {
+      if (column.property != 'action') {
+        this.temp = Object.assign({}, row)
+        // console.log(this.listSchemeDoc)
+        console.log(row)
+        if (row.optional.schemeCode) {
+          try {
+            this.listSchemeDoc.data && this.listSchemeDoc.data.forEach(scheme => {
+              console.log(scheme)
+              if (scheme.productName == row.optional.schemeCode) {
+                scheme.documentName.forEach(docs => {
+                  this.listSchemeComments[docs] = { file: '', comment: '' }
+                })
+              }
+            })
+          }
+          catch(err) {
+            console.log('sdf')
+          }
+        } else {
+
+        }
+        
+
+      //   listSchemeComments: {
+      //   'ID Card': { file: '', comment: '' },
+      //   'Notarization of ID card': { file: '', comment: '' },
+      //   'Family Book': { file: '', comment: '' },
+      //   'Notarization of Family Book': { file: '', comment: '' },
+      //   'Health Insurance Card': { file: '', comment: '' },
+      //   'Banking Statement': { file: '', comment: '' },
+      //   'Employer Confirmation': { file: '', comment: '' },
+      //   'Labor Contract': { file: '', comment: '' },
+      //   'Salary slip': { file: '', comment: '' },
+      //   'Customer Photograph': { file: '', comment: '' },
+      //   'Map to Customer House': { file: '', comment: '' },
+      //   'Customer Signature': { file: '', comment: '' }
+      // },
+        this.dialogStatus = 'update'
+        this.dialogDetail = true
+      }
     },
     select(scheme) {
       console.log(scheme)
@@ -777,13 +835,7 @@ export default {
       this.outerVisible = true
     },
     
-    handleUpdate(row, column) {
-      if (column.property != 'action') {
-        this.temp = Object.assign({}, row)
-        this.dialogStatus = 'update'
-        this.dialogDetail = true
-      }
-    },
+    
     handleComment(cmt) {
       this.tempCmt = Object.assign({}, cmt)
     },

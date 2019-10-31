@@ -8,4 +8,5 @@ import lombok.Data;
 public class DocumentDTO {
     public String originalname;
     public String filename;
+    public String type;
 }

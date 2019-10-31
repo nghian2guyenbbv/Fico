@@ -144,7 +144,8 @@ public class DataInitial {
             for(Document document : application.getDocuments()) {
                 DocumentDTO documentDTO = DocumentDTO.builder ()
                         .originalname(document.getOriginalname())
-                        .filename(document.getFilename()).build();
+                        .filename(document.getFilename())
+                        .type(document.getType()).build();
                 documentDTOS.add(documentDTO);
             }
         }
@@ -430,6 +431,224 @@ public class DataInitial {
                 .salesAgentCode("DS0001100")
                 .maxRequestRate("62").build();
         map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
+
+        ////********************************ENDDYNAMIC FORM************************************////
+
+        return map;
+    }
+
+    public static Map<String, Object> getDataFpt(Application application){
+        Map<String, Object> map = new HashMap<>();
+
+        map.put("ApplicationDTO", application);
+        map.put("AppId", application.getApplicationId());
+
+        ////********************************APPLICATIONINFO DTO************************************////
+        //PersonalInfo
+        PersonalInfo personalInfo=application.getApplicationInformation().getPersonalInformation().getPersonalInfo();
+        personalInfo.setCustomerCategoryCode("Highschool");
+
+        //Identification
+        List<IdentificationDTO> identificationDTOs = new ArrayList<>();
+        for (Identification identification : application.getApplicationInformation().getPersonalInformation().getIdentifications()) {
+            identificationDTOs.add(IdentificationDTO.builder().documentType(identification.getIdentificationType())
+                    .documentNumber(identification.identificationNumber)
+                    .issueDate(identification.getIssueDate()==null?"":identification.getIssueDate())
+                    .expirationDate("")
+                    .countryOfIssue(identification.getIssuingCountry()).build());
+        }
+
+        IdentificationDTO identificationDTO1=IdentificationDTO.builder()
+                .documentType("Family Book Number")
+                .documentNumber(identificationDTOs.get(0).getDocumentNumber())
+                .issueDate("")
+                .expirationDate("")
+                .countryOfIssue("Vietnam").build();
+        identificationDTOs.add(identificationDTO1);
+
+        IdentificationDTO identificationDTO2=IdentificationDTO.builder()
+                .documentType("Insurance Number")
+                .documentNumber(application.dynamicForm.stream().filter(q->q.formName.equals("frmFpt")).findAny().get().getEmployeeCard())
+                .issueDate("")
+                .expirationDate("")
+                .countryOfIssue("Vietnam").build();
+        identificationDTOs.add(identificationDTO2);
+
+        //Address
+        List<AddressDTO> addressDTOs = new ArrayList<>();
+        for (Address address : application.getApplicationInformation().getPersonalInformation().getAddresses()) {
+            AddressDTO addressDTO = AddressDTO.builder()
+                    .addressType(address.getAddressType())
+                    .country(address.getCountry())
+                    .region("ALL")
+                    .city(address.getCity())
+                    .area(address.getArea())
+                    .building(address.getAddressLine1())
+                    .house(address.getAddressLine2())
+                    .ward(address.getAddressLine3())
+                    .residentDurationYear("1")
+                                                .residentDurationMonth("1")
+                    .mobilePhone(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber().replace("+84", ""):"").build();
+            addressDTOs.add(addressDTO);
+        }
+
+        //Family
+        List<FamilyDTO> familyDTOs = new ArrayList<>();
+        if(application.getApplicationInformation().getPersonalInformation().getFamily()!=null && application.getApplicationInformation().getPersonalInformation().getFamily().size()>0) {
+            for (Family family : application.getApplicationInformation().getPersonalInformation().getFamily()) {
+                FamilyDTO familyDTO = FamilyDTO.builder()
+                        .relationshipType(family.getRelationship())
+                        .memberName(family.getMemberName())
+                        .phoneNumber(family.getPhoneNumber())
+                        .educationStatus("")
+                        .comName("").build();
+                familyDTOs.add(familyDTO);
+            }
+        }
+
+//        //check MarialStatus: married
+//        if(personalInfo.getMaritalStatus().equals("Married")){
+//            AddressDTO addressDTO3 = AddressDTO.builder()
+//                    .addressType("Spouse Address")
+//                    .country(addressDTOs.get(0).getCountry())
+//                    .region("ALL")
+//                    .city(addressDTOs.get(0).getCity())
+//                    .area(addressDTOs.get(0).getArea())
+//                    .building(addressDTOs.get(0).getBuilding())
+//                    .house(addressDTOs.get(0).getHouse())
+//                    .ward(addressDTOs.get(0).getWard())
+//                    .residentDurationYear("")
+//                    .residentDurationMonth("")
+//                    .mobilePhone(familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().isPresent()?familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().get().getPhoneNumber():"").build();
+//            addressDTOs.add(addressDTO3);
+//        }
+
+        //Employment Detail
+        EmploymentDetails employmentDetails=application.getApplicationInformation().getEmploymentDetails();
+        EmploymentDTO employmentDTO = EmploymentDTO.builder()
+                .occupationType("Salaried")
+                .taxCode("Others")
+                .natureOfBussiness("Regular")
+                .industry("T-Manufacturing")
+                .department("SẢN XUẤT")
+                .level("1")
+                .employmentStatus("Present")
+                .durationYears("0")
+                .durationMonths("1").build();
+
+        //Income Detail
+        List<IncomeDetailDTO> incomeDetailDTOList=new ArrayList<>();
+        for(FinancialDetail financialDetail : application.getApplicationInformation().getFinancialDetails())
+        {
+            IncomeDetailDTO incomeDetailDTO=IncomeDetailDTO.builder()
+                    .incomeHead(financialDetail.getIncomeExpense())
+                    .frequency("Monthly")
+                    .amount(financialDetail.getAmount())
+                    .percentage("100")
+                    .build();
+            incomeDetailDTOList.add(incomeDetailDTO);
+        }
+
+        ApplicationInfoDTO applicationInfoDTO = ApplicationInfoDTO.builder()
+                .gender(personalInfo.getGender())
+                .firstName(personalInfo.getLastName())
+                .middleName(personalInfo.getMiddleName())
+                .lastName(personalInfo.getFirstName())
+                .dateOfBirth(personalInfo.getDateOfBirth())
+                .placeOfIssue("Hà Nội")
+                .maritalStatus(personalInfo.getMaritalStatus())
+                .national(personalInfo.getNationality())
+                .education(personalInfo.getCustomerCategoryCode())
+                .identification(identificationDTOs)
+                .address(addressDTOs)
+                .email("")
+                .family(familyDTOs)
+                .employmentDetails(employmentDTO)
+                .incomeDetails(incomeDetailDTOList)
+                .build();
+        map.put("ApplicationInfoDTO", applicationInfoDTO);
+        ////********************************END APPLICATIONINFO DTO************************************////
+
+        ////******************************** LOAN DETAIL DTO************************************////
+        //LoanDetails
+        LoanDetails loanDetails=application.getLoanDetails();
+        LoanDetailsDTO loanDetailsDTO = LoanDetailsDTO.builder()
+                .branch("FPT") //set branch default la FPT
+                .channel("FPT")
+                .applicationNumber(loanDetails.getSourcingDetails().chassisApplicationNum)
+                .loanAppType(loanDetails.getSourcingDetails().loanApplicationType)
+                .productName("CDL_CASH")
+                .scheme(loanDetails.getSourcingDetails().getProductCode())
+                .loanAmount(loanDetails.getSourcingDetails().getLoanAmountRequested())
+                .loanTerm(loanDetails.getSourcingDetails().getRequestedTenure())
+                .saleAgentCode(loanDetails.getSourcingDetails().getSaleAgentCode())
+                .build();
+
+        map.put("LoanDetailsDTO", loanDetailsDTO);
+
+//        //LoanVAP
+//        LoanDetailsVapDTO loanDetailsVapDTO = LoanDetailsVapDTO.builder()
+//                .vapProduct(loanDetails.getVapDetails().vapProduct) //set branch default la FPT
+//                .vapTreatment(loanDetails.getVapDetails().vapTreatment)
+//                .insuranceCompany(loanDetails.getVapDetails().getInsuranceCompany())
+//                .build();
+//        map.put("LoanDetailsVapDTO", loanDetailsVapDTO);
+
+        ////********************************END LOAN DETAIL DTO************************************////
+
+        ////******************************** DOCUMENT DTO ************************************////
+        List<DocumentDTO> documentDTOS = new ArrayList<>();
+        if(application.getDocuments()!=null && application.getDocuments().size()>0){
+            for(Document document : application.getDocuments()) {
+                DocumentDTO documentDTO = DocumentDTO.builder ()
+                        .originalname(document.getOriginalname())
+                        .filename(document.getFilename()).build();
+                documentDTOS.add(documentDTO);
+            }
+        }
+        map.put("DocumentDTO", documentDTOS);
+        ////********************************END DOCUMENT DTO************************************////
+
+        ////******************************** REFERENCE DTO ************************************////
+
+        List<ReferenceDTO> referenceDTOs = new ArrayList<>();
+        for(Reference reference : application.getReferences()) {
+            ReferenceDTO referenceDTO = ReferenceDTO.builder()
+                    .fullName(reference.getName())
+                    .relationShip(reference.getRelationship())
+                    .mobilePhoneNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
+            referenceDTOs.add(referenceDTO);
+        }
+        map.put("ReferenceDTO", referenceDTOs);
+        ////********************************END REFERENCE DTO************************************////
+
+        ////******************************** DYNAMIC FORM ************************************////
+
+        List<DynamicForm> dynamicFormList=new ArrayList<>();
+        for(DynamicForm dynamicForm: application.getDynamicForm()){
+            if(dynamicForm.getFormName().equals("frmAppDtl")){
+                MiscFrmAppDtlDTO miscFrmAppDtlDTO = MiscFrmAppDtlDTO.builder()
+                        .loanPurpose("Other")
+                        .numOfDependents("0")
+                        .mortgagePaymentCost("0")
+                        .houseOwnership("Rented")
+                        .newBankCardNumber("1111111111111111")
+                        .salesAgentCode(dynamicForm.getSaleAgentCode())
+                        .maxRequestRate("62").build();
+                map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
+            }
+
+            //FPT
+            if(dynamicForm.getFormName().equals("frmFpt")){
+                 MiscFptDTO  miscFptDTO = MiscFptDTO.builder()
+                            .productDetails(dynamicForm.getProductDetails())
+                            .employeeCardNum(dynamicForm.getEmployeeCard())
+                            .creditLimit("0")
+                            .downPayment(dynamicForm.getDownPayment()).build();
+                map.put("MiscFptDTO", miscFptDTO);
+            }
+
+        }
 
         ////********************************ENDDYNAMIC FORM************************************////
 
