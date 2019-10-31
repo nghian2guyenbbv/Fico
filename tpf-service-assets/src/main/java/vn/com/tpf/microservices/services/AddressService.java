@@ -1,5 +1,7 @@
 package vn.com.tpf.microservices.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -29,14 +31,24 @@ public class AddressService {
 
 	public JsonNode getAddress(JsonNode request) {
 		Query query = new Query();
-		query.addCriteria(Criteria.where("areaCode").is(request.path("param").path("areaCode").asText()));
-		Address address = mongoTemplate.findOne(query, Address.class);
 
-		if (address == null) {
-			return response(404, mapper.createObjectNode().put("message", "AreaCode Not Found"));
+		if (request.path("param").path("areaCode").isTextual()) {
+			query.addCriteria(Criteria.where("areaCode").is(request.path("param").path("areaCode").asText()));
+			Address address = mongoTemplate.findOne(query, Address.class);
+			if (address == null) {
+				return response(404, mapper.createObjectNode().put("message", "AreaCode Not Found"));
+			}
+			return response(200, mapper.convertValue(address, JsonNode.class));
+		} else if (request.path("param").path("postCode").isTextual()) {
+			query.addCriteria(Criteria.where("postCode").is(request.path("param").path("postCode").asText()));
+			List<Address> address = mongoTemplate.find(query.limit(1), Address.class);
+			if (address.isEmpty()) {
+				return response(404, mapper.createObjectNode().put("message", "PostCode Not Found"));
+			}
+			return response(200, mapper.convertValue(address.get(0), JsonNode.class));
 		}
 
-		return response(200, mapper.convertValue(address, JsonNode.class));
+		return response(200, null);
 	}
 
 }

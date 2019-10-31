@@ -31,7 +31,11 @@ public class MomoController {
 		request.put("func", "createMomo");
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-momo", request);
+		ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-momo", request);
+
+		if (response.path("status").asInt() != 0) {
+			response.with("data").put("message", "Other Error");
+		}
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
