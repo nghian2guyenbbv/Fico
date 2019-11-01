@@ -4,6 +4,10 @@ const repaymentRouter = {
   path: '/repayment',
   component: Layout,
   redirect: '/repayment',
+  meta: {
+    title: 'Repayment',
+    icon: 'icon',
+  },
   children: [
     {
       path: '',
