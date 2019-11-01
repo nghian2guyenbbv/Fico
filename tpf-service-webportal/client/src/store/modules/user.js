@@ -125,6 +125,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       apiLogout(state.token).then(() => {
         cookie.clearCookie()
+        localStorage.clear()
         resetRouter()
         resolve()
       }).catch(error => {
@@ -137,6 +138,7 @@ const actions = {
   resetToken({ commit }) {
     return new Promise(resolve => {
       cookie.clearCookie()
+      localStorage.clear()
       resolve()
     })
   },
