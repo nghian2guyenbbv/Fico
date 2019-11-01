@@ -458,6 +458,22 @@ public class DataInitial {
                     .countryOfIssue(identification.getIssuingCountry()).build());
         }
 
+        IdentificationDTO identificationDTO1=IdentificationDTO.builder()
+                .documentType("Family Book Number")
+                .documentNumber(identificationDTOs.get(0).getDocumentNumber())
+                .issueDate("")
+                .expirationDate("")
+                .countryOfIssue("Vietnam").build();
+        identificationDTOs.add(identificationDTO1);
+
+        IdentificationDTO identificationDTO2=IdentificationDTO.builder()
+                .documentType("Insurance Number")
+                .documentNumber(application.dynamicForm.stream().filter(q->q.formName.equals("frmFpt")).findAny().get().getEmployeeCard())
+                .issueDate("")
+                .expirationDate("")
+                .countryOfIssue("Vietnam").build();
+        identificationDTOs.add(identificationDTO2);
+
         //Address
         List<AddressDTO> addressDTOs = new ArrayList<>();
         for (Address address : application.getApplicationInformation().getPersonalInformation().getAddresses()) {
@@ -475,33 +491,6 @@ public class DataInitial {
                     .mobilePhone(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber().replace("+84", ""):"").build();
             addressDTOs.add(addressDTO);
         }
-        AddressDTO addressDTO1 = AddressDTO.builder()
-                .addressType("Family Book Address")
-                .country(addressDTOs.get(0).getCountry())
-                .region("ALL")
-                .city(addressDTOs.get(0).getCity())
-                .area(addressDTOs.get(0).getArea())
-                .building(addressDTOs.get(0).getBuilding())
-                .house(addressDTOs.get(0).getHouse())
-                .ward(addressDTOs.get(0).getWard())
-                .residentDurationYear("")
-                .residentDurationMonth("")
-                .mobilePhone("").build();
-        addressDTOs.add(addressDTO1);
-
-        AddressDTO addressDTO2 = AddressDTO.builder()
-                .addressType("Working Address")
-                .country(addressDTOs.get(0).getCountry())
-                .region("ALL")
-                .city(addressDTOs.get(0).getCity())
-                .area(addressDTOs.get(0).getArea())
-                .building(addressDTOs.get(0).getBuilding())
-                .house(addressDTOs.get(0).getHouse())
-                .ward(addressDTOs.get(0).getWard())
-                .residentDurationYear("")
-                .residentDurationMonth("")
-                .mobilePhone("").build();
-        addressDTOs.add(addressDTO2);
 
         //Family
         List<FamilyDTO> familyDTOs = new ArrayList<>();
@@ -517,22 +506,22 @@ public class DataInitial {
             }
         }
 
-        //check MarialStatus: married
-        if(personalInfo.getMaritalStatus().equals("Married")){
-            AddressDTO addressDTO3 = AddressDTO.builder()
-                    .addressType("Spouse Address")
-                    .country(addressDTOs.get(0).getCountry())
-                    .region("ALL")
-                    .city(addressDTOs.get(0).getCity())
-                    .area(addressDTOs.get(0).getArea())
-                    .building(addressDTOs.get(0).getBuilding())
-                    .house(addressDTOs.get(0).getHouse())
-                    .ward(addressDTOs.get(0).getWard())
-                    .residentDurationYear("")
-                    .residentDurationMonth("")
-                    .mobilePhone(familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().isPresent()?familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().get().getPhoneNumber():"").build();
-            addressDTOs.add(addressDTO3);
-        }
+//        //check MarialStatus: married
+//        if(personalInfo.getMaritalStatus().equals("Married")){
+//            AddressDTO addressDTO3 = AddressDTO.builder()
+//                    .addressType("Spouse Address")
+//                    .country(addressDTOs.get(0).getCountry())
+//                    .region("ALL")
+//                    .city(addressDTOs.get(0).getCity())
+//                    .area(addressDTOs.get(0).getArea())
+//                    .building(addressDTOs.get(0).getBuilding())
+//                    .house(addressDTOs.get(0).getHouse())
+//                    .ward(addressDTOs.get(0).getWard())
+//                    .residentDurationYear("")
+//                    .residentDurationMonth("")
+//                    .mobilePhone(familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().isPresent()?familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().get().getPhoneNumber():"").build();
+//            addressDTOs.add(addressDTO3);
+//        }
 
         //Employment Detail
         EmploymentDetails employmentDetails=application.getApplicationInformation().getEmploymentDetails();
@@ -572,7 +561,7 @@ public class DataInitial {
                 .education(personalInfo.getCustomerCategoryCode())
                 .identification(identificationDTOs)
                 .address(addressDTOs)
-                .email(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
+                .email("")
                 .family(familyDTOs)
                 .employmentDetails(employmentDTO)
                 .incomeDetails(incomeDetailDTOList)
@@ -654,6 +643,7 @@ public class DataInitial {
                  MiscFptDTO  miscFptDTO = MiscFptDTO.builder()
                             .productDetails(dynamicForm.getProductDetails())
                             .employeeCardNum(dynamicForm.getEmployeeCard())
+                            .creditLimit("0")
                             .downPayment(dynamicForm.getDownPayment()).build();
                 map.put("MiscFptDTO", miscFptDTO);
             }
