@@ -61,10 +61,15 @@
                 v-else-if="item.key=='action'"
             >
             <template slot-scope="scope">
-              <el-button type="primary" size="mini" icon="el-icon-refresh-left" circle @click="retryQuickLead($event, scope.row)"
-                v-if="scope.row['appId'] == null || scope.row['appId'] == '' || scope.row['appId'] == 'UNKNOWN' || scope.row['appId'] == 'Unknown' || scope.row['appId'] == 'unknown'">
-              </el-button>
-              <el-button type="primary" size="mini" icon="el-icon-edit" circle @click="updateStatusManualy($event, scope.row)"></el-button>
+              <el-tooltip class="item" effect="dark" content="Retry Quicklead" placement="top" 
+                v-if="scope.row['status'] == 'AUTO_QL_FAIL'">
+                <el-button type="primary" size="mini" icon="el-icon-refresh-left" circle @click="retryQuickLead(scope.row)"></el-button>
+              </el-tooltip>
+              <el-tooltip class="item" effect="dark" content="Fix Manually" placement="top" 
+                v-if="scope.row['status'] == 'CANCEL' && scope.row['appId']">
+                <el-button type="primary" size="mini" icon="el-icon-edit" circle @click="updateStatusManualy(scope.row)"></el-button>
+              </el-tooltip>
+              
             </template>
             </el-table-column>
             <el-table-column 
@@ -135,26 +140,29 @@
               style="display: none"
             />
           </el-row>
-          <el-row>
+          <el-row style="">
             <el-collapse v-model="activeNames">
-            <el-col :span="12" v-for="(i, j) in listSchemeComments" :key="i+j" style="padding: 3px 5px;">
-              <el-collapse-item :title="j" :name="j">
-                <div class="sheme-doc-name">
-                  <p class="sheme-doc-name--filename">
-                    {{ files ? files.name.substring(0, files.name.length - 4) : j }}
-                  </p>
-                  <p class="sheme-doc-name--filetype">
-                    {{ files ? files.name.substring(files.name.length - 4) : '.pdf' }}
-                  </p>
-                </div>
-                <div style="float: right; padding: 5px 5px; margin: 4px 0;">
-                  <el-button icon="el-icon-view" circle size="mini" @click="handlePictureCardPreview('')"></el-button>
-                  <el-button icon="el-icon-upload" circle size="mini" @click="select(i, j)"></el-button>
-                </div>
-                <el-input placeholder="Comment" v-model="i.comment"></el-input>
-              </el-collapse-item>
-              
-            </el-col>
+              <el-col :span="12" v-for="(i, j) in listSchemeComments" :key="i+j" style="padding: 3px 5px;">
+                <el-collapse-item :name="j">
+                  <template slot="title">
+                    <p style="overflow: hidden; text-overflow: ellipsis; max-width: 200px; white-space: nowrap;"> {{ j }} </p>
+                  </template>
+                  <div class="sheme-doc-name">
+                    <p class="sheme-doc-name--filename">
+                      {{ files ? files.name.substring(0, files.name.length - 4) : j }}
+                    </p>
+                    <p class="sheme-doc-name--filetype">
+                      {{ files ? files.name.substring(files.name.length - 4) : '.pdf' }}
+                    </p>
+                  </div>
+                  <div style="float: right; padding: 5px 5px; margin: 4px 0;">
+                    <el-button icon="el-icon-view" circle size="mini" @click="handlePictureCardPreview('')"></el-button>
+                    <el-button icon="el-icon-upload" circle size="mini" @click="select(i, j)"></el-button>
+                  </div>
+                  <el-input placeholder="Comment" v-model="i.comment"></el-input>
+                </el-collapse-item>
+                
+              </el-col>
             </el-collapse>
           </el-row>
           <el-row>
@@ -306,6 +314,14 @@
     <el-dialog :title="dialogImageName" :visible.sync="innerVisible" append-to-body width="80%" top="9vh">
       <embed :src="dialogImageUrl" style="width: 100%; height: 70vh;"/>
     </el-dialog>
+
+    <el-dialog :title="dialogConfirm.title" :visible.sync="dialogConfirm.show" width="50%">
+      <span>{{ dialogConfirm.content }}</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogConfirm.show = false">Cancel</el-button>
+        <el-button type="primary" @click="dialogConfirm.action">{{ dialogConfirm.confirm }}</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -362,14 +378,6 @@ export default {
         list: [],
         total: 0,
         listLoading: true,
-        // params: {
-        //     page: 1,
-        //     limit: 20,
-        //     importance: undefined,
-        //     title: undefined,
-        //     type: undefined,
-        //     sort: '+id'
-        // },
         headers: [
           { key: 'action', title: 'Action', align: 'center', header_align: 'center' },
           { key: 'appId', title: 'App ID', align: 'center', header_align: 'center' },
@@ -400,6 +408,13 @@ export default {
           commentId: '',
           comment: '',
           recommnet: ''
+        },
+        dialogConfirm: {
+          show: false,
+          title: '',
+          content: '',
+          confirm: '',
+          action: ''
         },
         dialogDetail: false,
         outerVisible: false,
@@ -473,31 +488,45 @@ export default {
       this.getList()
     },
     // action in 1 of apps
-    retryQuickLead(e, data) {
-      let a = e.currentTarget
-      a.setAttribute('disabled', 'disabled')
-      if (data && data.optional && data.optional.quickLeadId) {
-        this.$store.dispatch('dataentry/retryQuickLead', data.optional.quickLeadId)
-          .then((res) => {
-            if (res.data.result_code == "0") {
-              Message({
-                message:'Automation did receive, wait a few minutes for upgrade',
-                type: 'success',
-                duration: 5 * 1000
-              })
-            }
-            a.setAttribute('disabled', false)
+    retryQuickLead(data) {
+      this.dialogConfirm.show = true
+      this.dialogConfirm.title = 'Retry QuickLead'
+      this.dialogConfirm.content = 'Are you sure want to retry quiclead: ' + data.fullName
+      this.dialogConfirm.confirm = 'Retry'
+      let that = this
+      this.dialogConfirm.action = function() {
+        if (data && data.optional && data.optional.quickLeadId) {
+          that.$store.dispatch('dataentry/retryQuickLead', data.optional.quickLeadId)
+            .then((res) => {
+              if (res.data.result_code == "0") {
+                Message({
+                  message:'Automation did receive, wait a few minutes for upgrade',
+                  type: 'success',
+                  duration: 5 * 1000
+                })
+                that.dialogConfirm.show = false
+              }
+            })
+            .catch(() => {
+            })
+        } else {
+          Message({
+            message:'Some error',
+            type: 'error',
+            duration: 5 * 1000
           })
-          .catch(() => {
-            a.setAttribute('disabled', false)
-          })
+        }
       }
     },
-    updateStatusManualy(e, data) {
-      let a = e.currentTarget
-      a.setAttribute('disabled', 'disabled')
-      if (data && data.appId) {
-        this.$store.dispatch('dataentry/updateStatusManualy', data.appId)
+    updateStatusManualy(data) {
+      this.dialogConfirm.show = true
+      this.dialogConfirm.title = 'Update Status Manually QuickLead'
+      this.dialogConfirm.content = 'Are you sure want to update manually app: ' + data.appId
+      this.dialogConfirm.confirm = 'Update'
+      let that = this
+      this.dialogConfirm.action = function() {
+       if (data && data.appId) {
+        that.$store.dispatch('dataentry/updateStatusManualy', data.appId)
           .then((res) => {
             if (res.data.result_code == "0") {
               Message({
@@ -505,12 +534,12 @@ export default {
                 type: 'success',
                 duration: 5 * 1000
               })
+              that.dialogConfirm.show = false
             }
-            a.setAttribute('disabled', false)
           })
           .catch(() => {
-            a.setAttribute('disabled', false)
           })
+        }
       }
     },
     // for create new quicklead

@@ -7,6 +7,7 @@ import Element from 'element-ui'
 import './styles/element-variables.scss'
 import locale from 'element-ui/lib/locale/lang/en'
 import '@/styles/index.scss' // global css
+require('./registerServiceWorker.js')
 
 import App from './App'
 import store from './store'

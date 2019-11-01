@@ -1,7 +1,7 @@
 import * as io from 'socket.io-client'
 import * as cookie from '@/utils/cookie'
 import Vue from 'vue'
-import { register } from "register-service-worker";
+import { pushNotify } from '@/utils/notifications'
 
 const state = {
   socket: null,
@@ -65,51 +65,7 @@ const actions = {
   fnSocket ({ dispatch, rootState }) {
     state.socket = io.connect(`${process.env.VUE_APP_BASE_SOCKET_HOST}?token=${cookie.getToken()}`, { transports: ['websocket'] });
 
-    state.socket.on('connect', () => { 
-      console.log(process.env.BASE_URL)
-      register(`${process.env.BASE_URL}service-worker.js`, {
-        ready() {
-          Notification.requestPermission(function (permission) {
-            // If the user accepts, let's create a notification
-            if (permission === "granted") {
-              var notification = new Notification(
-              payload.data.title, 
-              {
-                  icon: './tpb_icon.png',
-                  body: 'payload.data.body',
-              });
-            }
-          });
-
-          console.log(
-            "App is being served from cache by a service worker.\n" +
-              "For more details, visit https://goo.gl/AFskqB"
-          );
-        },
-        registered() {
-          
-          console.log("Service worker has been registered.");
-        },
-        cached() {
-          console.log("Content has been cached for offline use.");
-        },
-        updatefound() {
-          console.log("New content is downloading.");
-        },
-        updated() {
-          console.log("New content is available; please refresh.");
-        },
-        offline() {
-          console.log(
-            "No internet connection found. App is running in offline mode."
-          );
-        },
-        error(error) {
-          console.error("Error during service worker registration:", error);
-        }
-      });
-
-    });
+    state.socket.on('connect', () => { console.log("connect") });
 
     state.socket.on('disconnect', () => { console.log("disconnect") });
 
@@ -128,7 +84,7 @@ const actions = {
         momo: { departments: departments },
         dataentry: { departments: departments }
       }
-      
+      pushNotify('TPF_HOME NOTIFICATION', project + ' - ' + action)
       switch (action) {
         case 'CREATE':
           if (project == 'dataentry') {
