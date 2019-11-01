@@ -168,6 +168,7 @@ export default {
     },
 
     getNameStatus(item) {
+      if (item == null) return 'Null' 
       if (this.typeStatus[item]) {
         if (item.includes("PROCESSING")) {
           return "PROCESSING";
@@ -241,9 +242,6 @@ export default {
     },
     fnAppData(id) {
       window.open("/#/momo/appdatamomo/" + id, "_blank");
-      this.state.momo.ACCA.obj.references = [];
-      this.state.momo.ACCA._id = id;
-      this.$store.dispatch("momo/fnACCA", "ACCA");
     }
   }
 };

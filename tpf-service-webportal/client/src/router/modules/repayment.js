@@ -4,16 +4,17 @@ const repaymentRouter = {
   path: '/repayment',
   component: Layout,
   redirect: '/repayment',
+  name: 'Repayment',
   meta: {
     title: 'Repayment',
-    icon: 'icon',
+    iconSub: 'el-icon-coin',
   },
   children: [
     {
       path: '',
       component: () => import('@/views/Repayment/index'),
       name: 'Repayment',
-      meta: { title: 'Repayment',  roles: ['repayment_view'], icon: 'icon' }
+      meta: { title: 'Repayment',  roles: ['repayment_view'], iconSub: 'el-icon-money' }
     }
   ]
 }
