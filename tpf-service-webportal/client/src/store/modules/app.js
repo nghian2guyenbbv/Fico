@@ -60,7 +60,7 @@ const actions = {
     state.socket.on('disconnect', () => { console.log("disconnect") });
 
     state.socket.on('error', () => { console.log("error") });
-    console.log(rootState)
+
     state.socket.on('message', ({ action, project, data, from, to }) => {
       console.log({ action, project, data, from, to })
       // action: "UPDATE"

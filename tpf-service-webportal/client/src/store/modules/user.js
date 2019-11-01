@@ -14,7 +14,8 @@ const state = {
   client_id: '',
   scope: [],
   departments: [],
-  projects: []
+  projects: [],
+  info_User: JSON.parse(localStorage.getItem('INFOR_USER'))
 }
 
 const mutations = {
@@ -23,6 +24,7 @@ const mutations = {
   // },
   SET_INFOR_USER: (state, value) => {
     Object.assign(state, value)
+    localStorage.setItem('INFOR_USER', JSON.stringify(state))
   },
   SET_ROLES_USER: (state, roles) => {
     Vue.set(state, 'roles', [...roles])
@@ -33,7 +35,6 @@ const actions = {
   // user login
   login({ commit, dispatch }, userInfo) {
     const { username, password } = userInfo
-    
     return new Promise((resolve, reject) => {
       // this.$store.dispatch('app/fnSocket', null)
       if (process.env.VUE_APP_ENV_API == 'off') {
@@ -48,6 +49,7 @@ const actions = {
       } else {
         apiLogin({ username: username.trim(), password: password })
         .then(res => {
+          localStorage.clear()
           let response = res.data
           cookie.setToken(response.access_token, response.expires_in)
           dispatch('getInfo').then((data) => {
@@ -98,19 +100,16 @@ const actions = {
           if (!response || response.error) {
             reject('Verification failed, please Login again.')
           }
+          commit('SET_INFOR_USER', response)
           let roles = undefined
           let projects = undefined
           if (response && response.authorities) {
             if (response.authorities.includes('role_root')) {
               roles = ['admin']
             } else {
-              projects = response.projects
               roles = response.optional.roles
-              Vue.set(state, 'projects', [...projects])
             }
           }
-          
-          commit('SET_INFOR_USER', response)
           cookie.setRoles(roles)
           resolve(roles)
         }).catch(error => {
@@ -126,6 +125,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       apiLogout(state.token).then(() => {
         cookie.clearCookie()
+        localStorage.clear()
         resetRouter()
         resolve()
       }).catch(error => {
@@ -138,6 +138,7 @@ const actions = {
   resetToken({ commit }) {
     return new Promise(resolve => {
       cookie.clearCookie()
+      localStorage.clear()
       resolve()
     })
   },

@@ -10,8 +10,6 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -28,8 +26,6 @@ import vn.com.tpf.microservices.models.TrustingSocial;
 
 @Service
 public class TrustingSocialService {
-
-	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private ObjectNode error;
 
@@ -204,14 +200,6 @@ public class TrustingSocialService {
 		return response;
 	}
 
-	private void rabbitLog(JsonNode body, JsonNode data) {
-		ObjectNode dataLog = mapper.createObjectNode();
-		dataLog.put("type", "[==RABBITMQ-LOG==]");
-		dataLog.set("result", data);
-		dataLog.set("payload", body);
-		log.info("{}", dataLog);
-	}
-
 	private Map<String, Object> getComment(String document_type, String view_url, String download_url, String comment) {
 		Map<String, Object> c = new HashMap<>();
 		if (document_type != null && !document_type.isEmpty()) {
@@ -245,7 +233,6 @@ public class TrustingSocialService {
 				body.path("reference_id"), "param", Map.of("areaCode", data.path("district_code").asInt())));
 
 		if (address.path("status").asInt() != 200) {
-			rabbitLog(body, address);
 			return response(error.get("districtNotExists").get("code").asInt(), body,
 					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
 		}
@@ -283,7 +270,6 @@ public class TrustingSocialService {
 				body.path("reference_id"), "param", Map.of("areaCode", data.path("district_code").asInt())));
 
 		if (address.path("status").asInt() != 200) {
-			rabbitLog(body, address);
 			return response(error.get("districtNotExists").get("code").asInt(), body,
 					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
 		}

@@ -66,7 +66,7 @@ const actions = {
       } else {
         this.state.momo[model].isLoading = true
         const { _rowsPerPage, _page, _sort, _search, _select } = this.state.momo[model]
-        var params = { }
+        var params = {}
         if (_page) params = { ...params, page: _page }
         if (_rowsPerPage) params = { ...params, limit: _rowsPerPage }
         if (_select) params = { ...params, select: _select }

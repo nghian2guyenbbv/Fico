@@ -89,7 +89,7 @@ export default {
         appId: "",
         project: "momo",
         department: "loan_booking",
-        assigned: "user"
+        assigned: this.$store.getters.name
       }
     };
 
@@ -199,7 +199,7 @@ export default {
           _search: {
             project: "momo",
             department: "loan_booking",
-            assigned: "user"
+            assigned: this.$store.getters.name
           }
         };
         this.$store.dispatch("momo/fnCallListView", "MomoLoanBookingAss");

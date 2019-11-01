@@ -1,12 +1,12 @@
 package vn.com.tpf.microservices.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import vn.com.tpf.microservices.models.Fpt;
 import vn.com.tpf.microservices.models.LoanDetail;
@@ -63,6 +63,13 @@ public class ConvertService {
 		});
 		app.set("references", references);
 
+		app.set("dynamicForm",
+				mapper.createArrayNode()
+						.add(mapper.createObjectNode().put("formName", "frmAppDtl").put("saleAgentCode", fpt.getDsaCode()))
+						.add(mapper.createObjectNode().put("formName", "frmFpt").put("employeeCard", fpt.getEmployeeCard())
+								.put("downPayment", fpt.getLoanDetail().getDownPayment())
+								.set("productDetails", mapper.convertValue(fpt.getProductDetails(), JsonNode.class))));
+
 		ArrayNode documents = mapper.createArrayNode();
 		fpt.getPhotos().forEach(e -> {
 			documents.add(mapper.createObjectNode().put("type", e.getDocumentType()).put("link", e.getLink()));
@@ -101,6 +108,8 @@ public class ConvertService {
 			if (e.getAddressType().equals("Current Address")) {
 				address.set("phoneNumbers", mapper.createArrayNode()
 						.add(mapper.createObjectNode().put("phoneType", "Mobile Phone").put("phoneNumber", fpt.getMobilePhone())));
+			} else {
+				address.set("phoneNumbers", mapper.createArrayNode());
 			}
 			addresses.add(address);
 		});
@@ -121,7 +130,7 @@ public class ConvertService {
 			loanDetails.set("sourcingDetails",
 					mapper.createObjectNode().put("productCode", loanDetail.getProduct())
 							.put("loanAmountRequested", loanDetail.getLoanAmount()).put("requestedTenure", loanDetail.getTenor())
-							.put("loanApplicationType", "New Application").put("chassisApplicationNum", loanDetail.getLoanId())
+							.put("loanApplicationType", "New Application").put("chassisApplicationNum", fpt.getCustId())
 							.put("saleAgentCode", "OTHER VALUE"));
 			app.set("loanDetails", loanDetails);
 		}

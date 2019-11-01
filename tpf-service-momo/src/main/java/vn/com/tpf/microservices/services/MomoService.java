@@ -279,14 +279,6 @@ public class MomoService {
 		return response;
 	}
 
-	private void rabbitLog(JsonNode body, JsonNode data) {
-		ObjectNode dataLog = mapper.createObjectNode();
-		dataLog.put("type", "[==RABBITMQ-LOG==]");
-		dataLog.set("result", data);
-		dataLog.set("payload", body);
-		log.info("{}", dataLog);
-	}
-
 	public JsonNode getDetail(JsonNode request) throws Exception {
 		Momo momo = mongoTemplate.findOne(Query.query(Criteria.where("id").is(request.path("param").path("id").asText())),
 				Momo.class);
@@ -317,7 +309,6 @@ public class MomoService {
 				body.path("reference_id"), "param", Map.of("areaCode", data.path("district").asText())));
 
 		if (address.path("status").asInt() != 200) {
-			rabbitLog(body, address);
 			return response(error.get("districtNotExists").get("code").asInt(), body,
 					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
 		}
@@ -396,8 +387,6 @@ public class MomoService {
 						}
 						momoStatus.getDetail().setApplicationId(momo.getAppId());
 						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
-					} else {
-						rabbitLog(body, reason);
 					}
 				} catch (Exception e) {
 					log.error(e.toString());
@@ -426,8 +415,6 @@ public class MomoService {
 							}
 							momoStatus.getDetail().setApplicationId(momo.getAppId());
 							apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
-						} else {
-							rabbitLog(body, loan);
 						}
 					} catch (Exception e) {
 						log.error(e.toString());
@@ -435,7 +422,6 @@ public class MomoService {
 				}).start();
 			} else {
 				momo.setSmsResult("send sms error");
-				rabbitLog(body, sms);
 			}
 		} else if (body.path("status").asText().equals("DISBURSED")) {
 			momo.setStatus(body.path("status").asText());
@@ -454,8 +440,6 @@ public class MomoService {
 						}
 						momoStatus.getDetail().setApplicationId(momo.getAppId());
 						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
-					} else {
-						rabbitLog(body, loan);
 					}
 				} catch (Exception e) {
 					log.error(e.toString());
@@ -524,8 +508,6 @@ public class MomoService {
 						rabbitMQService.send("tpf-service-app",
 								Map.of("func", "updateApp", "reference_id", body.path("reference_id"), "param",
 										Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
-					} else {
-						rabbitLog(body, loan);
 					}
 				} catch (Exception e) {
 					log.error(e.toString());

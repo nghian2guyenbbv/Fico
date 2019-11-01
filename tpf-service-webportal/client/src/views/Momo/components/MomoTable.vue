@@ -168,6 +168,7 @@ export default {
     },
 
     getNameStatus(item) {
+      if (item == null) return 'Null' 
       if (this.typeStatus[item]) {
         if (item.includes("PROCESSING")) {
           return "PROCESSING";
@@ -188,7 +189,7 @@ export default {
     },
 
     fnAssign(app) {
-      this.state.momo[this.department + "Ass"].obj.assigned = "user";
+      this.state.momo[this.department + "Ass"].obj.assigned = this.$store.getters.name;
       this.state.momo[this.department + "Ass"].obj.project = app.project;
       this.state.momo[this.department + "Ass"].obj.id = app.uuid.split("_")[1];
       this.$store.dispatch("momo/fnUpdata", this.department + "Ass");
@@ -241,9 +242,6 @@ export default {
     },
     fnAppData(id) {
       window.open("/#/momo/appdatamomo/" + id, "_blank");
-      this.state.momo.ACCA.obj.references = [];
-      this.state.momo.ACCA._id = id;
-      this.$store.dispatch("momo/fnACCA", "ACCA");
     }
   }
 };
