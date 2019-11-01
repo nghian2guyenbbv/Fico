@@ -787,8 +787,16 @@ public class DataEntryService {
 				Update update = new Update();
 				update.set("status", data.getStatus());
 				update.set("description", data.getDescription());
-
+				if (data.getStatus().equals("MANUALLY")){
+					update.set("userName_DE", token.path("user_name").textValue());
+				}
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+				Application dataFullApp = mongoTemplate.findOne(queryUpdate, Application.class);
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp","reference_id", referenceId,
+								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
 
 				Report report = new Report();
 				report.setApplicationId(data.getApplicationId());
