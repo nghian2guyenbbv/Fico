@@ -378,6 +378,15 @@ export default {
         list: [],
         total: 0,
         listLoading: true,
+        // params: {
+        //     page: 1,
+        //     limit: 20,
+        //     importance: undefined,
+        //     title: undefined,
+        //     type: undefined,
+        //     sort: '+id'
+        // },
+
         headers: [
           { key: 'action', title: 'Action', align: 'center', header_align: 'center' },
           { key: 'appId', title: 'App ID', align: 'center', header_align: 'center' },
@@ -423,6 +432,15 @@ export default {
             update: 'Detail App',
             create: 'Create App'
         },
+        dialogPvVisible: false,
+        pvData: [],
+        // params: {
+        //   page: 1,
+        //   limit: 10,
+        //   sort: 'createdAt,asc',
+        //   project: 'dataentry'
+        // }
+
     }
   },
   computed: {

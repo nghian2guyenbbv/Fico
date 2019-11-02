@@ -46,7 +46,23 @@ const state = {
     leadStatus: 'Converted',
     communicationTranscript: 'dummy',
     identificationNumber: ''
-  }
+  },
+  quicklead: {
+    total: 0,
+    
+    obj: {},
+    _search: {},
+    _sort: '',
+    _select: '',
+    selected: [],
+    isLoading: false,
+    pagination: {
+      page: 1,
+      limit: 10,
+      sort: 'createdAt,asc',
+      project: 'dataentry'
+    }
+  },
 }
 
 const mutations = {
