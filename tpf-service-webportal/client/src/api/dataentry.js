@@ -102,7 +102,7 @@ export function retryQuickLead(quickleadId) {
 }
 
 export function updateStatusManualy(appId) {
-  let a = {
+  let data = {
     request_id: uuidv1(),
     date_time: moment().format(),
     data: {
@@ -116,14 +116,6 @@ export function updateStatusManualy(appId) {
   return request({
     url: 'dataentry/updatestatus',
     method: 'post',
-    data: {
-      request_id: "d062b2f8-dc3c-4366-afbe-87aadae8818e",
-      date_time: "1565667082",
-      data: {
-        applicationId: appId,
-        status:"MANUALLY",
-        description: null
-      }
-    }
+    data: data
   })
 }
