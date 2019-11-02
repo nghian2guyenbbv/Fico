@@ -2,10 +2,11 @@ import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
 import * as cookie from '@/utils/cookie'
+import router, { resetRouter } from '@/router'
 
 // tao axios goi api
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API + process.env.VUE_APP_VERSION_API,
+  baseURL: process.env.VUE_APP_BASE_API,
 })
 
 // setting truoc khi api dang gui di
@@ -26,11 +27,11 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     let res = { data: response.data }
-    
+
     if (response && response.headers && response.headers['x-pagination-total']) {
       res.total = response.headers['x-pagination-total']
     }
-    
+
     return res
     // if the custom code is not 20000, it is judged as an error.
     // if (res.code !== 20000) {
@@ -59,6 +60,16 @@ service.interceptors.response.use(
     // }
   },
   error => {
+    if (!error.response) {
+
+    } else if (error.response.status === 401) {
+      cookie.clearCookie()
+
+      router.push(`/login?redirect=${router.fullPath}`)
+    } else {
+      const message = error.response.data['message'] || error.response.data['error_description']
+
+    }
     console.log('err' + error) // for debug
     Message({
       message: error.message,

@@ -1,92 +1,42 @@
 <template>
-  <div>
-    <div class="app-container">
-      <el-row :gutter="20">
-        <el-col :span="24">
-          <el-input
-            placeholder="Search"
-            style="min-width: 150px; max-width: 300px;"
-            class="filter-item"
-          />
-          <el-button
-            class="filter-item"
-            style="margin-left: 10px; float: right;"
-            type="primary"
-            icon="el-icon-plus"
-            @click="createUser"
-          >Create User</el-button>
-        </el-col>
+  <div class="app-container">
+    <el-button class="filter-item" style="margin-left: 10px; float: right" type="primary" icon="el-icon-edit" @click="dialogStatus = 'create'; outerVisible = true">
+      Create User
+    </el-button>
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="outerVisible" width="60%" :destroy-on-close="true">
+      <el-row>
+        <el-input
+          type="textarea"
+          :rows="dialogStatus=='create'? 15 : 25"
+          placeholder="Please input"
+          v-model="userNew">
+        </el-input>
       </el-row>
-    </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="outerVisible = false">
+          Cancel
+        </el-button>
+        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData() ">
+          {{ dialogStatus=='create'? 'Create' : 'Save' }}
+        </el-button>
+      </div>
+    </el-dialog>
     <el-table
       v-loading
-      :data="data"
+      :data="users"
       border
       fit
       highlight-current-row
+      @row-click="handleUpdate"
       style="width: 100%;"
       height="70vh"
     >
-      <div v-for="item in headers" :key="item.key">
-        <el-table-column :label="item.title" :prop="item.key" sortable="custom" align="center">
-          <template slot-scope="scope">
-            <span>{{ scope.row[item.key] }}</span>
-          </template>
-        </el-table-column>
-      </div>
+      <el-table-column v-for="(item) in headers" :key="item.key" :label="item.title">
+        <template slot-scope="scope">
+          {{ renderCol(scope.row[item.key], item.type) }}
+        </template>
+      </el-table-column>
     </el-table>
-
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="outerVisible" width="60%">
-      <el-form
-        :model="ruleForm"
-        :rules="rules"
-        ref="ruleForm"
-        label-width="120px"
-        class="demo-ruleForm"
-      >
-        <el-form-item label="Username" prop="username">
-          <el-input v-model="ruleForm.username"></el-input>
-        </el-form-item>
-        <el-form-item label="Email" prop="email">
-          <el-input v-model="ruleForm.email"></el-input>
-        </el-form-item>
-        <el-form-item label="Password" prop="password">
-          <el-input type="password" v-model="ruleForm.password" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="Department" prop="departments">
-          <el-select v-model="ruleForm.departments" placeholder="Department">
-            <el-option v-for="item in departmentOp" :key="item.value" :label="item.text" :value="item.value"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Project" prop="projects">
-          <el-select v-model="ruleForm.projects" placeholder="Project">
-            <el-option v-for="item in projectsOp" :key="item.value" :label="item.text" :value="item.value"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Authorities" prop="authorities">
-          <el-select v-model="ruleForm.authorities" placeholder="Authorities">
-            <el-option v-for="item in authoritiesOp" :key="item.value" :label="item.text" :value="item.value"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Roles" prop="roles">
-          <el-cascader v-model="value" :options="options" :props="{ multiple: true }" clearable></el-cascader>
-        </el-form-item>
-        <el-form-item label="Notes" prop="desc">
-          <el-input type="textarea" v-model="ruleForm.desc"></el-input>
-        </el-form-item>
-        
-        <!-- <el-form-item>
-          <el-button type="primary" @click="submitForm('ruleForm')">Create</el-button>
-          <el-button @click="resetForm('ruleForm')">Reset</el-button>
-        </el-form-item>-->
-      </el-form>
-
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="outerVisible = false">Cancel</el-button>
-
-        <el-button type="primary" @click="submitForm('ruleForm')">Create</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -95,157 +45,102 @@ export default {
   name: "Users",
   data() {
     return {
-      departmentOp: [
-        { value: "data_entry", text: "Data Entry" },
-        { value: "document_check", text: "Document Check" },
-        { value: "loan_booking", text: "Loan Booking" }
-      ],
-      projectsOp: [
-        { value: "fpt", text: "Fpt" },
-        { value: "momo", text: "Momo" },
-        { value: "vinid", text: "Vin ID" },
-        { value: "trustingsocial", text: "Trusting Social" }
-      ],
-      rolesOp: [
-        {
-          value: "de",
-          label: "Data Entry",
-          children: [{ label: "View", value: "view" }]
-        }
-      ],
-      authoritiesOp: [
-        { value: "role_root", text: "role_root" },
-        { value: "role_user", text: "role_root" }
-      ],
-      data: [],
-      headers: [
-        {
-          key: "transDate",
-          title: "Trans Date",
-          align: "center",
-          header_align: "center"
-        },
-        {
-          key: "createdAt",
-          title: "createdAt",
-          align: "center",
-          header_align: "center"
-        },
-        {
-          key: "appId",
-          title: "appId",
-          align: "center",
-          header_align: "center"
-        },
-        {
-          key: "status",
-          title: "status",
-          align: "center",
-          header_align: "center"
-        },
-        {
-          key: "fullName",
-          title: "fullName",
-          align: "center",
-          header_align: "center"
-        },
-        {
-          key: "nationalId",
-          title: "nationalId",
-          align: "center",
-          header_align: "center"
-        }
-      ],
-      dialogStatus: null,
-      outerVisible: false,
       textMap: {
-        update: "Update User",
-        create: "Create User"
+        update: 'Update User',
+        create: 'Create User'
       },
-      ruleForm: {
-        username: "",
-        email: "",
-        password: "",
-        departments: [],
-        projects: [],
-        authorities: [],
-        roles: [],
-        enabled: false,
-        desc: ""
-      },
-      rules: {
-        username: [
-          {
-            required: true,
-            message: "Please input Activity name",
-            trigger: "blur"
-          },
-          {
-            min: 3,
-            max: 5,
-            message: "Length should be 3 to 5",
-            trigger: "blur"
-          }
-        ],
-        email: [
-          {
-            required: true,
-            message: "Please select Activity zone",
-            trigger: "change"
-          }
-        ],
-        date1: [
-          {
-            type: "date",
-            required: true,
-            message: "Please pick a date",
-            trigger: "change"
-          }
-        ],
-        date2: [
-          {
-            type: "date",
-            required: true,
-            message: "Please pick a time",
-            trigger: "change"
-          }
-        ],
-        type: [
-          {
-            type: "array",
-            required: true,
-            message: "Please select at least one activity type",
-            trigger: "change"
-          }
-        ],
-        resource: [
-          {
-            required: true,
-            message: "Please select activity resource",
-            trigger: "change"
-          }
-        ],
-        desc: [
-          {
-            required: true,
-            message: "Please input activity form",
-            trigger: "blur"
-          }
-        ]
-      }
+      dialogStatus: '',
+      outerVisible: false,
+      userNew: `
+        {
+          "username": "momotest",
+          "email": "momotest@tpb.com.vn",
+          "password": "momotest",
+          "authorities": "role_user",
+          "departments": [ "document_check", "loan_booking", "data_entry" ],
+          "projects": ["momo"],
+          "branches": ["HN"],
+          "optional": {
+              "roles": [ "momo_view", "momo_lb_view", "momo_dc_view", "momo_de_view" ]
+            }
+        }
+      `,
+      userId: '',
+      users: [],
+      headers: [
+        { key: "createdAt", title: "Created", align: "center", header_align: "center", type: 'DateTime' },
+        { key: "username", title: "User Name", align: "center", header_align: "center" },
+        { key: "email", title: "Email", align: "center", header_align: "center" },
+        { key: "authorities", title: "Authorities", align: "center", header_align: "center" },
+        { key: "branches", title: "Branches", align: "center", header_align: "center", type: 'Array' },
+        { key: "departments", title: "Departments", align: "center", header_align: "center", type: 'Array' },
+        { key: "optional", title: "Roles", align: "center", header_align: "center", type: 'Array' },
+        { key: "projects", title: "Projects", align: "center", header_align: "center", type: 'Array' }
+      ]
     };
   },
 
   created() {
-    this.data = require("@/store/data").data;
+    this.getUsers()
   },
 
   watch: {},
 
   methods: {
-    createUser() {
-      this.dialogStatus = "create";
-      this.outerVisible = true;
+    getUsers () {
+      this.$store.dispatch('user/getAllUser')
+        .then((data) => {
+          this.users = data
+        })
+        .catch(() => {
+        })
+    },
+    renderCol (value, type) {
+      if (type && type == 'DateTime') {
+        return this.$moment(value).format('MMM DD YYYY HH:mm')
+      } else {
+        return value
+      }
+    },
+    createData () {
+      this.$store.dispatch('user/createUser', JSON.parse(this.userNew))
+        .then((data) => {
+          this.outerVisible = false
+          this.getUsers()
+        })
+        .catch(() => {
+        })
+      this.userNew = `
+        {
+          "username": "momotest",
+          "email": "momotest@tpb.com.vn",
+          "password": "momotest",
+          "authorities": "role_user",
+          "departments": [ "document_check", "loan_booking", "data_entry" ],
+          "projects": ["momo"],
+          "branches": ["HN"],
+          "optional": {
+              "roles": [ "momo_view", "momo_lb_view", "momo_dc_view", "momo_de_view" ]
+            }
+        }
+      `
+    },
+    handleUpdate (row) {
+      this.dialogStatus = 'update'
+      this.userId = row.id
+      let {username, email, authorities, optional, departments, projects, branches} = row
+      this.userNew = JSON.stringify({username, email, authorities, optional, departments, projects, branches},null,'\t')
+      this.outerVisible = true
+    },
+    updateData () {
+      this.$store.dispatch('user/updateUser', { userId: this.userId, data: JSON.parse(this.userNew)})
+        .then((data) => {
+          this.outerVisible = false
+          this.getUsers()
+        })
+        .catch(() => {
+        })
+      
     }
   }
 };

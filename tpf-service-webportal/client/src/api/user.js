@@ -21,3 +21,26 @@ export function apiLogout() {
     method: 'get'
   })
 }
+
+export function apiUsers() {
+  return request({
+    url: 'account',
+    method: 'get'
+  })
+}
+
+export function createUser(data) {
+  return request({
+    url: 'account',
+    method: 'post',
+    data: data
+  })
+}
+
+export function updateUser(userId, data) {
+  return request({
+    url: 'account/' + userId,
+    method: 'put',
+    data: data
+  })
+}
