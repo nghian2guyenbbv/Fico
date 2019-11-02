@@ -40,8 +40,10 @@
             </el-tag>
           </div>
         </template>
+    
         <template v-else-if="i.value == 'assigned'">
           <el-button
+          :disabled="([department + 'UnAss']).isLoading"
             type="success"
             plain
             v-if="item.row.assigned"
@@ -67,6 +69,7 @@ export default {
   name: "tpf-table-momo",
   data() {
     return {
+      disabled: false,
       colorSmS: {
         W: {
           color: "#ffbf00"
@@ -189,18 +192,25 @@ export default {
     },
 
     fnAssign(app) {
+      this.disabled = true
       this.state.momo[this.department + "Ass"].obj.assigned = this.$store.getters.name;
       this.state.momo[this.department + "Ass"].obj.project = app.project;
       this.state.momo[this.department + "Ass"].obj.id = app.uuid.split("_")[1];
-      this.$store.dispatch("momo/fnUpdata", this.department + "Ass");
+      this.$store.dispatch("momo/fnUpdata", this.department + "Ass").then(e =>{
+        this.disabled = false
+      });
     },
     fnUnassign(app) {
+      this.disabled = true
+      this.state.momo[this.department + "Ass"].obj.assigned = undefined;
       this.state.momo[this.department + "UnAss"].obj.unassigned = app.assigned;
       this.state.momo[this.department + "UnAss"].obj.project = app.project;
       this.state.momo[this.department + "UnAss"].obj.id = app.uuid.split(
         "_"
       )[1];
-      this.$store.dispatch("momo/fnUpdata", this.department + "UnAss");
+      this.$store.dispatch("momo/fnUpdata", this.department + "UnAss").then(e =>{
+        this.disabled = false
+      });
     },
 
     fnDowloadAll(items) {
