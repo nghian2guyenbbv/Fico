@@ -43,14 +43,14 @@
     
         <template v-else-if="i.value == 'assigned'">
           <el-button
-          :disabled="([department + 'UnAss']).isLoading"
+          :disabled="(disabled)"
             type="success"
             plain
             v-if="item.row.assigned"
             @click="fnUnassign(item.row)"
           >Unassigned</el-button>
           <el-button
-            :disabled="([department + 'UnAss']).isLoading"
+            :disabled="(disabled)"
             type="success"
             plain
             @click="fnAssign(item.row)"

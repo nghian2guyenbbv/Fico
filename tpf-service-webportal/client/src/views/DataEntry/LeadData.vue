@@ -747,7 +747,7 @@ export default {
       if (column.property != 'action') {
         this.temp = Object.assign({}, row)
         // console.log(this.listSchemeDoc)
-        console.log(row)
+        // console.log(row)
         if (row.optional.schemeCode) {
           try {
             this.listSchemeDoc.data && this.listSchemeDoc.data.forEach(scheme => {

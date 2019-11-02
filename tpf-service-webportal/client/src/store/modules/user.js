@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { apiLogin, apiLogout, apiGetInfo } from '@/api/user'
+import { apiLogin, apiLogout, apiGetInfo, apiUsers, createUser, updateUser } from '@/api/user'
 import * as cookie from '@/utils/cookie'
 import router, { resetRouter } from '@/router'
 
@@ -140,6 +140,43 @@ const actions = {
       cookie.clearCookie()
       localStorage.clear()
       resolve()
+    })
+  },
+
+  getAllUser({ commit }) {
+    return new Promise((resolve, reject) => {
+      apiUsers().then(res => {
+        let response = res.data
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  createUser({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      let user = {
+        enabled: true
+      }
+      let userDetail = { ...user, ...data }
+      createUser(userDetail).then(res => {
+        let response = res.data
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  updateUser({ commit }, {userId, data}) {
+    return new Promise((resolve, reject) => {
+      updateUser(userId, data).then(res => {
+        let response = res.data
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
     })
   },
 
