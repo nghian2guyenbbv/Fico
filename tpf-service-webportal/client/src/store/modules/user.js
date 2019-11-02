@@ -14,8 +14,7 @@ const state = {
   client_id: '',
   scope: [],
   departments: [],
-  projects: [],
-  info_User: JSON.parse(localStorage.getItem('INFOR_USER'))
+  projects: []
 }
 
 const mutations = {
@@ -24,7 +23,6 @@ const mutations = {
   // },
   SET_INFOR_USER: (state, value) => {
     Object.assign(state, value)
-    localStorage.setItem('INFOR_USER', JSON.stringify(state))
   },
   SET_ROLES_USER: (state, roles) => {
     Vue.set(state, 'roles', [...roles])
@@ -90,8 +88,9 @@ const actions = {
             }
         }
 
-        commit('SET_INFOR_USER', response)
+        // commit('SET_INFOR_USER', response)
         cookie.setRoles(roles)
+        cookie.setInforUser(response)
         resolve(response)
       } else {
         apiGetInfo()
@@ -100,7 +99,8 @@ const actions = {
           if (!response || response.error) {
             reject('Verification failed, please Login again.')
           }
-          commit('SET_INFOR_USER', response)
+          // commit('SET_INFOR_USER', response)
+          cookie.setInforUser(response)
           let roles = undefined
           let projects = undefined
           if (response && response.authorities) {

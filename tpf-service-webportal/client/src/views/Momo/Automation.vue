@@ -156,7 +156,7 @@ export default {
           _search: {
             project: "momo",
             department: "data_entry",
-            assigned: this.$store.getters.name
+            assigned: this.fnCookie().getInforUser().user_name
           }
         };
         this.$store.dispatch("momo/fnCallListView", "MomoDataentyAss");
@@ -273,6 +273,7 @@ export default {
       ]
     };
 
+
     this.state.momo.MomoDataentyAss = {
       ...this.state.momo.MomoDataentyAss,
       _page: this.params.page,
@@ -280,7 +281,7 @@ export default {
       _search: {
         project: "momo",
         department: "data_entry",
-        assigned: this.$store.getters.name
+        assigned: this.fnCookie().getInforUser().user_name
       }
     };
 

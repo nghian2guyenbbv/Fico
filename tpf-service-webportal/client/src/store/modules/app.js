@@ -71,7 +71,7 @@ const actions = {
 
     state.socket.on('error', () => { console.log("error") });
     
-    let userInfor = JSON.parse(localStorage.getItem('INFOR_USER'))
+    let userInfor = cookie.getInforUser()
 
     state.socket.on('message', ({ action, project, data, from, to }) => {
       const departments = {
@@ -94,20 +94,20 @@ const actions = {
           }
           break
         case 'UPDATE':
-          if (data.assigned && userInfor
-            && (data.assigned === userInfor.user_name
-              || userInfor.authorities[0] !== 'role_user')) 
+          if (data.assigned && (data.assigned === userInfor.user_name || userInfor.authorities[0] !== 'role_user')) 
           {
             if (project == 'dataentry') {
               dispatch('dataentry/pushNewQuicklead', data)
             } else {
               dispatch('fnFilterCreate', { model: model[project].departments[to].a, data })
+              dispatch('fnFilterDelete', { model: model[project].departments[to].u, data })
             }
           } else {
             if (project == 'dataentry') {
               dispatch('dataentry/deleteQuicklead', data)
             } else {
               dispatch('fnFilterDelete', { model: model[project].departments[to].a, data })
+              dispatch('fnFilterCreate', { model: model[project].departments[to].u, data })
             }
           }
           if (project != 'dataentry') {
@@ -141,37 +141,15 @@ const actions = {
     }
   },
 
-  // fnFilterUpdate: async ({ dispatch, rootState }, { model, data }) => {
-  //   let page = await dispatch('fnRootState', model)
-
-  //   const idx = rootState[page][model].list.findIndex(e => e.id === data.id)
-  //   if (idx !== -1) Vue.set(rootState[page][model].list, idx, { ...rootState[page][model].list[idx], ...data })
-  // },
-
   fnFilterDelete: async ({ dispatch, rootState }, { model, data }) => {
     let page = await dispatch('fnRootState', model)
 
     rootState[page][model].list = rootState[page][model].list.filter(e => e.id !== data.id)
     rootState[page][model].total += -1
-    if (rootState[page][model].list.length === 0) dispatch('fnRead', model)
-  },
-
-  // fnLoadData: async ({ dispatch, rootState }, model) => {
-  //   let page = await dispatch('fnRootState', model)
-  //   switch (model) {
-  //     case 'Client':
-  //       if (rootState[page][model].isCreate) {
-  //         rootState[page][model].obj = {
-  //           ...rootState[page][model].obj, authorizedGrantTypes: 'client_credentials',
-  //           accessTokenValidity: 2592000, refreshTokenValidity: 15552000
-  //         }
-  //       } else {
-  //         rootState[page][model].obj = { ...rootState[page][model].obj, clientSecret: rootState[page][model].obj.secret }
-  //       }
-  //       break
-  //   }
-  // },
-  
+    if (rootState[page][model].list.length === 0) {
+      
+    }
+  }
 }
 
 export default {
