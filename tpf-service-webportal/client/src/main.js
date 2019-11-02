@@ -23,6 +23,8 @@ Vue.component('tpf-dialog', TpfDialog)
 Vue.component('tpf-image-slide', TpfImageSlide)
 import Clipboard from 'v-clipboard'
 Vue.use(Clipboard)
+import Uuid from 'uuid'
+Vue.use(Uuid)
 import * as filters from './filters' // global filters
 import { pagination, opt } from './utils/const-config'
 import './utils/socket'
