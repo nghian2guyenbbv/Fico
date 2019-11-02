@@ -1,6 +1,6 @@
 <template>
   <div style="padding: 10px;" v-loading="state.momo.ACCA.isLoading">
-    <el-card style=" background-color: rgb(92, 51, 130);">
+    <el-card style=" background-color: #11b95c8c;">
       <label>
         <font color="white">THÔNG TIN CÁ NHÂN</font>
       </label>
@@ -77,8 +77,16 @@
             </el-input>
           </el-col>
         </el-row>
-
         <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
+          <el-col :span="12">
+            <el-input
+              :value="(state.momo.ACCA.obj.phoneNumber || '')"
+              @focus="copied(state.momo.ACCA.obj.phoneNumber || '')"
+            >
+              <template slot="prepend">ĐTDĐ:</template>
+            </el-input>
+          </el-col>
+
           <el-col :span="12">
             <el-input
               :value="state.momo.ACCA.obj.employeeCard || ''"
@@ -87,19 +95,18 @@
               <template slot="prepend">Số thẻ bảo hiểm y tế/Số thẻ nhân viên:</template>
             </el-input>
           </el-col>
-
-          <el-col :span="12">
-            <el-input
-              :value="currencyFormat(state.momo.ACCA.obj.salary || '')+ ' VNĐ'"
-              @focus="copied(state.momo.ACCA.obj.salary || '')"
-            >
-              <template slot="prepend">Salary:</template>
-            </el-input>
-          </el-col>
         </el-row>
 
         <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
-          <el-col :span="3.5">
+          <el-col :span="8  ">
+            <el-input
+              :value="(state.momo.ACCA.obj.email || '')"
+              @focus="copied(state.momo.ACCA.obj.email || '')"
+            >
+              <template slot="prepend">Email:</template>
+            </el-input>
+          </el-col>
+          <el-col :span="4">
             <div
               class="el-input-group__prepend"
               style=" height: 32px; font-size:12px;"
@@ -131,7 +138,7 @@
       </el-card>
     </div>
 
-    <el-card style=" margin-top:18px; background-color: rgb(92, 51, 130);">
+    <el-card style=" margin-top:18px; background-color: #11b95c8c;">
       <label>
         <label>
           <font color="white">ĐỊA CHỈ</font>
@@ -142,8 +149,8 @@
       <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
         <el-col :span="12">
           <el-input
-            :value="(state.momo.ACCA.obj.address2 || ' ' +  ' ' + state.momo.ACCA.obj.ward || '')"
-            @focus="copied(state.momo.ACCA.obj.address2 || ' ' +  ' ' + state.momo.ACCA.obj.ward || '')"
+            :value="((state.momo.ACCA.obj.address1 || '') +  ' '  + (state.momo.ACCA.obj.address2 || '') +  ' ' + (state.momo.ACCA.obj.ward || ''))"
+            @focus="copied((state.momo.ACCA.obj.address1 || '')  +  ' '  + ( state.momo.ACCA.obj.address2 || '') +  ' ' + (state.momo.ACCA.obj.ward || ''))"
           >
             <template slot="prepend">Số, Đường, Phường/Xã/Thị Trấn:</template>
           </el-input>
@@ -160,31 +167,88 @@
       <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
         <el-col :span="12">
           <el-input
-            :value="(state.momo.ACCA.obj.province || '')"
-            @focus="copied(state.momo.ACCA.obj.province || '')"
+            :value="(state.momo.ACCA.obj.city || '')"
+            @focus="copied(state.momo.ACCA.obj.city || '')"
           >
             <template slot="prepend">Tỉnh/Thành Phố:</template>
           </el-input>
         </el-col>
         <el-col :span="12">
-          <el-input
-            :value="(state.momo.ACCA.obj.addressType)"
-            @focus="copied(state.momo.ACCA.obj.addressType)"
-          >
+          <el-input :value="('Current Address')" @focus="copied('Current Address')">
             <template slot="prepend">Type:</template>
+          </el-input>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
+        <el-col :span="12">
+          <el-input :value="('1 năm 1 tháng')" @focus="copied('1 năm 1 tháng')">
+            <template slot="prepend">Thời gian cư trú tại địa chỉ hiện tại:</template>
           </el-input>
         </el-col>
       </el-row>
 
       <!--  -->
-      <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
+      <el-row
+        :gutter="20"
+        style="margin-top: 15px; margin-bottom: 5px"
+        v-show="state.momo.ACCA.obj.maritalStatus === 'Married'"
+      >
+        <el-col :span="12">
+          <el-input
+            :value="((state.momo.ACCA.obj.address1 || '') +  ' '  + (state.momo.ACCA.obj.address2 || '') +  ' ' + (state.momo.ACCA.obj.ward || ''))"
+            @focus="copied((state.momo.ACCA.obj.address1 || '')  +  ' '  + ( state.momo.ACCA.obj.address2 || '') +  ' ' + (state.momo.ACCA.obj.ward || ''))"
+          >
+            <template slot="prepend">Số, Đường, Phường/Xã/Thị Trấn:</template>
+          </el-input>
+        </el-col>
+        <el-col :span="12">
+          <el-input
+            :value="(state.momo.ACCA.obj.district ||'' )"
+            @focus="copied(state.momo.ACCA.obj.district ||'' )"
+          >
+            <template slot="prepend">Quận/Huyện/Thị Xã/Thành Phố:</template>
+          </el-input>
+        </el-col>
+      </el-row>
+      <el-row
+        :gutter="20"
+        style="margin-top: 5px; margin-bottom: 5px"
+        v-show="state.momo.ACCA.obj.maritalStatus === 'Married'"
+      >
+        <el-col :span="12">
+          <el-input
+            :value="(state.momo.ACCA.obj.city || '')"
+            @focus="copied(state.momo.ACCA.obj.city || '')"
+          >
+            <template slot="prepend">Tỉnh/Thành Phố:</template>
+          </el-input>
+        </el-col>
+        <el-col :span="12">
+          <el-input :value="('Spouse Address')" @focus="copied('Spouse Address')">
+            <template slot="prepend">Type:</template>
+          </el-input>
+        </el-col>
+      </el-row>
+      <el-row
+        :gutter="20"
+        style="margin-top: 5px; margin-bottom: 5px"
+        v-show="state.momo.ACCA.obj.maritalStatus === 'Married'"
+      >
+        <el-col :span="12">
+          <el-input :value="('1 năm 1 tháng')" @focus="copied('1 năm 1 tháng')">
+            <template slot="prepend">Thời gian cư trú tại địa chỉ hiện tại:</template>
+          </el-input>
+        </el-col>
+      </el-row>
+      <!--  -->
+      <el-row :gutter="20" style="margin-top: 15px; margin-bottom: 5px">
         <el-col :span="4">
           <div
             class="el-input-group__prepend"
             style=" height: 32px; font-size:12px;"
           >Địa chỉ liên lạc:</div>
         </el-col>
-        <el-col :span="12" style=" height: 32px; padding-top: 8px;">
+        <el-col :span="10" style=" height: 32px; padding-top: 8px;">
           <el-checkbox
             @change="copied('Địa chỉ hiện tại')"
             :disabled="false"
@@ -204,17 +268,10 @@
             :label="` Địa chỉ hộ khẩu`"
           ></el-checkbox>
         </el-col>
-        <el-col :span="8">
-          <el-input
-            :value="(state.momo.ACCA.obj.mobilePhone || '')"
-            @focus="copied(state.momo.ACCA.obj.mobilePhone || '')"
-          >
-            <template slot="prepend">ĐTDĐ:</template>
-          </el-input>
-        </el-col>
       </el-row>
+
       <!--  -->
-      <el-row
+      <!-- <el-row
         :gutter="20"
         style="margin-top: 5px; margin-bottom: 5px"
         v-if="state.momo.ACCA.obj.region === 'Current Address'"
@@ -227,11 +284,11 @@
             <template slot="prepend">Thời gian cư trú tại địa chỉ hiện tại:</template>
           </el-input>
         </el-col>
-      </el-row>
+      </el-row>-->
     </el-card>
     <!--        -->
     <el-card
-      style=" margin-top:18px; background-color: rgb(92, 51, 130);"
+      style=" margin-top:18px; background-color: #11b95c8c;"
       v-show="state.momo.ACCA.obj.maritalStatus === 'Married'"
     >
       <label>
@@ -239,13 +296,13 @@
           <font color="white">THÔNG TIN NGƯỜI HÔN PHỐI</font>
         </label>
       </label>
-    </el-card>
+    </el-card><el-card style="margin: 5px;">
     <el-row
       :gutter="20"
       style="margin-top: 5px; margin-bottom: 5px"
       v-for="(item, index) in state.momo.ACCA.obj.references"
       :key="item.phoneNumber+ index"
-      v-show="item.relation === 'Married' "
+      v-show="item.relation === 'Spouse'"
     >
       <el-col :span="8">
         <el-input :value="item.fullName || '' " @focus="copied(item.fullName || '')">
@@ -269,10 +326,10 @@
           <template slot="prepend">DTDĐ:</template>
         </el-input>
       </el-col>
-    </el-row>
+    </el-row></el-card>
     <!--  -->
 
-    <el-card style=" margin-top:18px; background-color: rgb(92, 51, 130);">
+    <el-card style=" margin-top:18px; background-color: #11b95c8c;">
       <label>
         <label>
           <font color="white">THÔNG TIN NGƯỜI THAM CHIẾU</font>
@@ -311,7 +368,7 @@
         </el-col>
       </el-row>
     </el-card>
-    <el-card style=" margin-top:18px; background-color: rgb(92, 51, 130) ;">
+    <el-card style=" margin-top:18px; background-color: #11b95c8c ;">
       <label>
         <font color="white">THÔNG TIN ĐỀ NGHỊ VAY</font>
       </label>
@@ -320,41 +377,81 @@
       <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
         <el-col :span="12">
           <el-input
-            :value="state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.product || '' : '' "
-            @focus="copied(state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.product || '' : '' )"
+            :value="state.momo.ACCA.obj.productCode || ''"
+            @focus="copied(state.momo.ACCA.obj.productCode || '')"
           >
-            <template slot="prepend">Mã sản phẩm:</template>
+            <template slot="prepend">Mã sản phẩm :</template>
           </el-input>
         </el-col>
         <el-col :span="12">
           <el-input
-            :value="currencyFormat(state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.loanAmount || '' : '') + 'VNĐ'"
-            @focus="copied(state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.loanAmount || '' : '')"
+            :value="currencyFormat(state.momo.ACCA.obj.salary || '')+ ' VNĐ'"
+            @focus="copied(state.momo.ACCA.obj.salary || '')"
           >
-            <template slot="prepend">Số tiền đè nghị vay:</template>
+            <template slot="prepend">Salary:</template>
           </el-input>
         </el-col>
       </el-row>
       <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
         <el-col :span="12">
           <el-input
-            :value="currencyFormat(state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.tenor || '' : '') + ' VNĐ'"
-            @focus="copied(state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.tenor || '' : '')"
+            :value="currencyFormat(state.momo.ACCA.obj.amount || '' ) + ' VNĐ'"
+            @focus="copied(state.momo.ACCA.obj.amount || '' )"
           >
-            <template slot="prepend">Kì hạn vay:</template>
+            <template slot="prepend">Số tiền đè nghị vay:</template>
           </el-input>
         </el-col>
 
         <el-col :span="12">
           <el-input
-            :value="currencyFormat(state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.annualr || '' : '' )"
-            @focus="copied(state.momo.ACCA.obj.loanDetail ? state.momo.ACCA.obj.loanDetail.annualr || '' : '' )"
+            :value="currencyFormat(currencyFormat(state.momo.ACCA.obj.fee || ' ' ) + 'VNĐ')"
+            @focus="copied(state.momo.ACCA.obj.fee || '' )"
           >
-            <template slot="prepend">Lãi suất:</template>
+            <template slot="prepend">Lãi suất (Fee):</template>
           </el-input>
         </el-col>
       </el-row>
-      <el-row
+
+      <!--   -->
+
+      <el-row :gutter="20" style="margin-top: 5px; margin-bottom: 5px">
+        <el-col :span="6">
+          <el-input
+            :value="currencyFormat(state.momo.ACCA.obj.dueDate || ' ' ) "
+            @focus="copied(state.momo.ACCA.obj.dueDate || '' )"
+          >
+            <template slot="prepend">Kì hạn vay (Due date):</template>
+          </el-input>
+        </el-col>
+
+        <el-col :span="6">
+          <el-input
+            :value="currencyFormat(state.momo.ACCA.obj.loanTime || ' ' )"
+            @focus="copied(state.momo.ACCA.obj.loanTime || '' )"
+          >
+            <template slot="prepend">Loan Time:</template>
+          </el-input>
+        </el-col>
+
+        <el-col :span="6">
+          <el-input
+            :value="currencyFormat(state.momo.ACCA.obj.insurrance || ' ' ) "
+            @focus="copied(state.momo.ACCA.obj.insurrance || '' )"
+          >
+            <template slot="prepend">Insurrance:</template>
+          </el-input>
+        </el-col>
+
+        <el-col :span="6">
+          <el-input
+            :value="currencyFormat(state.momo.ACCA.obj.postCode || ' ' )"
+            @focus="copied(state.momo.ACCA.obj.postCode || '' )"
+          >
+            <template slot="prepend">Post Code:</template>
+          </el-input>
+        </el-col>
+      </el-row>
+      <!-- <el-row
         :gutter="20"
         style="margin-top: 5px; margin-bottom: 5px"
         v-if="state.momo.ACCA.obj.loanDetail"
@@ -375,8 +472,8 @@
             <template slot="prepend">Mã nhân viên:</template>
           </el-input>
         </el-col>
-      </el-row>
-
+      </el-row>-->
+      <!-- 
       <el-row
         :gutter="20"
         style="margin-top: 5px; margin-bottom: 5px"
@@ -404,7 +501,7 @@
             <template slot="prepend">Good Type:</template>
           </el-input>
         </el-col>
-      </el-row>
+      </el-row>-->
     </el-card>
   </div>
 </template>
