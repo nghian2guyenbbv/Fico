@@ -212,7 +212,7 @@ const service = axios.create({
 });
 import { MessageBox, Message } from "element-ui";
 import Pagination from "@/components/Pagination";
-
+const uuidv1 = require('uuid/v1');
 export default {
   name: "Repayment",
   components: { Pagination },
@@ -298,8 +298,8 @@ export default {
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
       this.listLoading = true;
       const inputData = {
-        request_id: "",
-        date_time: dateTime,
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
         data: {
           fromDate: value[0] + "T00:00:00.000",
           toDate: value[1] + "T23:59:59.999"
@@ -351,8 +351,8 @@ export default {
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
 
       const inputData = {
-        request_id: "",
-        date_time: dateTime,
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
         data: {}
       };
       service
@@ -412,8 +412,8 @@ export default {
       var moment = require("moment");
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
       const inputData = {
-        request_id: "",
-        date_time: dateTime,
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
         data: {
           transDate: date
         }
@@ -519,8 +519,8 @@ export default {
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
 
       const inputData = {
-        request_id: "",
-        date_time: dateTime,
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
         data: this.dataexcel
       };
 
