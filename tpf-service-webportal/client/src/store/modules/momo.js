@@ -58,7 +58,7 @@ const mutations = {
 }
 
 const actions = {
-  fnCallListView({ commit, dispatch }, model) {
+  fnCallListView({ dispatch }, model) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')
@@ -74,6 +74,7 @@ const actions = {
         for (const i in _search) params = { ...params, [i]: _search[i] }
         momo.apiMomo(params, 'get')
           .then(success => {
+            this.state.momo[model].total = 0
             if (Array.isArray(success.data)) {
               this.state.momo[model].list = success.data
               this.state.momo[model].total = success.total || 0
@@ -89,7 +90,7 @@ const actions = {
     })
   },
 
-  fnUpdata({ commit, dispatch }, model) {
+  fnUpdata({ dispatch }, model) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')
@@ -108,7 +109,49 @@ const actions = {
     );
   },
 
-  fnACCA({ commit, dispatch }, model) {
+  fnFixmanualy({ dispatch }, appid) {
+    return new Promise((resolve, reject) => {
+      if (process.env.VUE_APP_ENV_API == 'off') {
+        let response = require('@/store/data')
+        resolve(response)
+      } else {
+        // this.state.momo[model].isLoading = true
+        momo.fnFixmanualy(appid, 'put')
+          .then(success => {
+            // this.state.momo[model].isLoading = false
+            console.log(success.data);
+            
+            resolve(success.data)
+          }).catch(error => {
+            reject(error)
+          })
+      }
+    }
+    );
+  },
+
+  fnRetry({ dispatch }, appid) {
+    return new Promise((resolve, reject) => {
+      if (process.env.VUE_APP_ENV_API == 'off') {
+        let response = require('@/store/data')
+        resolve(response)
+      } else {
+        // this.state.momo[model].isLoading = true
+        momo.fnFixmanualy(appid, 'put')
+          .then(success => {
+            // this.state.momo[model].isLoading = false
+            console.log(success.data);
+            
+            resolve(success.data)
+          }).catch(error => {
+            reject(error)
+          })
+      }
+    }
+    );
+  },
+
+  fnACCA({  dispatch }, model) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')

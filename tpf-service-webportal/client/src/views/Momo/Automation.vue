@@ -223,7 +223,21 @@ export default {
           value: "assigned",
           sortable: false,
           width: "120px"
-        }
+        },
+        // {
+        //   text: "FIX MANUALY",
+        //   align: "center",
+        //   value: "fixmanualy",
+        //   sortable: false,
+        //   width: "120px"
+        // },
+        // {
+        //   text: "RETRY",
+        //   align: "center",
+        //   value: "retry",
+        //   sortable: false,
+        //   width: "120px"
+        // }
       ],
       unassigned: [
         {
@@ -266,13 +280,11 @@ export default {
           text: "ASSIGNED",
           align: "center",
           value: "assigned",
-
           sortable: false,
           width: "120px"
         }
       ]
     };
-
 
     this.state.momo.MomoDataentyAss = {
       ...this.state.momo.MomoDataentyAss,

@@ -1,8 +1,10 @@
 <template>
   <el-carousel :interval="5000" arrow="always">
-    <el-carousel-item v-for="(item, i) in items" :key="item+i" >
-      <el-image  style="width: 100%; height: 100%" fit="scale-down" :src="item.viewUrl">
-    </el-image>
+    <el-carousel-item v-for="(item, i) in items" :key="item+i">
+      <slot name="error">
+        <div class="el-image__error">{{ "Image Not Found" }}</div>
+      </slot>
+      <el-image style="width: 100%; height: 100%" fit="scale-down" :src="item.viewUrl"></el-image>
     </el-carousel-item>
   </el-carousel>
 </template>
@@ -35,7 +37,7 @@ export default {
   background-color: #d3dce6;
 }
 .el-image__error {
-  font-size: 28px;
-  color: crimson;
+  font-size: 39px;
+  color: goldenrod;
 }
 </style>
