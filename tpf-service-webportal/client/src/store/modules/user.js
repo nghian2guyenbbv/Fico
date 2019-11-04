@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { apiLogin, apiLogout, apiGetInfo } from '@/api/user'
+import { apiLogin, apiLogout, apiGetInfo, apiUsers, createUser, updateUser } from '@/api/user'
 import * as cookie from '@/utils/cookie'
 import router, { resetRouter } from '@/router'
 
@@ -14,8 +14,7 @@ const state = {
   client_id: '',
   scope: [],
   departments: [],
-  projects: [],
-  info_User: JSON.parse(localStorage.getItem('INFOR_USER'))
+  projects: []
 }
 
 const mutations = {
@@ -24,7 +23,6 @@ const mutations = {
   // },
   SET_INFOR_USER: (state, value) => {
     Object.assign(state, value)
-    localStorage.setItem('INFOR_USER', JSON.stringify(state))
   },
   SET_ROLES_USER: (state, roles) => {
     Vue.set(state, 'roles', [...roles])
@@ -90,8 +88,9 @@ const actions = {
             }
         }
 
-        commit('SET_INFOR_USER', response)
+        // commit('SET_INFOR_USER', response)
         cookie.setRoles(roles)
+        cookie.setInforUser(response)
         resolve(response)
       } else {
         apiGetInfo()
@@ -100,7 +99,8 @@ const actions = {
           if (!response || response.error) {
             reject('Verification failed, please Login again.')
           }
-          commit('SET_INFOR_USER', response)
+          // commit('SET_INFOR_USER', response)
+          cookie.setInforUser(response)
           let roles = undefined
           let projects = undefined
           if (response && response.authorities) {
@@ -125,6 +125,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       apiLogout(state.token).then(() => {
         cookie.clearCookie()
+        localStorage.clear()
         resetRouter()
         resolve()
       }).catch(error => {
@@ -137,7 +138,45 @@ const actions = {
   resetToken({ commit }) {
     return new Promise(resolve => {
       cookie.clearCookie()
+      localStorage.clear()
       resolve()
+    })
+  },
+
+  getAllUser({ commit }) {
+    return new Promise((resolve, reject) => {
+      apiUsers().then(res => {
+        let response = res.data
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  createUser({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      let user = {
+        enabled: true
+      }
+      let userDetail = { ...user, ...data }
+      createUser(userDetail).then(res => {
+        let response = res.data
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  updateUser({ commit }, {userId, data}) {
+    return new Promise((resolve, reject) => {
+      updateUser(userId, data).then(res => {
+        let response = res.data
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
     })
   },
 

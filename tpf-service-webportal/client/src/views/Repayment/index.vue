@@ -11,6 +11,7 @@
             :loading="importLoading"
             @click="importExcel"
           >Import Excel</el-button>
+
           <el-button
             class="filter-item"
             style="margin-left: 10px; float: right;"
@@ -19,7 +20,24 @@
             :loading="settelLoading"
             @click="settelTrans"
           >Settel Trans</el-button>
-          <!--  v-if="settel" -->
+          <el-dropdown
+            v-if="transDateList.length > 0"
+            split-button
+            type="primary"
+            trigger="click"
+            @command="fnHandlingSettelTrans"
+            style="margin-left: 10px; float: right; !important"
+          >
+            Trans Date List
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item
+                v-for="(item, index) in transDateList"
+                v-bind:key="index+item"
+                :command="item.date"
+              >{{item.date}}</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+      
           <el-button
             class="filter-item"
             style="margin-left: 10px; float: right;"
@@ -48,14 +66,11 @@
             style="display: none"
           />
         </el-col>
-        <el-col :span="12"></el-col>
       </el-row>
+       
     </div>
     <div style="margin-bottom: 20px; margin-left: 20px">
-      <el-tag
-        type="success"
-        v-show="statusData == 'import'"
-      >Data: Excel, {{ infoExcel }}</el-tag>
+      <el-tag type="success" v-show="statusData == 'import'">Data: Excel, {{ infoExcel }}</el-tag>
       <el-tag
         type="success"
         v-show="statusData == 'server' && dataexcel.length > 0 "
@@ -197,7 +212,7 @@ const service = axios.create({
 });
 import { MessageBox, Message } from "element-ui";
 import Pagination from "@/components/Pagination";
-
+const uuidv1 = require('uuid/v1');
 export default {
   name: "Repayment",
   components: { Pagination },
@@ -230,7 +245,8 @@ export default {
           return time.getTime() < minDate || time.getTime() > maxDate;
         }
       },
-      infoExcel: '',
+      transDateList: [],
+      infoExcel: "",
       off: false,
       files: null,
       listLoading: false,
@@ -282,8 +298,8 @@ export default {
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
       this.listLoading = true;
       const inputData = {
-        request_id: "",
-        date_time: dateTime,
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
         data: {
           fromDate: value[0] + "T00:00:00.000",
           toDate: value[1] + "T23:59:59.999"
@@ -327,16 +343,79 @@ export default {
     },
 
     settelTrans() {
+      /// getTransDate
       this.listLoading = true;
       this.settelLoading = true;
+
       var moment = require("moment");
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
 
       const inputData = {
-        request_id: "",
-        date_time: dateTime,
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
+        data: {}
+      };
+      service
+        .post("/repayment/getTransDate", inputData, {
+          headers: { Authorization: "Bearer " + this.state.user.token }
+        })
+        .then(success => {
+          this.transDateList = success.data.data;
+          if (this.transDateList.length > 0) {
+            this.listLoading = true;
+            this.settelLoading = true;
+          } else {
+            this.settelLoading = false;
+            this.listLoading = false;
+          }
+
+          if (success.data.result_code != 0) {
+            this.settelLoading = false;
+            this.listLoading = false;
+            Message({
+              message: success.data.message,
+              type: "error",
+              duration: 5 * 1000
+            });
+          } else {
+            if (this.transDateList.length > 0) {
+              this.listLoading = true;
+              this.settelLoading = true;
+              Message({
+                message: "GetTransDate Success",
+                type: "success",
+                duration: 5 * 1000
+              });
+            } else {
+              this.settelLoading = false;
+              this.listLoading = false;
+              Message({
+                message: "TransDate nil",
+                type: "warning",
+                duration: 5 * 1000
+              });
+            }
+          }
+        })
+        .catch(error => {
+          this.settelLoading = false;
+          this.listLoading = false;
+          Message({
+            message: error,
+            type: "error",
+            duration: 5 * 1000
+          });
+        });
+    },
+
+    fnHandlingSettelTrans(date) {
+      var moment = require("moment");
+      var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
+      const inputData = {
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
         data: {
-          transDate: dateTime
+          transDate: date
         }
       };
 
@@ -349,6 +428,7 @@ export default {
           this.settelLoading = false;
           this.settel = false;
           this.data = success.data.data;
+          this.transDateList = [];
           var moment = require("moment");
           let fromDate = moment(this.value[0]).format("YYYY-MM-DD");
           let toDate = moment(this.value[1]).format("YYYY-MM-DD");
@@ -362,6 +442,7 @@ export default {
               duration: 5 * 1000
             });
           } else {
+            this.transDateList = [];
             this.settelLoading = false;
             this.listLoading = false;
             Message({
@@ -438,8 +519,8 @@ export default {
       var dateTime = moment().format("YYYY-MM-DDTHH:mm:ss.SSS");
 
       const inputData = {
-        request_id: "",
-        date_time: dateTime,
+        request_id: uuidv1(),
+        date_time: this.$moment().format(),
         data: this.dataexcel
       };
 
@@ -522,8 +603,20 @@ export default {
         var ws = wb.Sheets[wsname];
         // delete row A1 A2
 
-        if ((ws.A1 && ws.A2) && (ws.A1.h && ws.A2.h) && (ws.A1.h.includes("Tổng tiền:") && ws.A2.h.includes("Tổng số lượng giao dịch")) && (ws.A3.h.includes("Thời điểm thanh toán") && ws.B3.h.includes("Nhà cung cấp") && ws.C3.h.includes("Mã đơn hàng") && ws.D3.h.includes("Mã khách hàng") && ws.E3.h.includes("Số tiền(VND)") && ws.F3.h.includes("Họ tên") )) {
-          this.infoExcel = ws.A1.h +' VND'+' - ' + ws.A2.h
+        if (
+          ws.A1 &&
+          ws.A2 &&
+          (ws.A1.h && ws.A2.h) &&
+          (ws.A1.h.includes("Tổng tiền:") &&
+            ws.A2.h.includes("Tổng số lượng giao dịch")) &&
+          (ws.A3.h.includes("Thời điểm thanh toán") &&
+            ws.B3.h.includes("Nhà cung cấp") &&
+            ws.C3.h.includes("Mã đơn hàng") &&
+            ws.D3.h.includes("Mã khách hàng") &&
+            ws.E3.h.includes("Số tiền(VND)") &&
+            ws.F3.h.includes("Họ tên"))
+        ) {
+          this.infoExcel = ws.A1.h + " VND" + " - " + ws.A2.h;
           delete ws.A1;
           delete ws.A2;
           // result Json
@@ -540,7 +633,7 @@ export default {
         }
       };
       reader.onloadend = e => {
-        if (this.dataJson && (this.dataJson.length > 0)) {
+        if (this.dataJson && this.dataJson.length > 0) {
           this.fnSubmit();
         }
       };

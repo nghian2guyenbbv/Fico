@@ -58,7 +58,7 @@ const mutations = {
 }
 
 const actions = {
-  fnCallListView({ commit, dispatch }, model) {
+  fnCallListView({ dispatch }, model) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')
@@ -66,7 +66,7 @@ const actions = {
       } else {
         this.state.momo[model].isLoading = true
         const { _rowsPerPage, _page, _sort, _search, _select } = this.state.momo[model]
-        var params = { }
+        var params = {}
         if (_page) params = { ...params, page: _page }
         if (_rowsPerPage) params = { ...params, limit: _rowsPerPage }
         if (_select) params = { ...params, select: _select }
@@ -74,6 +74,7 @@ const actions = {
         for (const i in _search) params = { ...params, [i]: _search[i] }
         momo.apiMomo(params, 'get')
           .then(success => {
+            this.state.momo[model].total = 0
             if (Array.isArray(success.data)) {
               this.state.momo[model].list = success.data
               this.state.momo[model].total = success.total || 0
@@ -89,7 +90,7 @@ const actions = {
     })
   },
 
-  fnUpdata({ commit, dispatch }, model) {
+  fnUpdata({ dispatch }, model) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')
@@ -108,7 +109,26 @@ const actions = {
     );
   },
 
-  fnACCA({ commit, dispatch }, model) {
+  fnFixmanualy({ dispatch }, model) {
+    return new Promise((resolve, reject) => {
+      if (process.env.VUE_APP_ENV_API == 'off') {
+        let response = require('@/store/data')
+        resolve(response)
+      } else {
+        this.state.momo[model].isLoading = true
+        momo.apiMomoAss(this.state.momo[model].obj.id, this.state.momo[model].obj, 'put')
+          .then(success => {
+            this.state.momo[model].isLoading = false
+            resolve(success.data)
+          }).catch(error => {
+            reject(error)
+          })
+      }
+    }
+    );
+  },
+
+  fnACCA({  dispatch }, model) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')

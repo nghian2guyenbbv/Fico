@@ -10,9 +10,11 @@
           <el-tooltip class="item" effect="light" content="Dowload All" placement="left">
             <el-button
               :disabled="(item.row.documents.length == 0) || (state.momo['Documents'].disabledDown)"
-              @click="fnDowloadAll(item.row.documents)"
+              @click="fnDowloadAll(item.row.documents, item.row)"
             >
-              <i :class="!state.momo['Documents'].disabledDown?'el-icon-download':'el-icon-loading'"></i> 
+              <i
+                :class="!state.momo['Documents'].disabledDown?'el-icon-download':'el-icon-loading'"
+              ></i>
             </el-button>
           </el-tooltip>
           <el-badge type="warning" :value="item.row.documents.length" :max="99" class="item">
@@ -28,8 +30,8 @@
         </template>
         <template v-else-if="i.value == 'optional.smsResult'">
           <font
-            :color=" getColorSms(item.row.optional.smsResult).color"
-          >{{ item.row.optional.smsResult }}</font>
+            :color=" getColorSms(item.row.optional && item.row.optional.smsResult ? item.row.optional.smsResult : '').color"
+          >{{ item.row.optional && item.row.optional.smsResult ? item.row.optional.smsResult : ''}}</font>
         </template>
         <template v-else-if="i.value == 'status'">
           <div>
@@ -40,20 +42,31 @@
             </el-tag>
           </div>
         </template>
+
         <template v-else-if="i.value == 'assigned'">
           <el-button
+            :disabled="(disabled)"
             type="success"
             plain
             v-if="item.row.assigned"
             @click="fnUnassign(item.row)"
           >Unassigned</el-button>
           <el-button
-            :disabled="([department + 'UnAss']).isLoading"
+            :disabled="(disabled)"
             type="success"
             plain
             @click="fnAssign(item.row)"
             v-else
           >Assigned</el-button>
+        </template>
+
+        <template v-else-if="i.value == 'fixmanualy'">
+          <el-button
+            :disabled="(disabledfixmanualy)"
+            type="warning"
+            plain
+            @click="fnFixmanualy(item.row)"
+          >Fix Manualy</el-button>
         </template>
         <template v-else>{{ item.row[i.value]}}</template>
       </el-table-column>
@@ -67,6 +80,8 @@ export default {
   name: "tpf-table-momo",
   data() {
     return {
+      disabledfixmanualy: false,
+      disabled: false,
       colorSmS: {
         W: {
           color: "#ffbf00"
@@ -167,6 +182,10 @@ export default {
       }
     },
 
+    fnFixmanualy(item) {
+      console.log(item);
+    },
+
     getNameStatus(item) {
       if (this.typeStatus[item]) {
         if (item.includes("PROCESSING")) {
@@ -174,7 +193,7 @@ export default {
         }
         return item;
       } else {
-        return item ? item.replace("_", " ") : "";
+        return item ? item.replace(/_/g, " ") : "Null";
       }
     },
     getColorSms(item) {
@@ -185,24 +204,37 @@ export default {
           color: "#000"
         };
       }
+      return
     },
 
     fnAssign(app) {
-      this.state.momo[this.department + "Ass"].obj.assigned = this.$store.getters.name;
+      this.disabled = true;
+      this.state.momo[
+        this.department + "Ass"
+      ].obj.assigned = this.fnCookie().getInforUser().user_name;
       this.state.momo[this.department + "Ass"].obj.project = app.project;
       this.state.momo[this.department + "Ass"].obj.id = app.uuid.split("_")[1];
-      this.$store.dispatch("momo/fnUpdata", this.department + "Ass");
+      this.$store.dispatch("momo/fnUpdata", this.department + "Ass").then(e => {
+        this.disabled = false;
+      });
     },
     fnUnassign(app) {
+      this.disabled = true;
+      this.state.momo[this.department + "Ass"].obj.assigned = undefined;
       this.state.momo[this.department + "UnAss"].obj.unassigned = app.assigned;
       this.state.momo[this.department + "UnAss"].obj.project = app.project;
       this.state.momo[this.department + "UnAss"].obj.id = app.uuid.split(
         "_"
       )[1];
-      this.$store.dispatch("momo/fnUpdata", this.department + "UnAss");
+      this.$store
+        .dispatch("momo/fnUpdata", this.department + "UnAss")
+        .then(e => {
+          this.disabled = false;
+        });
     },
 
-    fnDowloadAll(items) {
+    fnDowloadAll(items, item) {
+      var name = item ? item.appId : ''
       for (const key in items) {
         this.state.momo["Documents"].disabledDown = true
         if (items.hasOwnProperty(key)) {
@@ -218,21 +250,22 @@ export default {
               );
               var fileLink = document.createElement("a");
               fileLink.href = fileURL;
-              fileLink.setAttribute("download", element.documentType + ".jpg");
+       
+              fileLink.setAttribute("download",name +'_'+ element.documentType  + ".jpg");
               document.body.appendChild(fileLink);
               fileLink.click();
-              this.state.momo["Documents"].disabledDown = false
+              this.state.momo["Documents"].disabledDown = false;
               this.$notify.success({
                 title: "Success",
-                message: "Dowload " + element.documentType,
+                message: "Dowload " +name +'_'+ element.documentType,
                 offset: 100
               });
             })
             .catch(error => {
-              this.state.momo["Documents"].disabledDown = false
+              this.state.momo["Documents"].disabledDown = false;
               this.$notify.error({
-                title: "Error Dowload " + element.documentType,
-                message: error,
+                title: "Error Dowload ",
+                message: error +'_'+name +'_'+ element.documentType,
                 offset: 100
               });
             });
@@ -241,9 +274,6 @@ export default {
     },
     fnAppData(id) {
       window.open("/#/momo/appdatamomo/" + id, "_blank");
-      this.state.momo.ACCA.obj.references = [];
-      this.state.momo.ACCA._id = id;
-      this.$store.dispatch("momo/fnACCA", "ACCA");
     }
   }
 };
@@ -260,14 +290,13 @@ export default {
   padding: 5px;
 }
 .el-tooltip__popper {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    color: #42b983;
-    border: 1px solid #6b8bcc !important;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #42b983;
+  border: 1px solid #6b8bcc !important;
 }
 .el-tooltip__popper.popper__arrow {
-    border-right-color: #6b8bcc !important;
+  border-right-color: #6b8bcc !important;
 }
-
 </style>
 

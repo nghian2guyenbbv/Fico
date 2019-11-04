@@ -7,7 +7,7 @@
       </pan-thumb> -->
       <!-- <github-corner style="position: absolute; top: 0px; border: 0; right: 0;" /> -->
       <div class="info-container">
-        <span class="display_name">{{ name }}</span>
+        <span class="display_name">{{ fnCookie().getInforUser().user_name }}</span>
         <span style="font-size:20px;padding-top:20px;display:inline-block;">Editor's Dashboard</span>
       </div>
     </div>
@@ -18,9 +18,6 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-// import PanThumb from '@/components/PanThumb'
-// import GithubCorner from '@/components/GithubCorner'
 
 export default {
   name: 'DashboardEditor',
@@ -31,11 +28,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      'name',
-      'avatar',
-      'roles'
-    ])
   }
 }
 </script>

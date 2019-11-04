@@ -22,7 +22,6 @@ router.beforeEach(async (to, from, next) => {
       if (to.path === '/login') {
         next({ path: '/' })
       } else {
-        
         if (to.meta && to.meta.roles) {
           if (roles.includes("admin")) {
             next()

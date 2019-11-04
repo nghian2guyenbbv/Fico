@@ -7,6 +7,7 @@ import Element from 'element-ui'
 import './styles/element-variables.scss'
 import locale from 'element-ui/lib/locale/lang/en'
 import '@/styles/index.scss' // global css
+require('./registerServiceWorker.js')
 
 import App from './App'
 import store from './store'
@@ -18,9 +19,13 @@ import './utils/error-log' // error log
 import TableDefault from '@/components/Table/TableDefault'
 import TpfImageSlide from "@/views/Momo/components/Carousel";
 import TpfDialog from "@/views/Momo/components/Dialog";
-Vue.component('table-default', TableDefault)
+Vue.component('tpf-table', TableDefault)
 Vue.component('tpf-dialog', TpfDialog)
 Vue.component('tpf-image-slide', TpfImageSlide)
+import Clipboard from 'v-clipboard'
+Vue.use(Clipboard)
+import Uuid from 'uuid'
+Vue.use(Uuid)
 import * as filters from './filters' // global filters
 import { pagination, opt } from './utils/const-config'
 import './utils/socket'
