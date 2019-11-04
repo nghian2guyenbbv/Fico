@@ -27,7 +27,7 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     let res = { data: response.data }
-
+    console.log(response)
     if (response && response.headers && response.headers['x-pagination-total']) {
       res.total = response.headers['x-pagination-total']
     }
@@ -60,6 +60,7 @@ service.interceptors.response.use(
     // }
   },
   error => {
+    console.log(error)
     if (!error.response) {
 
     } else if (error.response.status === 401) {

@@ -1,6 +1,5 @@
 <template>
-  <div></div>
-  <!-- <table-default></table-default> -->
+  <tpf-table></tpf-table>
 </template>
 
 <script>
