@@ -59,14 +59,22 @@
             v-else
           >Assigned</el-button>
         </template>
-
-        <template v-else-if="i.value == 'fixmanualy'">
+        <template v-else-if="(i.value == 'fixmanualy') && item.row.appId">
           <el-button
             :disabled="(disabledfixmanualy)"
             type="warning"
             plain
             @click="fnFixmanualy(item.row)"
           >Fix Manualy</el-button>
+        </template>
+       
+        <template v-else-if=" item.row.appId == null &&(i.value == 'retry') ">
+          <el-button
+            :disabled="(disabledretry)"
+            type="warning"
+            plain
+            @click="fnRetry(item.row)"
+          >Retry </el-button>
         </template>
         <template v-else>{{ item.row[i.value]}}</template>
       </el-table-column>
@@ -80,6 +88,7 @@ export default {
   name: "tpf-table-momo",
   data() {
     return {
+      disabledretry: false,
       disabledfixmanualy: false,
       disabled: false,
       colorSmS: {
@@ -182,8 +191,35 @@ export default {
       }
     },
 
+    fnRetry(item) {
+      disabledretry = true
+      this.$store.dispatch("momo/fnRetry", item.appId).then(response => {
+        disabledretry = false
+      }).catch(error => {
+         disabledretry = false
+              this.$notify.error({
+                title: "Error ",
+                message: error ,
+                offset: 100
+              });
+       } );
+
+    },
+
+
     fnFixmanualy(item) {
-      console.log(item);
+      disabledfixmanualy = true
+      this.$store.dispatch("momo/fnFixmanualy", item.appId).then(response => {
+        disabledfixmanualy = false
+      }).catch(error => {
+         disabledfixmanualy = false
+              this.$notify.error({
+                title: "Error ",
+                message: error ,
+                offset: 100
+              });
+       } );
+
     },
 
     getNameStatus(item) {
@@ -193,7 +229,7 @@ export default {
         }
         return item;
       } else {
-        return item ? item.replace(/_/g, " ") : "Null";
+        return item ? item.replace(/_/g, " ") : "Waiting Automation";
       }
     },
     getColorSms(item) {

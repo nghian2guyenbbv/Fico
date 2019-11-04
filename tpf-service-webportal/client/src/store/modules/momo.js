@@ -109,16 +109,39 @@ const actions = {
     );
   },
 
-  fnFixmanualy({ dispatch }, model) {
+  fnFixmanualy({ dispatch }, appid) {
     return new Promise((resolve, reject) => {
       if (process.env.VUE_APP_ENV_API == 'off') {
         let response = require('@/store/data')
         resolve(response)
       } else {
-        this.state.momo[model].isLoading = true
-        momo.apiMomoAss(this.state.momo[model].obj.id, this.state.momo[model].obj, 'put')
+        // this.state.momo[model].isLoading = true
+        momo.fnFixmanualy(appid, 'put')
           .then(success => {
-            this.state.momo[model].isLoading = false
+            // this.state.momo[model].isLoading = false
+            console.log(success.data);
+            
+            resolve(success.data)
+          }).catch(error => {
+            reject(error)
+          })
+      }
+    }
+    );
+  },
+
+  fnRetry({ dispatch }, appid) {
+    return new Promise((resolve, reject) => {
+      if (process.env.VUE_APP_ENV_API == 'off') {
+        let response = require('@/store/data')
+        resolve(response)
+      } else {
+        // this.state.momo[model].isLoading = true
+        momo.fnFixmanualy(appid, 'put')
+          .then(success => {
+            // this.state.momo[model].isLoading = false
+            console.log(success.data);
+            
             resolve(success.data)
           }).catch(error => {
             reject(error)
