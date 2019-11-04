@@ -223,7 +223,15 @@ export default {
           value: "assigned",
           sortable: false,
           width: "120px"
-        }
+        },
+        // {
+        //   text: "FIX MANUALY",
+        //   align: "center",
+        //   value: "fixmanualy",
+        //   sortable: false,
+        //   width: "120px"
+        // },
+        
       ],
       unassigned: [
         {
