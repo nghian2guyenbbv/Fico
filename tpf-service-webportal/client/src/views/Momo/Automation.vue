@@ -231,7 +231,13 @@ export default {
         //   sortable: false,
         //   width: "120px"
         // },
-        
+        // {
+        //   text: "RETRY",
+        //   align: "center",
+        //   value: "retry",
+        //   sortable: false,
+        //   width: "120px"
+        // }
       ],
       unassigned: [
         {
@@ -274,13 +280,11 @@ export default {
           text: "ASSIGNED",
           align: "center",
           value: "assigned",
-
           sortable: false,
           width: "120px"
         }
       ]
     };
-
 
     this.state.momo.MomoDataentyAss = {
       ...this.state.momo.MomoDataentyAss,
