@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-button class="filter-item" style="margin-left: 10px; float: right" type="primary" icon="el-icon-edit" @click="dialogStatus = 'create'; outerVisible = true">
+    <el-button class="filter-item" style="margin-left: 10px; float: right" type="primary" icon="el-icon-edit" @click="dialogCreate()">
       Create User
     </el-button>
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="outerVisible" width="60%" :destroy-on-close="true">
@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import { MessageBox, Message } from 'element-ui'
 export default {
   name: "Users",
   data() {
@@ -102,14 +103,9 @@ export default {
         return value
       }
     },
-    createData () {
-      this.$store.dispatch('user/createUser', JSON.parse(this.userNew))
-        .then((data) => {
-          this.outerVisible = false
-          this.getUsers()
-        })
-        .catch(() => {
-        })
+    dialogCreate() {
+      this.dialogStatus = 'create'
+      this.outerVisible = true
       this.userNew = `
         {
           "username": "momotest",
@@ -125,6 +121,21 @@ export default {
         }
       `
     },
+    createData () {
+      let cloneObj = Object.assign({}, JSON.parse(this.userNew))
+      this.$store.dispatch('user/createUser', cloneObj)
+        .then((data) => {
+          this.outerVisible = false
+          this.getUsers()
+          Message({
+            message:'Create user ' + cloneObj.username + ' success',
+            type: 'success',
+            duration: 5 * 1000
+          })
+        })
+        .catch(() => {
+        })
+    },
     handleUpdate (row) {
       this.dialogStatus = 'update'
       this.userId = row.id
@@ -133,10 +144,16 @@ export default {
       this.outerVisible = true
     },
     updateData () {
-      this.$store.dispatch('user/updateUser', { userId: this.userId, data: JSON.parse(this.userNew)})
+      let cloneObj = Object.assign({}, JSON.parse(this.userNew))
+      this.$store.dispatch('user/updateUser', { userId: this.userId, data: cloneObj})
         .then((data) => {
           this.outerVisible = false
           this.getUsers()
+          Message({
+            message:'Update user ' + cloneObj.username + ' success',
+            type: 'success',
+            duration: 5 * 1000
+          })
         })
         .catch(() => {
         })
