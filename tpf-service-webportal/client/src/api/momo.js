@@ -25,7 +25,7 @@ export function apiMomoACCA(id, method) {
 
 export function fnFixmanualy(appid, method) {
   return request({
-    url: `/app/${appid}/PROCESSING_FIX?access_key=access_key_db`,
+    url: `/app/update_status/${appid}/PROCESSING_FIX?access_key=access_key_db`,
     method: method
   })
 }

@@ -67,14 +67,14 @@
             @click="fnFixmanualy(item.row)"
           >Fix Manualy</el-button>
         </template>
-       
+
         <template v-else-if=" item.row.appId == null &&(i.value == 'retry') ">
           <el-button
             :disabled="(disabledretry)"
             type="warning"
             plain
             @click="fnRetry(item.row)"
-          >Retry </el-button>
+          >Retry</el-button>
         </template>
         <template v-else>{{ item.row[i.value]}}</template>
       </el-table-column>
@@ -192,34 +192,40 @@ export default {
     },
 
     fnRetry(item) {
-      disabledretry = true
-      this.$store.dispatch("momo/fnRetry", item.appId).then(response => {
-        disabledretry = false
-      }).catch(error => {
-         disabledretry = false
-              this.$notify.error({
-                title: "Error ",
-                message: error ,
-                offset: 100
-              });
-       } );
-
+      disabledretry = true;
+      this.$store
+        .dispatch("momo/fnRetry", item.appId)
+        .then(response => {
+          disabledretry = false;
+        })
+        .catch(error => {
+          disabledretry = false;
+          this.$notify.error({
+            title: "Error ",
+            message: error,
+            offset: 100
+          });
+        });
     },
 
-
     fnFixmanualy(item) {
-      disabledfixmanualy = true
-      this.$store.dispatch("momo/fnFixmanualy", item.appId).then(response => {
-        disabledfixmanualy = false
-      }).catch(error => {
-         disabledfixmanualy = false
-              this.$notify.error({
-                title: "Error ",
-                message: error ,
-                offset: 100
-              });
-       } );
-
+      this.disabledfixmanualy = true;
+      this.$store
+        .dispatch("momo/fnFixmanualy", item.appId)
+        .then(response => {
+          this.disabledfixmanualy = false;
+          this.$message({
+            message: "Fixmanualy",
+            type: "success"
+          });
+        })
+        .catch(error => {
+          this.disabledfixmanualy = false;
+          this.$message({
+            message: "Error" + error,
+            type: "Error"
+          });
+        });
     },
 
     getNameStatus(item) {
@@ -240,7 +246,7 @@ export default {
           color: "#000"
         };
       }
-      return
+      return;
     },
 
     fnAssign(app) {
@@ -270,9 +276,9 @@ export default {
     },
 
     fnDowloadAll(items, item) {
-      var name = item ? item.appId : ''
+      var name = item ? item.appId : "";
       for (const key in items) {
-        this.state.momo["Documents"].disabledDown = true
+        this.state.momo["Documents"].disabledDown = true;
         if (items.hasOwnProperty(key)) {
           const element = items[key];
           axios({
@@ -286,14 +292,17 @@ export default {
               );
               var fileLink = document.createElement("a");
               fileLink.href = fileURL;
-       
-              fileLink.setAttribute("download",name +'_'+ element.documentType  + ".jpg");
+
+              fileLink.setAttribute(
+                "download",
+                name + "_" + element.documentType + ".jpg"
+              );
               document.body.appendChild(fileLink);
               fileLink.click();
               this.state.momo["Documents"].disabledDown = false;
               this.$notify.success({
                 title: "Success",
-                message: "Dowload " +name +'_'+ element.documentType,
+                message: "Dowload " + name + "_" + element.documentType,
                 offset: 100
               });
             })
@@ -301,7 +310,7 @@ export default {
               this.state.momo["Documents"].disabledDown = false;
               this.$notify.error({
                 title: "Error Dowload ",
-                message: error +'_'+name +'_'+ element.documentType,
+                message: error + "_" + name + "_" + element.documentType,
                 offset: 100
               });
             });
