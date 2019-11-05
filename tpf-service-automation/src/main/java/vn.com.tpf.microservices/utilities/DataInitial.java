@@ -373,7 +373,7 @@ public class DataInitial {
                 .build();
 
 
-        if (loanDetailsDTO.getProductName().equals("DG_01"))
+        if (loanDetailsDTO.getProductName().equals("DG01"))
         {
             loanDetailsDTO.setScheme("DG01_MOMO TRIAL");
         }
