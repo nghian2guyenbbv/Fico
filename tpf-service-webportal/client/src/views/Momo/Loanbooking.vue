@@ -14,8 +14,8 @@
       </el-input>
     </el-card>
     <tpf-table-momo
-      v-loading="this.state.momo.MomoLoanBookingAss.isLoading"
-      :data="this.state.momo.MomoLoanBookingAss.list"
+      v-loading="state.momo.MomoLoanBookingAss.isLoading"
+      :data="state.momo.MomoLoanBookingAss.list"
       :headers="headers.assigned"
       department="MomoLoanBooking"
       :assigned="true"
@@ -29,12 +29,12 @@
         :page-sizes="[5, 10, 20, 30, 50, 100]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="parseInt(this.state.momo.MomoLoanBookingAss.total)"
+        :total="parseInt(state.momo.MomoLoanBookingAss.total)"
       ></el-pagination>
     </el-card>
     <tpf-table-momo
-      v-loading="this.state.momo.MomoLoanBookingUnAss.isLoading"
-      :data="this.state.momo.MomoLoanBookingUnAss.list"
+      v-loading="state.momo.MomoLoanBookingUnAss.isLoading"
+      :data="state.momo.MomoLoanBookingUnAss.list"
       :headers="headers.unAssigned"
       department="MomoLoanBooking"
       :assigned="false"
@@ -48,7 +48,7 @@
         :page-sizes="[ 10, 20, 30, 50, 100]"
         :page-size="paramsUnAss.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="parseInt(this.state.momo.MomoLoanBookingUnAss.total)"
+        :total="parseInt(state.momo.MomoLoanBookingUnAss.total)"
       ></el-pagination>
     </el-card>
   </div>

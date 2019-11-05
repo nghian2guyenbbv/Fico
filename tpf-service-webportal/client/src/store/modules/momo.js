@@ -74,7 +74,6 @@ const actions = {
         for (const i in _search) params = { ...params, [i]: _search[i] }
         momo.apiMomo(params, 'get')
           .then(success => {
-            this.state.momo[model].total = 0
             if (Array.isArray(success.data)) {
               this.state.momo[model].list = success.data
               this.state.momo[model].total = success.total || 0
