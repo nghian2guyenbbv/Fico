@@ -19,7 +19,7 @@ public class RepaymentController {
 	private RabbitMQService rabbitMQService;
 
 	@PostMapping("/repayment/add-payment")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root','tpf-service-momo','3p-service-momo')")
 	public ResponseEntity<?> create(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -33,7 +33,7 @@ public class RepaymentController {
 	}
 
 	@GetMapping("/repayment")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root','tpf-service-momo','3p-service-momo')")
 	public ResponseEntity<?> reads(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
