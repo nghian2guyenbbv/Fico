@@ -224,13 +224,13 @@ export default {
           sortable: false,
           width: "120px"
         },
-        // {
-        //   text: "FIX MANUALY",
-        //   align: "center",
-        //   value: "fixmanualy",
-        //   sortable: false,
-        //   width: "120px"
-        // },
+        {
+          text: "FIX MANUALY",
+          align: "center",
+          value: "fixmanualy",
+          sortable: false,
+          width: "120px"
+        },
         // {
         //   text: "RETRY",
         //   align: "center",

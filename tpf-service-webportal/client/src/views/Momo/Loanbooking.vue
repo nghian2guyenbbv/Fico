@@ -132,7 +132,14 @@ export default {
           value: "assigned",
           sortable: false,
           width: "200px"
-        }
+        },
+        {
+          text: "FIX MANUALY",
+          align: "center",
+          value: "fixmanualy",
+          sortable: false,
+          width: "120px"
+        },
       ],
       unAssigned: [
         {

@@ -115,12 +115,8 @@ const actions = {
         let response = require('@/store/data')
         resolve(response)
       } else {
-        // this.state.momo[model].isLoading = true
-        momo.fnFixmanualy(appid, 'put')
+        momo.fnFixmanualy(appid, 'post')
           .then(success => {
-            // this.state.momo[model].isLoading = false
-            console.log(success.data);
-            
             resolve(success.data)
           }).catch(error => {
             reject(error)
