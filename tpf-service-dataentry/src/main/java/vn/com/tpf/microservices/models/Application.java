@@ -35,6 +35,7 @@ public class Application {
     private String description;
     private String stage;
     private String userName;
+    private String userName_DE;
     private Date createdDate;
     private Date lastModifiedDate;
 
