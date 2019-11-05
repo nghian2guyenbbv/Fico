@@ -84,7 +84,9 @@ const actions = {
         momo: { departments: departments },
         dataentry: { departments: departments }
       }
-      pushNotify('TPF_HOME NOTIFICATION', project + ' - ' + action)
+      ((from == "") || (to == "")) ? pushNotify('TPF_HOME NOTIFICATION', project + ' - ' + action) : ''
+      if ((from == "") || (to == "")) {
+      
       switch (action) {
         case 'CREATE':
           if (project == 'dataentry') {
@@ -124,7 +126,7 @@ const actions = {
           }
           
           break
-      }
+      }}
     })
   },
 
