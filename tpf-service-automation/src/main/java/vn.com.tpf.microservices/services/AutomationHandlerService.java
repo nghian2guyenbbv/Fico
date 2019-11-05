@@ -258,6 +258,11 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
+            if(application.getApplicationId()== null || application.getApplicationId().isEmpty())
+            {
+                application.setApplicationId("UNKNOW");
+            }
+
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             updateStatusRabbit(application,"updateAutomation");
@@ -1668,6 +1673,10 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
+            if(application.getApplicationId()== null || application.getApplicationId().isEmpty())
+            {
+                application.setApplicationId("UNKNOW");
+            }
             logout(driver);
             LD_updateStatusRabbit(application,"updateAutomation","momo");
         }
