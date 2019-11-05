@@ -446,7 +446,7 @@ public class DataEntryService {
                         Report report = new Report();
                         report.setApplicationId(data.getApplicationId());
                         report.setFunction("SENDAPP");
-                        report.setStatus("COMPLETED");
+                        report.setStatus("PROCESSING");
                         report.setCreatedBy(token.path("user_name").textValue());
                         report.setCreatedDate(new Date());
                         mongoTemplate.save(report);
@@ -878,6 +878,7 @@ public class DataEntryService {
 					update.set("quickLead.leadStatus", data.getLeadStatus());
 					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
                     update.set("quickLead.$.documents", data.getDocuments());
+					update.set("status", "PROCESSING");
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
@@ -1050,7 +1051,6 @@ public class DataEntryService {
 						request.path("body").path("applicationId").textValue().equals("") != true && request.path("body").path("applicationId").equals("UNKNOWN") != true) {
 					Update update = new Update();
 					update.set("applicationId", request.path("body").path("applicationId").textValue());
-					update.set("status", "PROCESSING");
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
@@ -1173,7 +1173,7 @@ public class DataEntryService {
 					errors = request.path("body").path("stage").textValue();
 
 					Update update = new Update();
-					update.set("status", request.path("body").path("status").textValue());
+					update.set("status", "RESPONSED");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
@@ -1286,7 +1286,7 @@ public class DataEntryService {
 					errors = request.path("body").path("stage").textValue();
 
 					Update update = new Update();
-					update.set("status", request.path("body").path("status").textValue());
+					update.set("status", "RESPONSED");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);

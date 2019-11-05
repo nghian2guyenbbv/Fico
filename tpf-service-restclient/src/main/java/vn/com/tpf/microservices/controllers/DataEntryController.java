@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.Authenticator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
@@ -29,6 +31,8 @@ import java.util.*;
 
 @RestController
 public class DataEntryController {
+
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private RabbitMQService rabbitMQService;
@@ -141,7 +145,7 @@ public class DataEntryController {
 	}
 
 
-	@PostMapping("/dataentry/sendapp")
+	@PostMapping("/v1/dataentry/sendapp")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> sendapp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -155,7 +159,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/dataentry/updateapp")
+	@PostMapping("/v1/dataentry/updateapp")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> updateapp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -244,8 +248,18 @@ public class DataEntryController {
 				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 				HttpEntity<?> entity = new HttpEntity<>(parts, headers);
 				res = restTemplate.postForEntity(urlFico, entity, List.class);
+
+				ObjectNode dataLog = mapper.createObjectNode();
+				dataLog.put("type", "[==HTTP-LOG==]");
+				dataLog.set("result", mapper.convertValue(res, JsonNode.class));
+				log.error("{}", dataLog);
 			}
 			catch (Exception e) {
+				ObjectNode dataLog = mapper.createObjectNode();
+				dataLog.put("type", "[==HTTP-LOG==]");
+				dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
+				log.error("{}", dataLog);
+
 				int i=0;
 				do {
 					Thread.sleep(30000);
@@ -318,11 +332,21 @@ public class DataEntryController {
 
 						String  sss = "[{\"document-type\":\"ID-Card\",\"document-id\":263556},{\"document-type\":\"Household\",\"document-id\":263557}]";
 						outputDT = mapper.readTree(sss);
+
+						ObjectNode dataLog = mapper.createObjectNode();
+						dataLog.put("type", "[==HTTP-LOG==]");
+						dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+						log.error("{}", dataLog);
 					}
 					catch (Exception e) {
+						ObjectNode dataLog = mapper.createObjectNode();
+						dataLog.put("type", "[==HTTP-LOG==]");
+						dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
+						log.error("{}", dataLog);
+
 						int i=0;
 						do {
-							Thread.sleep(30000);
+//							Thread.sleep(30000);
 							try{
 								HttpHeaders headers_DT = new HttpHeaders();
 								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
@@ -335,6 +359,10 @@ public class DataEntryController {
 
 								break;
 							} catch (Exception ex) {
+								dataLog = mapper.createObjectNode();
+								dataLog.put("type", "[==HTTP-LOG==]");
+								dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
+								log.error("{}", dataLog);
 							}
 							i = i +1;
 						}while(i<2);
