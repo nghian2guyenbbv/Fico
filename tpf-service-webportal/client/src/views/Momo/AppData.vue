@@ -28,14 +28,12 @@
 
           <el-col :span="6" style=" height: 32px; padding-top: 8px;">
             <el-checkbox
-              @change="copied(state.momo.ACCA.obj.gender)"
               :disabled=" state.momo.ACCA.obj.gender ? state.momo.ACCA.obj.gender !== 'Male' : true "
               :value="state.momo.ACCA.obj.gender === 'Male'"
               :label="`Nam`"
             ></el-checkbox>
 
             <el-checkbox
-              @change="copied(state.momo.ACCA.obj.gender)"
               :disabled="state.momo.ACCA.obj.gender ? state.momo.ACCA.obj.gender !== 'Female' : true"
               :value="(state.momo.ACCA.obj.gender === 'Female')"
               :label="`Nữ`"
@@ -114,21 +112,18 @@
           </el-col>
           <el-col :span="12" style=" height: 32px; padding-top: 8px;">
             <el-checkbox
-              @change="copied(state.momo.ACCA.obj.maritalStatus)"
               :disabled="state.momo.ACCA.obj.maritalStatus  ? state.momo.ACCA.obj.maritalStatus !== 'Married' : true"
               :value="state.momo.ACCA.obj.maritalStatus ? state.momo.ACCA.obj.maritalStatus === 'Married' : false"
               :label="`Đã kết hôn`"
             ></el-checkbox>
 
             <el-checkbox
-              @change="copied(state.momo.ACCA.obj.maritalStatus)"
               :disabled="state.momo.ACCA.obj.maritalStatus  ? state.momo.ACCA.obj.maritalStatus !== 'Single' : true"
               :value="state.momo.ACCA.obj.maritalStatus ? state.momo.ACCA.obj.maritalStatus === 'Single' : false"
               :label="`Độc thân`"
             ></el-checkbox>
 
             <el-checkbox
-              @change="copied(state.momo.ACCA.obj.maritalStatus)"
               :disabled="state.momo.ACCA.obj.maritalStatus  ? state.momo.ACCA.obj.maritalStatus !== 'Divorced/Widow' : true"
               :value="state.momo.ACCA.obj.maritalStatus ? state.momo.ACCA.obj.maritalStatus === 'Divorced/Widow' : false"
               :label="`Đã ly dị hoặc Góa (vợ/chồng)`"
@@ -249,24 +244,9 @@
           >Địa chỉ liên lạc:</div>
         </el-col>
         <el-col :span="10" style=" height: 32px; padding-top: 8px;">
-          <el-checkbox
-            @change="copied('Địa chỉ hiện tại')"
-            :disabled="false"
-            :value="true"
-            :label="`Địa chỉ hiện tại`"
-          ></el-checkbox>
-          <el-checkbox
-            @change="copied('Địa chỉ làm việc')"
-            :disabled="true"
-            :value="false"
-            :label="`Địa chỉ làm việc`"
-          ></el-checkbox>
-          <el-checkbox
-            @change="copied('Địa chỉ hộ khẩu')"
-            :disabled="true"
-            :value="false"
-            :label="` Địa chỉ hộ khẩu`"
-          ></el-checkbox>
+          <el-checkbox :disabled="false" :value="true" :label="`Địa chỉ hiện tại`"></el-checkbox>
+          <el-checkbox :disabled="true" :value="false" :label="`Địa chỉ làm việc`"></el-checkbox>
+          <el-checkbox :disabled="true" :value="false" :label="` Địa chỉ hộ khẩu`"></el-checkbox>
         </el-col>
       </el-row>
 
@@ -296,37 +276,39 @@
           <font color="white">THÔNG TIN NGƯỜI HÔN PHỐI</font>
         </label>
       </label>
-    </el-card><el-card style="margin: 5px;">
-    <el-row
-      :gutter="20"
-      style="margin-top: 5px; margin-bottom: 5px"
-      v-for="(item, index) in state.momo.ACCA.obj.references"
-      :key="item.phoneNumber+ index"
-      v-show="item.relation === 'Spouse'"
-    >
-      <el-col :span="8">
-        <el-input :value="item.fullName || '' " @focus="copied(item.fullName || '')">
-          <template slot="prepend">Họ và tên:</template>
-        </el-input>
-      </el-col>
-      <el-col :span="5">
-        <el-input value="Vợ/Chồng" @focus="copied(item.relation || '')">
-          <template slot="prepend">Relation</template>
-        </el-input>
-      </el-col>
+    </el-card>
+    <el-card style="margin: 5px;">
+      <el-row
+        :gutter="20"
+        style="margin-top: 5px; margin-bottom: 5px"
+        v-for="(item, index) in state.momo.ACCA.obj.references"
+        :key="item.phoneNumber+ index"
+        v-show="item.relation === 'Spouse'"
+      >
+        <el-col :span="8">
+          <el-input :value="item.fullName || '' " @focus="copied(item.fullName || '')">
+            <template slot="prepend">Họ và tên:</template>
+          </el-input>
+        </el-col>
+        <el-col :span="5">
+          <el-input value="Vợ/Chồng" @focus="copied(item.relation || '')">
+            <template slot="prepend">Relation</template>
+          </el-input>
+        </el-col>
 
-      <el-col :span="6">
-        <el-input :value="item.personalId" @focus="copied(item.personalId || '')">
-          <template slot="prepend">CMND/CCCD Số:</template>
-        </el-input>
-      </el-col>
+        <el-col :span="6">
+          <el-input :value="item.personalId" @focus="copied(item.personalId || '')">
+            <template slot="prepend">CMND/CCCD Số:</template>
+          </el-input>
+        </el-col>
 
-      <el-col :span="5">
-        <el-input :value="item.phoneNumber" @focus="copied(item.phoneNumber || '')">
-          <template slot="prepend">DTDĐ:</template>
-        </el-input>
-      </el-col>
-    </el-row></el-card>
+        <el-col :span="5">
+          <el-input :value="item.phoneNumber" @focus="copied(item.phoneNumber || '')">
+            <template slot="prepend">DTDĐ:</template>
+          </el-input>
+        </el-col>
+      </el-row>
+    </el-card>
     <!--  -->
 
     <el-card style=" margin-top:18px; background-color: #11b95c8c;">
@@ -522,7 +504,6 @@ export default {
 
   computed: {},
   created() {
-    this.state.momo.ACCA._id = this.$route.params.appid;
     this.$store.dispatch("momo/fnACCA", "ACCA");
   },
   methods: {

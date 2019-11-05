@@ -139,13 +139,6 @@ export default {
           value: "documents",
           width: "200px"
         },
-        {
-          text: "FIX MANUALY",
-          align: "center",
-          value: "fixmanualy",
-          sortable: false,
-          width: "120px"
-        },
       ],
       unassigned: [
         {
