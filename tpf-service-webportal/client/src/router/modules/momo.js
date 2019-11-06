@@ -14,7 +14,7 @@ const momoRouter = {
       path: 'automation',
       component: () => import('@/views/Momo/Automation'),
       name: 'AutomationMomo',
-      meta: { title: 'Automation', roles: ['momo_de_view'], projects: ['momo'], iconSub: 'el-icon-loading' }
+      meta: { title: 'Data Entry', roles: ['momo_de_view'], projects: ['momo'], iconSub: 'el-icon-loading' }
     },
     {
       path: 'documentcheck',

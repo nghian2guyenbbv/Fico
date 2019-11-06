@@ -15,7 +15,7 @@
     </el-card>
     <tpf-table-momo
       v-loading="state.momo.MomoDataentyAss.isLoading"
-      :data="state.momo.MomoDataentyAss.list"
+      :data="fnPickItem(state.momo.MomoDataentyAss.list, params.limit, parseInt(state.momo.MomoDataentyAss.total))"
       :headers="headers.assigned"
       department="MomoDataenty"
       :assigned="true"
@@ -36,7 +36,7 @@
     
     <tpf-table-momo
       v-loading="state.momo.MomoDataentyUnAss.isLoading"
-      :data="state.momo.MomoDataentyUnAss.list"
+      :data="fnPickItem(state.momo.MomoDataentyUnAss.list, paramsUnAss.limit,parseInt(state.momo.MomoDataentyUnAss.total))"
       :headers="headers.unassigned"
       department="MomoDataenty"
       :assigned="false"
@@ -122,6 +122,9 @@ export default {
 
   props: {},
   methods: {
+    fnPickItem(arr, limit, total) {
+      return arr.slice(0, limit)
+    },
     handleSearch() {
       this.state.momo.MomoDataentyAss._search[
         this.keySearch
