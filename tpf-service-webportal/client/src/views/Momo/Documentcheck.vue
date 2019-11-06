@@ -15,8 +15,8 @@
       </el-input>
     </el-card>
     <tpf-table-momo
-      v-loading="this.state.momo.MomoDocumentCheckAss.isLoading"
-      :data="this.state.momo.MomoDocumentCheckAss.list"
+      v-loading="state.momo.MomoDocumentCheckAss.isLoading"
+      :data="state.momo.MomoDocumentCheckAss.list"
       :headers="headers.assigned"
       department="MomoDocumentCheck"
       :assigned="true"
@@ -30,12 +30,12 @@
         :page-sizes="[5, 10, 20, 30, 50, 100]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="parseInt(this.state.momo.MomoDocumentCheckAss.total)"
+        :total="parseInt(state.momo.MomoDocumentCheckAss.total)"
       ></el-pagination>
     </el-card>
     <tpf-table-momo
-      v-loading="this.state.momo.MomoDocumentCheckUnAss.isLoading"
-      :data="this.state.momo.MomoDocumentCheckUnAss.list"
+      v-loading="state.momo.MomoDocumentCheckUnAss.isLoading"
+      :data="state.momo.MomoDocumentCheckUnAss.list"
       :headers="headers.unassigned"
       department="MomoDocumentCheck"
       :assigned="false"
@@ -49,7 +49,7 @@
         :page-sizes="[ 10, 20, 30, 50, 100]"
         :page-size="paramsUnAss.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="parseInt(this.state.momo.MomoDocumentCheckUnAss.total)"
+        :total="parseInt(state.momo.MomoDocumentCheckUnAss.total)"
       ></el-pagination>
     </el-card>
   </div>
@@ -138,13 +138,6 @@ export default {
           align: "left",
           value: "documents",
           width: "200px"
-        },
-        {
-          text: "FIX MANUALY",
-          align: "center",
-          value: "fixmanualy",
-          sortable: false,
-          width: "120px"
         },
       ],
       unassigned: [

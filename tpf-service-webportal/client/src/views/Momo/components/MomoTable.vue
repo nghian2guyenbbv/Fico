@@ -318,7 +318,8 @@ export default {
       }
     },
     fnAppData(id) {
-      window.open("/#/momo/appdatamomo/" + id, "_blank");
+      this.state.momo.ACCA._id =  id
+      this.$router.push('/momo/appdata')
     }
   }
 };

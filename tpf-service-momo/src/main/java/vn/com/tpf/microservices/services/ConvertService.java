@@ -46,15 +46,25 @@ public class ConvertService {
 	public ObjectNode toAppFinnone(Momo momo) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "momo");
-
+		
+		
 		ObjectNode spouse = mapper.createObjectNode();
 		ArrayNode references = mapper.createArrayNode();
+		ObjectNode applicationInformation = mapper.createObjectNode();
+		ObjectNode personalInformation = mapper.createObjectNode();
+		ArrayNode identifications = mapper.createArrayNode();
+		identifications.add(mapper.createObjectNode().put("identificationType", "Current National ID")
+				.put("issuingCountry", "Vietnam").put("identificationNumber", momo.getPersonalId())
+				.put("placeOfBirth", momo.getIssuePlace()).put("issueDate", momo.getIssueDate()));
 		momo.getReferences().forEach(e -> {
 			if (e.getRelation().equals("Spouse")) {
 				spouse.put("memberName", e.getFullName());
 				spouse.put("phoneNumber", e.getPhoneNumber());
 				spouse.put("relationship", e.getRelation());
 				spouse.put("personalId", e.getPersonalId());
+				personalInformation.set("family", mapper.createArrayNode().add(spouse));
+				identifications.add(mapper.createObjectNode().put("identificationType", "Spouse Current National ID")
+						.put("issuingCountry", "Vietnam").set("identificationNumber", spouse.path("personalId")));
 			} else {
 				ObjectNode ref = mapper.createObjectNode();
 				ref.put("name", e.getFullName());
@@ -72,8 +82,7 @@ public class ConvertService {
 		});
 		app.set("documents", documents);
 
-		ObjectNode applicationInformation = mapper.createObjectNode();
-		ObjectNode personalInformation = mapper.createObjectNode();
+
 		personalInformation.set("personalInfo",
 				mapper.createObjectNode().put("firstName", momo.getFirstName()).put("middleName", momo.getMiddleName())
 						.put("lastName", momo.getLastName())
@@ -81,13 +90,9 @@ public class ConvertService {
 								(momo.getFirstName() + " " + momo.getMiddleName() + " " + momo.getLastName()).replaceAll("\\s+", " "))
 						.put("gender", momo.getGender()).put("dateOfBirth", momo.getDateOfBirth()).put("nationality", "Vietnamese")
 						.put("maritalStatus", momo.getMaritalStatus()));
-		personalInformation.set("identifications",
-				mapper.createArrayNode()
-						.add(mapper.createObjectNode().put("identificationType", "Current National ID")
-								.put("issuingCountry", "Vietnam").put("identificationNumber", momo.getPersonalId())
-								.put("placeOfBirth", momo.getIssuePlace()).put("issueDate", momo.getIssueDate()))
-						.add(mapper.createObjectNode().put("identificationType", "Spouse Current National ID")
-								.put("issuingCountry", "Vietnam").set("identificationNumber", spouse.path("personalId"))));
+	
+	  personalInformation.set("identifications",identifications);
+	  
 		personalInformation.set("addresses", mapper.createArrayNode().add(mapper.createObjectNode()
 				.put("addressType", "Current Address").put("country", "Vietnam").put("state", momo.getRegion())
 				.put("city", momo.getCity()).put("zipcode", "70000").put("area", momo.getDistrict())
@@ -98,7 +103,7 @@ public class ConvertService {
 				mapper.createObjectNode().put("primaryAddress", "Current Address").put("primaryEmailId", momo.getEmail())
 						.set("phoneNumbers", mapper.createArrayNode().add(
 								mapper.createObjectNode().put("phoneType", "Mobile Phone").put("phoneNumber", momo.getPhoneNumber()))));
-		personalInformation.set("family", mapper.createArrayNode().add(spouse));
+	
 		applicationInformation.set("personalInformation", personalInformation);
 		applicationInformation.set("financialDetails", mapper.createArrayNode()
 				.add(mapper.createObjectNode().put("incomeExpense", "Main Personal Income").put("amount", momo.getSalary())));

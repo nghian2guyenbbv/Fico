@@ -14,7 +14,7 @@ const momoRouter = {
       path: 'automation',
       component: () => import('@/views/Momo/Automation'),
       name: 'AutomationMomo',
-      meta: { title: 'Automation', roles: ['momo_de_view'], projects: ['momo'], iconSub: 'el-icon-loading' }
+      meta: { title: 'Data Entry', roles: ['momo_de_view'], projects: ['momo'], iconSub: 'el-icon-loading' }
     },
     {
       path: 'documentcheck',
@@ -33,6 +33,13 @@ const momoRouter = {
       component: () => import('@/views/Momo/Appstatus'),
       name: 'AppstatusMomo',
       meta: { title: 'App Status', projects: ['momo'], roles: ['momo_as_view'], iconSub: 'el-icon-pie-chart' }
+    },
+    {
+      path: 'appdata',
+      component: () => import('@/views/Momo/AppData'),
+      name: 'ACCA',
+      hidden: true,
+      meta: { title: 'ACCA',projects: ['momo']}
     }
   ]
 }

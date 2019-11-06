@@ -14,8 +14,8 @@
       </el-input>
     </el-card>
     <tpf-table-momo
-      v-loading="this.state.momo.MomoDataentyAss.isLoading"
-      :data="this.state.momo.MomoDataentyAss.list"
+      v-loading="state.momo.MomoDataentyAss.isLoading"
+      :data="fnPickItem(state.momo.MomoDataentyAss.list, params.limit, parseInt(state.momo.MomoDataentyAss.total))"
       :headers="headers.assigned"
       department="MomoDataenty"
       :assigned="true"
@@ -29,12 +29,14 @@
         :page-sizes="[5, 10, 20, 30, 50, 100]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="parseInt(this.state.momo.MomoDataentyAss.total)"
+        :total="parseInt(state.momo.MomoDataentyAss.total)"
       ></el-pagination>
     </el-card>
+
+    
     <tpf-table-momo
-      v-loading="this.state.momo.MomoDataentyUnAss.isLoading"
-      :data="this.state.momo.MomoDataentyUnAss.list"
+      v-loading="state.momo.MomoDataentyUnAss.isLoading"
+      :data="fnPickItem(state.momo.MomoDataentyUnAss.list, paramsUnAss.limit,parseInt(state.momo.MomoDataentyUnAss.total))"
       :headers="headers.unassigned"
       department="MomoDataenty"
       :assigned="false"
@@ -48,7 +50,7 @@
         :page-sizes="[ 10, 20, 30, 50, 100]"
         :page-size="paramsUnAss.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="parseInt(this.state.momo.MomoDataentyUnAss.total)"
+        :total="parseInt(state.momo.MomoDataentyUnAss.total)"
       ></el-pagination>
     </el-card>
   </div>
@@ -120,6 +122,9 @@ export default {
 
   props: {},
   methods: {
+    fnPickItem(arr, limit, total) {
+      return arr.slice(0, limit)
+    },
     handleSearch() {
       this.state.momo.MomoDataentyAss._search[
         this.keySearch

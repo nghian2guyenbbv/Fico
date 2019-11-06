@@ -121,11 +121,12 @@ const actions = {
   },
 
   // user logout
-  logout({ commit, state }) {
+  logout({ commit, state , rootState}) {
     return new Promise((resolve, reject) => {
       apiLogout(state.token).then(() => {
         cookie.clearCookie()
         localStorage.clear()
+        rootState.app.socket.disconnect()
         resetRouter()
         resolve()
       }).catch(error => {

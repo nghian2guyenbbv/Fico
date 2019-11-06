@@ -1,5 +1,7 @@
 package vn.com.tpf.microservices.services;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -73,9 +75,9 @@ public class RabbitMQService {
 
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
+
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-
 			switch (request.path("func").asText()) {
 			case "createMomo":
 				return response(message, payload, momoService.createMomo(request));
@@ -88,16 +90,24 @@ public class RabbitMQService {
 			case "updateStatus":
 				return response(message, payload, momoService.updateStatus(request));
 			default:
-				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+				return response(message, payload,Map.of("status", 500, "data",  ExceptionRespone(payload, 500, "function not found")));
 			}
 
 		} catch (IllegalArgumentException e) {
-			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
+			return response(message, payload, Map.of("status", 500, "data",  ExceptionRespone(payload, 500, e.toString())));
 		} catch (DataIntegrityViolationException e) {
-			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
+			return response(message, payload, Map.of("status", 400, "data", ExceptionRespone(payload, 1, "lead exits")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
+			return response(message, payload, Map.of("status", 500, "data",  ExceptionRespone(payload, 500, e.toString())));
 		}
+		
+	}
+	
+	private Object ExceptionRespone( byte[] payload,int result_code ,String message) throws UnsupportedEncodingException, IOException {
+		JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
+		log.info("{}",request);
+		return  Map.of("result_code", result_code,"request_id", request.path("body").path("request_id").asText(), "reference_id", request.path("body").path("reference_id").asText(),"message", message);
+
 	}
 
 }

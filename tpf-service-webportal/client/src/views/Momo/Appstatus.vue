@@ -14,8 +14,8 @@
       </el-input>
     </el-card>
     <tpf-table-momo
-      v-loading="this.state.momo.MomoStatus.isLoading"
-      :data="this.state.momo.MomoStatus.list"
+      v-loading="state.momo.MomoStatus.isLoading"
+      :data="state.momo.MomoStatus.list"
       :headers="headers"
       department="MomoStatus"
       :assigned="true"
@@ -28,7 +28,7 @@
         :page-sizes="[5, 10, 20, 30, 50, 100]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="parseInt(this.state.momo.MomoStatus.total)"
+        :total="parseInt(state.momo.MomoStatus.total)"
       ></el-pagination>
     </el-card>
   </div>

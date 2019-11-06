@@ -10,6 +10,7 @@
       height="70vh"
     >
       <el-table-column
+        v-if="index"
         type="index"
         :index="renderIndex"
         width="50">
@@ -19,7 +20,15 @@
         :align="item.align"
         :header_align="item.header_align"
       >
-        <template slot-scope="scope">{{ renderCol(scope.row[item.key], item.type) }}</template>
+
+        <template slot="header" slot-scope="scope">
+          <span>{{ scope.column.label }}</span>
+        </template>
+        
+        <template slot-scope="scope">
+          <div v-html="renderCol(scope.row[item.key], item.type)"></div>
+        </template>
+
       </el-table-column>
     </el-table>
     <el-pagination v-if="pagination"
@@ -32,6 +41,9 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="parseInt(state.table._total)"
     ></el-pagination>
+    <div v-else>
+      <span>Total: {{state.table._total}}</span>
+    </div>
   </div>
 </template>
 
@@ -56,6 +68,10 @@ export default {
       type: Boolean,
       default: false
     },
+    tagColor: {
+      type: Object,
+      default: {}
+    },
   },
   data() {
     return {
@@ -75,12 +91,28 @@ export default {
         this.$store.dispatch("table/getDataTable")
       }
     },
-    
+
+    renderTagColor(tag) {
+      if (this.$props.tagColor) {
+        return this.$props.tagColor[tag] ? this.$props.tagColor[tag] : 'unknown'
+      } else {
+        return 'unknown'
+      }
+    },
+    renderCols(a){
+      console.log(a)
+    },
     renderCol(value, type) {
       if (type && type == "DateTime") {
         return this.$moment(value).format("MMM DD YYYY HH:mm")
+      } else if (type && type == "Label") {
+        return `
+        <div class="tpf-tag tpf-tag--${this.renderTagColor(value)} tpf-tag--${value}" style="background-color: ${this.renderTagColor(value)}">
+          ` + value + `
+        </div>
+        `
       } else {
-        return value;
+        return value
       }
     },
 
@@ -98,3 +130,30 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+$colorStatus: (
+  "success": #67C23A,
+  "warning": #E6A23C,
+  "error": #F56C6C,
+  "infor": #409EFF,
+  "gray": #606266
+);
+
+.tpf-tag {
+  height: 24px;
+  padding: 0 12px;
+  line-height: 24px;
+  display: inline-block;
+  font-size: 12px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  @each $name, $color in $colorStatus {
+    &.tpf-tag--#{$name} {
+      background-color: $color;
+      color: #fff;
+    }
+  }
+}
+</style>
