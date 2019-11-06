@@ -15,7 +15,7 @@
     </el-card>
     <tpf-table-momo
       v-loading="state.momo.MomoDataentyAss.isLoading"
-      :data="fnPickItem(state.momo.MomoDataentyAss.list, params.limit, parseInt(state.momo.MomoDataentyAss.total))"
+      :data="state.momo.MomoDataentyAss.list"
       :headers="headers.assigned"
       department="MomoDataenty"
       :assigned="true"
@@ -26,17 +26,16 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page.sync="params.page"
-        :page-sizes="[5, 10, 20, 30, 50, 100]"
+        :page-sizes="[2, 20, 30, 50, 100]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="parseInt(state.momo.MomoDataentyAss.total)"
       ></el-pagination>
     </el-card>
 
-    
     <tpf-table-momo
       v-loading="state.momo.MomoDataentyUnAss.isLoading"
-      :data="fnPickItem(state.momo.MomoDataentyUnAss.list, paramsUnAss.limit,parseInt(state.momo.MomoDataentyUnAss.total))"
+      :data="state.momo.MomoDataentyUnAss.list"
       :headers="headers.unassigned"
       department="MomoDataenty"
       :assigned="false"
@@ -53,6 +52,8 @@
         :total="parseInt(state.momo.MomoDataentyUnAss.total)"
       ></el-pagination>
     </el-card>
+      <code style="display: none">{{track = state.momo.MomoDataentyAss.total}}</code>
+      <code style="display: none">{{track2 = state.momo.MomoDataentyUnAss.total}}</code>
   </div>
 </template>
 
@@ -64,12 +65,14 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
-      keySearch: "",
+      track: '',
+      track2: '',
+      keySearch: "appId",
       valueSearch: "",
       loadingNow: true,
       params: {
         page: 1,
-        limit: 5
+        limit: 2
       },
       paramsUnAss: {
         page: 1,
@@ -119,12 +122,18 @@ export default {
       ]
     };
   },
-
+  watch: {
+    track() {
+      this.handleSizeChange(this.params.limit)
+      this.handleCurrentChange(this.params.page)
+    },
+    track2() {
+      this.handleSizeChangeUnAss(this.paramsUnAss.limit)
+      this.handleCurrentChangeUnAss(this.paramsUnAss.page)
+    }},
   props: {},
   methods: {
-    fnPickItem(arr, limit, total) {
-      return arr.slice(0, limit)
-    },
+
     handleSearch() {
       this.state.momo.MomoDataentyAss._search[
         this.keySearch
@@ -235,7 +244,7 @@ export default {
           value: "fixmanualy",
           sortable: false,
           width: "120px"
-        },
+        }
         // {
         //   text: "RETRY",
         //   align: "center",

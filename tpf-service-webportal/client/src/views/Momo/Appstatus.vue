@@ -31,6 +31,7 @@
         :total="parseInt(state.momo.MomoStatus.total)"
       ></el-pagination>
     </el-card>
+    <code style="display: none">{{track = state.momo.MomoStatus.total}}</code>
   </div>
 </template>
 
@@ -42,7 +43,8 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
-      keySearch: "",
+      track: "",
+      keySearch: "appId",
       valueSearch: "",
       headers: [],
       params: {
@@ -53,7 +55,12 @@ export default {
   },
 
   props: {},
-
+  watch: {
+    track() {
+      this.handleSizeChange(this.params.limit);
+      this.handleCurrentChange(this.params.page);
+    }
+  },
   computed: {},
 
   created() {
