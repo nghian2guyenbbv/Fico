@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -234,6 +235,7 @@ public class DataEntryController {
 		request.put("func", "uploadFile");
 		request.put("token", token);
 		request.put("appId", appId);
+
 		try {
 			ResponseEntity<?> res = new ResponseEntity<Authenticator.Success>(HttpStatus.CREATED);
 
@@ -311,13 +313,13 @@ public class DataEntryController {
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
-								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
+								doc.put("file-name", "ACCA-form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
 
-								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
-										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-								parts_02.add("ACCA-Form", files[i].getResource());
+								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + files[i].getOriginalFilename(),
+										"ACCA-form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("ACCA-form", multipartFileToSend.getResource());
 							}
 							i = i + 1;
 						}
@@ -330,8 +332,8 @@ public class DataEntryController {
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
 
-						String  sss = "[{\"document-type\":\"ID-Card\",\"document-id\":263556},{\"document-type\":\"Household\",\"document-id\":263557}]";
-						outputDT = mapper.readTree(sss);
+						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
+						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
 
 						ObjectNode dataLog = mapper.createObjectNode();
 						dataLog.put("type", "[==HTTP-LOG==]");
@@ -354,8 +356,8 @@ public class DataEntryController {
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
 
-								String  sss = "[{\"document-type\":\"ID-Card\",\"document-id\":263556},{\"document-type\":\"Household\",\"document-id\":263557}]";
-								outputDT = mapper.readTree(sss);
+								Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
+								outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
 
 								break;
 							} catch (Exception ex) {
@@ -374,6 +376,7 @@ public class DataEntryController {
 						int i = 0;
 						for (JsonNode item :body){
 							ObjectNode doc = mapper.createObjectNode();
+
 							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
 								doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
@@ -399,27 +402,63 @@ public class DataEntryController {
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
-								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
+								doc.put("file-name", "ACCA-form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
 
-								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
-										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-								parts_02.add("ACCA-Form", files[i].getResource());
+								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + files[i].getOriginalFilename(),
+										"ACCA-form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								parts_02.add("ACCA-form", multipartFileToSend.getResource());
 							}
 							i = i + 1;
 						}
 						parts_02.add("description", Map.of("files", documents));
 					}
-					HttpHeaders headers_DT = new HttpHeaders();
-					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-					HttpEntity<?> entity_DT = new HttpEntity<>(parts, headers_DT);
-					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, String.class);
+					try {
+						HttpHeaders headers_DT = new HttpHeaders();
+						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
 
-					outputDT = mapper.readTree(res_DT.getBody().toString());
+						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
+						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
+
+						ObjectNode dataLog = mapper.createObjectNode();
+						dataLog.put("type", "[==HTTP-LOG==]");
+						dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+						log.error("{}", dataLog);
+					}
+					catch (Exception e) {
+						ObjectNode dataLog = mapper.createObjectNode();
+						dataLog.put("type", "[==HTTP-LOG==]");
+						dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
+						log.error("{}", dataLog);
+
+						int i=0;
+						do {
+//							Thread.sleep(30000);
+							try{
+								HttpHeaders headers_DT = new HttpHeaders();
+								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
+
+								Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
+								outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
+
+								break;
+							} catch (Exception ex) {
+								dataLog = mapper.createObjectNode();
+								dataLog.put("type", "[==HTTP-LOG==]");
+								dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
+								log.error("{}", dataLog);
+							}
+							i = i +1;
+						}while(i<2);
+					}
 				}
-
 				if (outputDT == null){
 					return ResponseEntity.status(200)
 							.header("x-pagination-total", "0").body(Map.of("reference_id",UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
@@ -532,8 +571,8 @@ public class DataEntryController {
 						doc.put("urlid", item2.findPath("document-id"));
 						((ArrayNode) resultNode).add(doc);
 					}
-				}else if (item.findPath("originalname").textValue().equals("ACCA.pdf")){
-					if (item2.findPath("document-type").textValue().equals("ACCA-Form")){
+				}else if (item.findPath("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
+					if (item2.findPath("document-type").textValue().equals("ACCA-form")){
 						ObjectNode doc = mapper.createObjectNode();
 						doc.put("originalname", item.findPath("originalname").textValue());
 						doc.put("filename", item.findPath("filename").textValue());
