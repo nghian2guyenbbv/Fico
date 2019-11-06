@@ -262,7 +262,7 @@ export default {
     },
     fnUnassign(app) {
       this.disabled = true;
-      this.state.momo[this.department + "Ass"].obj.assigned = undefined;
+      this.state.momo[this.department + "UnAss"].obj.assigned = undefined;
       this.state.momo[this.department + "UnAss"].obj.unassigned = app.assigned;
       this.state.momo[this.department + "UnAss"].obj.project = app.project;
       this.state.momo[this.department + "UnAss"].obj.id = app.uuid.split(
@@ -270,7 +270,7 @@ export default {
       )[1];
       this.$store
         .dispatch("momo/fnUpdata", this.department + "UnAss")
-        .then(e => {
+        .then(e => {         
           this.disabled = false;
         });
     },
