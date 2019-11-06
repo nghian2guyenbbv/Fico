@@ -564,7 +564,7 @@ public class DataEntryController {
 						((ArrayNode) resultNode).add(doc);
 					}
 				}else if (item.findPath("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
-					if (item2.findPath("document-type").textValue().equals("Household")){
+					if (item2.findPath("document-type").textValue().equals("Personal-Image")){
 						ObjectNode doc = mapper.createObjectNode();
 						doc.put("originalname", item.findPath("originalname").textValue());
 						doc.put("filename", item.findPath("filename").textValue());
