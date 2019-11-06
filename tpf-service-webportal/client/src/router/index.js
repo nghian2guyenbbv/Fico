@@ -37,13 +37,7 @@ export const constantRoutes = [
         component: () => import('@/views/dashboard/index'),
         name: 'Dashboard',
         meta: { title: 'Dashboard', icon: 'dashboard', affix: true }
-      },
-      {
-        path: '/momo/appdatamomo/:appid',
-        name: 'ACCA',
-        component: () => import('@/views/Momo/components/AppData'),
-        meta: {  title: 'ACCA', roles: ['momo_view'], projects: ['momo']}
-      },
+      }
     ]
   }
 ]
