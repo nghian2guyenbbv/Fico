@@ -1,29 +1,38 @@
 <script>
 export default {
-  name: 'MenuItem',
+  name: "MenuItem",
   functional: true,
   props: {
     icon: {
       type: String,
-      default: ''
+      default: ""
+    },
+    iconSub: {
+      type: String,
+      default: ""
     },
     title: {
       type: String,
-      default: ''
+      default: ""
     }
   },
   render(h, context) {
-    const { icon, title } = context.props
-    const vnodes = []
+    const { icon, iconSub, title } = context.props;
+    const vnodes = [];
 
     if (icon) {
-      vnodes.push(<svg-icon icon-class={icon}/>)
+      vnodes.push(<svg-icon icon-class={icon} />);
     }
 
-    if (title) {
-      vnodes.push(<span slot='title'>{(title)}</span>)
+    if (title || iconSub) {
+      vnodes.push(
+        <span slot="title">
+          <i class={iconSub}></i> {title}
+        </span>
+      );
     }
-    return vnodes
+
+    return vnodes;
   }
-}
+};
 </script>

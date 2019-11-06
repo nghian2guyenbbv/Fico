@@ -24,8 +24,17 @@ export function removeRoles() {
   return Cookies.remove('roles')
 }
 
+export function setInforUser(infor) {
+  return localStorage.setItem('INFOR_USER', JSON.stringify(infor))
+}
+
+export function getInforUser() {
+  return JSON.parse(localStorage.getItem('INFOR_USER'))
+}
+
 export function clearCookie() {
   Cookies.remove('roles')
   Cookies.remove('token')
+  localStorage.clear()
   return
 }

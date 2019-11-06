@@ -33,6 +33,9 @@ public class FptService {
 	private ObjectMapper mapper;
 
 	@Autowired
+	private ApiService apiService;
+
+	@Autowired
 	private ConvertService convertService;
 
 	@Autowired
@@ -57,6 +60,8 @@ public class FptService {
 		error.set("requestId", mapper.convertValue(requestId, JsonNode.class));
 		Map<?, ?> dateTime = Map.of("code", 101, "message", "date_time is required string and not empty");
 		error.set("dateTime", mapper.convertValue(dateTime, JsonNode.class));
+		Map<?, ?> postCodeNotExists = Map.of("code", 103, "message", "city not exits");
+		error.set("postCodeNotExists", mapper.convertValue(postCodeNotExists, JsonNode.class));
 	}
 
 	private JsonNode validation(JsonNode body, List<String> fields) {
@@ -107,18 +112,37 @@ public class FptService {
 		}
 
 		JsonNode data = body.path("data");
+		JsonNode postCode = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress",
+				"reference_id", body.path("reference_id"), "param", Map.of("postCode", data.path("issuePlace").asText())));
+
+		if (postCode.path("status").asInt() != 200) {
+			return response(error.get("postCodeNotExists").get("code").asInt(), body,
+					mapper.createObjectNode().set("message", error.get("postCodeNotExists").get("message")));
+		}
+
 		Fpt fpt = mapper.convertValue(data, Fpt.class);
 		fpt.getPhotos().forEach(e -> e.setUpdatedAt(new Date()));
-		// mongoTemplate.save(fpt);
+		fpt.setIssuePlace(postCode.path("data").path("cityName").asText());
+		fpt.getAddresses().forEach(address -> {
+			try {
+				JsonNode addr = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress",
+						"reference_id", body.path("reference_id"), "param", Map.of("areaCode", address.getDistrict())));
+				address.setDistrict(addr.path("data").path("areaName").asText());
+				address.setProvince(addr.path("data").path("cityName").asText());
+				address.setRegion(addr.path("data").path("region").asText());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		mongoTemplate.save(fpt);
 
-		rabbitMQService.send("tpf-service-esb",
-				Map.of("func", "createApp", "param",
-						Map.of("request_id", body.path("request_id"), "reference_id", body.path("reference_id")), "body",
-						convertService.toAppFinnone(fpt)));
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppFinnone(fpt)));
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "body", convertService.toAppDisplay(fpt)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppDisplay(fpt)));
 
-		return response(0, body, mapper.convertValue(fpt, JsonNode.class));
+		return response(0, body, mapper.convertValue(convertService.toAppFinnone(fpt), JsonNode.class));
 	}
 
 	public JsonNode updateAutomation(JsonNode request) throws Exception {
@@ -140,8 +164,36 @@ public class FptService {
 			return response(404, mapper.createObjectNode().put("message", "Cust Id Not Found"));
 		}
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "fpt", "id", fpt.getId()), "body", convertService.toAppDisplay(fpt)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "fpt", "id", fpt.getId()), "body", convertService.toAppDisplay(fpt)));
+
+		return response(200, null);
+	}
+
+	public JsonNode updateStatus(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		Fpt fpt = mongoTemplate.findOne(Query.query(Criteria.where("appId").is(body.path("app_id").asText())), Fpt.class);
+
+		if (fpt == null) {
+			return response(404, mapper.createObjectNode().put("message", "AppId Not Found"));
+		}
+
+		if (body.path("status").asText().equals("APPROVED")) {
+//			SyncACCA
+		}
+
+		fpt.setStatus(body.path("status").asText());
+		fpt.setAutomationResult(fpt.getAutomationResult().equals("Pass") ? fpt.getAutomationResult() : "Fix");
+		mongoTemplate.save(fpt);
+
+		new Thread(() -> {
+			apiService
+					.sendStatusToFpt(mapper.createObjectNode().put("custId", fpt.getCustId()).put("status", fpt.getStatus()));
+		}).start();
+
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "fpt", "id", fpt.getId()), "body", convertService.toAppDisplay(fpt)));
 
 		return response(200, null);
 	}

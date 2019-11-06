@@ -19,7 +19,7 @@ public class RepaymentController {
 	private RabbitMQService rabbitMQService;
 
 	@PostMapping("/repayment/add-payment")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root','tpf-service-momo','3p-service-momo')")
 	public ResponseEntity<?> create(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -33,7 +33,7 @@ public class RepaymentController {
 	}
 
 	@GetMapping("/repayment")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root','tpf-service-momo','3p-service-momo')")
 	public ResponseEntity<?> reads(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -48,7 +48,7 @@ public class RepaymentController {
 	}
 
 	@PostMapping("/v1/repayment/importTrans")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root')")
 	public ResponseEntity<?> importTrans(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -62,7 +62,7 @@ public class RepaymentController {
 	}
 
 	@PostMapping("/v1/repayment/settleTrans")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root')")
 	public ResponseEntity<?> settleTrans(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -76,7 +76,7 @@ public class RepaymentController {
 	}
 
 	@PostMapping("/v1/repayment/getListTrans")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root')")
 	public ResponseEntity<?> getListTrans(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -90,7 +90,7 @@ public class RepaymentController {
 	}
 
 	@PostMapping("/v1/repayment/getReport")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root')")
 	public ResponseEntity<?> getReport(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -104,7 +104,7 @@ public class RepaymentController {
 	}
 
 	@PostMapping("/v1/repayment/getTransDate")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-app')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root')")
 	public ResponseEntity<?> getTransDate(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();

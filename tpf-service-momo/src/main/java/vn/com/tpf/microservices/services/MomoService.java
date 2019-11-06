@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 
@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.Momo;
@@ -64,75 +65,77 @@ public class MomoService {
 		status.put("CANCELLED", 5);
 		status.put("REJECTED", 6);
 		status.put("LIQUIDATION", 7);
-
 		error = mapper.createObjectNode();
-		Map<?, ?> requestId = Map.of("code", 100, "message", "request_id is required string and not empty");
+		Map<?, ?> requestId = Map.of("code", 2, "message", "request_id");
 		error.set("requestId", mapper.convertValue(requestId, JsonNode.class));
-		Map<?, ?> dateTime = Map.of("code", 101, "message", "date_time is required string and not empty");
-		error.set("dateTime", mapper.convertValue(dateTime, JsonNode.class));
-		Map<?, ?> cityNotExists = Map.of("code", 102, "message", "city not exits");
+//		Map<?, ?> dateTime = Map.of("code", 101, "message", "date_time is required string and not empty");
+//		error.set("dateTime", mapper.convertValue(dateTime, JsonNode.class));
+		Map<?, ?> cityNotExists = Map.of("code", 2, "message", "city");
 		error.set("cityNotExists", mapper.convertValue(cityNotExists, JsonNode.class));
-		Map<?, ?> districtNotExists = Map.of("code", 103, "message", "district not exits");
+		Map<?, ?> districtNotExists = Map.of("code", 2, "message", "district");
 		error.set("districtNotExists", mapper.convertValue(districtNotExists, JsonNode.class));
-		Map<?, ?> agree1 = Map.of("code", 104, "message", "agree1 is required boolean");
+		Map<?, ?> agree1 = Map.of("code", 2, "message", "agree1");
 		error.set("agree1", mapper.convertValue(agree1, JsonNode.class));
-		Map<?, ?> agree2 = Map.of("code", 105, "message", "agree2 is required boolean");
+		Map<?, ?> agree2 = Map.of("code", 2, "message", "agree2");
 		error.set("agree2", mapper.convertValue(agree2, JsonNode.class));
-		Map<?, ?> agree3 = Map.of("code", 106, "message", "agree3 is required boolean");
+		Map<?, ?> agree3 = Map.of("code", 2, "message", "agree3");
 		error.set("agree3", mapper.convertValue(agree3, JsonNode.class));
-		Map<?, ?> agree4 = Map.of("code", 107, "message", "agree4 is required boolean");
+		Map<?, ?> agree4 = Map.of("code", 2, "message", "agree4");
 		error.set("agree4", mapper.convertValue(agree4, JsonNode.class));
-		Map<?, ?> insurrance = Map.of("code", 108, "message", "insurrance is required boolean");
+		Map<?, ?> insurrance = Map.of("code", 2, "message", "insurrance");
 		error.set("insurrance", mapper.convertValue(insurrance, JsonNode.class));
-		Map<?, ?> amount = Map.of("code", 109, "message", "amount is required number");
+		Map<?, ?> amount = Map.of("code", 2, "message", "amount");
 		error.set("amount", mapper.convertValue(amount, JsonNode.class));
-		Map<?, ?> dueDate = Map.of("code", 110, "message", "dueDate is required number");
+		Map<?, ?> dueDate = Map.of("code", 2, "message", "dueDate");
 		error.set("dueDate", mapper.convertValue(dueDate, JsonNode.class));
-		Map<?, ?> fee = Map.of("code", 111, "message", "fee is required number");
+		Map<?, ?> fee = Map.of("code", 2, "message", "fee");
 		error.set("fee", mapper.convertValue(fee, JsonNode.class));
-		Map<?, ?> loanTime = Map.of("code", 112, "message", "loanTime is required number");
+		Map<?, ?> loanTime = Map.of("code", 2, "message", "loanTime");
 		error.set("loanTime", mapper.convertValue(loanTime, JsonNode.class));
-		Map<?, ?> salary = Map.of("code", 113, "message", "salary is required number");
+		Map<?, ?> salary = Map.of("code", 2, "message", "salary");
 		error.set("salary", mapper.convertValue(salary, JsonNode.class));
-		Map<?, ?> address1 = Map.of("code", 114, "message", "address1 is required string and not empty");
+		Map<?, ?> address1 = Map.of("code", 2, "message", "address1");
 		error.set("address1", mapper.convertValue(address1, JsonNode.class));
-		Map<?, ?> address2 = Map.of("code", 115, "message", "address2 is required string and not empty");
+		Map<?, ?> address2 = Map.of("code", 2, "message", "address2");
 		error.set("address2", mapper.convertValue(address2, JsonNode.class));
-		Map<?, ?> district = Map.of("code", 116, "message", "district is required string and not empty");
+		Map<?, ?> district = Map.of("code", 2, "message", "district");
 		error.set("district", mapper.convertValue(district, JsonNode.class));
-		Map<?, ?> city = Map.of("code", 117, "message", "city is required string and not empty");
+		Map<?, ?> city = Map.of("code", 2, "message", "city");
 		error.set("city", mapper.convertValue(city, JsonNode.class));
-		Map<?, ?> dateOfBirth = Map.of("code", 118, "message", "dateOfBirth is required string format dd/MM/yyyy");
+		Map<?, ?> dateOfBirth = Map.of("code", 2, "message", "dateOfBirth");
 		error.set("dateOfBirth", mapper.convertValue(dateOfBirth, JsonNode.class));
-		Map<?, ?> email = Map.of("code", 119, "message", "email is required string and not empty");
+		Map<?, ?> email = Map.of("code", 2, "message", "email");
 		error.set("email", mapper.convertValue(email, JsonNode.class));
-		Map<?, ?> firstName = Map.of("code", 120, "message", "firstName is required string and not empty");
+		Map<?, ?> firstName = Map.of("code", 2, "message", "firstName");
 		error.set("firstName", mapper.convertValue(firstName, JsonNode.class));
-		Map<?, ?> lastName = Map.of("code", 121, "message", "lastName is required string and not empty");
+		Map<?, ?> lastName = Map.of("code", 2, "message", "lastName");
 		error.set("lastName", mapper.convertValue(lastName, JsonNode.class));
-		Map<?, ?> middleName = Map.of("code", 122, "message", "middleName is required string");
+		Map<?, ?> middleName = Map.of("code", 2, "message", "middleName");
 		error.set("middleName", mapper.convertValue(middleName, JsonNode.class));
-		Map<?, ?> gender = Map.of("code", 123, "message", "gender is required Male or Female");
+		Map<?, ?> gender = Map.of("code", 2, "message", "gender");
 		error.set("gender", mapper.convertValue(gender, JsonNode.class));
-		Map<?, ?> issueDate = Map.of("code", 124, "message", "issueDate is required string format dd/MM/yyyy");
+		Map<?, ?> issueDate = Map.of("code", 2, "message", "issueDate");
 		error.set("issueDate", mapper.convertValue(issueDate, JsonNode.class));
-		Map<?, ?> issuePlace = Map.of("code", 125, "message", "issuePlace is required string and not empty");
+		Map<?, ?> issuePlace = Map.of("code", 2, "message", "issuePlace");
 		error.set("issuePlace", mapper.convertValue(issuePlace, JsonNode.class));
-		Map<?, ?> maritalStatus = Map.of("code", 126, "message", "maritalStatus is required Single or Married");
+		Map<?, ?> maritalStatus = Map.of("code", 2, "message", "maritalStatus");
 		error.set("maritalStatus", mapper.convertValue(maritalStatus, JsonNode.class));
-		Map<?, ?> momoLoanId = Map.of("code", 127, "message", "momoLoanId is required string and not empty");
+		Map<?, ?> momoLoanId = Map.of("code", 2, "message", "momoLoanId");
 		error.set("momoLoanId", mapper.convertValue(momoLoanId, JsonNode.class));
-		Map<?, ?> personalId = Map.of("code", 128, "message", "personalId is required string and not empty");
+		Map<?, ?> personalId = Map.of("code", 2, "message",
+				"personalId");
 		error.set("personalId", mapper.convertValue(personalId, JsonNode.class));
-		Map<?, ?> phoneNumber = Map.of("code", 129, "message", "phoneNumber is required string. Ex: +84123456789");
+		Map<?, ?> phoneNumber = Map.of("code", 2, "message", "phoneNumber");
 		error.set("phoneNumber", mapper.convertValue(phoneNumber, JsonNode.class));
-		Map<?, ?> ward = Map.of("code", 130, "message", "ward is required string and not empty");
+		Map<?, ?> ward = Map.of("code", 2, "message", "ward");
 		error.set("ward", mapper.convertValue(ward, JsonNode.class));
-		Map<?, ?> productCode = Map.of("code", 131, "message", "productCode is required string and not empty");
+		Map<?, ?> productCode = Map.of("code", 2, "message", "productCode");
 		error.set("productCode", mapper.convertValue(productCode, JsonNode.class));
-		Map<?, ?> photos = Map.of("code", 132, "message", "photos is required array and not empty");
+		Map<?, ?> photos = Map.of("code", 2, "message",
+				"photos");
 		error.set("photos", mapper.convertValue(photos, JsonNode.class));
-		Map<?, ?> references = Map.of("code", 133, "message", "references is required array and not empty");
+		Map<?, ?> references = Map.of("code", 2, "message",
+				"references");
 		error.set("references", mapper.convertValue(references, JsonNode.class));
 	}
 
@@ -146,16 +149,16 @@ public class MomoService {
 					&& (!body.path("date_time").isTextual() || body.path("date_time").asText().isEmpty())) {
 				return error.get("dateTime");
 			}
-			if (field.equals("data.agree1") && !body.path("data").path("agree1").isBoolean()) {
+			if (field.equals("data.agree1") && !body.path("data").path("agree1").asBoolean()) {
 				return error.get("agree1");
 			}
-			if (field.equals("data.agree2") && !body.path("data").path("agree2").isBoolean()) {
+			if (field.equals("data.agree2") && !body.path("data").path("agree2").asBoolean()) {
 				return error.get("agree2");
 			}
-			if (field.equals("data.agree3") && !body.path("data").path("agree3").isBoolean()) {
+			if (field.equals("data.agree3") && !body.path("data").path("agree3").asBoolean()) {
 				return error.get("agree3");
 			}
-			if (field.equals("data.agree4") && !body.path("data").path("agree4").isBoolean()) {
+			if (field.equals("data.agree4") && !body.path("data").path("agree4").asBoolean()) {
 				return error.get("agree4");
 			}
 			if (field.equals("data.insurrance") && !body.path("data").path("insurrance").isBoolean()) {
@@ -188,16 +191,16 @@ public class MomoService {
 					|| body.path("data").path("district").asText().isEmpty())) {
 				return error.get("district");
 			}
-			if (field.equals("data.city")
-					&& (!body.path("data").path("city").isTextual() || body.path("data").path("city").asText().isEmpty())) {
+			if (field.equals("data.city") && (!body.path("data").path("city").isTextual()
+					|| body.path("data").path("city").asText().isEmpty())) {
 				return error.get("city");
 			}
 			if (field.equals("data.dateOfBirth") && !body.path("data").path("dateOfBirth").asText()
 					.matches("^([0-2][0-9]|(3)[0-1])(\\/)(((0)[0-9])|((1)[0-2]))(\\/)\\d{4}$")) {
 				return error.get("dateOfBirth");
 			}
-			if (field.equals("data.email")
-					&& (!body.path("data").path("email").isTextual() || body.path("data").path("email").asText().isEmpty())) {
+			if (field.equals("data.email") && (!body.path("data").path("email").isTextual()
+					|| body.path("data").path("email").asText().isEmpty())) {
 				return error.get("email");
 			}
 			if (field.equals("data.firstName") && (!body.path("data").path("firstName").isTextual()
@@ -238,8 +241,8 @@ public class MomoService {
 					&& !body.path("data").path("phoneNumber").asText().matches("^(\\+84)(?=(?:.{9}|.{10})$)[0-9]*$")) {
 				return error.get("phoneNumber");
 			}
-			if (field.equals("data.ward")
-					&& (!body.path("data").path("ward").isTextual() || body.path("data").path("ward").asText().isEmpty())) {
+			if (field.equals("data.ward") && (!body.path("data").path("ward").isTextual()
+					|| body.path("data").path("ward").asText().isEmpty())) {
 				return error.get("ward");
 			}
 			if (field.equals("data.productCode") && (!body.path("data").path("productCode").isTextual()
@@ -247,12 +250,31 @@ public class MomoService {
 				return error.get("productCode");
 			}
 			if (field.equals("data.photos")
-					&& (!body.path("data").path("photos").isArray() || body.path("data").path("photos").size() == 0)) {
+					&& (!body.path("data").path("photos").isArray() || body.path("data").path("photos").size() != 3)) {
 				return error.get("photos");
+			} else {
+				ArrayNode photos = (ArrayNode) body.path("data").path("photos");
+				for (JsonNode photo : photos)
+					if (!photo.path("type").asText().matches("^(National ID Back|National ID Front|Selfie)$")
+							|| !photo.path("link").asText().matches(
+									"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\\/.*)?$"))
+						return error.get("photos");
 			}
-			if (field.equals("data.references")
-					&& (!body.path("data").path("references").isArray() || body.path("data").path("references").size() == 0)) {
+			if (field.equals("data.references") && (!body.path("data").path("references").isArray()
+					|| body.path("data").path("references").size() == 0)) {
 				return error.get("references");
+			} else {
+				ArrayNode references = (ArrayNode) body.path("data").path("references");
+				for (JsonNode reference : references) {
+					if (!reference.path("relation").asText().matches("^(Colleague|Relative|Spouse)$"))
+						return error.get("references");
+					if (reference.path("phoneNumber").asText().isEmpty() || !reference.path("phoneNumber").asText().matches("^[0-9]*$"))	
+						return error.get("references");
+					if (reference.path("relation").asText().equals("Spouse"))
+						if (reference.path("personalId").asText().isEmpty()
+								|| !reference.path("personalId").asText().matches("^(?=(?:.{9}|.{12})$)[0-9]*$"))
+							return error.get("references");
+				}
 			}
 		}
 		return null;
@@ -270,30 +292,28 @@ public class MomoService {
 		res.put("result_code", code);
 		res.put("request_id", body.path("request_id").asText());
 		res.put("reference_id", body.path("reference_id").asText());
-		res.set("date_time", mapper.convertValue(new Date(), JsonNode.class));
+//		res.set("date_time", mapper.convertValue(new Date(), JsonNode.class));
 		if (code == 0) {
-			res.set("data", data);
+			if (!Objects.isNull(data))
+				res.set("data", data);
+			response.put("status", 200).set("data", res);
 		} else {
 			res.set("message", data.path("message"));
+			if (res.get("result_code").asInt() == 2)
+				response.put("status", 400).set("data", res);
+			else 
+				response.put("status", 500).set("data", res);
 		}
-		response.put("status", 200).set("data", res);
+		
 		return response;
 	}
 
-	private void rabbitLog(JsonNode body, JsonNode data) {
-		ObjectNode dataLog = mapper.createObjectNode();
-		dataLog.put("type", "[==RABBITMQ-LOG==]");
-		dataLog.set("result", data);
-		dataLog.set("payload", body);
-		log.info("{}", dataLog);
-	}
-
 	public JsonNode getDetail(JsonNode request) throws Exception {
-		Momo momo = mongoTemplate.findOne(Query.query(Criteria.where("id").is(request.path("param").path("id").asText())),
-				Momo.class);
+		Momo momo = mongoTemplate
+				.findOne(Query.query(Criteria.where("id").is(request.path("param").path("id").asText())), Momo.class);
 
 		if (momo == null) {
-			return response(404, mapper.createObjectNode().put("message", "Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "AppId Momo Not Found"));
 		}
 
 		return response(200, mapper.convertValue(momo, JsonNode.class));
@@ -304,21 +324,22 @@ public class MomoService {
 		JsonNode valid = validation(body,
 				Arrays.asList("request_id", "date_time", "data.agree1", "data.agree2", "data.agree3", "data.agree4",
 						"data.insurrance", "data.amount", "data.dueDate", "data.fee", "data.loanTime", "data.salary",
-						"data.address1", "data.address2", "data.district", "data.city", "data.dateOfBirth", "data.email",
-						"data.firstName", "data.lastName", "data.middleName", "data.gender", "data.issueDate", "data.issuePlace",
-						"data.maritalStatus", "data.momoLoanId", "data.personalId", "data.phoneNumber", "data.ward",
-						"data.productCode", "data.photos", "data.references"));
+						"data.address1", "data.address2", "data.district", "data.city", "data.dateOfBirth",
+						"data.email", "data.firstName", "data.lastName", "data.middleName", "data.gender",
+						"data.issueDate", "data.issuePlace", "data.maritalStatus", "data.momoLoanId", "data.personalId",
+						"data.phoneNumber", "data.ward", "data.productCode", "data.photos", "data.references"));
 
 		if (valid != null) {
-			return response(valid.get("code").asInt(), body, mapper.createObjectNode().set("message", valid.get("message")));
+			return response(valid.get("code").asInt(), body,
+					mapper.createObjectNode().set("message", valid.get("message")));
 		}
 
 		JsonNode data = body.path("data");
 		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "param", Map.of("areaCode", data.path("district").asText())));
+				Map.of("func", "getAddress", "reference_id", body.path("reference_id"), "param",
+						Map.of("areaCode", data.path("district").asText())));
 
 		if (address.path("status").asInt() != 200) {
-			rabbitLog(body, address);
 			return response(error.get("districtNotExists").get("code").asInt(), body,
 					mapper.createObjectNode().set("message", error.get("districtNotExists").get("message")));
 		}
@@ -332,16 +353,16 @@ public class MomoService {
 		momo.setCity(address.path("data").path("cityName").asText());
 		momo.setDistrict(address.path("data").path("areaName").asText());
 		momo.setRegion(address.path("data").path("region").asText());
+	
 		mongoTemplate.save(momo);
+		
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppFinnone(momo)));
 
-		rabbitMQService.send("tpf-service-esb",
-				Map.of("func", "createApp", "param",
-						Map.of("request_id", body.path("request_id"), "reference_id", body.path("reference_id")), "body",
-						convertService.toAppFinnone(momo)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppDisplay(momo)));
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "body", convertService.toAppDisplay(momo)));
-
-		return response(0, body, mapper.convertValue(momo, JsonNode.class));
+		return response(0, body, null);
 	}
 
 	public JsonNode updateAutomation(JsonNode request) throws Exception {
@@ -364,88 +385,100 @@ public class MomoService {
 			return response(404, mapper.createObjectNode().put("message", "Momo Loan Id Not Found"));
 		}
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+						Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
 		return response(200, null);
 	}
 
 	public JsonNode updateStatus(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-
+		log.info(body.path("app_id").asText());
 		Momo momo = mongoTemplate.findOne(Query.query(Criteria.where("appId").is(body.path("app_id").asText())),
 				Momo.class);
 
 		if (momo == null) {
-			return response(404, mapper.createObjectNode().put("message", "AppId Not Found"));
+			return response(404, mapper.createObjectNode().put("message", "AppId Momo Not Found"));
 		}
 
 		if (body.path("status").asText().equals("REJECTED") || body.path("status").asText().equals("CANCELLED")) {
 			momo.setStatus(body.path("status").asText());
 			new Thread(() -> {
-				try {
-					JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getReason", "param",
-							Map.of("appId", momo.getAppId(), "status", body.path("status").asText())));
-					if (reason.path("status").asInt() == 200) {
-						ResponseMomoStatus momoStatus = mapper.convertValue(reason.path("data"), ResponseMomoStatus.class);
-						momoStatus.setRequestId(UUID.randomUUID().toString());
-						momoStatus.setMomoLoanId(momo.getMomoLoanId());
-						momoStatus.setPhoneNumber(momo.getPhoneNumber());
-						momoStatus.setStatus(status.path(body.path("status").asText()).asInt());
-						if (momoStatus.getDetail() == null) {
-							momoStatus.setDetail(new ResponseMomoStatusDetail());
-						}
-						momoStatus.getDetail().setApplicationId(momo.getAppId());
-						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
-					} else {
-						rabbitLog(body, reason);
-					}
-				} catch (Exception e) {
-					log.error(e.toString());
-				}
-			}).start();
-		} else if (body.path("status").asText().equals("APPROVED")) {
-			momo.setStatus("APPROVED_FINNONE");
-			JsonNode sms = rabbitMQService.sendAndReceive("tpf-service-sms", Map.of("func", "sendSms", "body",
-					Map.of("phone", momo.getPhoneNumber(), "content", "Chuc mung khach hang, CMND " + momo.getPersonalId()
-							+ " duoc phe duyet voi tong so tien vay Sanction Loan Amount vnd, thoi han vay Sanction Tenure va khoan tra moi thang Installment Amount. Vui long tra loi tin nhan voi cu phap TPB MOMO Y den so 8089 de xac nhan khoan vay hoac TPB MOMO N de tu choi khoan vay")));
-			if (sms.path("status").asInt() == 200) {
-				momo.setSmsResult("W");
-				new Thread(() -> {
+				for (int i = 0; i < 10; i++) {
 					try {
-						JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
-								Map.of("func", "getLoan", "param", Map.of("appId", momo.getAppId())));
-						if (loan.path("status").asInt() == 200) {
-							ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"), ResponseMomoStatus.class);
-							momoStatus.setRequestId(UUID.randomUUID().toString());
+						JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-esb",
+								Map.of("func", "getReason", "reference_id", body.path("reference_id"), "param",
+										Map.of("appId", momo.getAppId(), "status", body.path("status").asText())));
+						if (reason.path("status").asInt() == 200) {
+							ResponseMomoStatus momoStatus = mapper.convertValue(reason.path("data"),
+									ResponseMomoStatus.class);
+							momoStatus.setRequestId(body.path("reference_id").asText());
 							momoStatus.setMomoLoanId(momo.getMomoLoanId());
 							momoStatus.setPhoneNumber(momo.getPhoneNumber());
-							momoStatus.setStatus(status.path("APPROVED_AND_WAITING_SMS").asInt());
+							momoStatus.setStatus(status.path(body.path("status").asText()).asInt());
 							if (momoStatus.getDetail() == null) {
 								momoStatus.setDetail(new ResponseMomoStatusDetail());
 							}
 							momoStatus.getDetail().setApplicationId(momo.getAppId());
 							apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
-						} else {
-							rabbitLog(body, loan);
-						}
+							break;
+						} else
+							Thread.sleep(20000);
 					} catch (Exception e) {
 						log.error(e.toString());
+					}
+
+				}
+
+			}).start();
+		} else if (body.path("status").asText().equals("APPROVED")) {
+			momo.setStatus("APPROVED_FINNONE");
+			JsonNode sms = rabbitMQService.sendAndReceive("tpf-service-sms", Map.of("func", "sendSms", "reference_id",
+					body.path("reference_id"), "body",
+					Map.of("phone", momo.getPhoneNumber(), "content", "Chuc mung khach hang, CMND "
+							+ momo.getPersonalId()
+							+ " duoc phe duyet voi tong so tien vay Sanction Loan Amount vnd, thoi han vay Sanction Tenure va khoan tra moi thang Installment Amount. Vui long tra loi tin nhan voi cu phap TPB MOMO Y den so 8089 de xac nhan khoan vay hoac TPB MOMO N de tu choi khoan vay")));
+			if (sms.path("status").asInt() == 200) {
+				momo.setSmsResult("W");
+				new Thread(() -> {
+					for (int i = 0; i < 10; i++) {
+						try {
+							JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
+									Map.of("func", "getLoan", "reference_id", body.path("reference_id"), "param",
+											Map.of("appId", momo.getAppId())));
+							if (loan.path("status").asInt() == 200) {
+								ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"),
+										ResponseMomoStatus.class);
+								momoStatus.setRequestId(body.path("reference_id").asText());
+								momoStatus.setMomoLoanId(momo.getMomoLoanId());
+								momoStatus.setPhoneNumber(momo.getPhoneNumber());
+								momoStatus.setStatus(status.path("APPROVED_AND_WAITING_SMS").asInt());
+								if (momoStatus.getDetail() == null) {
+									momoStatus.setDetail(new ResponseMomoStatusDetail());
+								}
+								momoStatus.getDetail().setApplicationId(momo.getAppId());
+								apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
+							} else
+								Thread.sleep(20000);
+						} catch (Exception e) {
+							log.error(e.toString());
+						}
 					}
 				}).start();
 			} else {
 				momo.setSmsResult("send sms error");
-				rabbitLog(body, sms);
 			}
 		} else if (body.path("status").asText().equals("DISBURSED")) {
 			momo.setStatus(body.path("status").asText());
 			new Thread(() -> {
 				try {
-					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
-							Map.of("func", "getLoan", "param", Map.of("appId", momo.getAppId())));
+					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getLoan",
+							"reference_id", body.path("reference_id"), "param", Map.of("appId", momo.getAppId())));
 					if (loan.path("status").asInt() == 200) {
-						ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"), ResponseMomoStatus.class);
-						momoStatus.setRequestId(UUID.randomUUID().toString());
+						ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"),
+								ResponseMomoStatus.class);
+						momoStatus.setRequestId(body.path("reference_id").asText());
 						momoStatus.setMomoLoanId(momo.getMomoLoanId());
 						momoStatus.setPhoneNumber(momo.getPhoneNumber());
 						momoStatus.setStatus(status.path(body.path("status").asText()).asInt());
@@ -454,8 +487,6 @@ public class MomoService {
 						}
 						momoStatus.getDetail().setApplicationId(momo.getAppId());
 						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
-					} else {
-						rabbitLog(body, loan);
 					}
 				} catch (Exception e) {
 					log.error(e.toString());
@@ -466,8 +497,8 @@ public class MomoService {
 		momo.setAutomationResult(momo.getAutomationResult().equals("Pass") ? momo.getAutomationResult() : "Fix");
 		mongoTemplate.save(momo);
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
 		return response(200, null);
 	}
@@ -499,16 +530,18 @@ public class MomoService {
 			momo.setSmsResult("Y");
 			new Thread(() -> {
 				try {
-					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb",
-							Map.of("func", "getLoan", "param", Map.of("appId", momo.getAppId())));
+					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getLoan",
+							"reference_id", body.path("reference_id"), "param", Map.of("appId", momo.getAppId())));
 					if (loan.path("status").asInt() == 200) {
-						ResponseMomoDisburse momoDisburse = mapper.convertValue(loan.path("data"), ResponseMomoDisburse.class);
-						momoDisburse.setRequestId(UUID.randomUUID().toString());
+						ResponseMomoDisburse momoDisburse = mapper.convertValue(loan.path("data"),
+								ResponseMomoDisburse.class);
+						momoDisburse.setRequestId(body.path("reference_id").asText());
 						momoDisburse.setMomoLoanId(momo.getMomoLoanId());
 						momoDisburse.setPhoneNumber(momo.getPhoneNumber());
 						momoDisburse.setDescription("Khách hàng được giải ngân");
 
-						JsonNode result = apiService.sendDisburseToMomo(mapper.convertValue(momoDisburse, JsonNode.class));
+						JsonNode result = apiService
+								.sendDisburseToMomo(mapper.convertValue(momoDisburse, JsonNode.class));
 
 						if (result.path("resultCode").asText().equals("500")) {
 							momo.setError(result.path("message").asText());
@@ -521,10 +554,10 @@ public class MomoService {
 
 						mongoTemplate.save(momo);
 
-						rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-								Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
-					} else {
-						rabbitLog(body, loan);
+						rabbitMQService.send("tpf-service-app",
+								Map.of("func", "updateApp", "reference_id", body.path("reference_id"), "param",
+										Map.of("project", "momo", "id", momo.getId()), "body",
+										convertService.toAppDisplay(momo)));
 					}
 				} catch (Exception e) {
 					log.error(e.toString());
@@ -535,7 +568,7 @@ public class MomoService {
 			momo.setStatus("CUSTOMER_CANCELLED");
 			new Thread(() -> {
 				ResponseMomoStatus momoStatus = new ResponseMomoStatus();
-				momoStatus.setRequestId(UUID.randomUUID().toString());
+				momoStatus.setRequestId(body.path("reference_id").asText());
 				momoStatus.setMomoLoanId(momo.getMomoLoanId());
 				momoStatus.setPhoneNumber(momo.getPhoneNumber());
 				momoStatus.setStatus(status.path("CANCELLED").asInt());
@@ -548,8 +581,8 @@ public class MomoService {
 
 		mongoTemplate.save(momo);
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "param",
-				Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
 		return response(200, null);
 	}

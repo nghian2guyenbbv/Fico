@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,8 +30,7 @@ public class MomoController {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "createMomo");
 		request.put("body", body);
-
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-momo", request);
+		ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-momo", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
@@ -44,19 +42,6 @@ public class MomoController {
 		request.put("func", "updateSms");
 		request.put("body",
 				Map.of("reference_id", UUID.randomUUID().toString(), "phone_number", phone_number, "sms_result", sms_result));
-
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-momo", request);
-		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
-	}
-
-	@PostMapping("/momo/update_automation/{app_id}/{transaction_id}")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-momo')")
-	public ResponseEntity<?> updateAutomation(@PathVariable String app_id, @PathVariable String transaction_id,
-			@RequestParam(required = true) String automation_result) throws Exception {
-		Map<String, Object> request = new HashMap<>();
-		request.put("func", "updateAutomation");
-		request.put("body", Map.of("reference_id", UUID.randomUUID().toString(), "app_id", app_id, "transaction_id",
-				transaction_id, "automation_result", automation_result));
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-momo", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));

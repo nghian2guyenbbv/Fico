@@ -13,13 +13,19 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import vn.com.tpf.microservices.extensions.HttpServletRequestWrapperExtension;
+import vn.com.tpf.microservices.extensions.HttpServletResponseWrapperExtension;
 import vn.com.tpf.microservices.services.RabbitMQService;
 
-public class PGPFilter implements Filter {
 
+public class PGPFilter implements Filter {
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	private ObjectMapper mapper;
 	private RabbitMQService rabbitMQService;
 
@@ -53,27 +59,30 @@ public class PGPFilter implements Filter {
 			JsonNode body = mapper.createObjectNode();
 			String[] projects = request.getUserPrincipal().getName().split("-");
 			String project = projects[projects.length - 1];
+			String respString = "";
 
 			try {
 				JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 						Map.of("func", "pgpDecrypt", "body", Map.of("project", project, "data", data)));
-				if (decrypt.path("data").isObject()) {
-					body = decrypt;
-				}
+				if (decrypt.path("data").isObject() && Integer.valueOf(decrypt.path("status").asInt()).equals(200)) {
+					body = decrypt.path("data");
+					req.updateInputStream(body.toString().getBytes());
+					chain.doFilter(req, res);
+					respString = res.getContent();
+				} else
+					respString = mapper.writeValueAsString(
+							Map.of("request_id", "", "reference_id", "", "result_code", 499, "message", "Pgp error"));
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error("{} {}", data, e.getMessage());
 			}
-
-			req.updateInputStream(body.toString().getBytes());
-			chain.doFilter(req, res);
-			String respString = res.getContent();
 
 			try {
 				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 						Map.of("func", "pgpEncrypt", "body", Map.of("project", project, "data", respString)));
 				respString = encrypt.path("data").asText();
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error("{} {}", respString, e.getMessage());
+//				e.printStackTrace();
 			}
 
 			PrintWriter printWriter = servletResponse.getWriter();

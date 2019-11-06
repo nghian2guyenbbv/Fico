@@ -373,7 +373,7 @@ public class DataInitial {
                 .build();
 
 
-        if (loanDetailsDTO.getProductName().equals("DG_01"))
+        if (loanDetailsDTO.getProductName().equals("DG01"))
         {
             loanDetailsDTO.setScheme("DG01_MOMO TRIAL");
         }
@@ -385,12 +385,16 @@ public class DataInitial {
         map.put("LoanDetailsDTO", loanDetailsDTO);
 
         //LoanVAP
-        LoanDetailsVapDTO loanDetailsVapDTO = LoanDetailsVapDTO.builder()
-                .vapProduct(loanDetails.getVapDetails().vapProduct) //set branch default la FPT
-                .vapTreatment(loanDetails.getVapDetails().vapTreatment)
-                .insuranceCompany(loanDetails.getVapDetails().getInsuranceCompany())
-                .build();
-        map.put("LoanDetailsVapDTO", loanDetailsVapDTO);
+
+        if(loanDetails.getVapDetails()!=null)
+        {
+            LoanDetailsVapDTO loanDetailsVapDTO = LoanDetailsVapDTO.builder()
+                    .vapProduct(loanDetails.getVapDetails().vapProduct) //set branch default la FPT
+                    .vapTreatment(loanDetails.getVapDetails().vapTreatment)
+                    .insuranceCompany(loanDetails.getVapDetails().getInsuranceCompany())
+                    .build();
+            map.put("LoanDetailsVapDTO", loanDetailsVapDTO);
+        }
 
         ////********************************END LOAN DETAIL DTO************************************////
 

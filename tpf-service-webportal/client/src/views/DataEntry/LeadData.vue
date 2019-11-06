@@ -16,11 +16,9 @@
     </div>
     
     <el-table
-      v-loading="listLoading"
-      :data="list"
-      border
-      fit
-      highlight-current-row
+      v-loading="state.dataentry.isLoading"
+      :data="state.dataentry.list"
+      border fit highlight-current-row
       style="width: 100%"
       @row-click="handleUpdate"
       height="70vh"
@@ -63,10 +61,15 @@
                 v-else-if="item.key=='action'"
             >
             <template slot-scope="scope">
-              <el-button type="primary" size="mini" icon="el-icon-refresh-left" circle @click="retryQuickLead($event, scope.row)"
-                v-if="scope.row['appId'] == null || scope.row['appId'] == '' || scope.row['appId'] == 'UNKNOWN' || scope.row['appId'] == 'Unknown' || scope.row['appId'] == 'unknown'">
-              </el-button>
-              <el-button type="primary" size="mini" icon="el-icon-edit" circle @click="updateStatusManualy($event, scope.row)"></el-button>
+              <el-tooltip class="item" effect="dark" content="Retry Quicklead" placement="top" 
+                v-if="scope.row['status'] == 'AUTO_QL_FAIL'">
+                <el-button type="primary" size="mini" icon="el-icon-refresh-left" circle @click="retryQuickLead(scope.row)"></el-button>
+              </el-tooltip>
+              <el-tooltip class="item" effect="dark" content="Fix Manually" placement="top" 
+                v-if="scope.row['status'] == 'CANCEL' && scope.row['appId']">
+                <el-button type="primary" size="mini" icon="el-icon-edit" circle @click="updateStatusManualy(scope.row)"></el-button>
+              </el-tooltip>
+              
             </template>
             </el-table-column>
             <el-table-column 
@@ -85,11 +88,11 @@
     <el-pagination class="pagination-container"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-      :current-page.sync="params.page"
-      :page-sizes="params.sizes"
-      :page-size="params.limit"
+      :current-page.sync="state.dataentry.pagination.page"
+      :page-sizes="[10, 15, 20, 100]"
+      :page-size="state.dataentry.pagination.limit"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="parseInt(total)">
+      :total="parseInt(state.dataentry.total)">
     </el-pagination>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogDetail" width="95%" top="3vh">
@@ -98,13 +101,13 @@
           <el-alert title="Information Customer" type="success" effect="dark" :closable="false"></el-alert>
           <el-row style="border: 1px solid; border-radius: 5px;">
             <el-col :span="12" style="border-right: 1px solid; padding: 5px 15px;">
-                <p><span style="font-weight: 600;">APP ID: </span> <span style="font-style: italic;">{{ temp.appId }}</span></p>
+                <p><span style="font-weight: 600;">APP ID: </span> <span style="font-style: italic;">{{ temp.appId || 'Unknown' }}</span></p>
                 <p><span style="font-weight: 600;">FULL NAME: </span> <span style="font-style: italic;">{{ temp.fullName }}</span></p>
-                <p><span style="font-weight: 600;">NATIONAL ID: </span> <span style="font-style: italic;">{{ temp.identificationNumber }}</span></p>
+                <p><span style="font-weight: 600;">NATIONAL ID: </span> <span style="font-style: italic;">{{ temp.optional && temp.optional.identificationNumber }}</span></p>
             </el-col>
             <el-col :span="12" style="padding: 5px 15px;">
-                <p><span style="font-weight: 600;">SCHEME: </span> <span style="font-style: italic;">{{ temp.scheme }}</span></p>
-                <p><span style="font-weight: 600;">STATUS: </span> <span style="font-style: italic;">{{ temp.status }}</span></p>
+                <p><span style="font-weight: 600;">SCHEME: </span> <span style="font-style: italic;">{{ temp.optional && temp.optional.schemeCode }}</span></p>
+                <p><span style="font-weight: 600;">STATUS: </span> <span style="font-style: italic;">{{ temp.status || 'Processing' }}</span></p>
                 <p><span style="font-weight: 600;">CREATED AT: </span> <span style="font-style: italic;">{{ temp.createdAt | moment("MMM DD YYYY HH:mm") }}</span></p>
             </el-col>
           </el-row>
@@ -137,26 +140,29 @@
               style="display: none"
             />
           </el-row>
-          <el-row>
+          <el-row style="">
             <el-collapse v-model="activeNames">
-            <el-col :span="12" v-for="(i, j) in listSchemeComments" :key="i+j" style="padding: 3px 5px;">
-              <el-collapse-item :title="j" :name="j">
-                <div class="sheme-doc-name">
-                  <p class="sheme-doc-name--filename">
-                    {{ files ? files.name.substring(0, files.name.length - 4) : j }}
-                  </p>
-                  <p class="sheme-doc-name--filetype">
-                    {{ files ? files.name.substring(files.name.length - 4) : '.pdf' }}
-                  </p>
-                </div>
-                <div style="float: right; padding: 5px 5px; margin: 4px 0;">
-                  <el-button icon="el-icon-view" circle size="mini" @click="handlePictureCardPreview('')"></el-button>
-                  <el-button icon="el-icon-upload" circle size="mini" @click="select(i, j)"></el-button>
-                </div>
-                <el-input placeholder="Comment" v-model="i.comment"></el-input>
-              </el-collapse-item>
-              
-            </el-col>
+              <el-col :span="12" v-for="(i, j) in listSchemeComments" :key="i+j" style="padding: 3px 5px;">
+                <el-collapse-item :name="j">
+                  <template slot="title">
+                    <p style="overflow: hidden; text-overflow: ellipsis; max-width: 200px; white-space: nowrap;"> {{ j }} </p>
+                  </template>
+                  <div class="sheme-doc-name">
+                    <p class="sheme-doc-name--filename">
+                      {{ files ? files.name.substring(0, files.name.length - 4) : j }}
+                    </p>
+                    <p class="sheme-doc-name--filetype">
+                      {{ files ? files.name.substring(files.name.length - 4) : '.pdf' }}
+                    </p>
+                  </div>
+                  <div style="float: right; padding: 5px 5px; margin: 4px 0;">
+                    <el-button icon="el-icon-view" circle size="mini" @click="handlePictureCardPreview('')"></el-button>
+                    <el-button icon="el-icon-upload" circle size="mini" @click="select(i, j)"></el-button>
+                  </div>
+                  <el-input placeholder="Comment" v-model="i.comment"></el-input>
+                </el-collapse-item>
+                
+              </el-col>
             </el-collapse>
           </el-row>
           <el-row>
@@ -197,7 +203,7 @@
       <el-row :gutter="20" style="margin-top: 10px; margin-bottom: 10px">
         <el-col :span="6">
           <el-select v-model="state.dataentry.newCustomer.branch" placeholder="Branch" class="el-fullwidth-custom">
-            <el-option v-for="item in listBranch.data" :key="item.branchCode" :label="item.branchName" :value="item.branchCode" :disabled="checkPass"></el-option>
+            <el-option v-for="item in listBranch.data" :key="item.branchName" :label="item.branchName" :value="item.branchName" :disabled="checkPass"></el-option>
           </el-select>
         </el-col>
         <el-col :span="6">
@@ -308,19 +314,26 @@
     <el-dialog :title="dialogImageName" :visible.sync="innerVisible" append-to-body width="80%" top="9vh">
       <embed :src="dialogImageUrl" style="width: 100%; height: 70vh;"/>
     </el-dialog>
+
+    <el-dialog :title="dialogConfirm.title" :visible.sync="dialogConfirm.show" width="50%">
+      <span>{{ dialogConfirm.content }}</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogConfirm.show = false">Cancel</el-button>
+        <el-button type="primary" @click="dialogConfirm.action">{{ dialogConfirm.confirm }}</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import waves from '@/directive/waves' // waves directive
 import { parseTime } from '@/utils'
-import Pagination from './pagination' // secondary package based on el-pagination
 import DialogCreate from './dialogCreate'
 import { MessageBox, Message } from 'element-ui'
 
 export default {
   name: 'LeadDE',
-  components: { Pagination, DialogCreate },
+  components: { DialogCreate },
   directives: { waves },
   filters: {
     statusFilter(status) {
@@ -358,34 +371,22 @@ export default {
       uploadDone: false,
       uploadFileLoading: false,
       
-      listSchemeComments: {
-        'ID Card': { file: '', comment: '' },
-        'Notarization of ID card': { file: '', comment: '' },
-        'Family Book': { file: '', comment: '' },
-        'Notarization of Family Book': { file: '', comment: '' },
-        'Health Insurance Card': { file: '', comment: '' },
-        'Banking Statement': { file: '', comment: '' },
-        'Employer Confirmation': { file: '', comment: '' },
-        'Labor Contract': { file: '', comment: '' },
-        'Salary slip': { file: '', comment: '' },
-        'Customer Photograph': { file: '', comment: '' },
-        'Map to Customer House': { file: '', comment: '' },
-        'Customer Signature': { file: '', comment: '' }
-      },
+      listSchemeComments: {},
       commentsAll: '',
       activeNames: [],
         files: null,
         list: [],
         total: 0,
         listLoading: true,
-        params: {
-            page: 1,
-            limit: 20,
-            importance: undefined,
-            title: undefined,
-            type: undefined,
-            sort: '+id'
-        },
+        // params: {
+        //     page: 1,
+        //     limit: 20,
+        //     importance: undefined,
+        //     title: undefined,
+        //     type: undefined,
+        //     sort: '+id'
+        // },
+
         headers: [
           { key: 'action', title: 'Action', align: 'center', header_align: 'center' },
           { key: 'appId', title: 'App ID', align: 'center', header_align: 'center' },
@@ -417,6 +418,13 @@ export default {
           comment: '',
           recommnet: ''
         },
+        dialogConfirm: {
+          show: false,
+          title: '',
+          content: '',
+          confirm: '',
+          action: ''
+        },
         dialogDetail: false,
         outerVisible: false,
         dialogStatus: '',
@@ -426,18 +434,13 @@ export default {
         },
         dialogPvVisible: false,
         pvData: [],
-        // rules: {
-        //     type: [{ required: true, message: 'type is required', trigger: 'change' }],
-        //     timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-        //     title: [{ required: true, message: 'title is required', trigger: 'blur' }]
-        // },
-        params: {
-          page: 1,
-          limit: 10,
-          sort: 'createdAt,asc',
-          project: 'dataentry'
-        }
-        
+        // params: {
+        //   page: 1,
+        //   limit: 10,
+        //   sort: 'createdAt,asc',
+        //   project: 'dataentry'
+        // }
+
     }
   },
   computed: {
@@ -448,7 +451,7 @@ export default {
       this.countFile = this.listScheme.length
       this.listObj_scheme = {}
       for (let i = 0; i < this.listScheme.length; i++) {
-        this.listObj_scheme[this.listScheme[i].substring(4)] = false
+        this.listObj_scheme[this.listScheme[i]] = false
       }
       return this.listScheme
     }
@@ -460,90 +463,9 @@ export default {
     this.getBranch()
   },
   methods: {
-    onChangeScheme () {
-      if (this.$refs && this.$refs.upload && this.$refs.upload.uploadFiles) {
-        for (let j in this.$refs.upload.uploadFiles) {
-          let a = this.checkFiles(this.$refs.upload.uploadFiles[j].name)
-          if (a.checked) {
-            this.listObj_scheme[a.type] = this.$refs.upload.uploadFiles[j]
-          }
-        }
-      }
-      this.countFile = 0
-      for (let i in this.listObj_scheme) {
-        if (!this.listObj_scheme[i]) {
-          this.countFile++
-        }
-      }
-    },
-    handleCommand(command) {
-      this.renderComponent = false;
-      for (let j in this.$refs.upload.uploadFiles) {
-        if (this.$refs.upload.uploadFiles[j].name == command.file.name) {
-          this.$refs.upload.uploadFiles[j].scheme = command.type
-        }
-      }
-      this.listObj_scheme[command.type] = command.file
-      this.$set(this.listObj_scheme, command.type, command.file)
-      this.countFile = 0
-      for (let i in this.listObj_scheme) {
-        if (!this.listObj_scheme[i]) {
-          this.countFile++
-        }
-      }
-      this.$nextTick(() => {
-        this.renderComponent = true;
-      });
-    },
-    handleSizeChange(a) {
-      this.params.limit = a
-      this.getList()
-    },
-    handleCurrentChange(a) {
-      this.params.page = a
-      this.getList()
-    },
-    handleSearch() {
-      this.params = {
-        page: 1,
-        limit: 10,
-        sort: 'createdAt,asc',
-        project: 'dataentry'
-      }
-      this.params[this.keySearch] = this.valueSearch
-      this.getList()
-    },
+    // get all data first time
     getList() {
-      this.listLoading = true
-      this.$store.dispatch('dataentry/getQuickList', this.params)
-        .then((data) => {
-          this.list = data.data
-          this.total = data.total
-          this.listLoading = false
-        })
-        .catch(() => {
-          this.listLoading = false
-        })
-    },
-    retryQuickLead(e, data) {
-      let a = e.currentTarget
-      a.setAttribute('disabled', 'disabled')
-      if (data && data.optional && data.optional.quickLeadId) {
-        this.$store.dispatch('dataentry/retryQuickLead', data.optional.quickLeadId)
-          .then((res) => {
-            if (res.data.result_code == "0") {
-              Message({
-                message:'Automation did receive, wait a few minutes for upgrade',
-                type: 'success',
-                duration: 5 * 1000
-              })
-            }
-            a.setAttribute('disabled', false)
-          })
-          .catch(() => {
-            a.setAttribute('disabled', false)
-          })
-      }
+      this.$store.dispatch('dataentry/getQuickList')
     },
     getListScheme() {
       this.$store.dispatch('dataentry/getDocsCheme')
@@ -569,6 +491,76 @@ export default {
         .catch(() => {
         })
     },
+    // for list app
+    handleSizeChange(a) {
+      this.state.dataentry.pagination.limit = a
+      this.getList()
+    },
+    handleCurrentChange(a) {
+      this.state.dataentry.pagination.page = a
+      this.getList()
+    },
+    handleSearch() {
+      this.state.dataentry.pagination.page = 1
+      this.state.dataentry.pagination[this.keySearch] = this.valueSearch
+      this.getList()
+    },
+    // action in 1 of apps
+    retryQuickLead(data) {
+      this.dialogConfirm.show = true
+      this.dialogConfirm.title = 'Retry QuickLead'
+      this.dialogConfirm.content = 'Are you sure want to retry quiclead: ' + data.fullName
+      this.dialogConfirm.confirm = 'Retry'
+      let that = this
+      this.dialogConfirm.action = function() {
+        if (data && data.optional && data.optional.quickLeadId) {
+          that.$store.dispatch('dataentry/retryQuickLead', data.optional.quickLeadId)
+            .then((res) => {
+              if (res.data.result_code == "0") {
+                Message({
+                  message:'Automation did receive, wait a few minutes for upgrade',
+                  type: 'success',
+                  duration: 5 * 1000
+                })
+                that.dialogConfirm.show = false
+              }
+            })
+            .catch(() => {
+            })
+        } else {
+          Message({
+            message:'Some error',
+            type: 'error',
+            duration: 5 * 1000
+          })
+        }
+      }
+    },
+    updateStatusManualy(data) {
+      this.dialogConfirm.show = true
+      this.dialogConfirm.title = 'Update Status Manually QuickLead'
+      this.dialogConfirm.content = 'Are you sure want to update manually app: ' + data.appId
+      this.dialogConfirm.confirm = 'Update'
+      let that = this
+      this.dialogConfirm.action = function() {
+       if (data && data.appId) {
+        that.$store.dispatch('dataentry/updateStatusManualy', data.appId)
+          .then((res) => {
+            if (res.data.result_code == "0") {
+              Message({
+                message:'Automation did receive, wait a little for upgrade',
+                type: 'success',
+                duration: 5 * 1000
+              })
+              that.dialogConfirm.show = false
+            }
+          })
+          .catch(() => {
+          })
+        }
+      }
+    },
+    // for create new quicklead
     checkData() {
       this.checkPass = true
       this.$store.dispatch('dataentry/postFirstCheck', this.state.dataentry.newCustomer)
@@ -605,31 +597,46 @@ export default {
 
       return { result: mess, file: typeScheme }
     },
-    updateStatusManualy(e, data) {
-      let a = e.currentTarget
-      a.setAttribute('disabled', 'disabled')
-      if (data && data.appId) {
-        this.$store.dispatch('dataentry/updateStatusManualy', data.appId)
-          .then((res) => {
-            if (res.data.result_code == "0") {
-              Message({
-                message:'Automation did receive, wait a little for upgrade',
-                type: 'success',
-                duration: 5 * 1000
-              })
-            }
-            a.setAttribute('disabled', false)
-          })
-          .catch(() => {
-            a.setAttribute('disabled', false)
-          })
+    onChangeScheme () {
+      if (this.$refs && this.$refs.upload && this.$refs.upload.uploadFiles) {
+        for (let j in this.$refs.upload.uploadFiles) {
+          let a = this.checkFiles(this.$refs.upload.uploadFiles[j].name)
+          if (a.checked) {
+            this.listObj_scheme[a.type] = this.$refs.upload.uploadFiles[j]
+          }
+        }
       }
+      this.countFile = 0
+      for (let i in this.listObj_scheme) {
+        if (!this.listObj_scheme[i]) {
+          this.countFile++
+        }
+      }
+    },
+    handleCommand(command) {
+      this.renderComponent = false;
+      for (let j in this.$refs.upload.uploadFiles) {
+        if (this.$refs.upload.uploadFiles[j].name == command.file.name) {
+          this.$refs.upload.uploadFiles[j].scheme = command.type
+        }
+      }
+      this.listObj_scheme[command.type] = command.file
+      this.$set(this.listObj_scheme, command.type, command.file)
+      this.countFile = 0
+      for (let i in this.listObj_scheme) {
+        if (!this.listObj_scheme[i]) {
+          this.countFile++
+        }
+      }
+      this.$nextTick(() => {
+        this.renderComponent = true;
+      });
     },
     checkFiles(fileName) {
       let type = ''
       return {
         checked: this.listSchemeSelect.some(scheme => {
-          let keyCheck = scheme.substring(4)
+          let keyCheck = scheme
           let regex = new RegExp(keyCheck)
           if (fileName.search(regex, 'i') != -1) {
             type = keyCheck
@@ -713,7 +720,21 @@ export default {
     createData() {
       this.$store.dispatch('dataentry/createQuicklead')
         .then((data) => {
-          
+          if (data.data.result_code == '0') {
+            Message({
+              message:'Create Quick Lead success, waiting for automation process!',
+              type: 'success',
+              duration: 5 * 1000
+            })
+            this.clearFormCreate()
+            this.$store.dispatch('dataentry/clearDataState')
+          } else {
+            Message({
+              message:'Create Quick Lead failed',
+              type: 'error',
+              duration: 5 * 1000
+            })
+          }
         })
         .catch(() => {
           Message({
@@ -722,6 +743,65 @@ export default {
             duration: 5 * 1000
           })
         })
+    },
+    clearFormCreate() {
+      // this.listObj_scheme = {}
+      // this.countFile = 0
+      // this.cityStatus = []
+      // this.listScheme = []
+      // this.dialogImageUrl = ''
+      // this.dialogImageName = ''
+      this.innerVisible = false
+      this.outerVisible = false
+      // this.disabled = false
+      // this.checked = false
+      // this.checkPass = false
+      // this.checkLoading = false
+      // this.uploadDone = false
+      // this.uploadFileLoading = false
+    },
+    // for comment detail 1 app
+    handleUpdate(row, column) {
+      if (column.property != 'action') {
+        this.temp = Object.assign({}, row)
+        // console.log(this.listSchemeDoc)
+        // console.log(row)
+        if (row.optional.schemeCode) {
+          try {
+            this.listSchemeDoc.data && this.listSchemeDoc.data.forEach(scheme => {
+              console.log(scheme)
+              if (scheme.productName == row.optional.schemeCode) {
+                scheme.documentName.forEach(docs => {
+                  this.listSchemeComments[docs] = { file: '', comment: '' }
+                })
+              }
+            })
+          }
+          catch(err) {
+            console.log('sdf')
+          }
+        } else {
+
+        }
+        
+
+      //   listSchemeComments: {
+      //   'ID Card': { file: '', comment: '' },
+      //   'Notarization of ID card': { file: '', comment: '' },
+      //   'Family Book': { file: '', comment: '' },
+      //   'Notarization of Family Book': { file: '', comment: '' },
+      //   'Health Insurance Card': { file: '', comment: '' },
+      //   'Banking Statement': { file: '', comment: '' },
+      //   'Employer Confirmation': { file: '', comment: '' },
+      //   'Labor Contract': { file: '', comment: '' },
+      //   'Salary slip': { file: '', comment: '' },
+      //   'Customer Photograph': { file: '', comment: '' },
+      //   'Map to Customer House': { file: '', comment: '' },
+      //   'Customer Signature': { file: '', comment: '' }
+      // },
+        this.dialogStatus = 'update'
+        this.dialogDetail = true
+      }
     },
     select(scheme) {
       console.log(scheme)
@@ -777,13 +857,7 @@ export default {
       this.outerVisible = true
     },
     
-    handleUpdate(row, column) {
-      if (column.property != 'action') {
-        this.temp = Object.assign({}, row)
-        this.dialogStatus = 'update'
-        this.dialogDetail = true
-      }
-    },
+    
     handleComment(cmt) {
       this.tempCmt = Object.assign({}, cmt)
     },

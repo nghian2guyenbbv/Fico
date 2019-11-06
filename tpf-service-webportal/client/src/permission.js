@@ -18,10 +18,23 @@ router.beforeEach(async (to, from, next) => {
   if (hasToken) {
     const roles = cookie.getRoles()
     if (roles && roles.length > 0) {
+      store.dispatch('app/fnSocket')
       if (to.path === '/login') {
         next({ path: '/' })
       } else {
-        next()
+        if (to.meta && to.meta.roles) {
+          if (roles.includes("admin")) {
+            next()
+          } else {
+            if (roles.some(role => to.meta.roles.includes(role))) {
+              next()
+            } else {
+              next({ path: '/' })
+            }
+          }
+        } else {
+          next()
+        }
       }
     } else {
       await store.dispatch('user/resetToken')

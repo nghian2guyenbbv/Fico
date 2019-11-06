@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <router-view />
+    <tpf-dialog></tpf-dialog>
   </div>
 </template>
 
