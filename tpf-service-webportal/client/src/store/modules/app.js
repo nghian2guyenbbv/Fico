@@ -84,7 +84,9 @@ const actions = {
         momo: { departments: departments },
         dataentry: { departments: departments }
       }
-      pushNotify('TPF_HOME NOTIFICATION', project + ' - ' + action)
+      from !== '' || to !== '' ? pushNotify('TPF_HOME NOTIFICATION', project + ' - ' + action) : ''
+      if ((from !== '') || (to !== '')) {
+      
       switch (action) {
         case 'CREATE':
           if (project == 'dataentry') {
@@ -124,19 +126,21 @@ const actions = {
           }
           
           break
-      }
+      }}
     })
   },
 
   fnFilterCreate: async ({ dispatch, rootState }, { model, data }) => {
     let page = await dispatch('fnRootState', model)
     
-    const idx = rootState[page][model].list.findIndex(e => e.id === data.id)
+    let arrTempt = rootState[page][model].list
+
+    const idx = (Array.isArray(arrTempt)) && arrTempt.findIndex(e => e.id === data.id)
 			
     if (idx !== -1) Vue.set(rootState[page][model].list, idx, { ...rootState[page][model].list[idx], ...data })
     else {
       rootState[page][model].list.unshift(data)
-      rootState[page][model].total += 1
+      rootState[page][model].total = rootState[page][model].list.length
       if (rootState[page][model].list.length > rootState[page][model].rowsPerPage) rootState[page][model].list.pop()
     }
   },
@@ -144,8 +148,10 @@ const actions = {
   fnFilterDelete: async ({ dispatch, rootState }, { model, data }) => {
     let page = await dispatch('fnRootState', model)
 
-    rootState[page][model].list = rootState[page][model].list.filter(e => e.id !== data.id)
-    rootState[page][model].total += -1
+    let arrTempt = rootState[page][model].list
+
+    rootState[page][model].list = (Array.isArray(arrTempt)) && arrTempt.filter(e => e.id !== data.id)
+    rootState[page][model].total = rootState[page][model].list.length
     if (rootState[page][model].list.length === 0) {
       
     }
