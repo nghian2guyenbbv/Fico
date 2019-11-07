@@ -1,27 +1,20 @@
 package vn.com.tpf.microservices.filters;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import vn.com.tpf.microservices.extensions.HttpServletRequestWrapperExtension;
+import vn.com.tpf.microservices.extensions.HttpServletResponseWrapperExtension;
+import vn.com.tpf.microservices.services.RabbitMQService;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import vn.com.tpf.microservices.extensions.HttpServletRequestWrapperExtension;
-import vn.com.tpf.microservices.extensions.HttpServletResponseWrapperExtension;
-import vn.com.tpf.microservices.services.RabbitMQService;
 
 
 public class PGPFilter implements Filter {

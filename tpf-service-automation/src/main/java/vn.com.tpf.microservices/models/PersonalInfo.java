@@ -14,5 +14,6 @@ public class PersonalInfo {
     public String nationality;
     public String maritalStatus;
     public String customerCategoryCode;
+    public String issuePlace;
 
 }

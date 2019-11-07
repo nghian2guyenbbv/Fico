@@ -313,7 +313,8 @@ public class DataInitial {
                     .ward(addressDTOs.get(0).getWard())
                     .residentDurationYear("")
                     .residentDurationMonth("")
-                    .mobilePhone(familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().isPresent()?familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().get().getPhoneNumber():"").build();
+                    //.mobilePhone(familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().isPresent()?familyDTOs.stream().filter(c->c.getRelationshipType().equals("Spouse")).findAny().get().getPhoneNumber():"").build();
+                    .mobilePhone("").build();
             addressDTOs.add(addressDTO3);
         }
 
@@ -343,7 +344,7 @@ public class DataInitial {
                 .middleName(personalInfo.getMiddleName())
                 .lastName(personalInfo.getFirstName())
                 .dateOfBirth(personalInfo.getDateOfBirth())
-                .placeOfIssue("Hà Nội")
+                .placeOfIssue(personalInfo.getIssuePlace())
                 .maritalStatus(personalInfo.getMaritalStatus())
                 .national(personalInfo.getNationality())
                 .education(personalInfo.getCustomerCategoryCode())
