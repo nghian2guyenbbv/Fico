@@ -52,8 +52,9 @@
         :total="parseInt(state.momo.MomoDataentyUnAss.total)"
       ></el-pagination>
     </el-card>
-      <code style="display: none">{{track = state.momo.MomoDataentyAss.total}}</code>
-      <code style="display: none">{{track2 = state.momo.MomoDataentyUnAss.total}}</code>
+    <!-- <code v-if="state.momo.MomoDataentyAss.list.length == 0">{{ handleSizeChange(params.limit) }} {{ handleCurrentChange(params.page)}}</code>
+       <code v-if="state.momo.MomoDataentyUnAss.list.length == 0">{{   handleSizeChangeUnAss(params.limit) }} {{ handleCurrentChangeunAss(params.page)}}
+</code> -->
   </div>
 </template>
 
@@ -65,8 +66,7 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
-      track: '',
-      track2: '',
+
       keySearch: "appId",
       valueSearch: "",
       loadingNow: true,
@@ -122,15 +122,6 @@ export default {
       ]
     };
   },
-  watch: {
-    track() {
-      this.handleSizeChange(this.params.limit)
-      this.handleCurrentChange(this.params.page)
-    },
-    track2() {
-      this.handleSizeChangeUnAss(this.paramsUnAss.limit)
-      this.handleCurrentChangeUnAss(this.paramsUnAss.page)
-    }},
   props: {},
   methods: {
 
@@ -166,7 +157,7 @@ export default {
         this.state.momo.MomoDataentyAss = {
           ...this.state.momo.MomoDataentyAss,
           _page: this.params.page,
-          _rowsPerPage: this.params.limit,
+          rowsPerPage: this.params.limit,
           _search: {
             project: "momo",
             department: "data_entry",
@@ -178,7 +169,7 @@ export default {
         this.state.momo.MomoDataentyUnAss = {
           ...this.state.momo.MomoDataentyUnAss,
           _page: this.paramsUnAss.page,
-          _rowsPerPage: this.paramsUnAss.limit,
+          rowsPerPage: this.paramsUnAss.limit,
           _search: {
             project: "momo",
             department: "data_entry",
@@ -303,7 +294,7 @@ export default {
     this.state.momo.MomoDataentyAss = {
       ...this.state.momo.MomoDataentyAss,
       _page: this.params.page,
-      _rowsPerPage: this.params.limit,
+      rowsPerPage: this.params.limit,
       _search: {
         project: "momo",
         department: "data_entry",
@@ -314,7 +305,7 @@ export default {
     this.state.momo.MomoDataentyUnAss = {
       ...this.state.momo.MomoDataentyUnAss,
       _page: this.paramsUnAss.page,
-      _rowsPerPage: this.paramsUnAss.limit,
+      rowsPerPage: this.paramsUnAss.limit,
       _search: {
         project: "momo",
         department: "data_entry",
