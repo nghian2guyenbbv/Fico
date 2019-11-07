@@ -140,7 +140,7 @@ const actions = {
     if (idx !== -1) Vue.set(rootState[page][model].list, idx, { ...rootState[page][model].list[idx], ...data })
     else {
       rootState[page][model].list.unshift(data)
-      rootState[page][model].total = rootState[page][model].list.length
+      rootState[page][model].total = rootState[page][model].total  + 1
       if (rootState[page][model].list.length > rootState[page][model].rowsPerPage) rootState[page][model].list.pop()
     }
   },
@@ -151,7 +151,7 @@ const actions = {
     let arrTempt = rootState[page][model].list
 
     rootState[page][model].list = (Array.isArray(arrTempt)) && arrTempt.filter(e => e.id !== data.id)
-    rootState[page][model].total = rootState[page][model].list.length
+    rootState[page][model].total = rootState[page][model].total  - 1
     if (rootState[page][model].list.length === 0) {
       
     }

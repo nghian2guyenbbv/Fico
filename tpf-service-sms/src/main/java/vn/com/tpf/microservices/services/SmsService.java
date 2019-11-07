@@ -20,6 +20,7 @@ public class SmsService {
 	}
 
 	public JsonNode sendSms(JsonNode request) {
+		JsonNode body = request.path("body");
 		return response(200, null);
 	}
 

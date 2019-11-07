@@ -1,6 +1,6 @@
 <template>
   <div>
-        <el-card :body-style="{ padding: '5px' }">
+    <el-card :body-style="{ padding: '5px' }">
       <el-input
         placeholder="Search"
         v-model="valueSearch"
@@ -21,7 +21,7 @@
       :assigned="true"
       title="Assigned"
     ></tpf-table-momo>
-            <el-card :body-style="{ padding: '5px' }">
+    <el-card :body-style="{ padding: '5px' }">
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -40,7 +40,7 @@
       :assigned="false"
       title="UnAssigned"
     ></tpf-table-momo>
-        <el-card :body-style="{ padding: '5px' }">
+    <el-card :body-style="{ padding: '5px' }">
       <el-pagination
         @size-change="handleSizeChangeUnAss"
         @current-change="handleCurrentChangeUnAss"
@@ -51,6 +51,8 @@
         :total="parseInt(state.momo.MomoLoanBookingUnAss.total)"
       ></el-pagination>
     </el-card>
+     <code style="display: none">{{track = state.momo.MomoLoanBookingAss.total}}</code>
+      <code style="display: none">{{track2 = state.momo.MomoLoanBookingUnAss.total}}</code>
   </div>
 </template>
 
@@ -58,11 +60,13 @@
 import TpfTableMomo from "./components/MomoTable";
 import axios from "axios";
 export default {
-   name: "MomoLoanBooking",
+  name: "MomoLoanBooking",
   components: { TpfTableMomo },
   data() {
     return {
-                  params: {
+            track: '',
+      track2: '',
+      params: {
         page: 1,
         limit: 5
       },
@@ -70,21 +74,29 @@ export default {
         page: 1,
         limit: 10
       },
-            keySearch: "",
+      keySearch: "appId",
       valueSearch: "",
-      headers: [],
+      headers: []
     };
   },
 
   props: {},
-
+  watch: {
+    track() {
+      this.handleSizeChange(this.params.limit)
+      this.handleCurrentChange(this.params.page)
+    },
+    track2() {
+      this.handleSizeChangeUnAss(this.paramsUnAss.limit)
+      this.handleCurrentChangeUnAss(this.paramsUnAss.page)
+    }},
   computed: {},
 
   created() {
-        this.state.momo.MomoLoanBookingAss = {
+    this.state.momo.MomoLoanBookingAss = {
       ...this.state.momo.MomoLoanBookingAss,
-             _page: this.params.page,
-          _rowsPerPage: this.params.limit,
+      _page: this.params.page,
+      _rowsPerPage: this.params.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -95,8 +107,8 @@ export default {
 
     this.state.momo.MomoLoanBookingUnAss = {
       ...this.state.momo.MomoLoanBookingUnAss,
-                   _page: this.paramsUnAss.page,
-          _rowsPerPage: this.paramsUnAss.limit,
+      _page: this.paramsUnAss.page,
+      _rowsPerPage: this.paramsUnAss.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -162,7 +174,7 @@ export default {
   },
 
   methods: {
-        handleSearch() {
+    handleSearch() {
       this.state.momo.MomoLoanBookingAss._search[
         this.keySearch
       ] = this.valueSearch;

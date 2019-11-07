@@ -11,7 +11,6 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -85,8 +84,6 @@ public class RabbitMQService {
 
 		} catch (IllegalArgumentException e) {
 			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
-		} catch (DataIntegrityViolationException e) {
-			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
 		} catch (Exception e) {
 			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
 		}

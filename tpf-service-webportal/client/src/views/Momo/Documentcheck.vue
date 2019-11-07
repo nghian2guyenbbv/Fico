@@ -22,7 +22,7 @@
       :assigned="true"
       title="Assigned"
     ></tpf-table-momo>
-        <el-card :body-style="{ padding: '5px' }">
+    <el-card :body-style="{ padding: '5px' }">
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -52,6 +52,8 @@
         :total="parseInt(state.momo.MomoDocumentCheckUnAss.total)"
       ></el-pagination>
     </el-card>
+      <code style="display: none">{{track = state.momo.MomoDocumentCheckAss.total}}</code>
+      <code style="display: none">{{track2 = state.momo.MomoDocumentCheckUnAss.total}}</code>
   </div>
 </template>
 
@@ -62,8 +64,10 @@ export default {
   name: "MomoDocumentCheck",
   components: { TpfTableMomo },
   data() {
-    return {
-            params: {
+    return {      
+      track: '',
+      track2: '',
+      params: {
         page: 1,
         limit: 5
       },
@@ -71,21 +75,29 @@ export default {
         page: 1,
         limit: 10
       },
-      keySearch: "",
+      keySearch: "appId",
       valueSearch: "",
       headers: []
     };
   },
 
   props: {},
-
+  watch: {
+    track() {
+      this.handleSizeChange(this.params.limit)
+      this.handleCurrentChange(this.params.page)
+    },
+    track2() {
+      this.handleSizeChangeUnAss(this.paramsUnAss.limit)
+      this.handleCurrentChangeUnAss(this.paramsUnAss.page)
+    }},
   computed: {},
 
   created() {
     this.state.momo.MomoDocumentCheckAss = {
       ...this.state.momo.MomoDocumentCheckAss,
-       _page: this.params.page,
-          _rowsPerPage: this.params.limit,
+      _page: this.params.page,
+      _rowsPerPage: this.params.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -96,8 +108,8 @@ export default {
 
     this.state.momo.MomoDocumentCheckUnAss = {
       ...this.state.momo.MomoDocumentCheckUnAss,
-             _page: this.paramsUnAss.page,
-          _rowsPerPage: this.paramsUnAss.limit,
+      _page: this.paramsUnAss.page,
+      _rowsPerPage: this.paramsUnAss.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -138,7 +150,7 @@ export default {
           align: "left",
           value: "documents",
           width: "200px"
-        },
+        }
       ],
       unassigned: [
         {

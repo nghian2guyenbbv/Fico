@@ -434,13 +434,7 @@ public class MomoService {
 			}).start();
 		} else if (body.path("status").asText().equals("APPROVED")) {
 			momo.setStatus("APPROVED_FINNONE");
-			JsonNode sms = rabbitMQService.sendAndReceive("tpf-service-sms", Map.of("func", "sendSms", "reference_id",
-					body.path("reference_id"), "body",
-					Map.of("phone", momo.getPhoneNumber(), "content", "Chuc mung khach hang, CMND "
-							+ momo.getPersonalId()
-							+ " duoc phe duyet voi tong so tien vay Sanction Loan Amount vnd, thoi han vay Sanction Tenure va khoan tra moi thang Installment Amount. Vui long tra loi tin nhan voi cu phap TPB MOMO Y den so 8089 de xac nhan khoan vay hoac TPB MOMO N de tu choi khoan vay")));
-			if (sms.path("status").asInt() == 200) {
-				momo.setSmsResult("W");
+			momo.setSmsResult("W");
 				new Thread(() -> {
 					for (int i = 0; i < 10; i++) {
 						try {
@@ -448,6 +442,11 @@ public class MomoService {
 									Map.of("func", "getLoan", "reference_id", body.path("reference_id"), "param",
 											Map.of("appId", momo.getAppId())));
 							if (loan.path("status").asInt() == 200) {
+								rabbitMQService.sendAndReceive("tpf-service-sms", Map.of("func", "sendSms", "reference_id",
+										body.path("reference_id"), "body",
+										Map.of("phone", momo.getPhoneNumber(), "content", "Chuc mung khach hang, CMND "
+												+ momo.getPersonalId()
+												+ " duoc phe duyet voi tong so tien vay "+loan.path("data").path("totalAmount").asText()+" vnd, thoi han vay "+loan.path("data").path("detail").path("tenor").asText()+" va khoan tra moi thang "+loan.path("data").path("detail").path("EMI").asText()+". Vui long tra loi tin nhan voi cu phap TPB MOMO Y den so 8089 de xac nhan khoan vay hoac TPB MOMO N de tu choi khoan vay")));
 								ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"),
 										ResponseMomoStatus.class);
 								momoStatus.setRequestId(body.path("reference_id").asText());
@@ -459,6 +458,7 @@ public class MomoService {
 								}
 								momoStatus.getDetail().setApplicationId(momo.getAppId());
 								apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
+								break;
 							} else
 								Thread.sleep(20000);
 						} catch (Exception e) {
@@ -466,9 +466,7 @@ public class MomoService {
 						}
 					}
 				}).start();
-			} else {
-				momo.setSmsResult("send sms error");
-			}
+			
 		} else if (body.path("status").asText().equals("DISBURSED")) {
 			momo.setStatus(body.path("status").asText());
 			new Thread(() -> {
@@ -572,7 +570,7 @@ public class MomoService {
 				momoStatus.setMomoLoanId(momo.getMomoLoanId());
 				momoStatus.setPhoneNumber(momo.getPhoneNumber());
 				momoStatus.setStatus(status.path("CANCELLED").asInt());
-				momoStatus.setDescription("Khách hàng SMS N");
+				momoStatus.setDescription("SMS N");
 				apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 			}).start();
 		} else if (body.path("sms_result").asText().equals("SMS_F")) {
