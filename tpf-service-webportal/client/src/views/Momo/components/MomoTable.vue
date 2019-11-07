@@ -282,6 +282,7 @@ export default {
         if (items.hasOwnProperty(key)) {
           const element = items[key];
           axios({
+            headers: {'Access-Control-Allow-Origin': '*'},
             url: element.downloadUrl,
             method: "GET",
             responseType: "blob"

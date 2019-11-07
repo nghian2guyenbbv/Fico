@@ -1,9 +1,9 @@
 <template>
   <el-carousel :interval="5000" arrow="always">
     <el-carousel-item v-for="(item, i) in items" :key="item+i">
-      <slot name="error">
+      <!-- <slot name="error">
         <div class="el-image__error">{{ "Image Not Found" }}</div>
-      </slot>
+      </slot> -->
       <el-image style="width: 100%; height: 100%" fit="scale-down" :src="item.viewUrl"></el-image>
     </el-carousel-item>
   </el-carousel>

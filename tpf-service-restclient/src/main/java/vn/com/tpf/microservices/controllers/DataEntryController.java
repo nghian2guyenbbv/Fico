@@ -37,8 +37,7 @@ public class DataEntryController {
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
-	@Autowired
-	private ObjectMapper mapper;
+
 
 	private RestTemplate restTemplate;
 
@@ -452,7 +451,6 @@ public class DataEntryController {
 	public ResponseEntity<?> getTATReport(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		mapper = new ObjectMapper();
 		request.put("func", "getTATReport");
 		request.put("token", token);
 		request.put("body", body);
