@@ -62,7 +62,7 @@ public class PGPService {
 		PGPHelper pgpHelper = new PGPHelper(preshareKey, privateKey, publicKey);
 		ByteArrayOutputStream desStream = new ByteArrayOutputStream();
 		try {
-			pgpHelper.decryptAndVerifySignature(request.path("body").path("data").asText().getBytes(), desStream);
+			pgpHelper.decryptAndVerifySignature(request.path("body").path("data").asText().replaceAll("\\\\r", "\r").replaceAll("\\\\n", "\n").getBytes(), desStream);
 			return mapper.createObjectNode().put("status", 200).set("data", mapper.readTree(desStream.toString()));
 		} catch (Exception e) {
 			return mapper.createObjectNode().put("status", 500).put("message", e.getMessage());

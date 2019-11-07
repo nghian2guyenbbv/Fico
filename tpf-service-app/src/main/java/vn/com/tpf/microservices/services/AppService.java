@@ -32,6 +32,7 @@ public class AppService {
 	private static final String DATA_ENTRY = "data_entry";
 	private static final String DOCUMENT_CHECK = "document_check";
 	private static final String LOAN_BOOKING = "loan_booking";
+	private static final String APP_STATUS = "app_status";
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -45,14 +46,15 @@ public class AppService {
 	private String getDepartment(App entity) {
 		String status = entity.getStatus() != null ? entity.getStatus() : "";
 		String department = "";
-
-		if (status.equals("PROCESSING_FAIL"))
+		if(status.equals("REJECTED") || status.equals("CANCELLED") )
+			department = APP_STATUS;
+		else  if (status.equals("PROCESSING_FAIL"))
 			department = DATA_ENTRY;
 		else if (status.equals("PROCESSING_PASS") || status.equals("PROCESSING_FIX") || status.equals("RETURNED"))
 			department = DOCUMENT_CHECK;
 		else if (status.equals("APPROVED") || status.equals("SUPPLEMENT"))
 			department = LOAN_BOOKING;
-
+		
 		return department;
 	}
 

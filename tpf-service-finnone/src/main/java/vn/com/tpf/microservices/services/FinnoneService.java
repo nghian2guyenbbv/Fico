@@ -54,7 +54,7 @@ public class FinnoneService {
 	public JsonNode getLoan(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();
 		try {
-			String query = String.format("SELECT  FUNC_GET_MOMO_DISBURSAL_LOAN ('%s'') RESULT FROM DUAL",
+			String query = String.format("SELECT  FUNC_GET_MOMO_DISBURSAL_LOAN ('%s') RESULT FROM DUAL",
 					request.path("param").path("appId").asText());
 			String row_string = jdbcTemplate.queryForObject(query, new Object[] {},
 					(rs, rowNum) -> rs.getString(("RESULT")));
@@ -69,7 +69,7 @@ public class FinnoneService {
 				detail.put("disbursementDate", rows.path("data").path("disbursementDate").asText());
 				detail.put("maturityDate", rows.path("data").path("maturityDate").asText());
 				detail.put("dueDate", rows.path("data").path("dueDate").asInt());
-				detail.put("emi", rows.path("data").path("emi").asLong());
+				detail.put("EMI", rows.path("data").path("emi").asLong());
 				detail.put("paymentBankAccount", rows.path("data").path("paymentBankAccount").asText());
 				detail.put("firstInstallmentDate", rows.path("data").path("firstInstallmentDate").asText());
 				detail.put("firstInstallmentAmount", rows.path("data").path("firstInstallmentAmount").asLong());
