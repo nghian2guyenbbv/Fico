@@ -146,6 +146,7 @@ const actions = {
       rootState[page][model]._page = 1
       store.dispatch('momo/fnCallListView', model)
     }
+    rootState[page][model].total = parseInt(rootState[page][model].total) - 1
   }
 }
 
