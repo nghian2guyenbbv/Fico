@@ -26,7 +26,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page.sync="params.page"
-        :page-sizes="[2, 20, 30, 50, 100]"
+        :page-sizes="[5, 10, 20,]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="parseInt(state.momo.MomoDataentyAss.total)"
@@ -46,14 +46,12 @@
         @size-change="handleSizeChangeUnAss"
         @current-change="handleCurrentChangeUnAss"
         :current-page.sync="paramsUnAss.page"
-        :page-sizes="[ 10, 20, 30, 50, 100]"
+        :page-sizes="[10, 20, 30]"
         :page-size="paramsUnAss.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="parseInt(state.momo.MomoDataentyUnAss.total)"
       ></el-pagination>
     </el-card>
-      <code style="display: none">{{track = state.momo.MomoDataentyAss.total}}</code>
-      <code style="display: none">{{track2 = state.momo.MomoDataentyUnAss.total}}</code>
   </div>
 </template>
 
@@ -65,75 +63,21 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
-      track: '',
-      track2: '',
       keySearch: "appId",
       valueSearch: "",
       loadingNow: true,
       params: {
         page: 1,
-        limit: 2
+        limit: 5
       },
       paramsUnAss: {
         page: 1,
         limit: 10
-      },
-      dataAss: [
-        {
-          createdAt: "2019-09-27T11:29:29.431+0000",
-          appId: "99",
-          partnerId: "12321312",
-          fullName: "Nguyen Van 99",
-          automationResult: "PROCESSING_FAIL",
-          id: "1212",
-          assigned: true,
-          uuid: "momo_5d91a4c49c855835704e2b2f"
-        },
-        {
-          createdAt: "2018-09-27T11:29:29.431+0000",
-          appId: "19",
-          partnerId: "02321312",
-          fullName: "Nguyen Van 100",
-          automationResult: "PROCESSING_PASS",
-          id: "232",
-          assigned: true
-        }
-      ],
-      dataUnAss: [
-        {
-          createdAt: "2019-09-27T11:29:29.431+0000",
-          appId: "99",
-          partnerId: "12321312",
-          fullName: "Nguyen Van 991",
-          automationResult: "PROCESSING_FAIL",
-          id: "1212",
-          assigned: null,
-          uuid: "momo_5d91a4c49c855835704e2b2f"
-        },
-        {
-          createdAt: "2018-09-27T11:29:29.431+0000",
-          appId: "19",
-          partnerId: "02321312",
-          fullName: "Nguyen Van 10022",
-          automationResult: "PROCESSING_PASS",
-          id: "232",
-          assigned: null
-        }
-      ]
+      }
     };
   },
-  watch: {
-    track() {
-      this.handleSizeChange(this.params.limit)
-      this.handleCurrentChange(this.params.page)
-    },
-    track2() {
-      this.handleSizeChangeUnAss(this.paramsUnAss.limit)
-      this.handleCurrentChangeUnAss(this.paramsUnAss.page)
-    }},
   props: {},
   methods: {
-
     handleSearch() {
       this.state.momo.MomoDataentyAss._search[
         this.keySearch
@@ -166,7 +110,7 @@ export default {
         this.state.momo.MomoDataentyAss = {
           ...this.state.momo.MomoDataentyAss,
           _page: this.params.page,
-          _rowsPerPage: this.params.limit,
+          rowsPerPage: this.params.limit,
           _search: {
             project: "momo",
             department: "data_entry",
@@ -178,7 +122,7 @@ export default {
         this.state.momo.MomoDataentyUnAss = {
           ...this.state.momo.MomoDataentyUnAss,
           _page: this.paramsUnAss.page,
-          _rowsPerPage: this.paramsUnAss.limit,
+          rowsPerPage: this.paramsUnAss.limit,
           _search: {
             project: "momo",
             department: "data_entry",
@@ -187,7 +131,7 @@ export default {
         };
         this.$store.dispatch("momo/fnCallListView", "MomoDataentyUnAss");
       }
-    }
+    },
   },
 
   computed: {},
@@ -303,7 +247,7 @@ export default {
     this.state.momo.MomoDataentyAss = {
       ...this.state.momo.MomoDataentyAss,
       _page: this.params.page,
-      _rowsPerPage: this.params.limit,
+      rowsPerPage: this.params.limit,
       _search: {
         project: "momo",
         department: "data_entry",
@@ -314,7 +258,7 @@ export default {
     this.state.momo.MomoDataentyUnAss = {
       ...this.state.momo.MomoDataentyUnAss,
       _page: this.paramsUnAss.page,
-      _rowsPerPage: this.paramsUnAss.limit,
+      rowsPerPage: this.paramsUnAss.limit,
       _search: {
         project: "momo",
         department: "data_entry",

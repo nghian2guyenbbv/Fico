@@ -27,7 +27,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page.sync="params.page"
-        :page-sizes="[5, 10, 20, 30, 50, 100]"
+        :page-sizes="[5, 10, 20]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="parseInt(state.momo.MomoDocumentCheckAss.total)"
@@ -46,14 +46,12 @@
         @size-change="handleSizeChangeUnAss"
         @current-change="handleCurrentChangeUnAss"
         :current-page.sync="paramsUnAss.page"
-        :page-sizes="[ 10, 20, 30, 50, 100]"
+        :page-sizes="[ 10, 20, 30]"
         :page-size="paramsUnAss.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="parseInt(state.momo.MomoDocumentCheckUnAss.total)"
       ></el-pagination>
     </el-card>
-      <code style="display: none">{{track = state.momo.MomoDocumentCheckAss.total}}</code>
-      <code style="display: none">{{track2 = state.momo.MomoDocumentCheckUnAss.total}}</code>
   </div>
 </template>
 
@@ -64,9 +62,7 @@ export default {
   name: "MomoDocumentCheck",
   components: { TpfTableMomo },
   data() {
-    return {      
-      track: '',
-      track2: '',
+    return {
       params: {
         page: 1,
         limit: 5
@@ -82,22 +78,13 @@ export default {
   },
 
   props: {},
-  watch: {
-    track() {
-      this.handleSizeChange(this.params.limit)
-      this.handleCurrentChange(this.params.page)
-    },
-    track2() {
-      this.handleSizeChangeUnAss(this.paramsUnAss.limit)
-      this.handleCurrentChangeUnAss(this.paramsUnAss.page)
-    }},
   computed: {},
 
   created() {
     this.state.momo.MomoDocumentCheckAss = {
       ...this.state.momo.MomoDocumentCheckAss,
       _page: this.params.page,
-      _rowsPerPage: this.params.limit,
+      rowsPerPage: this.params.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -109,7 +96,7 @@ export default {
     this.state.momo.MomoDocumentCheckUnAss = {
       ...this.state.momo.MomoDocumentCheckUnAss,
       _page: this.paramsUnAss.page,
-      _rowsPerPage: this.paramsUnAss.limit,
+      rowsPerPage: this.paramsUnAss.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -217,7 +204,7 @@ export default {
         this.state.momo.MomoDocumentCheckAss = {
           ...this.state.momo.MomoDocumentCheckAss,
           _page: this.params.page,
-          _rowsPerPage: this.params.limit,
+          rowsPerPage: this.params.limit,
           _search: {
             project: "momo",
             department: "document_check",
@@ -229,7 +216,7 @@ export default {
         this.state.momo.MomoDocumentCheckUnAss = {
           ...this.state.momo.MomoDocumentCheckUnAss,
           _page: this.paramsUnAss.page,
-          _rowsPerPage: this.paramsUnAss.limit,
+          rowsPerPage: this.paramsUnAss.limit,
           _search: {
             project: "momo",
             department: "document_check",
