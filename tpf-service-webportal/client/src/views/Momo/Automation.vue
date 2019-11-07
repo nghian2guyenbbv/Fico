@@ -26,7 +26,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page.sync="params.page"
-        :page-sizes="[2, 20, 30, 50, 100]"
+        :page-sizes="[5, 10, 20,]"
         :page-size="params.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="parseInt(state.momo.MomoDataentyAss.total)"
@@ -46,15 +46,12 @@
         @size-change="handleSizeChangeUnAss"
         @current-change="handleCurrentChangeUnAss"
         :current-page.sync="paramsUnAss.page"
-        :page-sizes="[ 10, 20, 30, 50, 100]"
+        :page-sizes="[10, 20, 30]"
         :page-size="paramsUnAss.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="parseInt(state.momo.MomoDataentyUnAss.total)"
       ></el-pagination>
     </el-card>
-    <!-- <code v-if="state.momo.MomoDataentyAss.list.length == 0">{{ handleSizeChange(params.limit) }} {{ handleCurrentChange(params.page)}}</code>
-       <code v-if="state.momo.MomoDataentyUnAss.list.length == 0">{{   handleSizeChangeUnAss(params.limit) }} {{ handleCurrentChangeunAss(params.page)}}
-</code> -->
   </div>
 </template>
 
@@ -66,65 +63,21 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
-
       keySearch: "appId",
       valueSearch: "",
       loadingNow: true,
       params: {
         page: 1,
-        limit: 2
+        limit: 5
       },
       paramsUnAss: {
         page: 1,
         limit: 10
-      },
-      dataAss: [
-        {
-          createdAt: "2019-09-27T11:29:29.431+0000",
-          appId: "99",
-          partnerId: "12321312",
-          fullName: "Nguyen Van 99",
-          automationResult: "PROCESSING_FAIL",
-          id: "1212",
-          assigned: true,
-          uuid: "momo_5d91a4c49c855835704e2b2f"
-        },
-        {
-          createdAt: "2018-09-27T11:29:29.431+0000",
-          appId: "19",
-          partnerId: "02321312",
-          fullName: "Nguyen Van 100",
-          automationResult: "PROCESSING_PASS",
-          id: "232",
-          assigned: true
-        }
-      ],
-      dataUnAss: [
-        {
-          createdAt: "2019-09-27T11:29:29.431+0000",
-          appId: "99",
-          partnerId: "12321312",
-          fullName: "Nguyen Van 991",
-          automationResult: "PROCESSING_FAIL",
-          id: "1212",
-          assigned: null,
-          uuid: "momo_5d91a4c49c855835704e2b2f"
-        },
-        {
-          createdAt: "2018-09-27T11:29:29.431+0000",
-          appId: "19",
-          partnerId: "02321312",
-          fullName: "Nguyen Van 10022",
-          automationResult: "PROCESSING_PASS",
-          id: "232",
-          assigned: null
-        }
-      ]
+      }
     };
   },
   props: {},
   methods: {
-
     handleSearch() {
       this.state.momo.MomoDataentyAss._search[
         this.keySearch
@@ -178,7 +131,7 @@ export default {
         };
         this.$store.dispatch("momo/fnCallListView", "MomoDataentyUnAss");
       }
-    }
+    },
   },
 
   computed: {},

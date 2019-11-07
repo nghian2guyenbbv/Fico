@@ -1,14 +1,12 @@
 <template>
   <el-carousel :interval="5000" arrow="always">
     <el-carousel-item v-for="(item, i) in items" :key="item+i">
-      <slot name="error">
-        <div class="el-image__error">{{ "Image Not Found" }}</div>
-      </slot>
-      <el-image style="width: 100%; height: 100%" fit="scale-down" :src="item.viewUrl"></el-image>
+      <el-image style="width: 100%; height: 100%" fit="scale-down" :src="item.viewUrl">
+        <span class="el-image__error" slot="error"> Image Not Found </span>
+      </el-image>
     </el-carousel-item>
   </el-carousel>
 </template>
-
 <script>
 export default {
   name: "tpf-image-slide",

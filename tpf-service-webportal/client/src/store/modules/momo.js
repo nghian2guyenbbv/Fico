@@ -2,12 +2,6 @@ import Vue from 'vue'
 import * as momo from '@/api/momo'
 import store from '@/store'
 
-export const pagination = {
-  _page: 1,
-  rowsPerPage: 10,
-  descending: true,
-  sortBy: 'createdAt'
-}
 
 let opt = {
   total: 0,
@@ -17,28 +11,35 @@ let opt = {
   _sort: '',
   _select: '',
   selected: [],
-  pagination,
+  _page: 1,
+  rowsPerPage: 10,
   isLoading: false
 }
 
 const state = {
   MomoDataentyAss: {
-    ...opt
+    ...opt,
+    load: false
   },
   MomoDataentyUnAss: {
-    ...opt
+    ...opt,
+    load: false
   },
   MomoDocumentCheckAss: {
-    ...opt
+    ...opt,
+    load: false
   },
   MomoDocumentCheckUnAss: {
-    ...opt
+    ...opt,
+    load: false
   },
   MomoLoanBookingUnAss: {
-    ...opt
+    ...opt,
+    load: false
   },
   MomoLoanBookingAss: {
-    ...opt
+    ...opt,
+    load: false
   },
   MomoStatus: {
     ...opt
@@ -83,6 +84,7 @@ const actions = {
             this.state.momo[model].isLoading = false
             resolve(success.data)
           }).catch(error => {
+            this.state.momo[model].isLoading = false
             reject(error)
           })
       }
@@ -95,12 +97,11 @@ const actions = {
         let response = require('@/store/data')
         resolve(response)
       } else {
-        this.state.momo[model].isLoading = true
         momo.apiMomoAss(this.state.momo[model].obj.id, this.state.momo[model].obj, 'put')
           .then(success => {
-            this.state.momo[model].isLoading = false
             resolve(success.data)
           }).catch(error => {
+            this.state.momo[model].isLoading = false
             reject(error)
           })
       }
@@ -164,33 +165,12 @@ const actions = {
             this.state.momo[model].isLoading = false
             resolve(success.data)
           }).catch(error => {
+            this.state.momo[model].isLoading = false
             reject(error)
           })
       }
     })
   },
-
-  fnFilterCreate: async ({ dispatch }, { model, data }) => {
-    const idx = this.state.momo[model].list.findIndex(e => e.id === data.id)
-    if (idx !== -1) Vue.set(this.state.momo[model].list, idx, { ...this.state.momo[model].list[idx], ...data })// update
-    else {
-      this.state.momo[model].list.unshift(data)
-      this.state.momo[model].total += 1
-      if (this.state.momo[model].list.length > this.state.momo[model].rowsPerPage) this.state.momo[model].list.pop()
-    }
-  },
-
-  fnFilterUpdate: async ({ dispatch }, { model, data }) => {
-    const idx = this.state.momo[model].list.findIndex(e => e.id === data.id)
-    if (idx !== -1) Vue.set(this.state.momo[model].list, idx, { ...this.state.momo[model].list[idx], ...data })
-  },
-
-  fnFilterDelete: async ({ dispatch }, { model, data }) => {
-    this.state.momo[model].list = this.state.momo[model].list.filter(e => e.id !== data.id)
-    this.state.momo[model].total += -1
-    if (this.state.momo[model].list.length === 0) dispatch('fnCallListView', model)
-  },
-
 }
 
 export default {
