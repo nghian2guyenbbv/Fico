@@ -94,6 +94,9 @@ export default {
     },
     handleCurrentChange(a) {
       this.params.page = a;
+      // if (a > 1 && this.state.momo.MomoDataentyUnAss.total % this.params.page == 0) {
+      //   this.state.momo.MomoDataentyUnAss._page = 1
+      // }
       this.getList();
     },
 
