@@ -48,6 +48,7 @@ public class ConvertService {
 				doc.put("type", e.getType());
 				doc.put("code", e.getCode());
 				doc.put("request", e.getRequest());
+				doc.put("createdAt", e.getCreatedDate().toString());
 				try {
 					doc.put("response", mapper.writeValueAsString(e.getResponse()));
 				} catch (JsonProcessingException e1) {

@@ -1,11 +1,7 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.sql.Timestamp;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +9,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -25,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.App;
+import vn.com.tpf.microservices.models.ReportStatus;
 
 @Service
 public class AppService {
@@ -32,7 +32,6 @@ public class AppService {
 	private static final String DATA_ENTRY = "data_entry";
 	private static final String DOCUMENT_CHECK = "document_check";
 	private static final String LOAN_BOOKING = "loan_booking";
-	private static final String APP_STATUS = "app_status";
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -46,15 +45,14 @@ public class AppService {
 	private String getDepartment(App entity) {
 		String status = entity.getStatus() != null ? entity.getStatus() : "";
 		String department = "";
-		if(status.equals("REJECTED") || status.equals("CANCELLED") )
-			department = APP_STATUS;
-		else  if (status.equals("PROCESSING_FAIL"))
+
+		if (status.equals("PROCESSING_FAIL"))
 			department = DATA_ENTRY;
 		else if (status.equals("PROCESSING_PASS") || status.equals("PROCESSING_FIX") || status.equals("RETURNED"))
 			department = DOCUMENT_CHECK;
 		else if (status.equals("APPROVED") || status.equals("SUPPLEMENT"))
 			department = LOAN_BOOKING;
-		
+
 		return department;
 	}
 
@@ -116,9 +114,23 @@ public class AppService {
 
 		query.addCriteria(criteria);
 
+		if (request.path("param").path("fromDate").textValue() != null & request.path("param").path("toDate").textValue() != null){
+			Timestamp fromDate = Timestamp.valueOf(request.path("param").path("fromDate").textValue() + " 00:00:00");
+			Timestamp toDate = Timestamp.valueOf(request.path("param").path("toDate").textValue() + " 23:23:59");
+			query.addCriteria(Criteria.where("createdAt").gte(fromDate).lte(toDate));
+		}
+
 		long total = mongoTemplate.count(query, App.class);
 
-		query.with(PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0])));
+		List<Sort.Order> orders = new ArrayList<>();
+		for (int i = 0; i < sort.length-1; i=i+2) {
+			orders.add(new Sort.Order(Direction.valueOf(sort[i + 1].toUpperCase()), sort[i]));
+		}
+		Sort sorts = new Sort(orders.toArray(new Sort.Order[orders.size()]));
+
+//		query.with(PageRequest.of(page - 1, limit, Sort.by(Direction.fromString(sort[1]), sort[0])));
+		query.with(PageRequest.of(page - 1, limit, sorts));
+
 		List<App> list = mongoTemplate.find(query, App.class);
 
 		return response(200, mapper.convertValue(list, JsonNode.class), total);
@@ -275,6 +287,32 @@ public class AppService {
 
 		rabbitMQService.send("tpf-service-" + app.getProject(), Map.of("func", "updateStatus", "body", body));
 
+		return response(200, null, 0);
+	}
+
+	public JsonNode getCountStatus(JsonNode request) {
+		String referenceId = UUID.randomUUID().toString();
+		try{
+			AggregationOperation match1 = Aggregation.match(Criteria.where("project").in(request.path("param").path("project").textValue()));
+
+//			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
+			AggregationOperation group = Aggregation.group("status").count().as("count");
+			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "count");
+			AggregationOperation project = Aggregation.project().andExpression("_id").as("status").andExpression("count").as("appNo");
+			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
+			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort, project/*, limit*/);
+			AggregationResults<ReportStatus> results = mongoTemplate.aggregate(aggregation, App.class, ReportStatus.class);
+
+			List<ReportStatus> resultData = results.getMappedResults();
+
+			if (resultData.size() > 0){
+				return response(200, mapper.convertValue(resultData, JsonNode.class), resultData.size());
+			}else{
+				return response(200, null, 0);
+			}
+		}
+		catch (Exception e) {
+		}
 		return response(200, null, 0);
 	}
 }

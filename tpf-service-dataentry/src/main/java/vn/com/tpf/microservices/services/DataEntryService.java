@@ -1360,11 +1360,20 @@ public class DataEntryService {
 		ByteArrayInputStream in = null;
         try{
             Assert.notNull(request.get("body"), "no body");
-            Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
-            Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
+			Query query = new Query();
 
-            Query query = new Query();
-            query.addCriteria(Criteria.where("createdDate").gte(fromDate).lte(toDate));
+			if (request.path("body").path("data").path("fromDate").textValue() != null && request.path("body").path("data").path("toDate").textValue() != null){
+				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
+				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
+
+				query.addCriteria(Criteria.where("createdDate").gte(fromDate).lte(toDate));
+			}
+
+//            Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
+//            Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
+//
+//            Query query = new Query();
+//            query.addCriteria(Criteria.where("createdDate").gte(fromDate).lte(toDate));
 
             List<Report> listData = mongoTemplate.find(query, Report.class);
             // export excel
@@ -1402,8 +1411,8 @@ public class DataEntryService {
 		ByteArrayInputStream in = null;
         try{
             Assert.notNull(request.get("body"), "no body");
-            Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
-            Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
+//			Query query = new Query();
+			AggregationOperation match1;
 
             ArrayList<String> inputQuery = new ArrayList<String>();
             inputQuery.add("COMPLETED");
@@ -1411,7 +1420,16 @@ public class DataEntryService {
             inputQuery.add("RESPONSED");
 			inputQuery.add("PROCESSING");
 
-            AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
+			if (request.path("body").path("data").path("fromDate").textValue() != null && request.path("body").path("data").path("toDate").textValue() != null){
+				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
+				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
+
+				match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
+			}else{
+				match1 = Aggregation.match(Criteria.where("status").in(inputQuery));
+			}
+
+//			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
             AggregationOperation group = Aggregation.group("status").count().as("count");
             AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "count");
             AggregationOperation project = Aggregation.project().andExpression("_id").as("status").andExpression("count").as("appNo");
