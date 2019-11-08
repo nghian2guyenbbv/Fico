@@ -340,9 +340,9 @@ public class DataInitial {
 
         ApplicationInfoDTO applicationInfoDTO = ApplicationInfoDTO.builder()
                 .gender(personalInfo.getGender())
-                .firstName(personalInfo.getLastName())
+                .firstName(personalInfo.getFirstName())
                 .middleName(personalInfo.getMiddleName())
-                .lastName(personalInfo.getFirstName())
+                .lastName(personalInfo.getLastName())
                 .dateOfBirth(personalInfo.getDateOfBirth())
                 .placeOfIssue(personalInfo.getIssuePlace())
                 .maritalStatus(personalInfo.getMaritalStatus())

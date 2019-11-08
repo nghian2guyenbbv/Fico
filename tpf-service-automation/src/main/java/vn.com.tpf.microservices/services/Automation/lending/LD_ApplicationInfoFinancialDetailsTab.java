@@ -44,7 +44,7 @@ public class LD_ApplicationInfoFinancialDetailsTab {
     @CacheLookup
     private List<WebElement> trElements;
 
-    @FindBy(how = How.ID, using = "financialSaveAndNextButton2")
+    @FindBy(how = How.ID, using = "financialSaveAndNextButton1")
     @CacheLookup
     private WebElement btnSaveAndNextElement;
 
