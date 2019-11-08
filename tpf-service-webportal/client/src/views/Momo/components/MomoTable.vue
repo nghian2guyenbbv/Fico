@@ -250,6 +250,7 @@ export default {
     },
 
     fnAssign(app) {
+   
       this.disabled = true;
       this.state.momo[
         this.department + "Ass"
@@ -261,6 +262,8 @@ export default {
       });
     },
     fnUnassign(app) {
+
+      
       this.disabled = true;
       this.state.momo[this.department + "UnAss"].obj.assigned = undefined;
       this.state.momo[this.department + "UnAss"].obj.unassigned = app.assigned;

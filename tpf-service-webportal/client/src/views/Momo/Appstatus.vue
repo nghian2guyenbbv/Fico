@@ -31,7 +31,6 @@
         :total="parseInt(state.momo.MomoStatus.total)"
       ></el-pagination>
     </el-card>
-    <code style="display: none">{{track = state.momo.MomoStatus.total}}</code>
   </div>
 </template>
 
@@ -43,7 +42,6 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
-      track: "",
       keySearch: "appId",
       valueSearch: "",
       headers: [],
@@ -56,16 +54,12 @@ export default {
 
   props: {},
   watch: {
-    track() {
-      this.handleSizeChange(this.params.limit);
-      this.handleCurrentChange(this.params.page);
-    }
   },
   computed: {},
 
   created() {
     this.state.momo.MomoStatus._page = this.params.page;
-    this.state.momo.MomoStatus._rowsPerPage = this.params.limit;
+    this.state.momo.MomoStatus.rowsPerPage = this.params.limit;
     this.state.momo.MomoStatus._search = { project: "momo" };
     this.$store.dispatch("momo/fnCallListView", "MomoStatus");
     this.headers = [
@@ -104,7 +98,7 @@ export default {
     getList() {
       this.listLoading = true;
       this.state.momo.MomoStatus._page = this.params.page;
-      this.state.momo.MomoStatus._rowsPerPage = this.params.limit;
+      this.state.momo.MomoStatus.rowsPerPage = this.params.limit;
       this.state.momo.MomoStatus._search = { project: "momo" };
       this.$store.dispatch("momo/fnCallListView", "MomoStatus");
     }

@@ -21,7 +21,7 @@
             @click="settelTrans"
           >Settel Trans</el-button>
           <el-dropdown
-            v-if="transDateList.length > 0"
+            v-if="false"
             split-button
             type="primary"
             trigger="click"
@@ -386,6 +386,7 @@ export default {
                 type: "success",
                 duration: 5 * 1000
               });
+              this.fnHandlingSettelTrans(this.transDateList[0].date)
             } else {
               this.settelLoading = false;
               this.listLoading = false;

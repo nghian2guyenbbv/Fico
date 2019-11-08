@@ -76,6 +76,8 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
+			case "receiveSms":
+				return response(message, payload, smsService.receiveSms(request));
 			case "sendSms":
 				return response(message, payload, smsService.sendSms(request));
 			default:

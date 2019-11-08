@@ -51,8 +51,6 @@
         :total="parseInt(state.momo.MomoLoanBookingUnAss.total)"
       ></el-pagination>
     </el-card>
-     <code style="display: none">{{track = state.momo.MomoLoanBookingAss.total}}</code>
-      <code style="display: none">{{track2 = state.momo.MomoLoanBookingUnAss.total}}</code>
   </div>
 </template>
 
@@ -64,8 +62,6 @@ export default {
   components: { TpfTableMomo },
   data() {
     return {
-            track: '',
-      track2: '',
       params: {
         page: 1,
         limit: 5
@@ -81,22 +77,13 @@ export default {
   },
 
   props: {},
-  watch: {
-    track() {
-      this.handleSizeChange(this.params.limit)
-      this.handleCurrentChange(this.params.page)
-    },
-    track2() {
-      this.handleSizeChangeUnAss(this.paramsUnAss.limit)
-      this.handleCurrentChangeUnAss(this.paramsUnAss.page)
-    }},
   computed: {},
 
   created() {
     this.state.momo.MomoLoanBookingAss = {
       ...this.state.momo.MomoLoanBookingAss,
       _page: this.params.page,
-      _rowsPerPage: this.params.limit,
+      rowsPerPage: this.params.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -108,7 +95,7 @@ export default {
     this.state.momo.MomoLoanBookingUnAss = {
       ...this.state.momo.MomoLoanBookingUnAss,
       _page: this.paramsUnAss.page,
-      _rowsPerPage: this.paramsUnAss.limit,
+      rowsPerPage: this.paramsUnAss.limit,
       _search: {
         appId: "",
         project: "momo",
@@ -206,7 +193,7 @@ export default {
         this.state.momo.MomoLoanBookingAss = {
           ...this.state.momo.MomoLoanBookingAss,
           _page: this.params.page,
-          _rowsPerPage: this.params.limit,
+          rowsPerPage: this.params.limit,
 
           _search: {
             project: "momo",
@@ -219,7 +206,7 @@ export default {
         this.state.momo.MomoLoanBookingUnAss = {
           ...this.state.momo.MomoLoanBookingUnAss,
           _page: this.paramsUnAss.page,
-          _rowsPerPage: this.paramsUnAss.limit,
+          rowsPerPage: this.paramsUnAss.limit,
           _search: {
             project: "momo",
             department: "loan_booking",

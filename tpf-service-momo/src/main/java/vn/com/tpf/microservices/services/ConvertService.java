@@ -89,7 +89,8 @@ public class ConvertService {
 						.put("fullName",
 								(momo.getFirstName() + " " + momo.getMiddleName() + " " + momo.getLastName()).replaceAll("\\s+", " "))
 						.put("gender", momo.getGender()).put("dateOfBirth", momo.getDateOfBirth()).put("nationality", "Vietnamese")
-						.put("maritalStatus", momo.getMaritalStatus()));
+						.put("maritalStatus", momo.getMaritalStatus())
+						.put("issuePlace", momo.getIssuePlace()));
 	
 	  personalInformation.set("identifications",identifications);
 	  

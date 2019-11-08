@@ -20,7 +20,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/", "/v1/login", "/actuator/*", "/v1/pgp/*").permitAll()
+		http.authorizeRequests().antMatchers("/", "/v1/login","/sms/add_tpfsms_customer", "/actuator/*", "/v1/pgp/*").permitAll()
 		.antMatchers(HttpMethod.POST, "/v1/app/update_status/**/**").permitAll()
 				.anyRequest().authenticated();
 	}
