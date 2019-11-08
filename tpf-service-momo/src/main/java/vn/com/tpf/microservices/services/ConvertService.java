@@ -25,7 +25,7 @@ public class ConvertService {
 		app.put("status", momo.getStatus());
 		app.put("automationResult", momo.getAutomationResult());
 		app.put("fullName",
-				(momo.getFirstName() + " " + momo.getMiddleName() + " " + momo.getLastName()).replaceAll("\\s+", " "));
+				(momo.getLastName() + " " + momo.getMiddleName() + " " + momo.getFirstName()).replaceAll("\\s+", " "));
 		ArrayNode documents = mapper.createArrayNode();
 		momo.getPhotos().forEach(e -> {
 			ObjectNode doc = mapper.createObjectNode();
@@ -116,7 +116,7 @@ public class ConvertService {
 						.put("requestedTenure", momo.getLoanTime()).put("loanApplicationType", "New Application")
 						.put("chassisApplicationNum", momo.getMomoLoanId()).put("saleAgentCode", "OTHER VALUE"));
 		if (momo.isInsurrance()) {
-			loanDetails.set("vapDetails", mapper.createObjectNode().put("vapProduct", "INSP01_InsParameter")
+			loanDetails.set("vapDetails", mapper.createObjectNode().put("vapProduct", "INSP02_InsParameter")
 					.put("vapTreatment", "Financed").put("insuranceCompany", "TPF_GIC-Global Insurance Company"));
 		}
 		app.set("loanDetails", loanDetails);

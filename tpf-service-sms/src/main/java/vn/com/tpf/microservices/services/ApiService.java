@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class ApiService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
-	@Value("{url.smsbank:http://10.1.28.103:7800/service/vn/notification/1}")
+	@Value("${url.smsbank}")
 	private String urlSms;
 
 
@@ -68,7 +68,7 @@ public class ApiService {
 						+ "   </soapenv:Body>\n" 
 						+ "</soapenv:Envelope>\n",
 				System.currentTimeMillis() / 1000L, System.currentTimeMillis() / 1000L, Instant.now().toString(),
-				data.path("phone").asText(), data.path("content").asText());
+				data.path("body").path("phone").asText(), data.path("body").path("content").asText());
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");

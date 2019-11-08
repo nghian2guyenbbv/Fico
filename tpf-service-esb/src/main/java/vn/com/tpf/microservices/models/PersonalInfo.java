@@ -13,6 +13,7 @@ public class PersonalInfo {
 	private String dateOfBirth;
 	private String nationality;
 	private String maritalStatus;
+    public String issuePlace;
 	private String customerCategoryCode;
 
 }

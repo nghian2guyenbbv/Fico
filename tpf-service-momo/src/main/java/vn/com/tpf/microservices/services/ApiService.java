@@ -56,7 +56,7 @@ public class ApiService {
 			headers.set("Accept", "application/pgp-encrypted");
 			headers.set("Content-Type", "application/pgp-encrypted");
 			headers.set("partner-code", "tpbfico");
-			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText().replace("emi", "EMI"), headers);
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
 			log.info("{}","HIEPLN2 - " +  res.getBody().toString());

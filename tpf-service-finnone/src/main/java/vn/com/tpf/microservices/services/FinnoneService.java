@@ -63,16 +63,16 @@ public class FinnoneService {
 				data.put("totalAmount", rows.path("data").path("totalAmount").asLong());
 				data.put("actualAmount", rows.path("data").path("actualAmount").asLong());
 				ObjectNode detail = mapper.createObjectNode();
-				detail.put("loanId", rows.path("data").path("loanId").asText());
-				detail.put("tenor", rows.path("data").path("tenor").asInt());
-				detail.put("rate", rows.path("data").path("rate").asInt());
-				detail.put("disbursementDate", rows.path("data").path("disbursementDate").asText());
-				detail.put("maturityDate", rows.path("data").path("maturityDate").asText());
-				detail.put("dueDate", rows.path("data").path("dueDate").asInt());
-				detail.put("EMI", rows.path("data").path("emi").asLong());
-				detail.put("paymentBankAccount", rows.path("data").path("paymentBankAccount").asText());
-				detail.put("firstInstallmentDate", rows.path("data").path("firstInstallmentDate").asText());
-				detail.put("firstInstallmentAmount", rows.path("data").path("firstInstallmentAmount").asLong());
+				detail.put("loanId", rows.path("data").path("detail").path("loanId").asText());
+				detail.put("tenor", rows.path("data").path("detail").path("tenor").asInt());
+				detail.put("rate", rows.path("data").path("detail").path("rate").asDouble());
+				detail.put("disbursementDate", rows.path("data").path("detail").path("disbursementDate").asText());
+				detail.put("maturityDate", rows.path("data").path("detail").path("maturityDate").asText());
+				detail.put("dueDate", rows.path("data").path("detail").path("dueDate").asInt());
+				detail.put("emi", rows.path("data").path("detail").path("emi").asLong());
+				detail.put("paymentBankAccount", rows.path("data").path("detail").path("paymentBankAccount").asText());
+				detail.put("firstInstallmentDate", rows.path("data").path("detail").path("firstInstallmentDate").asText());
+				detail.put("firstInstallmentAmount", rows.path("data").path("detail").path("firstInstallmentAmount").asLong());
 				data.set("detail", detail);
 				ArrayNode feeDetail = mapper.createArrayNode();
 				for (JsonNode fee : (ArrayNode) rows.path("data").path("feeDetail"))

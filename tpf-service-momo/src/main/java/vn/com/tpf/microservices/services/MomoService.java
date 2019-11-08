@@ -449,7 +449,7 @@ public class MomoService {
 										body.path("reference_id"), "body",
 										Map.of("phone", momo.getPhoneNumber(), "content", "Chuc mung khach hang, CMND "
 												+ momo.getPersonalId()
-												+ " duoc phe duyet voi tong so tien vay "+loan.path("data").path("totalAmount").asText()+" vnd, thoi han vay "+loan.path("data").path("detail").path("tenor").asText()+" va khoan tra moi thang "+loan.path("data").path("detail").path("EMI").asText()+". Vui long tra loi tin nhan voi cu phap TPB MOMO Y den so 8089 de xac nhan khoan vay hoac TPB MOMO N de tu choi khoan vay")));
+												+ " duoc phe duyet voi tong so tien vay "+loan.path("data").path("totalAmount").asText()+" vnd, thoi han vay "+loan.path("data").path("detail").path("tenor").asText()+" va khoan tra moi thang "+loan.path("data").path("detail").path("emi").asText()+". Vui long tra loi tin nhan voi cu phap TPB MOMO Y den so 8089 de xac nhan khoan vay hoac TPB MOMO N de tu choi khoan vay")));
 								ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"),
 										ResponseMomoStatus.class);
 								momoStatus.setRequestId(body.path("reference_id").asText());
