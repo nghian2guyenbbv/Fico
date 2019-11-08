@@ -86,7 +86,7 @@
       style="width: 100%;"
       height="70vh"
       v-show="dataexcel.length>0 | show "
-      v-if="isheadersImport"
+      v-if="isheadersImport && role.includes('admin')"
     >
       <el-table-column label="#" prop="number" width="50px" align="left">
         <template slot-scope="scope">
@@ -212,12 +212,15 @@ const service = axios.create({
 });
 import { MessageBox, Message } from "element-ui";
 import Pagination from "@/components/Pagination";
+import * as cookie from '@/utils/cookie'
+const roles = cookie.getRoles()
 const uuidv1 = require('uuid/v1');
 export default {
   name: "Repayment",
   components: { Pagination },
   data() {
     return {
+      role: '',
       pushLoading: false,
       show: true,
       dateRange: "",
@@ -269,6 +272,7 @@ export default {
   },
 
   created() {
+    this.role = cookie.getRoles()
     this.setDateFirst();
   },
 
