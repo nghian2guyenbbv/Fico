@@ -3,12 +3,7 @@ package vn.com.tpf.microservices.filters;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -81,7 +76,10 @@ public class ApiFilter implements Filter {
 			HttpServletRequestWrapperExtension req = new HttpServletRequestWrapperExtension(request);
 			HttpServletResponseWrapperExtension res = new HttpServletResponseWrapperExtension(response);
 			String data = convertBufferedReadertoString(request.getReader());
-			JsonNode body = mapper.readTree(data);
+			if (data.isEmpty()) {
+				chain.doFilter(req, res);
+			} else {
+				JsonNode body = mapper.readTree(data);
 //			Duration duration = DurationDateTime(body.path("date_time").asText());
 //			if (duration.getSeconds() < 150) {
 				try {
@@ -93,19 +91,19 @@ public class ApiFilter implements Filter {
 					e.printStackTrace();
 					log.error("{}", e.getMessage());
 				}
-
 //			} else {
-//				resp.put("result_code", 499);
+//				resp.put("result_code", 498);
 //				resp.put("message", String.format("date_time over 150sec. +-%ssec", duration.getSeconds()));
 //			}
 
-			resp.put("date_time", ZonedDateTimeNow());
-			
-			servletResponse.setContentType("application/json");
-			PrintWriter printWriter = servletResponse.getWriter();
-			printWriter.write(mapper.writeValueAsString(resp));
-			printWriter.flush();
-			printWriter.close();
+				resp.put("date_time", ZonedDateTimeNow());
+
+				servletResponse.setContentType("application/json");
+				PrintWriter printWriter = servletResponse.getWriter();
+				printWriter.write(mapper.writeValueAsString(resp));
+				printWriter.flush();
+				printWriter.close();
+			}
 		} else
 
 		{

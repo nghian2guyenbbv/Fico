@@ -250,6 +250,7 @@ export default {
     },
 
     fnAssign(app) {
+   
       this.disabled = true;
       this.state.momo[
         this.department + "Ass"
@@ -261,6 +262,8 @@ export default {
       });
     },
     fnUnassign(app) {
+
+      
       this.disabled = true;
       this.state.momo[this.department + "UnAss"].obj.assigned = undefined;
       this.state.momo[this.department + "UnAss"].obj.unassigned = app.assigned;
@@ -282,6 +285,7 @@ export default {
         if (items.hasOwnProperty(key)) {
           const element = items[key];
           axios({
+            headers: {'Access-Control-Allow-Origin': '*'},
             url: element.downloadUrl,
             method: "GET",
             responseType: "blob"

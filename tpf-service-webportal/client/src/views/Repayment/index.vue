@@ -21,7 +21,7 @@
             @click="settelTrans"
           >Settel Trans</el-button>
           <el-dropdown
-            v-if="transDateList.length > 0"
+            v-if="false"
             split-button
             type="primary"
             trigger="click"
@@ -86,7 +86,7 @@
       style="width: 100%;"
       height="70vh"
       v-show="dataexcel.length>0 | show "
-      v-if="isheadersImport"
+      v-if="isheadersImport && role.includes('admin')"
     >
       <el-table-column label="#" prop="number" width="50px" align="left">
         <template slot-scope="scope">
@@ -207,17 +207,20 @@
 import XLSX from "xlsx";
 import axios from "axios";
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API + process.env.VUE_APP_VERSION_API
+  baseURL: process.env.VUE_APP_BASE_API
   // timeout: 5000
 });
 import { MessageBox, Message } from "element-ui";
 import Pagination from "@/components/Pagination";
+import * as cookie from '@/utils/cookie'
+const roles = cookie.getRoles()
 const uuidv1 = require('uuid/v1');
 export default {
   name: "Repayment",
   components: { Pagination },
   data() {
     return {
+      role: '',
       pushLoading: false,
       show: true,
       dateRange: "",
@@ -269,6 +272,7 @@ export default {
   },
 
   created() {
+    this.role = cookie.getRoles()
     this.setDateFirst();
   },
 
@@ -386,6 +390,7 @@ export default {
                 type: "success",
                 duration: 5 * 1000
               });
+              this.fnHandlingSettelTrans(this.transDateList[0].date)
             } else {
               this.settelLoading = false;
               this.listLoading = false;

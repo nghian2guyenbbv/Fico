@@ -35,6 +35,9 @@ import vn.com.tpf.microservices.models.ResponseMomoStatusDetail;
 public class MomoService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	
+	private final String SMS_Y = "TPB MOMO Y";
+	private final String SMS_N = "TPB MOMO N";
 
 	private ObjectNode error;
 
@@ -268,7 +271,7 @@ public class MomoService {
 				for (JsonNode reference : references) {
 					if (!reference.path("relation").asText().matches("^(Colleague|Relative|Spouse)$"))
 						return error.get("references");
-					if (reference.path("phoneNumber").asText().isEmpty() || !reference.path("phoneNumber").asText().matches("^[0-9]*$"))	
+					if (reference.path("phoneNumber").asText().isEmpty() || !reference.path("phoneNumber").asText().matches("^[0-9]{10}$"))  	
 						return error.get("references");
 					if (reference.path("relation").asText().equals("Spouse"))
 						if (reference.path("personalId").asText().isEmpty()
@@ -509,7 +512,7 @@ public class MomoService {
 		Assert.isTrue(body.path("sms_result").isTextual() && !body.path("sms_result").asText().isEmpty(),
 				"sms_result is required and not empty");
 
-		Query query = Query.query(Criteria.where("phoneNumber").is(body.path("phone_number").asText()));
+		Query query = Query.query(Criteria.where("phoneNumber").is(body.path("phone_number").asText().replaceAll("^[0]", "+84")));
 		query.with(Sort.by(Direction.DESC, "createdAt")).limit(1);
 
 		List<Momo> list = mongoTemplate.find(query, Momo.class);
@@ -523,8 +526,11 @@ public class MomoService {
 		}
 
 		Momo momo = list.get(0);
-
-		if (body.path("sms_result").asText().equals("SMS_Y")) {
+	
+	
+		if (((new Date()).getTime() - momo.getUpdatedAt().getTime()) > 172800000 ) { //48h
+			momo.setSmsResult("F");
+		}else if (body.path("sms_result").asText().trim().toUpperCase().equals(SMS_Y)) {
 			momo.setSmsResult("Y");
 			new Thread(() -> {
 				try {
@@ -561,7 +567,7 @@ public class MomoService {
 					log.error(e.toString());
 				}
 			}).start();
-		} else if (body.path("sms_result").asText().equals("SMS_N")) {
+		} else if (body.path("sms_result").asText().trim().toUpperCase().equals(SMS_N)) {
 			momo.setSmsResult("N");
 			momo.setStatus("CUSTOMER_CANCELLED");
 			new Thread(() -> {
@@ -573,10 +579,10 @@ public class MomoService {
 				momoStatus.setDescription("SMS N");
 				apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 			}).start();
-		} else if (body.path("sms_result").asText().equals("SMS_F")) {
+		}  else {
 			momo.setSmsResult("F");
 		}
-
+		
 		mongoTemplate.save(momo);
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),

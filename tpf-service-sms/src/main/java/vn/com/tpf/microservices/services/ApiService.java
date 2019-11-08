@@ -1,6 +1,6 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.Map;
+import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +20,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class ApiService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	@Value("{url.smsbank:http://10.1.28.103:7800/service/vn/notification/1}")
+	private String urlSms;
 
-	@Value("${spring.url.momo-status}")
-	private String urlMomoStatus;
 
-	@Value("${spring.url.momo-disburse}")
-	private String urlMomoDisburse;
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -33,43 +31,74 @@ public class ApiService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	@Autowired
-	private RabbitMQService rabbitMQService;
 
-	private JsonNode callApiMomo(String url, JsonNode data) {
+	private JsonNode callApiSMS(String url, JsonNode data) {
+		
+		String body = String.format("\n"
+						+ "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://www.tpb.vn/entity/vn/notification/notificationsvcs/1\" xmlns:ns1=\"http://www.tpb.vn/common/envelope/commonheader/1\">\n"
+						+ "   <soapenv:Header/>\n" 
+						+ "   	<soapenv:Body>\n" 
+						+ "      <ns:SendNotificationReq>\n"
+						+ "         <ns1:Header>\n" 
+						+ "            <ns1:Common>\n"
+						+ "               <ns1:ServiceVersion>1</ns1:ServiceVersion>\n"
+						+ "               <ns1:MessageId>%s</ns1:MessageId>\n"
+						+ "               <ns1:TransactionId>%s</ns1:TransactionId>\n"
+						+ "               <ns1:MessageTimestamp>%s</ns1:MessageTimestamp>\n"
+						+ "            </ns1:Common>\n" + "            <ns1:Client>\n"
+						+ "               <ns1:SourceAppID>EBANKWS</ns1:SourceAppID>\n"
+						+ "               <ns1:TargetAppIDs>\n"
+						+ "                  <ns1:TargetAppID>?</ns1:TargetAppID>\n"
+						+ "               </ns1:TargetAppIDs>\n" 
+						+ "               <ns1:UserDetail>\n"
+						+ "                  <ns1:UserId>EBANK</ns1:UserId><ns1:UserRole>?</ns1:UserRole>\n"
+						+ "                  <ns1:UserPassword>RUJBTks=</ns1:UserPassword>\n"
+						+ "               </ns1:UserDetail>\n" 
+						+ "            </ns1:Client>\n"
+						+ "         </ns1:Header>\n" 
+						+ "         <BodyReq>\n"
+						+ "             <FunctionCode>NOTIFY-SENDSMS-DB-SMSG</FunctionCode>\n"
+						+ "        		<Scode>EBank</Scode>\n" 
+						+ "        		<BrandName>TPBank</BrandName>\n"
+						+ "        		<PhoneNo>%s</PhoneNo>\n"
+						+ "       		<Content>%s</Content>\n"
+						+ "        		<KeyId>ESB10001</KeyId>\n" 
+						+ "         </BodyReq>\n"
+						+ "      </ns:SendNotificationReq>\n" 
+						+ "   </soapenv:Body>\n" 
+						+ "</soapenv:Envelope>\n",
+				System.currentTimeMillis() / 1000L, System.currentTimeMillis() / 1000L, Instant.now().toString(),
+				data.path("phone").asText(), data.path("content").asText());
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
-			dataLogReq.set("payload", data);
+			dataLogReq.put("payload", body);
 			log.info("{}", dataLogReq);
 
-			String dataString = mapper.writeValueAsString(data);
-			dataString = dataString.replace("emi", "EMI");
-
-			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpEncrypt", "body", Map.of("project", "momo", "data", dataString)));
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/pgp-encrypted");
-			headers.set("Content-Type", "application/pgp-encrypted");
-			headers.set("partner-code", "tpbfico");
-			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+			headers.set("Content-Type", "text/xml");
+			headers.set("Content-Type", "text/xml");
+			HttpEntity<String> entity = new HttpEntity<String>(body, headers);
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-			
-			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpDecrypt", "body", Map.of("project", "momo", "data", res.getBody().toString())));
+
 			
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
 			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-			dataLogRes.set("payload", data);
-			dataLogRes.put("result", decrypt.path("data").asText());
+			dataLogRes.put("payload", body);
+			dataLogRes.put("result", res.getBody());
 			
 			log.info("{}", dataLogRes);
-
-			return decrypt.path("data");
+			
+			if(res.getBody().contains(
+					"<out3:ResponseStatus><out3:Status>0</out3:Status><out3:GlobalErrorCode>00</out3:GlobalErrorCode><out3:GlobalErrorDescription>Success</out3:GlobalErrorDescription></out3:ResponseStatus>")) {
+				return mapper.createObjectNode().put("resultCode", 0).put("data",res.getBody());
+			}else {
+				return mapper.createObjectNode().put("resultCode", 500).put("message", res.getBody());
+			}
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
@@ -82,12 +111,10 @@ public class ApiService {
 		}
 	}
 
-	public JsonNode sendStatusToMomo(JsonNode data) {
-		return callApiMomo(urlMomoStatus, data);
+	public JsonNode sendSMS(JsonNode data) {
+		return callApiSMS(urlSms, data);
 	}
 
-	public JsonNode sendDisburseToMomo(JsonNode data) {
-		return callApiMomo(urlMomoDisburse, data);
-	}
+	
 
 }
