@@ -1,7 +1,8 @@
 package vn.com.tpf.microservices.services;
 
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Map;
 
 @Service
 public class ApiService {
@@ -51,13 +50,17 @@ public class ApiService {
 			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 					Map.of("func", "pgpEncrypt", "body", Map.of("project", "momo", "data", dataString)));
 
+			log.info("{}","HIEPLN1 - " +  encrypt.path("data").asText());
+
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/pgp-encrypted");
 			headers.set("Content-Type", "application/pgp-encrypted");
 			headers.set("partner-code", "tpbfico");
 			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-			
+
+			log.info("{}","HIEPLN2 - " +  res.getBody().toString());
+
 			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 					Map.of("func", "pgpDecrypt", "body", Map.of("project", "momo", "data", res.getBody().toString())));
 			
