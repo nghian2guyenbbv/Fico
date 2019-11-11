@@ -528,7 +528,7 @@ public class MomoService {
 		Momo momo = list.get(0);
 	
 	
-		if (((new Date()).getTime() - momo.getUpdatedAt().getTime()) > 172800000 ) { //48h
+		if (((new Date()).getTime() - momo.getUpdatedAt().getTime()) > 72*60*60*1000 ) { //72h
 			momo.setSmsResult("F");
 		}else if (body.path("sms_result").asText().trim().toUpperCase().equals(SMS_Y)) {
 			momo.setSmsResult("Y");
