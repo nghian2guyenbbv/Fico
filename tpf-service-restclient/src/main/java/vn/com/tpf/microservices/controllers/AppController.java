@@ -7,14 +7,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -86,6 +79,17 @@ public class AppController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
+	@RequestMapping("/v1/app/countstatus/{project}")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-app')")
+	public ResponseEntity<?> getCountStatus(@PathVariable String project)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getCountStatus");
+		request.put("param", Map.of("project", project));
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-app", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
 
 
 }

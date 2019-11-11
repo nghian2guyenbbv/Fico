@@ -462,6 +462,8 @@ public class DataEntryController {
 					return ResponseEntity.status(200)
 							.header("x-pagination-total", "0").body(Map.of("reference_id",UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
 									"result_code", 1, "message", "uploadFile DigiTex fail!"));
+
+//					request.put("body", body);
 				}else {
 					JsonNode jNode = mergeFile(body, mapper.valueToTree(outputDT));
 					request.put("body", jNode);

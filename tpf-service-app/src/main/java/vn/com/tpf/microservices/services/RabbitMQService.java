@@ -91,6 +91,8 @@ public class RabbitMQService {
 				return response(message, payload, appService.updateApp(request));
 			case "updateStatus":
 				return response(message, payload, appService.updateStatus(request));
+			case "getCountStatus":
+				return response(message, payload, appService.getCountStatus(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
