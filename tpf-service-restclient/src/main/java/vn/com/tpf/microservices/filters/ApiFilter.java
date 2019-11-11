@@ -7,12 +7,9 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -72,7 +69,8 @@ public class ApiFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) servletResponse;
 		ObjectNode resp = mapper.createObjectNode();
 		if (request.getUserPrincipal() != null && request.getContentType() != null
-				&& request.getContentType().equals("application/json")) {
+				&& request.getContentType().equals("application/json") &&
+				!request.getHeaders("reportDataentry").hasMoreElements()) {
 			HttpServletRequestWrapperExtension req = new HttpServletRequestWrapperExtension(request);
 			HttpServletResponseWrapperExtension res = new HttpServletResponseWrapperExtension(response);
 			String data = convertBufferedReadertoString(request.getReader());
@@ -86,7 +84,25 @@ public class ApiFilter implements Filter {
 					log.info("{}", body.toString());
 					req.updateInputStream(data.getBytes());
 					chain.doFilter(req, res);
-					resp = (ObjectNode) mapper.readTree(res.getContent());
+//					resp = (ObjectNode) mapper.readTree(res.getContent());
+
+					if(res.getHeader("Content-Disposition").isEmpty()) {
+						resp = (ObjectNode) mapper.readTree(res.getContent());
+						resp.put("date_time", ZonedDateTimeNow());
+
+						servletResponse.setContentType("application/json");
+						PrintWriter printWriter = servletResponse.getWriter();
+						printWriter.write(mapper.writeValueAsString(resp));
+						printWriter.flush();
+						printWriter.close();
+					}else
+					{
+						((HttpServletResponse) servletResponse).addHeader("Content-Disposition", res.getHeaders("Content-Disposition").toString());
+						ServletOutputStream output = servletResponse.getOutputStream();
+						output.write(res.getCaptureAsBytes());
+						output.flush();
+						output.close();
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 					log.error("{}", e.getMessage());
@@ -96,13 +112,13 @@ public class ApiFilter implements Filter {
 //				resp.put("message", String.format("date_time over 150sec. +-%ssec", duration.getSeconds()));
 //			}
 
-				resp.put("date_time", ZonedDateTimeNow());
-
-				servletResponse.setContentType("application/json");
-				PrintWriter printWriter = servletResponse.getWriter();
-				printWriter.write(mapper.writeValueAsString(resp));
-				printWriter.flush();
-				printWriter.close();
+//				resp.put("date_time", ZonedDateTimeNow());
+//
+//				servletResponse.setContentType("application/json");
+//				PrintWriter printWriter = servletResponse.getWriter();
+//				printWriter.write(mapper.writeValueAsString(resp));
+//				printWriter.flush();
+//				printWriter.close();
 			}
 		} else
 
