@@ -964,10 +964,18 @@ public class DataEntryService {
 				responseUI.put("documents", dataUpload);
 
 //				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
-				responseModel.setData(responseUI);
+				if (request.path("uploadDigiTex").textValue() == null) {
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("0");
+					responseModel.setData(responseUI);
+				}else{
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("2");
+					responseModel.setData(responseUI);
+					responseModel.setMessage("uploadFile DigiTex fail!");
+				}
 			}else {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
@@ -980,12 +988,12 @@ public class DataEntryService {
 						List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
 
 						//begin update urlid
-						List<QLDocument> listDocumentPartner = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
-						for (QLDocument item2 : listDocumentPartner) {
-							if (item.getOriginalname().equals(item2.getOriginalname())){
-								item.setUrlid(item2.getUrlid());
-							}
-						}
+//						List<QLDocument> listDocumentPartner = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
+//						for (QLDocument item2 : listDocumentPartner) {
+//							if (item.getOriginalname().equals(item2.getOriginalname())){
+//								item.setUrlid(item2.getUrlid());
+//							}
+//						}
 						//end
 
 						if (checkCommentExist.size() <= 0){
@@ -998,7 +1006,8 @@ public class DataEntryService {
 						}else {
 							Update update = new Update();
 							update.set("quickLead.documentsComment.$.filename", item.getFilename());
-							update.set("quickLead.documentsComment.$.urlId", item.getUrlid());
+							update.set("quickLead.documentsComment.$.urlid", item.getUrlid());
+							update.set("quickLead.documentsComment.$.md5", item.getMd5());
 							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 						}
 					}
@@ -1009,11 +1018,18 @@ public class DataEntryService {
 					responseUI.put("applicationd", request.get("appId").asText());
 					responseUI.put("documents", dataUpload);
 
-					//				responseModel.setRequest_id(requestId);
-					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("0");
-					responseModel.setData(responseUI);
+					if (request.path("uploadDigiTex").textValue() == null) {
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("0");
+						responseModel.setData(responseUI);
+					}else{
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("2");
+						responseModel.setData(responseUI);
+						responseModel.setMessage("uploadFile DigiTex fail!");
+					}
 				}else{
 					//				responseModel.setRequest_id(requestId);
 					responseModel.setReference_id(UUID.randomUUID().toString());
@@ -1035,6 +1051,92 @@ public class DataEntryService {
 
 //		return Map.of("status", 200, "data",
 //				Map.of("status", apiService.uploadFile(request).equals("pass") ? "passed" : "rejected"));
+	}
+
+	public Map<String, Object> uploadDigiTex(JsonNode request, JsonNode token) throws Exception {
+		ResponseModel responseModel = new ResponseModel();
+		String requestId = request.path("body").path("request_id").textValue();
+		String referenceId = UUID.randomUUID().toString();
+		try{
+			UUID quickLeadId = UUID.randomUUID();
+			List<QLDocument> dataUpload = new ArrayList<>();
+			Assert.notNull(request.get("body"), "no body");
+			if (request.path("body").path("data").path("applicationId").textValue() == null){
+				JsonNode resultUpload = apiService.retryUploadDigiTex(request);
+				if (resultUpload.path("uploadDigiTex").textValue() == null) {
+					dataUpload = mapper.readValue(resultUpload.toString(), new TypeReference<List<QLDocument>>() {
+					});
+					for (QLDocument item : dataUpload) {
+						Query queryUpdate = new Query();
+						queryUpdate.addCriteria(Criteria.where("quickLeadId").is(request.get("body").path("data").path("quickLeadId").textValue()).and("quickLead.documents.originalname").is(item.getOriginalname()));
+
+						Update update = new Update();
+						update.set("quickLead.documents.$.urlid", item.getUrlid());
+						Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+					}
+
+					Map<String, Object> responseUI = new HashMap<>();
+					responseUI.put("quickLeadId", request.get("body").path("data").path("quickLeadId").textValue());
+					responseUI.put("documents", dataUpload);
+
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("0");
+					responseModel.setData(responseUI);
+				}else{
+					Map<String, Object> responseUI = new HashMap<>();
+					responseUI.put("quickLeadId", request.get("body").path("data").path("quickLeadId").textValue());
+
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("2");
+					responseModel.setData(responseUI);
+					responseModel.setMessage("uploadFile DigiTex fail!");
+				}
+			}else{
+				JsonNode resultUpload = apiService.retryUploadDigiTex(request);
+				if (resultUpload.path("uploadDigiTex").textValue() == null) {
+					dataUpload = mapper.readValue(resultUpload.toString(), new TypeReference<List<QLDocument>>() {
+					});
+					for (QLDocument item : dataUpload) {
+						Query queryUpdate = new Query();
+						queryUpdate.addCriteria(Criteria.where("applicationId").is(request.get("body").path("data").path("applicationId").textValue()).and("quickLead.documentsComment.originalname").is(item.getOriginalname()));
+
+						Update update = new Update();
+						update.set("quickLead.documentsComment.$.urlid", item.getUrlid());
+						Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+					}
+
+					Map<String, Object> responseUI = new HashMap<>();
+					responseUI.put("applicationId", request.get("body").path("data").path("applicationId").textValue());
+					responseUI.put("documents", dataUpload);
+
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("0");
+					responseModel.setData(responseUI);
+				}else{
+					Map<String, Object> responseUI = new HashMap<>();
+					responseUI.put("applicationId", request.get("body").path("data").path("applicationId").textValue());
+
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("2");
+					responseModel.setData(responseUI);
+					responseModel.setMessage("uploadFile DigiTex fail!");
+				}
+			}
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+		}
+ 		return Map.of("status", 200, "data", responseModel);
+
 	}
 
 	public Map<String, Object> updateAutomation(JsonNode request, JsonNode token) {
@@ -1465,6 +1567,39 @@ public class DataEntryService {
         }
         return Map.of("status", 200, "data", Base64.getEncoder().encodeToString(in.readAllBytes()));
     }
+
+	public Map<String, Object> getDocumentId(JsonNode request, JsonNode token) {
+		ResponseModel responseModel = new ResponseModel();
+		String referenceId = UUID.randomUUID().toString();
+		ByteArrayInputStream in = null;
+		try{
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(request.path("appId").textValue()));
+			Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+
+
+			if (dataFullApp != null){
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(dataFullApp.getQuickLead().getDocuments());
+
+			}else{
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("1");
+				responseModel.setMessage("no data");
+			}
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
 		String[] COLUMNs = {"Seq", "App no.", "Create Date", "Create By", "Status"};

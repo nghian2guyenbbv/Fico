@@ -329,10 +329,13 @@ public class DataEntryController {
 						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
+						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
 
-						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
-						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
+						Object map = mapper.valueToTree(res_DT.getBody());
+						outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+
+//						Map<String, List> map = mapper.readValue(res_DT.getBody().toString(), new TypeReference<Map<String, List>>() {});
+//						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
 
 						ObjectNode dataLog = mapper.createObjectNode();
 						dataLog.put("type", "[==HTTP-LOG==]");
@@ -353,10 +356,10 @@ public class DataEntryController {
 								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
 
-								Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
-								outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
 								break;
 							} catch (Exception ex) {
@@ -370,6 +373,13 @@ public class DataEntryController {
 					}
 
 				} else{
+					Map<String, Object> request_docId = new HashMap<>();
+					request_docId.put("func", "getDocumentId");
+					request_docId.put("token", token);
+					request_docId.put("appId", appId);
+					JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request_docId);
+					int countDocId = response.path("data").path("data").size();
+
 					ArrayNode documents = mapper.createArrayNode();
 					if(files != null) {
 						int i = 0;
@@ -379,6 +389,14 @@ public class DataEntryController {
 							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
 								doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
+								String docId = null;
+								for (int j = 0; j < countDocId; j++){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_ID Card.pdf") ||
+											response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
+										docId = response.path("data").path("data").get(j).path("urlid").textValue();
+									}
+								}
+								doc.put("document-id", docId);
 								documents.add(doc);
 
 								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
@@ -387,6 +405,14 @@ public class DataEntryController {
 							}else if (item.path("originalname").textValue().equals("TPF_Family Book.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
 								doc.put("file-name", "Household_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
+								String docId = null;
+								for (int j = 0; j < countDocId; j++){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Family Book.pdf") ||
+											response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
+										docId = response.path("data").path("data").get(j).path("urlid").textValue();
+									}
+								}
+								doc.put("document-id", docId);
 								documents.add(doc);
 
 								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
@@ -395,6 +421,13 @@ public class DataEntryController {
 							}else if (item.path("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
+								String docId = null;
+								for (int j = 0; j < countDocId; j++){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
+										docId = response.path("data").path("data").get(j).path("urlid").textValue();
+									}
+								}
+								doc.put("document-id", docId);
 								documents.add(doc);
 
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
@@ -403,6 +436,13 @@ public class DataEntryController {
 							}else if (item.path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
 								doc.put("file-name", "ACCA-form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
+								String docId = null;
+								for (int j = 0; j < countDocId; j++){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
+										docId = response.path("data").path("data").get(j).path("urlid").textValue();
+									}
+								}
+								doc.put("document-id", docId);
 								documents.add(doc);
 
 								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + files[i].getOriginalFilename(),
@@ -418,10 +458,13 @@ public class DataEntryController {
 						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
+						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
 
-						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
-						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
+//						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
+//						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
+
+						Object map = mapper.valueToTree(res_DT.getBody());
+						outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
 						ObjectNode dataLog = mapper.createObjectNode();
 						dataLog.put("type", "[==HTTP-LOG==]");
@@ -442,10 +485,10 @@ public class DataEntryController {
 								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, String.class);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
 
-								Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
-								outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
 								break;
 							} catch (Exception ex) {
@@ -459,9 +502,13 @@ public class DataEntryController {
 					}
 				}
 				if (outputDT == null){
-					return ResponseEntity.status(200)
-							.header("x-pagination-total", "0").body(Map.of("reference_id",UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-									"result_code", 1, "message", "uploadFile DigiTex fail!"));
+					JsonNode jNode = mergeFile(body, null);
+					request.put("body", jNode);
+					request.put("uploadDigiTex", "FAIL");
+
+//					return ResponseEntity.status(200)
+//							.header("x-pagination-total", "0").body(Map.of("reference_id",UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+//									"result_code", 2, "message", "uploadFile DigiTex fail!", "data", body));
 
 //					request.put("body", body);
 				}else {
@@ -484,6 +531,20 @@ public class DataEntryController {
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@RequestMapping("/v1/dataentry/uploaddigitex")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> uploadDigiTex(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "uploadDigiTex");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+ 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
@@ -546,48 +607,53 @@ public class DataEntryController {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode resultNode = mapper.createArrayNode();
 		for (JsonNode item : mainNode) {
-			for (JsonNode item2 : updateNode) {
-				if (item.findPath("originalname").textValue().equals("TPF_ID Card.pdf") || item.findPath("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
-					if (item2.findPath("document-type").textValue().equals("ID-Card")){
+			if (updateNode != null) {
+				for (JsonNode item2 : updateNode) {
+					if (item.findPath("originalname").textValue().equals("TPF_ID Card.pdf") || item.findPath("originalname").textValue().equals("TPF_Notarization of ID card.pdf")) {
+						if (item2.findPath("document-type").textValue().equals("ID-Card")) {
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
+						}
+					} else if (item.findPath("originalname").textValue().equals("TPF_Family Book.pdf") || item.findPath("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")) {
+						if (item2.findPath("document-type").textValue().equals("Household")) {
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
+						}
+					} else if (item.findPath("originalname").textValue().equals("TPF_Customer Photograph.pdf")) {
+						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
+						}
+					} else if (item.findPath("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")) {
+						if (item2.findPath("document-type").textValue().equals("ACCA-form")) {
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
+						}
+					} else {
 						ObjectNode doc = mapper.createObjectNode();
 						doc.put("originalname", item.findPath("originalname").textValue());
 						doc.put("filename", item.findPath("filename").textValue());
-						doc.put("urlid", item2.findPath("document-id"));
+						doc.put("md5", item.findPath("md5").textValue());
 						((ArrayNode) resultNode).add(doc);
-					}
-				}else if (item.findPath("originalname").textValue().equals("TPF_Family Book.pdf") || item.findPath("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
-					if (item2.findPath("document-type").textValue().equals("Household")){
-						ObjectNode doc = mapper.createObjectNode();
-						doc.put("originalname", item.findPath("originalname").textValue());
-						doc.put("filename", item.findPath("filename").textValue());
-						doc.put("urlid", item2.findPath("document-id"));
-						((ArrayNode) resultNode).add(doc);
-					}
-				}else if (item.findPath("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
-					if (item2.findPath("document-type").textValue().equals("Personal-Image")){
-						ObjectNode doc = mapper.createObjectNode();
-						doc.put("originalname", item.findPath("originalname").textValue());
-						doc.put("filename", item.findPath("filename").textValue());
-						doc.put("urlid", item2.findPath("document-id"));
-						((ArrayNode) resultNode).add(doc);
-					}
-				}else if (item.findPath("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
-					if (item2.findPath("document-type").textValue().equals("ACCA-form")){
-						ObjectNode doc = mapper.createObjectNode();
-						doc.put("originalname", item.findPath("originalname").textValue());
-						doc.put("filename", item.findPath("filename").textValue());
-						doc.put("urlid", item2.findPath("document-id"));
-						((ArrayNode) resultNode).add(doc);
-					}
-				}
-				else{
-					ObjectNode doc = mapper.createObjectNode();
-					doc.put("originalname", item.findPath("originalname").textValue());
-					doc.put("filename", item.findPath("filename").textValue());
-					((ArrayNode) resultNode).add(doc);
 
-					break;
-				}
+						break;
+					}
 
 //				if (item.findPath("originalname").textValue().equals(item2.findPath("originalname").textValue())){
 //					ObjectNode doc = mapper.createObjectNode();
@@ -596,6 +662,13 @@ public class DataEntryController {
 //					doc.put("urlid", item2.findPath("urlId").textValue());
 //					((ArrayNode) resultNode).add(doc);
 //				}
+				}
+			}else{
+				ObjectNode doc = mapper.createObjectNode();
+				doc.put("originalname", item.findPath("originalname").textValue());
+				doc.put("filename", item.findPath("filename").textValue());
+				doc.put("md5", item.findPath("md5").textValue());
+				((ArrayNode) resultNode).add(doc);
 			}
 		}
 		return resultNode;
