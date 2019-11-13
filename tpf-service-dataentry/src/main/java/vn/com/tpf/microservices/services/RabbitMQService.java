@@ -156,10 +156,14 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.updateFullApp(request, token));
 				case "updateAppError":
 					return response(message, payload, dataEntryService.updateAppError(request, token));
+				case "uploadDigiTex":
+					return response(message, payload, dataEntryService.uploadDigiTex(request, token));
 				case "getTATReport":
 					return response(message, payload, dataEntryService.getTATReport(request, token));
 				case "getStatusReport":
 					return response(message, payload, dataEntryService.getStatusReport(request, token));
+				case "getDocumentId":
+					return response(message, payload, dataEntryService.getDocumentId(request, token));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

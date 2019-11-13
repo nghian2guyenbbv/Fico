@@ -8,5 +8,6 @@ public class QLDocument {
     private String type;
     private String originalname;
     private String filename;
+    private String md5;
     private String urlid;
 }
