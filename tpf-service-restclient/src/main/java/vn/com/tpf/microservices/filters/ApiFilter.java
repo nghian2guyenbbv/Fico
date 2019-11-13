@@ -86,7 +86,7 @@ public class ApiFilter implements Filter {
 					chain.doFilter(req, res);
 //					resp = (ObjectNode) mapper.readTree(res.getContent());
 
-					if(res.getHeader("Content-Disposition").isEmpty()) {
+					if(res.getHeader("Content-Disposition") == null || res.getHeader("Content-Disposition").isEmpty()) {
 						resp = (ObjectNode) mapper.readTree(res.getContent());
 						resp.put("date_time", ZonedDateTimeNow());
 
