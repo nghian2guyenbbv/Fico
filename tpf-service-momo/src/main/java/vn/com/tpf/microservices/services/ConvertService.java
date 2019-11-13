@@ -70,7 +70,7 @@ public class ConvertService {
 				ref.put("name", e.getFullName());
 				ref.put("relationship", e.getRelation());
 				ref.set("phoneNumbers", mapper.createArrayNode()
-						.add(mapper.createObjectNode().put("phoneType", "Mobile Phone").put("phoneNumber", e.getPhoneNumber())));
+						.add(mapper.createObjectNode().put("phoneType", "Mobile Phone").put("phoneNumber", e.getPhoneNumber().replaceAll("^[0]", ""))));
 				references.add(ref);
 			}
 		});

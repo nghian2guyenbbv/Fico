@@ -50,16 +50,12 @@ public class ApiService {
 			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 					Map.of("func", "pgpEncrypt", "body", Map.of("project", "momo", "data", dataString)));
 
-			log.info("{}","HIEPLN1 - " +  encrypt.path("data").asText());
-
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/pgp-encrypted");
 			headers.set("Content-Type", "application/pgp-encrypted");
 			headers.set("partner-code", "tpbfico");
 			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText().replace("emi", "EMI"), headers);
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-
-			log.info("{}","HIEPLN2 - " +  res.getBody().toString());
 
 			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 					Map.of("func", "pgpDecrypt", "body", Map.of("project", "momo", "data", res.getBody().toString())));
@@ -68,7 +64,7 @@ public class ApiService {
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
 			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
 			dataLogRes.set("payload", data);
-			dataLogRes.put("result", decrypt.path("data").asText());
+			dataLogRes.put("result", decrypt.path("body").path("data").asText());
 			
 			log.info("{}", dataLogRes);
 
