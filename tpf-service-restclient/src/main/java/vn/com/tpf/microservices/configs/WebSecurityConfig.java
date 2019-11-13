@@ -14,8 +14,8 @@ import org.springframework.web.filter.CorsFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import vn.com.tpf.microservices.filters.PGPFilter;
 import vn.com.tpf.microservices.filters.ApiFilter;
+import vn.com.tpf.microservices.filters.PGPFilter;
 import vn.com.tpf.microservices.services.RabbitMQService;
 
 @Configuration

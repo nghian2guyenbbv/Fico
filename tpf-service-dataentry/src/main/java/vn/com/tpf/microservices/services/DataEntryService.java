@@ -1044,7 +1044,7 @@ public class DataEntryService {
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("1");
+			responseModel.setResult_code("3");
 			responseModel.setMessage(e.getMessage());
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -1132,7 +1132,7 @@ public class DataEntryService {
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("1");
+			responseModel.setResult_code("3");
 			responseModel.setMessage(e.getMessage());
 		}
  		return Map.of("status", 200, "data", responseModel);

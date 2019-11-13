@@ -458,7 +458,7 @@ public class DataEntryController {
 						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
+						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, Object.class);
 
 //						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
 //						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
@@ -485,7 +485,7 @@ public class DataEntryController {
 								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, Object.class);
 
 								Object map = mapper.valueToTree(res_DT.getBody());
 								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
