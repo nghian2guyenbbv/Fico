@@ -1,6 +1,9 @@
 package vn.com.tpf.microservices.services;
 
-import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +23,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class ApiService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	
+	
 	@Value("${url.smsbank}")
 	private String urlSms;
 
-
+	@Value("${sms.user}")
+	private String smsUser;
+	
+	@Value("${sms.password}")
+	private String smsPassword;
+	
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -44,15 +54,15 @@ public class ApiService {
 						+ "               <ns1:ServiceVersion>1</ns1:ServiceVersion>\n"
 						+ "               <ns1:MessageId>%s</ns1:MessageId>\n"
 						+ "               <ns1:TransactionId>%s</ns1:TransactionId>\n"
-						+ "               <ns1:MessageTimestamp>%s</ns1:MessageTimestamp>\n"
+						+ "               <ns1:MessageTimestamp>"+ ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")) +"</ns1:MessageTimestamp>\n"
 						+ "            </ns1:Common>\n" + "            <ns1:Client>\n"
 						+ "               <ns1:SourceAppID>EBANKWS</ns1:SourceAppID>\n"
 						+ "               <ns1:TargetAppIDs>\n"
 						+ "                  <ns1:TargetAppID>?</ns1:TargetAppID>\n"
 						+ "               </ns1:TargetAppIDs>\n" 
 						+ "               <ns1:UserDetail>\n"
-						+ "                  <ns1:UserId>EBANK</ns1:UserId><ns1:UserRole>?</ns1:UserRole>\n"
-						+ "                  <ns1:UserPassword>RUJBTks=</ns1:UserPassword>\n"
+						+ "                  <ns1:UserId>%s</ns1:UserId><ns1:UserRole>?</ns1:UserRole>\n"
+						+ "                  <ns1:UserPassword>%s</ns1:UserPassword>\n"
 						+ "               </ns1:UserDetail>\n" 
 						+ "            </ns1:Client>\n"
 						+ "         </ns1:Header>\n" 
@@ -67,8 +77,8 @@ public class ApiService {
 						+ "      </ns:SendNotificationReq>\n" 
 						+ "   </soapenv:Body>\n" 
 						+ "</soapenv:Envelope>\n",
-				System.currentTimeMillis() / 1000L, System.currentTimeMillis() / 1000L, Instant.now().toString(),
-				data.path("body").path("phone").asText(), data.path("body").path("content").asText());
+						new Date().getTime(),new Date().getTime(),
+						smsUser, smsPassword, data.path("body").path("phone").asText(), data.path("body").path("content").asText());
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
@@ -76,7 +86,6 @@ public class ApiService {
 			dataLogReq.put("url", url);
 			dataLogReq.put("payload", body);
 			log.info("{}", dataLogReq);
-
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Content-Type", "text/xml");

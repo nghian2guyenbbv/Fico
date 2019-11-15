@@ -288,6 +288,12 @@ public class MomoService {
 		response.put("status", status).set("data", data);
 		return response;
 	}
+	
+	private JsonNode response(int status, String messages) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("data", messages);
+		return response;
+	}
 
 	private JsonNode response(int code, JsonNode body, JsonNode data) {
 		ObjectNode response = mapper.createObjectNode();
@@ -392,7 +398,7 @@ public class MomoService {
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
 						Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
-		return response(200, null);
+		return response(200, mapper.createObjectNode().put("message", "Update Automation Success"));
 	}
 
 	public JsonNode updateStatus(JsonNode request) throws Exception {
@@ -501,37 +507,49 @@ public class MomoService {
 		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
 				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
-		return response(200, null);
+		 return response(200, mapper.createObjectNode().put("message", "Update Status Success"));
 	}
 
 	public JsonNode updateSms(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
+		String smsResponse = "";
 
 		Assert.isTrue(body.path("phone_number").isTextual() && !body.path("phone_number").asText().isEmpty(),
 				"phone_number is required and not empty");
 		Assert.isTrue(body.path("sms_result").isTextual() && !body.path("sms_result").asText().isEmpty(),
 				"sms_result is required and not empty");
-
+		if (!body.path("sms_result").asText().trim().toUpperCase().matches("^(TPB MOMO Y|TPB MOMO N)$")) {
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
+			return response(404, smsResponse);
+		}
+		
 		Query query = Query.query(Criteria.where("phoneNumber").is(body.path("phone_number").asText().replaceAll("^[0]", "+84")));
 		query.with(Sort.by(Direction.DESC, "createdAt")).limit(1);
 
 		List<Momo> list = mongoTemplate.find(query, Momo.class);
 
 		if (list.size() == 0) {
-			return response(404, mapper.createObjectNode().put("message", "Phone Number Not Found"));
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
+			return response(404, smsResponse);
 		}
 
 		if (list.get(0).getAppId() == null) {
-			return response(404, mapper.createObjectNode().put("message", "AppId Not Found"));
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
+			return response(404, smsResponse);
 		}
 
 		Momo momo = list.get(0);
 	
-	
-		if (((new Date()).getTime() - momo.getUpdatedAt().getTime()) > 72*60*60*1000 ) { //72h
+		if( momo.getSmsResult() == null || !momo.getSmsResult().equals("W") || !momo.getStatus().equals("APPROVED_FINNONE")) {
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
+			return response(404, smsResponse);
+		}else if (((new Date()).getTime() - momo.getUpdatedAt().getTime()) > 72*60*60*1000 ) { //72h
 			momo.setSmsResult("F");
-		}else if (body.path("sms_result").asText().trim().toUpperCase().equals(SMS_Y)) {
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le do da qua 72H. LH: 1900636633";
+			
+		} else if (body.path("sms_result").asText().trim().toUpperCase().equals(SMS_Y)) {
 			momo.setSmsResult("Y");
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. Ho so cua quy Khach dang duoc tiep tuc xu ly giai ngan.";
 			new Thread(() -> {
 				try {
 					JsonNode loan = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getLoan",
@@ -569,6 +587,7 @@ public class MomoService {
 			}).start();
 		} else if (body.path("sms_result").asText().trim().toUpperCase().equals(SMS_N)) {
 			momo.setSmsResult("N");
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. Yeu cau HUY cua Quy khach dang duoc xu ly.";
 			momo.setStatus("CUSTOMER_CANCELLED");
 			new Thread(() -> {
 				ResponseMomoStatus momoStatus = new ResponseMomoStatus();
@@ -581,6 +600,7 @@ public class MomoService {
 			}).start();
 		}  else {
 			momo.setSmsResult("F");
+			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
 		}
 		
 		mongoTemplate.save(momo);
@@ -588,7 +608,7 @@ public class MomoService {
 		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
 				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
-		return response(200, null);
+		return response(404, smsResponse);
 	}
 
 }

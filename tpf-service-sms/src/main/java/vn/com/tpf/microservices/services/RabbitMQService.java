@@ -1,5 +1,8 @@
 package vn.com.tpf.microservices.services;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -33,6 +36,7 @@ public class RabbitMQService {
 
 	@PostConstruct
 	private void init() {
+		log.error(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")));
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
 	}
 
