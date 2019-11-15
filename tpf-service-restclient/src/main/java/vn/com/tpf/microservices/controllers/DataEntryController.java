@@ -348,28 +348,28 @@ public class DataEntryController {
 						dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
 						log.error("{}", dataLog);
 
-						int i=0;
-						do {
-//							Thread.sleep(30000);
-							try{
-								HttpHeaders headers_DT = new HttpHeaders();
-								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
-
-								Object map = mapper.valueToTree(res_DT.getBody());
-								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-
-								break;
-							} catch (Exception ex) {
-								dataLog = mapper.createObjectNode();
-								dataLog.put("type", "[==HTTP-LOG==]");
-								dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
-								log.error("{}", dataLog);
-							}
-							i = i +1;
-						}while(i<2);
+//						int i=0;
+//						do {
+////							Thread.sleep(30000);
+//							try{
+//								HttpHeaders headers_DT = new HttpHeaders();
+//								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+//								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+//								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
+//
+//								Object map = mapper.valueToTree(res_DT.getBody());
+//								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+//
+//								break;
+//							} catch (Exception ex) {
+//								dataLog = mapper.createObjectNode();
+//								dataLog.put("type", "[==HTTP-LOG==]");
+//								dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
+//								log.error("{}", dataLog);
+//							}
+//							i = i +1;
+//						}while(i<2);
 					}
 
 				} else{
@@ -477,28 +477,28 @@ public class DataEntryController {
 						dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
 						log.error("{}", dataLog);
 
-						int i=0;
-						do {
-//							Thread.sleep(30000);
-							try{
-								HttpHeaders headers_DT = new HttpHeaders();
-								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, Object.class);
-
-								Object map = mapper.valueToTree(res_DT.getBody());
-								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-
-								break;
-							} catch (Exception ex) {
-								dataLog = mapper.createObjectNode();
-								dataLog.put("type", "[==HTTP-LOG==]");
-								dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
-								log.error("{}", dataLog);
-							}
-							i = i +1;
-						}while(i<2);
+//						int i=0;
+//						do {
+////							Thread.sleep(30000);
+//							try{
+//								HttpHeaders headers_DT = new HttpHeaders();
+//								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+//								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+//								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, Object.class);
+//
+//								Object map = mapper.valueToTree(res_DT.getBody());
+//								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+//
+//								break;
+//							} catch (Exception ex) {
+//								dataLog = mapper.createObjectNode();
+//								dataLog.put("type", "[==HTTP-LOG==]");
+//								dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
+//								log.error("{}", dataLog);
+//							}
+//							i = i +1;
+//						}while(i<2);
 					}
 				}
 				if (outputDT == null){

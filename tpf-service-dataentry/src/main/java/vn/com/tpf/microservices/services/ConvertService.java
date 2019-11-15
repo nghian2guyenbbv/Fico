@@ -66,9 +66,12 @@ public class ConvertService {
 		}
 		if (application.getQuickLeadId() != null) {
 			optional.put("quickLeadId", application.getQuickLeadId());
-		}
-		if (application.getQuickLead().getSchemeCode() != null) {
-			optional.put("schemeCode", application.getQuickLead().getSchemeCode());
+			if (application.getQuickLead().getSourcingBranch() != null) {
+				optional.put("branchName", application.getQuickLead().getSourcingBranch());
+			}
+			if (application.getQuickLead().getSchemeCode() != null) {
+				optional.put("schemeCode", application.getQuickLead().getSchemeCode());
+			}
 		}
 		if (application.getUserName_DE() != null) {
 			optional.put("userName_DE", application.getUserName_DE());
