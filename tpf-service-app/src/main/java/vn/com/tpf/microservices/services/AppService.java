@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -118,6 +119,29 @@ public class AppService {
 			Timestamp fromDate = Timestamp.valueOf(request.path("param").path("fromDate").textValue() + " 00:00:00");
 			Timestamp toDate = Timestamp.valueOf(request.path("param").path("toDate").textValue() + " 23:23:59");
 			query.addCriteria(Criteria.where("createdAt").gte(fromDate).lte(toDate));
+		}
+
+		List<String> branchUser = new ArrayList<String>();
+		try {
+			if (info.get("branches") != null){
+				branchUser = mapper.readValue(info.get("branches").toString(), List.class);
+				if (request.path("param").path("branchName").textValue() == null) {
+					query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
+				}else{
+					String[] branchQuery = request.path("param").path("branchName").textValue().split(",");
+					ArrayList<String> ar = new ArrayList<String>();
+
+					for(int i = 0; i < branchQuery.length; i++) {
+						if(branchUser.contains(branchQuery[i]))
+							ar.add(branchQuery[i]);
+					}
+					query.addCriteria(Criteria.where("optional.branchName").in(ar));
+				}
+			}else{
+				query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 		long total = mongoTemplate.count(query, App.class);

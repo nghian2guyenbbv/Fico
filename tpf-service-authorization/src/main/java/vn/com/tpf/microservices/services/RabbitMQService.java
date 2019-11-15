@@ -155,6 +155,7 @@ public class RabbitMQService {
 				if (account != null) {
 					info.put("departments", account.getDepartments());
 					info.put("projects", account.getProjects());
+					info.put("branches", account.getBranches());
 					if (account.getOptional() != null) {
 						info.put("optional", account.getOptional());
 					}
