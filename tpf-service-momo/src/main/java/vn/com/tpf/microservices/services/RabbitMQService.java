@@ -89,6 +89,8 @@ public class RabbitMQService {
 				return response(message, payload, momoService.updateSms(request));
 			case "updateStatus":
 				return response(message, payload, momoService.updateStatus(request));
+			case "getListCancelled":
+				return response(message, payload, momoService.getListAppCancelled(request));
 			default:
 				return response(message, payload,Map.of("status", 500, "data",  ExceptionRespone(payload, 500, "function not found")));
 			}

@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -609,6 +610,43 @@ public class MomoService {
 				"param", Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
 
 		return response(404, smsResponse);
+	}
+	
+	
+	public JsonNode getListAppCancelled(JsonNode request) {
+
+		Query query = new Query();
+		Criteria criteria = new Criteria().orOperator(
+				 Criteria.where("status").in(Arrays.asList("CUSTOMER_CANCELLED", "MOMO_CANCELLED")),
+				 new Criteria().andOperator(Criteria.where("status").is("APPROVED_FINNONE"), Criteria.where("smsResult").is("F")),
+				 new Criteria().andOperator(Criteria.where("status").is("APPROVED_FINNONE"), Criteria.where("smsResult").is("W"), Criteria.where("updatedAt").lte(new Date(new Date().getTime() -72 * 60 * 60 * 1000)))
+				);
+		
+		query.addCriteria(criteria);
+
+		List<Momo> listMomo = mongoTemplate.find(query, Momo.class);
+		
+		List<ObjectNode> listCancelled = new   ArrayList<ObjectNode>();;
+		
+		for (Momo momo : listMomo) {
+			String status = "";
+			switch (momo.getStatus().trim().toUpperCase()) {
+			case "CUSTOMER_CANCELLED":
+				status = "Khách hàng từ chối giải ngân";
+				break;
+			case "MOMO_CANCELLED":
+				status = "Momo GN thất bại";
+				break;
+			default:
+				status = "Khách hàng không phản hồi";
+				break;
+			}
+			listCancelled.add(  mapper.createObjectNode().put("appId", momo.getAppId())
+					.put("customter", String.format("%s %s %s", momo.getFirstName(), momo.getMiddleName(), momo.getLastName()))
+					.put("status", status));
+		}
+		
+		return response(200, mapper.convertValue(listCancelled, JsonNode.class));
 	}
 
 }
