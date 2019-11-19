@@ -622,7 +622,7 @@ public class DataEntryService {
 				responseModel.setMessage("applicationId not exists.");
 			}else{
 				for (CommentModel item : data.getComment()) {
-					documentCommnet = item.getResponse().getDocuments();
+//					documentCommnet = item.getResponse().getDocuments();
 					commentId = item.getCommentId();
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()).and("comment.commentId").is(item.getCommentId()));
@@ -669,6 +669,7 @@ public class DataEntryService {
 							}
 
 						}else{//fico tra comment
+							documentCommnet = item.getResponse().getDocuments();
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
@@ -716,8 +717,8 @@ public class DataEntryService {
 				ArrayNode documents = mapper.createArrayNode();
 				for (Document item: documentCommnet) {
 					ObjectNode doc = mapper.createObjectNode();
-					doc.put("document-type", item.getType());
-					doc.put("document-id", item.getLink().getUrlPartner());
+					doc.put("documentComment", item.getComment());
+					doc.put("documentId", item.getLink().getUrlPartner());
 					documents.add(doc);
 				}
 				HttpHeaders headers = new HttpHeaders();
