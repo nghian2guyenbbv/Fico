@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +32,17 @@ public class MomoController {
 		request.put("func", "createMomo");
 		request.put("body", body);
 		ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-momo", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+	
+	@PostMapping("/momo/getListCancelled")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-momo','3p-service-momo')")
+	public ResponseEntity<?> getListCancelled(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getListCancelled");
+		request.put("body", body);
+		JsonNode  response =  rabbitMQService.sendAndReceive("tpf-service-momo", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 

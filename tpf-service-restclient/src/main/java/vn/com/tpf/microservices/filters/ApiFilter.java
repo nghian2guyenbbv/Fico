@@ -69,8 +69,8 @@ public class ApiFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) servletResponse;
 		ObjectNode resp = mapper.createObjectNode();
 		if (request.getUserPrincipal() != null && request.getContentType() != null
-				&& request.getContentType().equals("application/json") &&
-				!request.getHeaders("reportDataentry").hasMoreElements()) {
+				&& request.getContentType().equals("application/json")
+				&& !request.getHeaders("reportDataentry").hasMoreElements()) {
 			HttpServletRequestWrapperExtension req = new HttpServletRequestWrapperExtension(request);
 			HttpServletResponseWrapperExtension res = new HttpServletResponseWrapperExtension(response);
 			String data = convertBufferedReadertoString(request.getReader());
@@ -86,18 +86,27 @@ public class ApiFilter implements Filter {
 					chain.doFilter(req, res);
 //					resp = (ObjectNode) mapper.readTree(res.getContent());
 
-					if(res.getHeader("Content-Disposition") == null || res.getHeader("Content-Disposition").isEmpty()) {
-						resp = (ObjectNode) mapper.readTree(res.getContent());
-						resp.put("date_time", ZonedDateTimeNow());
+					if (res.getHeader("Content-Disposition") == null
+							|| res.getHeader("Content-Disposition").isEmpty()) {
+						try {
+							resp = (ObjectNode) mapper.readTree(res.getContent());
+							resp.put("date_time", ZonedDateTimeNow());
+							servletResponse.setContentType("application/json");
+							PrintWriter printWriter = servletResponse.getWriter();
+							printWriter.write(mapper.writeValueAsString(resp));
+							printWriter.flush();
+							printWriter.close();
+						} catch (Exception e) {
+							servletResponse.setContentType("application/json");
+							PrintWriter printWriter = servletResponse.getWriter();
+							printWriter.write(res.getContent());
+							printWriter.flush();
+							printWriter.close();
+						}
 
-						servletResponse.setContentType("application/json");
-						PrintWriter printWriter = servletResponse.getWriter();
-						printWriter.write(mapper.writeValueAsString(resp));
-						printWriter.flush();
-						printWriter.close();
-					}else
-					{
-						((HttpServletResponse) servletResponse).addHeader("Content-Disposition", res.getHeaders("Content-Disposition").toString());
+					} else {
+						((HttpServletResponse) servletResponse).addHeader("Content-Disposition",
+								res.getHeaders("Content-Disposition").toString());
 						ServletOutputStream output = servletResponse.getOutputStream();
 						output.write(res.getCaptureAsBytes());
 						output.flush();
