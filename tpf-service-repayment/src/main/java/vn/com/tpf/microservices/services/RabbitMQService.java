@@ -10,15 +10,11 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-import java.net.URI;
 import java.util.Map;
 
 @Service
@@ -103,6 +99,8 @@ public class RabbitMQService {
 				return response(message, payload, repaymentService.getReport(request));
 			case "getTransDate":
 				return response(message, payload, repaymentService.getTransDate(request));
+			case "syncData":
+					return response(message, payload, repaymentService.syncData(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
