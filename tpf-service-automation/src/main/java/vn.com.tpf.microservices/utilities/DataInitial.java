@@ -433,7 +433,8 @@ public class DataInitial {
                 .houseOwnership("Family Owned without Mortgage")
                 .mortgagePaymentCost("0")
                 .newBankCardNumber("2222222222222222")
-                .salesAgentCode("DS0001100")
+                //.salesAgentCode("DS0001100") /UAT
+                .salesAgentCode("MM99999") //PRO
                 .maxRequestRate("62").build();
         map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
 
