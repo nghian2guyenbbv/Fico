@@ -150,10 +150,11 @@ public class UserService implements UserDetailsService {
 		entity.setCredentialsNonExpired(body.isCredentialsNonExpired());
 		repository.save(entity);
 
-		tokenStore.findTokensByClientIdAndUserName(token.path("client_id").asText(), entity.getUsername()).forEach(t -> {
-			tokenStore.removeAccessToken(t);
-			tokenStore.removeRefreshToken(t.getRefreshToken());
-		});
+		tokenStore.findTokensByClientIdAndUserName(token.path("client_id").asText(), entity.getUsername())
+				.forEach(t -> {
+					tokenStore.removeAccessToken(t);
+					tokenStore.removeRefreshToken(t.getRefreshToken());
+				});
 
 		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
@@ -171,10 +172,11 @@ public class UserService implements UserDetailsService {
 		OauthUserDetails entity = exists.get();
 		repository.delete(entity);
 
-		tokenStore.findTokensByClientIdAndUserName(token.path("client_id").asText(), entity.getUsername()).forEach(t -> {
-			tokenStore.removeAccessToken(t);
-			tokenStore.removeRefreshToken(t.getRefreshToken());
-		});
+		tokenStore.findTokensByClientIdAndUserName(token.path("client_id").asText(), entity.getUsername())
+				.forEach(t -> {
+					tokenStore.removeAccessToken(t);
+					tokenStore.removeRefreshToken(t.getRefreshToken());
+				});
 
 		return response(200, mapper.convertValue(entity, JsonNode.class), 0);
 	}
@@ -204,4 +206,23 @@ public class UserService implements UserDetailsService {
 		return response(200, null, 0);
 	}
 
+	public JsonNode resetPasswordUser(JsonNode request, JsonNode token) {
+		OauthUserDetails entity = repository.findByUsername(request.path("body").path("userName").asText());
+
+		if (entity == null) {
+			return response(404, mapper.createObjectNode().put("message", "UserName Not Exits"), 0);
+		}
+		entity.setPassword(passwordEncoder.encode(request.path("body").path("newPassword").asText()));
+		repository.save(entity);
+		
+		String clientId = token.path("client_id").asText();
+		String username = request.path("body").path("userName").asText();
+
+		tokenStore.findTokensByClientIdAndUserName(clientId, username).forEach(t -> {
+			tokenStore.removeAccessToken(t);
+			tokenStore.removeRefreshToken(t.getRefreshToken());
+		});
+
+		return response(200, null, 0);
+	}
 }
