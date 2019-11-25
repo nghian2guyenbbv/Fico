@@ -821,6 +821,15 @@ public class DataEntryService {
 
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
+
+					Report report = new Report();
+					report.setQuickLeadId(data.getQuickLeadId());
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setFunction("QUICKLEAD");
+					report.setStatus("NEW");
+					report.setCreatedBy(token.path("user_name").textValue());
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1074,6 +1083,7 @@ public class DataEntryService {
 					JsonNode body = mapper.valueToTree(res.getBody());
 
 					Report report = new Report();
+					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("PROCESSING");
@@ -1087,7 +1097,7 @@ public class DataEntryService {
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 				}else{
 					Report report = new Report();
-//					report.setApplicationId("UNKNOWN");
+					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("AUTO_QL_FAIL");
 					report.setCreatedBy("AUTOMATION");
