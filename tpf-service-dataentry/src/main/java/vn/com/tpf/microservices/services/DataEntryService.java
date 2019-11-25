@@ -806,7 +806,7 @@ public class DataEntryService {
 					update.set("quickLead.leadStatus", data.getLeadStatus());
 					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
                     update.set("quickLead.$.documents", data.getDocuments());
-					update.set("status", "PROCESSING");
+					update.set("status", "NEW");
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
@@ -1153,7 +1153,7 @@ public class DataEntryService {
 			if (checkExist.size() > 0){
 				if (request.path("body").path("status").textValue().equals("OK")) {
 					Update update = new Update();
-					update.set("status", request.path("body").path("status").textValue());
+					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1265,7 +1265,7 @@ public class DataEntryService {
 			if (checkExist.size() > 0){
 				if (request.path("body").path("status").textValue().equals("OK")) {
 					Update update = new Update();
-					update.set("status", request.path("body").path("status").textValue());
+					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
