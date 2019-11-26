@@ -428,6 +428,7 @@ public class DataEntryService {
 										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 
                         Report report = new Report();
+                        report.setQuickLeadId(requestId);
                         report.setApplicationId(data.getApplicationId());
                         report.setFunction("SENDAPP");
                         report.setStatus("PROCESSING");
@@ -637,6 +638,7 @@ public class DataEntryService {
 			}
 			if (requestCommnentFromDigiTex){
                 Report report = new Report();
+                report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("COMMENT");
                 report.setStatus("RETURNED");
@@ -663,6 +665,7 @@ public class DataEntryService {
 
 
                 Report report = new Report();
+				report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("COMMENT");
                 report.setStatus("PROCESSING");
@@ -673,6 +676,7 @@ public class DataEntryService {
 
             if (responseCommnentFullAPPFromDigiTex){
                 Report report = new Report();
+				report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("COMMENT");
                 report.setStatus("COMPLETED");
@@ -732,6 +736,7 @@ public class DataEntryService {
 
 
 				Report report = new Report();
+				report.setQuickLeadId(resultUpdate.getQuickLeadId());
 				report.setApplicationId(data.getApplicationId());
 				report.setFunction("UPDATESTATUS");
 				report.setStatus(data.getStatus());
@@ -1296,6 +1301,7 @@ public class DataEntryService {
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Report report = new Report();
+					report.setQuickLeadId(resultUpdatetest.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("UPDATEFULLAPP");
 					report.setStatus("COMPLETED");
@@ -1341,6 +1347,7 @@ public class DataEntryService {
 					Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, updateComment, Application.class);
 
 					Report report = new Report();
+					report.setQuickLeadId(resultUpdate.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("UPDATEFULLAPP");
 					report.setStatus("RESPONSED");
