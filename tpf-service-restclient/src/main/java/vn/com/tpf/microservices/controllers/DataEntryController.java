@@ -9,6 +9,7 @@ import com.sun.net.httpserver.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
@@ -37,7 +38,14 @@ public class DataEntryController {
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
+	@Value("${spring.url.uploadfile}")
+	private String urlUploadfile;
 
+	@Value("${spring.url.digitex-documentapi}")
+	private String urlDigitexDocumentApi;
+
+	@Value("${spring.url.digitex-resumitdocumentapi}")
+	private String urlDigitexResumitDocumentApi;
 
 	private RestTemplate restTemplate;
 
@@ -122,6 +130,19 @@ public class DataEntryController {
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getBranch");
+		request.put("token", token);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@RequestMapping("/v1/dataentry/getbranchbyuser")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> getBranchByUser(@RequestHeader("Authorization") String token)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getBranchByUser");
 		request.put("token", token);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
@@ -222,10 +243,6 @@ public class DataEntryController {
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
-//		String urlFico = "http://192.168.0.203:3001/v1/file";
-		String urlFico = "http://tpf-service-file:3001/v1/file";
-		String urlDigiTex = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/documentAPI";
-		String urlDigiTexResubmit = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/resubmitDocumentAPI";
 		mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 		MultiValueMap<String, Object> parts_02 =
 				new LinkedMultiValueMap<String, Object>();
@@ -247,7 +264,7 @@ public class DataEntryController {
 				HttpHeaders headers = new HttpHeaders();
 				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 				HttpEntity<?> entity = new HttpEntity<>(parts, headers);
-				res = restTemplate.postForEntity(urlFico, entity, List.class);
+				res = restTemplate.postForEntity(urlUploadfile, entity, List.class);
 
 				ObjectNode dataLog = mapper.createObjectNode();
 				dataLog.put("type", "[==HTTP-LOG==]");
@@ -267,7 +284,7 @@ public class DataEntryController {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity = new HttpEntity<>(parts, headers);
-						res = restTemplate.postForEntity(urlFico, entity, List.class);
+						res = restTemplate.postForEntity(urlUploadfile, entity, List.class);
 						break;
 					} catch (Exception ex) {
 					}
@@ -328,7 +345,7 @@ public class DataEntryController {
 						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
+						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexDocumentApi, entity_DT, Object.class);
 
 						Object map = mapper.valueToTree(res_DT.getBody());
 						outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
@@ -457,7 +474,7 @@ public class DataEntryController {
 						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, Object.class);
+						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexResumitDocumentApi, entity_DT, Object.class);
 
 //						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
 //						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
