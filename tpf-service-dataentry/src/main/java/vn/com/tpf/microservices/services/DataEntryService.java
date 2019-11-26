@@ -13,6 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -52,6 +53,15 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.matc
 @Service
 public class DataEntryService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+	@Value("${spring.url.digitex-cminfoapi}")
+	private String urlDigitexCmInfoApi;
+
+	@Value("${spring.url.digitex-resubmitcommentapi}")
+	private String urlDigitexResubmitCommentApi;
+
+	@Value("${spring.url.digitex-feedbackapi}")
+	private String urlDigitexFeedbackApi;
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -192,20 +202,6 @@ public class DataEntryService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("0");
 			responseModel.setData(checkExist);
-
-
-
-//			PGPHelper pgpHelper4 = new PGPHelper(PGPInfo.preshareKey_4,PGPInfo.publicKey_6,PGPInfo.privateKey_4);
-//			ByteArrayOutputStream desStrea4 = new ByteArrayOutputStream();
-//			pgpHelper4.decryptAndVerifySignature(request.path("body").path("data").textValue().getBytes(), desStrea4);
-
-//			responseModel.setRequest_id(requestId);
-//			responseModel.setReference_id(UUID.randomUUID().toString());
-//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//			responseModel.setResult_code("0");
-//			responseModel.setData(desStrea4.toString());
-
-
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
@@ -356,18 +352,6 @@ public class DataEntryService {
 //				responseModel.setResult_code("1");
 //				responseModel.setMessage(resultFirstCheck);
 //			}
-
-
-
-
-////			PGPHelper pgpHelper3 = new PGPHelper(PGPInfo.preshareKey_6,PGPInfo.publicKey_4,PGPInfo.privateKey_6);
-////			ByteArrayOutputStream encStream3 = new ByteArrayOutputStream();
-////			pgpHelper3.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream3);
-//
-//
-////			PGPHelper pgpHelper4 = new PGPHelper(PGPInfo.preshareKey_4,PGPInfo.publicKey_6,PGPInfo.privateKey_4);
-////			ByteArrayOutputStream desStrea4 = new ByteArrayOutputStream();
-////			pgpHelper4.decryptAndVerifySignature(encStream3.toString().getBytes(), desStrea4);
 //
 //			responseModel.setRequest_id(requestId);
 //			responseModel.setReference_id(UUID.randomUUID().toString());
@@ -466,64 +450,13 @@ public class DataEntryService {
 						responseModel.setResult_code("1");
 						responseModel.setMessage(map.toString());
 					}
-
-
-
-//					responseModel.setRequest_id(requestId);
-//					responseModel.setReference_id(UUID.randomUUID().toString());
-//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//					responseModel.setResult_code("1");
-//					responseModel.setMessage("applicationId invalid.");
 				}else {
 					responseModel.setRequest_id(requestId);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("1");
 					responseModel.setMessage("applicationId not send again.");
-
-
-//					//Create ValidatorFactory which returns validator
-//					ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-//					//It validates bean instances
-//					Validator validator = factory.getValidator();
-//					//Validate bean
-//					Set<ConstraintViolation<Application>> constraintViolations = validator.validate(data);
-//
-//					if (constraintViolations.size() <= 0 || constraintViolations.isEmpty()){
-//						Update update = new Update();
-//						update.set("applicationInformation", data.getApplicationInformation());
-//						update.set("loanDetails", data.getLoanDetails());
-//						update.set("references", data.getReferences());
-//						update.set("dynamicForm", data.getDynamicForm());
-//						Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
-//
-////						--automation fullapp--
-//						List<Application> dataFullApp = mongoTemplate.find(query, Application.class);
-//						rabbitMQService.send("tpf-service-dataentry-automation",
-//								Map.of("func", "fullInfoApp", "token",
-//										String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", dataFullApp.get(0)));
-//
-//						responseModel.setRequest_id(requestId);
-//						responseModel.setReference_id(UUID.randomUUID().toString());
-//						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//						responseModel.setResult_code("0");
-//					}else{
-//						HashMap<String,String> map = new HashMap<String,String>();
-//						for (ConstraintViolation<Application> violation : constraintViolations) {
-//							map.put(violation.getPropertyPath().toString(), violation.getMessage());
-//						}
-//						responseModel.setRequest_id(requestId);
-//						responseModel.setReference_id(UUID.randomUUID().toString());
-//						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//						responseModel.setResult_code("1");
-//						responseModel.setMessage(map.toString());
-//					}
 				}
-
-				// test tich hop digitex
-//				updateFullApp(request, token);
-//				updateAppError(request, token);
-				//
 			}
 		}
 		catch (Exception e) {
@@ -622,7 +555,7 @@ public class DataEntryService {
 				responseModel.setMessage("applicationId not exists.");
 			}else{
 				for (CommentModel item : data.getComment()) {
-					documentCommnet = item.getResponse().getDocuments();
+//					documentCommnet = item.getResponse().getDocuments();
 					commentId = item.getCommentId();
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()).and("comment.commentId").is(item.getCommentId()));
@@ -669,6 +602,7 @@ public class DataEntryService {
 							}
 
 						}else{//fico tra comment
+							documentCommnet = item.getResponse().getDocuments();
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
@@ -712,12 +646,11 @@ public class DataEntryService {
             }
 
             if (responseCommnentToDigiTex){
-				String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/resubmitCommentAPI";
 				ArrayNode documents = mapper.createArrayNode();
 				for (Document item: documentCommnet) {
 					ObjectNode doc = mapper.createObjectNode();
-					doc.put("document-type", item.getType());
-					doc.put("document-id", item.getLink().getUrlPartner());
+					doc.put("documentComment", item.getComment());
+					doc.put("documentId", item.getLink().getUrlPartner());
 					documents.add(doc);
 				}
 				HttpHeaders headers = new HttpHeaders();
@@ -725,7 +658,7 @@ public class DataEntryService {
 				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
 						"comment", comment, "documents", documents)), headers);
-				ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
 				JsonNode body = mapper.valueToTree(res.getBody());
 
 
@@ -828,11 +761,6 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{// check lai id
-			// test tich hop digitex
-//			updateAutomation(request, token);
-//			return Map.of("status", 200, "data", "ok");
-			//
-
 			Assert.notNull(request.get("body"), "no body");
 			RequestQuickLeadModel requestModel = mapper.treeToValue(request.get("body"), RequestQuickLeadModel.class);
 			requestId = requestModel.getRequest_id();
@@ -878,7 +806,7 @@ public class DataEntryService {
 					update.set("quickLead.leadStatus", data.getLeadStatus());
 					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
                     update.set("quickLead.$.documents", data.getDocuments());
-					update.set("status", "PROCESSING");
+					update.set("status", "NEW");
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
@@ -893,6 +821,15 @@ public class DataEntryService {
 
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
+
+					Report report = new Report();
+					report.setQuickLeadId(data.getQuickLeadId());
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setFunction("QUICKLEAD");
+					report.setStatus("NEW");
+					report.setCreatedBy(token.path("user_name").textValue());
+					report.setCreatedDate(new Date());
+					mongoTemplate.save(report);
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -906,9 +843,6 @@ public class DataEntryService {
 				responseModel.setResult_code("1");
 				responseModel.setMessage("quickLeadId not exist.");
 			}
-			// test tich hop digitex
-//			updateAutomation(request, token);
-			//
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
@@ -925,6 +859,7 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+		String description = "";
 		try{
 			UUID quickLeadId = UUID.randomUUID();
 			List<QLDocument> dataUpload = new ArrayList<>();
@@ -936,25 +871,13 @@ public class DataEntryService {
 					e.printStackTrace();
 				}
 
-//				//begin update urlid
-//				for (QLDocument item : dataUpload) {
-//					List<QLDocument> listDocumentPartner = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
-//					for (QLDocument item2 : listDocumentPartner) {
-//						if (item.getOriginalname().equals(item2.getOriginalname())){
-//							item.setUrlid(item2.getUrlid());
-//						}
-//						//tesst
-////						item.setUrlid("001");
-//					}
-//				}
-//				//end
-
 				QuickLead quickLead = new QuickLead();
 				quickLead.setDocuments(dataUpload);
 
 				Application app = new Application();
 				app.setQuickLeadId(quickLeadId.toString());
 				app.setQuickLead(quickLead);
+				app.setStatus("NEW");
 				app.setUserName(token.path("user_name").textValue());
 				app.setCreatedDate(new Date());
 				mongoTemplate.save(app);
@@ -969,13 +892,25 @@ public class DataEntryService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("0");
 					responseModel.setData(responseUI);
+
+					description = "upload Seccess";
 				}else{
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("2");
 					responseModel.setData(responseUI);
 					responseModel.setMessage("uploadFile DigiTex fail!");
+
+					description = "uploadFile DigiTex fail!";
 				}
+				Report report = new Report();
+				report.setQuickLeadId(quickLeadId.toString());
+				report.setFunction("UPLOADFILE");
+				report.setStatus("NEW");
+				report.setDescription(description);
+				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedDate(new Date());
+				mongoTemplate.save(report);
 			}else {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
@@ -986,15 +921,6 @@ public class DataEntryService {
 						Query queryUpdate = new Query();
 						queryUpdate.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()).and("quickLead.documentsComment.originalname").is(item.getOriginalname()));
 						List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
-
-						//begin update urlid
-//						List<QLDocument> listDocumentPartner = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
-//						for (QLDocument item2 : listDocumentPartner) {
-//							if (item.getOriginalname().equals(item2.getOriginalname())){
-//								item.setUrlid(item2.getUrlid());
-//							}
-//						}
-						//end
 
 						if (checkCommentExist.size() <= 0){
 							Query queryAddComment = new Query();
@@ -1011,7 +937,6 @@ public class DataEntryService {
 							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 						}
 					}
-
 
 					Map<String, Object> responseUI = new HashMap<>();
 					responseUI.put("quickLeadId", quickLeadId);
@@ -1031,12 +956,21 @@ public class DataEntryService {
 						responseModel.setMessage("uploadFile DigiTex fail!");
 					}
 				}else{
-					//				responseModel.setRequest_id(requestId);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("1");
 					responseModel.setMessage("AppId not exist.");
 				}
+
+				Report report = new Report();
+				report.setQuickLeadId(quickLeadId.toString());
+				report.setApplicationId(request.get("appId").asText());
+				report.setFunction("UPLOADFILE_COMMENT");
+				report.setStatus("RETURNED");
+				report.setDescription(description);
+				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedDate(new Date());
+				mongoTemplate.save(report);
 			}
 		}
 		catch (Exception e) {
@@ -1048,9 +982,6 @@ public class DataEntryService {
 			responseModel.setMessage(e.getMessage());
 		}
 		return Map.of("status", 200, "data", responseModel);
-
-//		return Map.of("status", 200, "data",
-//				Map.of("status", apiService.uploadFile(request).equals("pass") ? "passed" : "rejected"));
 	}
 
 	public Map<String, Object> uploadDigiTex(JsonNode request, JsonNode token) throws Exception {
@@ -1143,7 +1074,6 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
-		String urlCmInfoAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/cmInfoAPI";
 		try{
 			Query query = new Query();
 			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").textValue()));
@@ -1173,10 +1103,11 @@ public class DataEntryService {
 					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
 							"application-id", applicationId, "document-ids", inputQuery)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlCmInfoAPI, entity, Object.class);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexCmInfoApi, entity, Object.class);
 					JsonNode body = mapper.valueToTree(res.getBody());
 
 					Report report = new Report();
+					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("PROCESSING");
@@ -1190,7 +1121,7 @@ public class DataEntryService {
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 				}else{
 					Report report = new Report();
-//					report.setApplicationId("UNKNOWN");
+					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("AUTO_QL_FAIL");
 					report.setCreatedBy("AUTOMATION");
@@ -1238,7 +1169,6 @@ public class DataEntryService {
 		String commentId = UUID.randomUUID().toString().substring(0,10);
 		String errors = "";
 		String applicationId = "";
-		String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/feedbackAPI";
 		try{
 			applicationId = request.path("body").path("applicationId").textValue();
 			Query query = new Query();
@@ -1247,11 +1177,12 @@ public class DataEntryService {
 			if (checkExist.size() > 0){
 				if (request.path("body").path("status").textValue().equals("OK")) {
 					Update update = new Update();
-					update.set("status", request.path("body").path("status").textValue());
+					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Report report = new Report();
+					report.setQuickLeadId(resultUpdatetest.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("SENDFULLAPP");
 					report.setStatus("COMPLETED");
@@ -1269,7 +1200,7 @@ public class DataEntryService {
 					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
 					JsonNode body = mapper.valueToTree(res.getBody());
 
 				}else{
@@ -1297,6 +1228,7 @@ public class DataEntryService {
 					Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, updateComment, Application.class);
 
 					Report report = new Report();
+					report.setQuickLeadId(resultUpdate.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("SENDFULLAPP");
 					report.setStatus("RESPONSED");
@@ -1316,7 +1248,7 @@ public class DataEntryService {
 					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
 							"commend-id", commentId, "errors", errors)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
 					JsonNode body = mapper.valueToTree(res.getBody());
 				}
 
@@ -1346,7 +1278,6 @@ public class DataEntryService {
 	public Map<String, Object> updateAppError(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
-		String urlresubmitCommentAPI = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/feedbackAPI";
 		String applicationId = "";
 		String commentId = UUID.randomUUID().toString().substring(0,10);
 		String referenceId = UUID.randomUUID().toString();
@@ -1360,7 +1291,7 @@ public class DataEntryService {
 			if (checkExist.size() > 0){
 				if (request.path("body").path("status").textValue().equals("OK")) {
 					Update update = new Update();
-					update.set("status", request.path("body").path("status").textValue());
+					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1382,7 +1313,7 @@ public class DataEntryService {
 					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
 					JsonNode body = mapper.valueToTree(res.getBody());
 
 				}else{
@@ -1429,7 +1360,7 @@ public class DataEntryService {
 					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
 							"commend-id", commentId, "errors", errors)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlresubmitCommentAPI, entity, Object.class);
+					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
 					JsonNode body = mapper.valueToTree(res.getBody());
 				}
 
@@ -1472,12 +1403,6 @@ public class DataEntryService {
 				query.addCriteria(Criteria.where("createdDate").gte(fromDate).lte(toDate));
 			}
 
-//            Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
-//            Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
-//
-//            Query query = new Query();
-//            query.addCriteria(Criteria.where("createdDate").gte(fromDate).lte(toDate));
-
             List<Report> listData = mongoTemplate.find(query, Report.class);
             // export excel
 			in = tatReportToExcel(listData);
@@ -1514,7 +1439,6 @@ public class DataEntryService {
 		ByteArrayInputStream in = null;
         try{
             Assert.notNull(request.get("body"), "no body");
-//			Query query = new Query();
 			AggregationOperation match1;
 
             List<String> inputQuery = new ArrayList<String>();
