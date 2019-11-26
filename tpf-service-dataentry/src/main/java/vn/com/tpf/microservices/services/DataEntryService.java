@@ -859,6 +859,7 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+		String description = "";
 		try{
 			UUID quickLeadId = UUID.randomUUID();
 			List<QLDocument> dataUpload = new ArrayList<>();
@@ -876,6 +877,7 @@ public class DataEntryService {
 				Application app = new Application();
 				app.setQuickLeadId(quickLeadId.toString());
 				app.setQuickLead(quickLead);
+				app.setStatus("NEW");
 				app.setUserName(token.path("user_name").textValue());
 				app.setCreatedDate(new Date());
 				mongoTemplate.save(app);
@@ -890,13 +892,25 @@ public class DataEntryService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("0");
 					responseModel.setData(responseUI);
+
+					description = "upload Seccess";
 				}else{
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("2");
 					responseModel.setData(responseUI);
 					responseModel.setMessage("uploadFile DigiTex fail!");
+
+					description = "uploadFile DigiTex fail!";
 				}
+				Report report = new Report();
+				report.setQuickLeadId(quickLeadId.toString());
+				report.setFunction("UPLOADFILE");
+				report.setStatus("NEW");
+				report.setDescription(description);
+				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedDate(new Date());
+				mongoTemplate.save(report);
 			}else {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
@@ -947,6 +961,16 @@ public class DataEntryService {
 					responseModel.setResult_code("1");
 					responseModel.setMessage("AppId not exist.");
 				}
+
+				Report report = new Report();
+				report.setQuickLeadId(quickLeadId.toString());
+				report.setApplicationId(request.get("appId").asText());
+				report.setFunction("UPLOADFILE_COMMENT");
+				report.setStatus("RETURNED");
+				report.setDescription(description);
+				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedDate(new Date());
+				mongoTemplate.save(report);
 			}
 		}
 		catch (Exception e) {
@@ -1158,6 +1182,7 @@ public class DataEntryService {
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Report report = new Report();
+					report.setQuickLeadId(resultUpdatetest.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("SENDFULLAPP");
 					report.setStatus("COMPLETED");
@@ -1203,6 +1228,7 @@ public class DataEntryService {
 					Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, updateComment, Application.class);
 
 					Report report = new Report();
+					report.setQuickLeadId(resultUpdate.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("SENDFULLAPP");
 					report.setStatus("RESPONSED");

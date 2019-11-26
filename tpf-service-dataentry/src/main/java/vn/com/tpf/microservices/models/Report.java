@@ -15,6 +15,7 @@ public class Report {
     private String quickLeadId;
     private String applicationId;
     private String status;
+    private String description;
     private String function;
     private String createdBy;
     private String processBy;
