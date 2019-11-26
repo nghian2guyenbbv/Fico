@@ -138,6 +138,19 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
+	@RequestMapping("/v1/dataentry/getbranchbyuser")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> getBranchByUser(@RequestHeader("Authorization") String token)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getBranchByUser");
+		request.put("token", token);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
 	@PostMapping("/v1/dataentry/firstcheck")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
 	public ResponseEntity<?> firstCheck(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)

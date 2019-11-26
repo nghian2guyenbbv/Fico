@@ -75,7 +75,7 @@ public class ApiFilter implements Filter {
 			HttpServletResponseWrapperExtension res = new HttpServletResponseWrapperExtension(response);
 			String data = convertBufferedReadertoString(request.getReader());
 			if (data.isEmpty()) {
-				chain.doFilter(req, res);
+				chain.doFilter(request, response);
 			} else {
 				JsonNode body = mapper.readTree(data);
 //			Duration duration = DurationDateTime(body.path("date_time").asText());

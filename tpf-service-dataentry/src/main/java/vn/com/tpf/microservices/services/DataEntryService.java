@@ -311,6 +311,43 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+	public Map<String, Object> getBranchByUser(JsonNode request, JsonNode token) {
+		ResponseModel responseModel = new ResponseModel();
+		String requestId = request.path("body").path("request_id").textValue();
+		String referenceId = UUID.randomUUID().toString();
+		try{
+			if (token.get("branches") == null){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("1");
+				responseModel.setMessage("token not branches");
+				return Map.of("status", 200, "data", responseModel);
+			}
+			Query query = new Query();
+			List<String> branchUser = new ArrayList<String>();
+			branchUser = mapper.readValue(token.get("branches").toString(), List.class);
+			query.addCriteria(Criteria.where("branchName").in(branchUser));
+
+			List<Branch> resultData = mongoTemplate.find(query, Branch.class);
+
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			responseModel.setData(resultData);
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("2");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 	public Map<String, Object> getDetail(JsonNode request, JsonNode token) {
 		Application app = new Application();
 		try{
