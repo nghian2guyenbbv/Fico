@@ -70,7 +70,7 @@ public class Utilities {
     public static void captureScreenShot(WebDriver ldriver) {
         File src = ((TakesScreenshot) ldriver).getScreenshotAs(OutputType.FILE);
         try {
-            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

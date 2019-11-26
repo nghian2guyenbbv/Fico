@@ -8,6 +8,7 @@ public class Constant {
     public static int THREAD_NUM = 10;
     public static int INPUT_TIMES = 3;
     public static int WAIT_ACCOUNT_TIMEOUT = 20000; // milis
+    public static int WAIT_ACCOUNT_GET_NULL = 2000; // milis
 
     public static String SCREENSHOT_PRE_PATH = "C:/selenium/finnone_";
     public static String SCREENSHOT_PRE_PATH_DOC = "/doc/";

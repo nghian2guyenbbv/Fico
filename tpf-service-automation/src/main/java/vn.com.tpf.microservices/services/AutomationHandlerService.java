@@ -10,8 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
+import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
@@ -20,9 +24,12 @@ import vn.com.tpf.microservices.services.Automation.lending.*;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -39,29 +46,67 @@ public class AutomationHandlerService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    private LoginDTO pollAccountFromQueue(Queue<LoginDTO> accounts) throws Exception {
+    private LoginDTO pollAccountFromQueue(Queue<LoginDTO> accounts,String project) throws Exception {
         LoginDTO accountDTO = null;
+//        while (Objects.isNull(accountDTO)) {
+//            System.out.println("Wait to get account...");
+//
+//            accountDTO = accounts.poll();
+//            if (!Objects.isNull(accountDTO)) {
+//                System.out.println("Get it:" + accountDTO.toString());
+//                System.out.println("Exist:" + accounts.size());
+//            } else
+//                Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
+//        }
+
+
         while (Objects.isNull(accountDTO)) {
             System.out.println("Wait to get account...");
 
-            accountDTO = accounts.poll();
-            if (!Objects.isNull(accountDTO)) {
-                System.out.println("Get it:" + accountDTO.toString());
-                System.out.println("Exist:" + accounts.size());
+            //get list account finone available
+            Query query = new Query();
+            query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+            AccountFinOneDTO accountFinOneDTO=mongoTemplate.findOne(query, AccountFinOneDTO.class);
+            if (!Objects.isNull(accountFinOneDTO)) {
+                accountDTO=new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                Update update = new Update();
+                update.set("active", 1);
+                AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                if(resultUpdate==null)
+                {
+                    Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                    accountDTO=null;
+                }
+                else {
+                    System.out.println("Get it:" + accountDTO.toString());
+                    System.out.println("Exist:" + accounts.size());
+                }
             } else
                 Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
         }
 
+
         return accountDTO;
     }
 
-    private void pushAccountToQueue(Queue<LoginDTO> accounts, LoginDTO accountDTO) {
-        synchronized (accounts) {
+    private void pushAccountToQueue(LoginDTO accountDTO) {
+        //synchronized (accounts) {
             if (!Objects.isNull(accountDTO)) {
-                System.out.println("push to queue... : " + accountDTO.toString());
-                accounts.add(accountDTO);
+//                System.out.println("push to queue... : " + accountDTO.toString());
+//                accounts.add(accountDTO);
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()));
+                Update update = new Update();
+                update.set("active", 0);
+                AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+                System.out.println("Update it:" + accountDTO.toString());
             }
-        }
+       // }
     }
 
     public void logout(WebDriver driver) {
@@ -70,30 +115,39 @@ public class AutomationHandlerService {
         logoutPage.logout();
     }
 
-    public void executor(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapValue, String function) {
+    public void executor(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapValue, String function,String project) {
         WebDriver driver = null;
         LoginDTO accountDTO = null;
         try {
 
-            accountDTO = pollAccountFromQueue(accounts);
+
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, Constant.FINNONE_LOGIN_URL, null);
             driver = setupTestDriver.getDriver();
 
             switch (function){
                 case "runAutomation_UpdateInfo":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_UpdateInfo(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_UpdateAppError":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_UpdateAppError(driver,mapValue,accountDTO);
                     break;
                 case "quickLead":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "momoCreateApp":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_momoCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "fptCreateApp":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_fptCreateApp(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomationDE_AutoAssign":
+                    //chay get account trong function
+                    runAutomationDE_autoAssign(driver, mapValue,project, browser);
                     break;
             }
 
@@ -102,7 +156,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
         } finally {
             //logout(driver);
-            pushAccountToQueue(accounts, accountDTO);
+            pushAccountToQueue(accountDTO);
             if (driver != null) {
                 driver.close();
                 driver.quit();
@@ -1986,4 +2040,140 @@ public class AutomationHandlerService {
         }
     }
     //------------------------ END FPT -----------------------------------------------------
+
+    //------------------------ AUTO ASSIGN -----------------------------------------------------
+    public void runAutomationDE_autoAssign(WebDriver driver, Map<String, Object> mapValue,String project,String browser) throws Exception {
+        String stage= "";
+        try {
+            stage="INIT DATA";
+            //*************************** GET DATA *********************//
+            List<AutoAssignDTO> autoAssignDTOList = (List<AutoAssignDTO>) mapValue.get("AutoAssignList");
+            //*************************** END GET DATA *********************//
+            List<LoginDTO> loginDTOList=new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do{
+                //get list account finone available
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO=mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew=new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if(resultUpdate==null)
+                    {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew=null;
+                    }
+                    else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew=null;
+            }while (!Objects.isNull(accountDTONew));
+
+            //insert data
+            mongoTemplate.insert(autoAssignDTOList, AutoAssignDTO.class);
+
+            if(loginDTOList.size()>0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO: loginDTOList){
+                    workerThreadPoolDE.execute(new Runnable () {
+                        @Override
+                        public void run() {
+                            runAutomationDE_autoAssign_run(loginDTO,browser);
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() +"\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        }
+    }
+
+    private void runAutomationDE_autoAssign_run(LoginDTO accountDTO, String browser) {
+        WebDriver driver = null;
+        Instant start = Instant.now();
+        String stage = "";
+        try {
+
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, Constant.FINNONE_LOGIN_URL, null);
+            driver = setupTestDriver.getDriver();
+            //get account run
+            stage = "LOGIN FINONE";
+            HashMap<String, String> dataControl = new HashMap<>();
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            AutoAssignDTO autoAssignDTO = null;
+            do {
+                Query query = new Query();
+                query.addCriteria(Criteria.where("status").is(0));
+                autoAssignDTO = mongoTemplate.findOne(query, AutoAssignDTO.class);
+
+                if (!Objects.isNull(autoAssignDTO)) {
+                    stage = "HOME PAGE";
+                    HomePage homePage = new HomePage(driver);
+                    //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
+                    // ========== APPLICATIONS =================
+                    String appID = autoAssignDTO.getAppid();
+                    homePage.getMenuApplicationElement().click();
+
+                    stage = "APPLICATION MANAGER";
+                    // ========== APPLICATION MANAGER =================
+                    homePage.getApplicationManagerElement().click();
+                    await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
+
+                    DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
+                    await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+                    de_applicationManagerPage.setData(appID, autoAssignDTO.getUsername());
+                    //System.out.println(stage + ": DONE");
+                    //Utilities.captureScreenShot(driver);
+
+                    System.out.println("DONE - Auto: " + accountDTO.getUserName() + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername());
+
+                    // ========= UPDATE DB ============================
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(appID).and("username").is(autoAssignDTO.getUsername()));
+                    Update update = new Update();
+                    update.set("userauto", accountDTO.getUserName());
+                    update.set("status", 1);
+                    update.set("createDate", new Timestamp(new Date().getTime()));
+                    AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
+                }
+            } while (!Objects.isNull(autoAssignDTO));
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver);
+            pushAccountToQueue(accountDTO);
+        }
+    }
+    //------------------------ END AUTO ASSIGN -----------------------------------------------------
 }
