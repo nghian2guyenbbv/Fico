@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +46,34 @@ public class AccountService {
 		Criteria criteria = Criteria.where("username").ne(token.path("user_name").asText());
 
 		Account account = getInfoAccount(token.path("user_name").asText());
-		if (account != null) {
-			criteria.and("departments").in(account.getDepartments());
-			criteria.and("branches").in(account.getBranches());
+//		if (account != null) {
+//			criteria.and("departments").in(account.getDepartments());
+//			criteria.and("branches").in(account.getBranches());
+//		}
+
+		if (request.path("param").path("department").isTextual()) {
+			String[] department = request.path("param").path("department").textValue().split(",");
+			ArrayList<String> ar = new ArrayList<String>();
+			for (int i = 0; i < department.length; i++) {
+				ar.add(department[i]);
+			}
+			criteria.and("departments").all(ar);
+		}
+		if (request.path("param").path("branch").isTextual()) {
+			String[] branch = request.path("param").path("branch").textValue().split(",");
+			ArrayList<String> ar = new ArrayList<String>();
+			for (int i = 0; i < branch.length; i++) {
+				ar.add(branch[i]);
+			}
+			criteria.and("branches").all(ar);
+		}
+		if (request.path("param").path("project").isTextual()) {
+			String[] project = request.path("param").path("project").textValue().split(",");
+			ArrayList<String> ar = new ArrayList<String>();
+			for (int i = 0; i < project.length; i++) {
+				ar.add(project[i]);
+			}
+			criteria.and("projects").all(ar);
 		}
 
 		if (request.path("param").path("username").isTextual()) {

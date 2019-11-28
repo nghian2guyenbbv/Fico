@@ -12,8 +12,10 @@ import java.util.UUID;
 public class Report {
     @Id
     private String id;
+    private String quickLeadId;
     private String applicationId;
     private String status;
+    private String description;
     private String function;
     private String createdBy;
     private String processBy;

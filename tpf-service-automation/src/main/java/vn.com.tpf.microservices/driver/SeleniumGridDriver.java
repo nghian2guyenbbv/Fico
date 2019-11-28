@@ -21,7 +21,8 @@ public class SeleniumGridDriver {
     	// String host = System.getProperty("seleniumHubHost"); // TODO: uncomment this line if deploy on docker
     	//String host = "10.10.10.10";
         //String host = "localhost";
-        String host="tpf-opensource-selenium-hub";
+        //String host="tpf-opensource-selenium-hub";
+        String host = "10.1.64.41";
 
     	this.browser = browser;
         this.os = os;

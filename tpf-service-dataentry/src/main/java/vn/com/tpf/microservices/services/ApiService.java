@@ -10,6 +10,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -43,6 +44,18 @@ public class ApiService {
 
 	private String urlFirstCheck;
 
+	@Value("${spring.url.firstcheck}")
+	private String urlFirstcheck;
+
+	@Value("${spring.url.uploadfile}")
+	private String urlUploadfile;
+
+	@Value("${spring.url.digitex-documentapi}")
+	private String urlDigitexDocumentApi;
+
+	@Value("${spring.url.digitex-resumitdocumentapi}")
+	private String urlDigitexResumitDocumentApi;
+
 	@Autowired
 	private ObjectMapper mapper;
 
@@ -59,7 +72,6 @@ public class ApiService {
 	}
 
 	public String firstCheck(JsonNode request) {
-		urlFirstCheck = "http://10.131.21.126:52233/sale_page/api_management/pregate/";
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		try {
 			Assert.notNull(request.get("body"), "no body");
@@ -81,7 +93,7 @@ public class ApiService {
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(urlFirstCheck, entity, Object.class);
+			ResponseEntity<?> res = restTemplate.postForEntity(urlFirstcheck, entity, Object.class);
 			JsonNode body = mapper.valueToTree(res.getBody());
 
 			FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
@@ -95,35 +107,6 @@ public class ApiService {
 			}
 			return "fail";
 
-
-			//			--- test pgp
-//			PGPHelper pgpHelper = new PGPHelper(1,1);
-//			ByteArrayOutputStream encStream = new ByteArrayOutputStream();
-//			pgpHelper.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream);
-//
-//			PGPHelper pgpHelper2 = new PGPHelper(1);
-//			ByteArrayOutputStream desStream = new ByteArrayOutputStream();
-//			pgpHelper2.decryptAndVerifySignature(encStream.toString().getBytes(), desStream);
-
-//			PGPHelper pgpHelper = new PGPHelper(PGPInfo.preshareKey_4,PGPInfo.publicKey_6,PGPInfo.privateKey_4);
-//			ByteArrayOutputStream encStream = new ByteArrayOutputStream();
-//			pgpHelper.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream);
-//
-//			PGPHelper pgpHelper2 = new PGPHelper(PGPInfo.preshareKey_6,PGPInfo.publicKey_4,PGPInfo.privateKey_6);
-//			ByteArrayOutputStream desStream = new ByteArrayOutputStream();
-//			pgpHelper2.decryptAndVerifySignature(encStream.toString().getBytes(), desStream);
-//
-//
-//			PGPHelper pgpHelper3 = new PGPHelper(PGPInfo.preshareKey_6,PGPInfo.publicKey_4,PGPInfo.privateKey_6);
-//			ByteArrayOutputStream encStream3 = new ByteArrayOutputStream();
-//			pgpHelper3.encryptAndSign(request.path("body").path("data").toString().getBytes(), encStream3);
-//
-//			PGPHelper pgpHelper4 = new PGPHelper(PGPInfo.preshareKey_4,PGPInfo.publicKey_6,PGPInfo.privateKey_4);
-//			ByteArrayOutputStream desStrea4 = new ByteArrayOutputStream();
-//			pgpHelper4.decryptAndVerifySignature(encStream3.toString().getBytes(), desStrea4);
-
-//			test pgp ---
-
 		} catch (HttpClientErrorException e) {
 			log.info("[==HTTP-LOG-RESPONSE==] : {}",
 					Map.of("payload", data, "status", e.getStatusCode(), "result", e.getResponseBodyAsString()));
@@ -136,10 +119,6 @@ public class ApiService {
 	}
 
 	public JsonNode retryUploadDigiTex(JsonNode request) {
-//		String urlFico = "http://192.168.0.203:3001/v1/file/";
-		String urlFico = "http://tpf-service-file:3001/v1/file/";
-		String urlDigiTex = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/documentAPI";
-		String urlDigiTexResubmit = "https://effektif-connector-qa-global.digi-texx.vn/ConnectorService.svc/json/Interact/ec1a42bf-90df-4dfa-9998-0a82bfd9084b/resubmitDocumentAPI";
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		JsonNode jNode = null;
 		try {
@@ -161,7 +140,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
 								"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -184,7 +163,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
 								"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -197,7 +176,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
 								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -210,7 +189,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + item.getOriginalname(),
 								"ACCA-form_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -224,7 +203,7 @@ public class ApiService {
 					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
+					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexDocumentApi, entity_DT, Object.class);
 
 //					Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
 //					Map<String, List> map = mapper.readValue(res_DT.getBody().toString(), new TypeReference<Map<String, List>>() {});
@@ -277,7 +256,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
 								"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -308,7 +287,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
 								"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -328,7 +307,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
 								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -348,7 +327,7 @@ public class ApiService {
 						HttpHeaders headers = new HttpHeaders();
 						headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						ResponseEntity<byte[]> response = restTemplate.exchange(urlFico + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + item.getOriginalname(),
 								"ACCA-form_" + item.getOriginalname(), "application/pdf", response.getBody());
@@ -362,7 +341,7 @@ public class ApiService {
 					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, Object.class);
+					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexResumitDocumentApi, entity_DT, Object.class);
 
 //					Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
 //					Map<String, List> map = mapper.readValue(res_DT.getBody().toString(), new TypeReference<Map<String, List>>() {});
