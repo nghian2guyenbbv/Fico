@@ -120,9 +120,13 @@ public class AutomationHandlerService {
     }
 
     public void logout(WebDriver driver) {
-        System.out.println("Logout");
-        LogoutPage logoutPage = new LogoutPage(driver);
-        logoutPage.logout();
+        try {
+
+            System.out.println("Logout");
+            LogoutPage logoutPage = new LogoutPage(driver);
+            logoutPage.logout();
+        } catch (Exception e) {
+        }
     }
 
     public void executor(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapValue, String function,String project) {
@@ -2126,6 +2130,12 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
+
+//            //check da login
+//            if(driver.findElements(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]")).size()!=0){
+//                WebElement we=driver.findElement(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]"));
+//                we.click();
+//            }
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
