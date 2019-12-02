@@ -466,7 +466,7 @@ public class MomoService {
 								if (momoStatus.getDetail() == null) {
 									momoStatus.setDetail(new ResponseMomoStatusDetail());
 								}
-								momoStatus.getDetail().setApplicationId(momo.getAppId());
+								momoStatus.getDetail().setApplicationId(null);
 								apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 								break;
 							} else
@@ -486,6 +486,8 @@ public class MomoService {
 					if (loan.path("status").asInt() == 200) {
 						ResponseMomoStatus momoStatus = mapper.convertValue(loan.path("data"),
 								ResponseMomoStatus.class);
+						ResponseMomoDisburse momoDisburse = mapper.convertValue(loan.path("data"),
+								ResponseMomoDisburse.class);
 						momoStatus.setRequestId(body.path("reference_id").asText());
 						momoStatus.setMomoLoanId(momo.getMomoLoanId());
 						momoStatus.setPhoneNumber(momo.getPhoneNumber());
@@ -493,7 +495,7 @@ public class MomoService {
 						if (momoStatus.getDetail() == null) {
 							momoStatus.setDetail(new ResponseMomoStatusDetail());
 						}
-						momoStatus.getDetail().setApplicationId(momo.getAppId());
+						momoStatus.getDetail().setApplicationId(momoDisburse.getDetail().getLoanId());
 						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 					}
 				} catch (Exception e) {
