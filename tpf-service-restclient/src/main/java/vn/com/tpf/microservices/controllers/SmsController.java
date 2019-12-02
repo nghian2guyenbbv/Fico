@@ -37,7 +37,7 @@ public class SmsController {
 		request.put("body",body);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-sms", request);
-		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data").textValue());
 	}
 
 }
