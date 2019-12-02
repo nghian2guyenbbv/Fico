@@ -91,5 +91,24 @@ public class FinnoneService {
 			return response(500, data);
 		}
 	}
+	
+	
+	public JsonNode getCheckDupApplication(JsonNode request) {
+		ObjectNode data = mapper.createObjectNode();
+		try {
+			String query = String.format("SELECT  FN_CHECK_DUP_APPLICATION ('%s','%s','%s') RESULT FROM DUAL", request.path("param").path("national_id").asText(),request.path("param").path("fullname").asText(),request.path("param").path("dob").asText());
+			String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
+					(rs, rowNum) ->
+				rs.getString(("RESULT")
+	        ));
+			JsonNode rows =  mapper.readTree(row_string);
+			return response(200, rows);
+			
+		}catch (Exception e) {
+			data.put("message", e.getMessage());
+			return response(500, data);
+		}
+	}
+	
 
 }
