@@ -136,6 +136,10 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getAddress(request));
 				case "getBranch":
 					return response(message, payload, dataEntryService.getBranch(request));
+				case "getBranchByUser":
+					JsonNode info = sendAndReceive("tpf-service-authorization",
+							Map.of("func", "getInfoAccount", "token", request.path("token")));
+					return response(message, payload, dataEntryService.getBranchByUser(request, info.path("data")));
 				case "firstCheck":
 					return response(message, payload, dataEntryService.firstCheck(request, token));
 				case "quickLead":

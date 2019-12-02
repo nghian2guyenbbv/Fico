@@ -61,6 +61,21 @@ public class BaseController {
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-authentication", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
+	
+	@PostMapping("/v1/reset-password")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root')")
+	public ResponseEntity<?> resetPassword(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "resetPassword");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-authentication", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	
+	
+	}
 
 	@GetMapping("/v1/me")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-authorization')")

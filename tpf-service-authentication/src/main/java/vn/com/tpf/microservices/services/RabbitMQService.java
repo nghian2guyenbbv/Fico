@@ -127,6 +127,8 @@ public class RabbitMQService {
 				return response(message, payload, userService.logoutUser(checkToken(token)));
 			case "changePassword":
 				return response(message, payload, userService.changePasswordUser(request, checkToken(token)));
+			case "resetPassword":
+				return response(message, payload, userService.resetPasswordUser(request,checkToken(token)));
 			case "getListClient":
 				return response(message, payload, clientService.getListClient(request));
 			case "createClient":

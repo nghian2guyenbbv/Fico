@@ -426,5 +426,40 @@ public class RepaymentService {
 		}
 	}
 
+	@Transactional
+	public Map<String, Object> syncData(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = request.path("body").path("request_id").textValue();
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			Session session = entityManager.unwrap(Session.class);
+			session.doWork(new Work() {
+				@Override
+				public void execute(Connection connection) throws SQLException {
+					//connection, finally!
+					String storeProc = String.format("CALL payoo.sp_ora_data_net_amount();");
+					try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
+						int resuk=stmt.executeUpdate();
+						log.info("Found : " + resuk + "result");
+					}
+
+				}
+			});
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code(0);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(date_time);
+			responseModel.setResult_code(500);
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 	//---------------------- END FUNCTION IMPORT -----------------
 }

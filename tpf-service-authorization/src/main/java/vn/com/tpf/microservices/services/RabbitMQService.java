@@ -20,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -70,8 +71,13 @@ public class RabbitMQService {
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		String body = "username=" + username + "&password=" + password + "&grant_type=password";
 		HttpEntity<?> entity = new HttpEntity<>(body, headers);
-		ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
-		return mapper.valueToTree(res.getBody());
+		try {
+			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);	
+			return mapper.valueToTree(res.getBody());
+		} catch (HttpClientErrorException  e) {
+			log.error("{} {} {}",username,password,e.getResponseBodyAsString());
+			return null;
+		}		
 	}
 
 	public JsonNode checkToken(String[] token) {
