@@ -592,15 +592,15 @@ public class MomoService {
 			momo.setSmsResult("N");
 			smsResponse = "Cam on Quy khach da phan hoi thong tin. Yeu cau HUY cua Quy khach dang duoc xu ly.";
 			momo.setStatus("CUSTOMER_CANCELLED");
-			new Thread(() -> {
-				ResponseMomoStatus momoStatus = new ResponseMomoStatus();
-				momoStatus.setRequestId(body.path("reference_id").asText());
-				momoStatus.setMomoLoanId(momo.getMomoLoanId());
-				momoStatus.setPhoneNumber(momo.getPhoneNumber());
-				momoStatus.setStatus(status.path("CANCELLED").asInt());
-				momoStatus.setDescription("SMS N");
-				apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
-			}).start();
+//			new Thread(() -> {
+//				ResponseMomoStatus momoStatus = new ResponseMomoStatus();
+//				momoStatus.setRequestId(body.path("reference_id").asText());
+//				momoStatus.setMomoLoanId(momo.getMomoLoanId());
+//				momoStatus.setPhoneNumber(momo.getPhoneNumber());
+//				momoStatus.setStatus(status.path("CANCELLED").asInt());
+//				momoStatus.setDescription("SMS N");
+//				apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
+//			}).start();
 		}  else {
 			momo.setSmsResult("F");
 			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
