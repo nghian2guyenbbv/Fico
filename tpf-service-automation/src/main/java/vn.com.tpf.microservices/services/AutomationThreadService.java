@@ -11,21 +11,23 @@ public class AutomationThreadService implements Runnable {
     private String browser;
     private Map<String, Object> mapData;
     private String function;
+    private String project;
 
 
     @Autowired
     private AutomationHandlerService automationHandlerService;
 
-    public AutomationThreadService(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapData, String function) {
+    public AutomationThreadService(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapData, String function,String project) {
         super();
         this.accounts = accounts;
         this.browser = browser;
         this.mapData = mapData;
         this.function=function;
+        this.project=project;
     }
 
     @Override
     public void run() {
-        automationHandlerService.executor(accounts, browser, mapData,function);
+        automationHandlerService.executor(accounts, browser, mapData,function,project);
     }
 }

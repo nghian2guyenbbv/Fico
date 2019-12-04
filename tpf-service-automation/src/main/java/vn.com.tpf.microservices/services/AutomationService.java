@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,6 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.utilities.Constant;
@@ -159,7 +161,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"quickLead");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"quickLead","DATAENTRY");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 
@@ -170,7 +172,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE(application);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_UpdateInfo");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_UpdateInfo","DATAENTRY");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 
@@ -181,7 +183,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE(application);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_UpdateAppError");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_UpdateAppError","DATAENTRY");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 
@@ -218,8 +220,17 @@ public class AutomationService {
 	private void runAutomationMomo_CreateApp(Application application) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataMomo(application);
+//
+//		//get list account finone available
+//		Query query = new Query();
+//		query.addCriteria(Criteria.where("active").is(0));
+//		List<AccountFinOneDTO> accountFinOneDTOList=mongoTemplate.find(query, AccountFinOneDTO.class);
+//		if(accountFinOneDTOList ==null || accountFinOneDTOList.size()==0)
+//		{
+//
+//		}
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(momo_loginDTOQueue, browser, mapValue,"momoCreateApp");
+		AutomationThreadService automationThreadService= new AutomationThreadService(momo_loginDTOQueue, browser, mapValue,"momoCreateApp","MOMO");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 
@@ -253,7 +264,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFpt(application);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(fpt_loginDTOQueue, browser, mapValue,"fptCreateApp");
+		AutomationThreadService automationThreadService= new AutomationThreadService(fpt_loginDTOQueue, browser, mapValue,"fptCreateApp","FPT");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 
@@ -261,4 +272,37 @@ public class AutomationService {
 	}
 
 	//------------------------- END MOMO - FUNCTION ---------------------------------
+
+	//------------------------ AUTO ASSIGN - FUNCTION -------------------------------------
+	public Map<String, Object> DE_AutoAssign(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+
+		System.out.println(request);
+
+		Assert.notNull(request.get("body"), "no body");
+		List<AutoAssignDTO> autoAssignDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<AutoAssignDTO>>(){});
+
+		new Thread(() -> {
+			try {
+				runAutomationDE_AutoAssign(autoAssignDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, autoAssignDTOList);
+	}
+
+	private void runAutomationDE_AutoAssign(List<AutoAssignDTO> autoAssignDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_AutoAssign(autoAssignDTOList);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_AutoAssign","DE");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+
+		//awaitTerminationAfterShutdown(workerThreadPool);
+	}
+	//------------------------ END AUTO ASSIGN - FUNCTION -------------------------------------
 }

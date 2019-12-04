@@ -9,9 +9,14 @@ import org.openqa.selenium.interactions.Actions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
+import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
@@ -23,6 +28,8 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -39,61 +46,126 @@ public class AutomationHandlerService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    private LoginDTO pollAccountFromQueue(Queue<LoginDTO> accounts) throws Exception {
+    @Value("${spring.url.finone}")
+    private String fin1URL;
+
+    @Value("${spring.url.seleHost}")
+    private String seleHost;
+
+    @Value("${spring.url.selePort}")
+    private String selePort;
+
+
+    @Value("${spring.url.downloadFile}")
+    private String downdloadFileURL;
+
+
+    private LoginDTO pollAccountFromQueue(Queue<LoginDTO> accounts,String project) throws Exception {
         LoginDTO accountDTO = null;
+//        while (Objects.isNull(accountDTO)) {
+//            System.out.println("Wait to get account...");
+//
+//            accountDTO = accounts.poll();
+//            if (!Objects.isNull(accountDTO)) {
+//                System.out.println("Get it:" + accountDTO.toString());
+//                System.out.println("Exist:" + accounts.size());
+//            } else
+//                Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
+//        }
+
+
         while (Objects.isNull(accountDTO)) {
             System.out.println("Wait to get account...");
 
-            accountDTO = accounts.poll();
-            if (!Objects.isNull(accountDTO)) {
-                System.out.println("Get it:" + accountDTO.toString());
-                System.out.println("Exist:" + accounts.size());
+            //get list account finone available
+            Query query = new Query();
+            query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+            AccountFinOneDTO accountFinOneDTO=mongoTemplate.findOne(query, AccountFinOneDTO.class);
+            if (!Objects.isNull(accountFinOneDTO)) {
+                accountDTO=new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                Update update = new Update();
+                update.set("active", 1);
+                AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                if(resultUpdate==null)
+                {
+                    Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                    accountDTO=null;
+                }
+                else {
+                    System.out.println("Get it:" + accountDTO.toString());
+                    System.out.println("Exist:" + accounts.size());
+                }
             } else
                 Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
         }
 
+
         return accountDTO;
     }
 
-    private void pushAccountToQueue(Queue<LoginDTO> accounts, LoginDTO accountDTO) {
-        synchronized (accounts) {
+    private void pushAccountToQueue(LoginDTO accountDTO) {
+        //synchronized (accounts) {
             if (!Objects.isNull(accountDTO)) {
-                System.out.println("push to queue... : " + accountDTO.toString());
-                accounts.add(accountDTO);
+//                System.out.println("push to queue... : " + accountDTO.toString());
+//                accounts.add(accountDTO);
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()));
+                Update update = new Update();
+                update.set("active", 0);
+                AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+                System.out.println("Update it:" + accountDTO.toString());
             }
-        }
+       // }
     }
 
     public void logout(WebDriver driver) {
-        System.out.println("Logout");
-        LogoutPage logoutPage = new LogoutPage(driver);
-        logoutPage.logout();
+        try {
+
+            System.out.println("Logout");
+            LogoutPage logoutPage = new LogoutPage(driver);
+            logoutPage.logout();
+        } catch (Exception e) {
+        }
     }
 
-    public void executor(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapValue, String function) {
+    public void executor(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapValue, String function,String project) {
         WebDriver driver = null;
         LoginDTO accountDTO = null;
         try {
 
-            accountDTO = pollAccountFromQueue(accounts);
-            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, Constant.FINNONE_LOGIN_URL, null);
+
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser,fin1URL, null,seleHost,selePort);
             driver = setupTestDriver.getDriver();
 
             switch (function){
                 case "runAutomation_UpdateInfo":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_UpdateInfo(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_UpdateAppError":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_UpdateAppError(driver,mapValue,accountDTO);
                     break;
                 case "quickLead":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "momoCreateApp":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_momoCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "fptCreateApp":
+                    accountDTO = pollAccountFromQueue(accounts,project);
                     runAutomation_fptCreateApp(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomationDE_AutoAssign":
+                    //chay get account trong function
+                    runAutomationDE_autoAssign(driver, mapValue,project, browser);
                     break;
             }
 
@@ -102,7 +174,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
         } finally {
             //logout(driver);
-            pushAccountToQueue(accounts, accountDTO);
+            pushAccountToQueue(accountDTO);
             if (driver != null) {
                 driver.close();
                 driver.quit();
@@ -190,7 +262,7 @@ public class AutomationHandlerService {
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
 
-            leadDetailPage.setData(quickLead,leadApp);
+            leadDetailPage.setData(quickLead,leadApp,downdloadFileURL);
 
             Utilities.captureScreenShot(driver);
 
@@ -587,7 +659,13 @@ public class AutomationHandlerService {
                 case "EMPLOYMENT DETAILS":
                     updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
                     break;
+                case "LOGIN FINONE":
+                    updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
+                    break;
                 case "INIT DATA":
+                    updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
+                    break;
+                default:
                     updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
                     break;
             }
@@ -863,15 +941,63 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "APPLICATIONS";
+//            // ========== APPLICATIONS =================
+//            homePage.getMenuApplicationElement().click();
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+//            applicationGridPage.updateData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+
+
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
-            homePage.getApplicationElement().click();
 
+            // update lai flow assign app moi
+
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+//            applicationGridPage.setData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+//
+//            System.out.println(stage + ": DONE" );
+//            Utilities.captureScreenShot(driver);
+            stage="APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage=new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            de_applicationManagerPage.setData(leadAppID,accountDTO.getUserName());
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+
+            stage="APPLICATION GRID";
+            // ========== APPLICATION GRID =================
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()-> de_applicationManagerPage.getMenuApplicationElement().isDisplayed());
+
+            de_applicationManagerPage.getMenuApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            de_applicationManagerPage.getApplicationElement().click();
+            Utilities.captureScreenShot(driver);
             await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
-
-            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+            Utilities.captureScreenShot(driver);
+            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
             applicationGridPage.updateData(leadAppID);
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             // ========== LEAD DETAILS (DATA ENTRY) =================
@@ -1014,15 +1140,62 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "APPLICATIONS";
+//            // ========== APPLICATIONS =================
+//            homePage.getMenuApplicationElement().click();
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+//            applicationGridPage.updateData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
-            homePage.getApplicationElement().click();
 
+            // update lai flow assign app moi
+
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+//            applicationGridPage.setData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+//
+//            System.out.println(stage + ": DONE" );
+//            Utilities.captureScreenShot(driver);
+            stage="APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage=new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            de_applicationManagerPage.setData(leadAppID,accountDTO.getUserName());
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+
+            stage="APPLICATION GRID";
+            // ========== APPLICATION GRID =================
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()-> de_applicationManagerPage.getMenuApplicationElement().isDisplayed());
+
+            de_applicationManagerPage.getMenuApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            de_applicationManagerPage.getApplicationElement().click();
+            Utilities.captureScreenShot(driver);
             await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
-
-            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+            Utilities.captureScreenShot(driver);
+            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
             applicationGridPage.updateData(leadAppID);
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             // ========== LEAD DETAILS (DATA ENTRY) =================
@@ -1239,20 +1412,67 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "APPLICATIONS";
+//            // ========== APPLICATIONS =================
+//            homePage.getMenuApplicationElement().click();
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+//            applicationGridPage.updateData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
-            homePage.getApplicationElement().click();
 
-            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Grid"));
+            // update lai flow assign app moi
 
-            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
-            applicationGridPage.updateData(leadAppID);
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+//            applicationGridPage.setData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+//
+//            System.out.println(stage + ": DONE" );
+//            Utilities.captureScreenShot(driver);
+            stage="APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage=new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            de_applicationManagerPage.setData(leadAppID,accountDTO.getUserName());
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             // ========== LEAD DETAILS (DATA ENTRY) =================
             LeadDetailDEPage leadDetailDEPage= new LeadDetailDEPage(driver);
             leadDetailDEPage.setData(leadAppID);
+            Utilities.captureScreenShot(driver);
+
+            stage="APPLICATION GRID";
+            // ========== APPLICATION GRID =================
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()-> de_applicationManagerPage.getMenuApplicationElement().isDisplayed());
+
+            de_applicationManagerPage.getMenuApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            de_applicationManagerPage.getApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+            Utilities.captureScreenShot(driver);
+            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+            applicationGridPage.updateData(leadAppID);
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             stage="PERSONAL INFORMATION";
@@ -1986,4 +2206,156 @@ public class AutomationHandlerService {
         }
     }
     //------------------------ END FPT -----------------------------------------------------
+
+    //------------------------ AUTO ASSIGN -----------------------------------------------------
+    public void runAutomationDE_autoAssign(WebDriver driver, Map<String, Object> mapValue,String project,String browser) throws Exception {
+        String stage= "";
+        try {
+            stage="INIT DATA";
+            //*************************** GET DATA *********************//
+            List<AutoAssignDTO> autoAssignDTOList = (List<AutoAssignDTO>) mapValue.get("AutoAssignList");
+            //*************************** END GET DATA *********************//
+            List<LoginDTO> loginDTOList=new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do{
+                //get list account finone available
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO=mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew=new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if(resultUpdate==null)
+                    {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew=null;
+                    }
+                    else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew=null;
+            }while (!Objects.isNull(accountDTONew));
+
+            //insert data
+            mongoTemplate.insert(autoAssignDTOList, AutoAssignDTO.class);
+
+            if(loginDTOList.size()>0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO: loginDTOList){
+                    workerThreadPoolDE.execute(new Runnable () {
+                        @Override
+                        public void run() {
+                            runAutomationDE_autoAssign_run(loginDTO,browser);
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() +"\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        }
+    }
+
+    private void runAutomationDE_autoAssign_run(LoginDTO accountDTO, String browser) {
+        WebDriver driver = null;
+        Instant start = Instant.now();
+        String stage = "";
+        try {
+
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null,seleHost,selePort);
+            driver = setupTestDriver.getDriver();
+            //get account run
+            stage = "LOGIN FINONE";
+            HashMap<String, String> dataControl = new HashMap<>();
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+//            //check da login
+//            if(driver.findElements(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]")).size()!=0){
+//                WebElement we=driver.findElement(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]"));
+//                we.click();
+//            }
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            AutoAssignDTO autoAssignDTO = null;
+            do {
+                try {
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    autoAssignDTO = mongoTemplate.findOne(query, AutoAssignDTO.class);
+
+                    if (!Objects.isNull(autoAssignDTO)) {
+                        stage = "HOME PAGE";
+                        HomePage homePage = new HomePage(driver);
+                        //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
+                        // ========== APPLICATIONS =================
+                        String appID = autoAssignDTO.getAppid();
+                        homePage.getMenuApplicationElement().click();
+
+                        stage = "APPLICATION MANAGER";
+                        // ========== APPLICATION MANAGER =================
+                        homePage.getApplicationManagerElement().click();
+                        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Manager"));
+
+                        DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
+                        await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+                        de_applicationManagerPage.setData(appID, autoAssignDTO.getUsername());
+                        //System.out.println(stage + ": DONE");
+                        //Utilities.captureScreenShot(driver);
+
+                        System.out.println("DONE - Auto: " + accountDTO.getUserName() + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername());
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(autoAssignDTO.getAppid()).and("username").is(autoAssignDTO.getUsername()));
+                        Update update = new Update();
+                        update.set("userauto", accountDTO.getUserName());
+                        update.set("status", 1);
+                        AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(autoAssignDTO.getAppid()).and("username").is(autoAssignDTO.getUsername()));
+                    Update update = new Update();
+                    update.set("userauto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
+
+                    System.out.println(ex.getMessage());
+                }
+            } while (!Objects.isNull(autoAssignDTO));
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver);
+            pushAccountToQueue(accountDTO);
+        }
+    }
+    //------------------------ END AUTO ASSIGN -----------------------------------------------------
 }
