@@ -176,7 +176,7 @@ public class LeadDetailPage {
         _driver = driver;
     }
 
-    public void setData(QuickLead quickLead, String leadId) {
+    public void setData(QuickLead quickLead, String leadId,String downLoadFileURL) {
         try {
             ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
             Actions actions = new Actions(_driver);
@@ -265,10 +265,11 @@ public class LeadDetailPage {
             //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
             //String toFile = SCREENSHOT_PRE_PATH_DOC;
 
-           String fromFile = "http://192.168.0.203:3001/v1/file/";
+           String fromFile = downLoadFileURL;
+            //"http://192.168.0.203:3001/v1/file/"
             //String fromFile = "http://tpf-service-file:3001/v1/file/";
             //String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD;
-
+            System.out.println("URLdownload: " + fromFile);
 
             int index = 0;
             List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book",
@@ -280,7 +281,7 @@ public class LeadDetailPage {
                 final int _tempIndex = index;
                 String docName = element.getText();
                 //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
-                String toFile = Constant.SCREENSHOT_PRE_PATH;
+                String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                 if (requiredFiled.contains(docName)) {
                     toFile+=UUID.randomUUID().toString()+"_"+ docName +".pdf";
 
@@ -288,6 +289,8 @@ public class LeadDetailPage {
 
                     if(doc!=null)
                     {
+
+
                         FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                         File file = new File(toFile);
                         if(file.exists()) {

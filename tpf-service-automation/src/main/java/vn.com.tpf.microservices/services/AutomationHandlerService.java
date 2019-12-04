@@ -56,6 +56,10 @@ public class AutomationHandlerService {
     private String selePort;
 
 
+    @Value("${spring.url.downloadFile}")
+    private String downdloadFileURL;
+
+
     private LoginDTO pollAccountFromQueue(Queue<LoginDTO> accounts,String project) throws Exception {
         LoginDTO accountDTO = null;
 //        while (Objects.isNull(accountDTO)) {
@@ -258,7 +262,7 @@ public class AutomationHandlerService {
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
 
-            leadDetailPage.setData(quickLead,leadApp);
+            leadDetailPage.setData(quickLead,leadApp,downdloadFileURL);
 
             Utilities.captureScreenShot(driver);
 
@@ -655,7 +659,13 @@ public class AutomationHandlerService {
                 case "EMPLOYMENT DETAILS":
                     updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
                     break;
+                case "LOGIN FINONE":
+                    updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
+                    break;
                 case "INIT DATA":
+                    updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
+                    break;
+                default:
                     updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
                     break;
             }
@@ -931,15 +941,63 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "APPLICATIONS";
+//            // ========== APPLICATIONS =================
+//            homePage.getMenuApplicationElement().click();
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+//            applicationGridPage.updateData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+
+
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
-            homePage.getApplicationElement().click();
 
+            // update lai flow assign app moi
+
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+//            applicationGridPage.setData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+//
+//            System.out.println(stage + ": DONE" );
+//            Utilities.captureScreenShot(driver);
+            stage="APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage=new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            de_applicationManagerPage.setData(leadAppID,accountDTO.getUserName());
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+
+            stage="APPLICATION GRID";
+            // ========== APPLICATION GRID =================
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()-> de_applicationManagerPage.getMenuApplicationElement().isDisplayed());
+
+            de_applicationManagerPage.getMenuApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            de_applicationManagerPage.getApplicationElement().click();
+            Utilities.captureScreenShot(driver);
             await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
-
-            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+            Utilities.captureScreenShot(driver);
+            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
             applicationGridPage.updateData(leadAppID);
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             // ========== LEAD DETAILS (DATA ENTRY) =================
@@ -1082,15 +1140,62 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "APPLICATIONS";
+//            // ========== APPLICATIONS =================
+//            homePage.getMenuApplicationElement().click();
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+//            applicationGridPage.updateData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
-            homePage.getApplicationElement().click();
 
+            // update lai flow assign app moi
+
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+//            applicationGridPage.setData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+//
+//            System.out.println(stage + ": DONE" );
+//            Utilities.captureScreenShot(driver);
+            stage="APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage=new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            de_applicationManagerPage.setData(leadAppID,accountDTO.getUserName());
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+
+            stage="APPLICATION GRID";
+            // ========== APPLICATION GRID =================
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()-> de_applicationManagerPage.getMenuApplicationElement().isDisplayed());
+
+            de_applicationManagerPage.getMenuApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            de_applicationManagerPage.getApplicationElement().click();
+            Utilities.captureScreenShot(driver);
             await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
-
-            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+            Utilities.captureScreenShot(driver);
+            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
             applicationGridPage.updateData(leadAppID);
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             // ========== LEAD DETAILS (DATA ENTRY) =================
@@ -1307,20 +1412,67 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "APPLICATIONS";
+//            // ========== APPLICATIONS =================
+//            homePage.getMenuApplicationElement().click();
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+//            applicationGridPage.updateData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
-            homePage.getApplicationElement().click();
 
-            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Grid"));
+            // update lai flow assign app moi
 
-            ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
-            applicationGridPage.updateData(leadAppID);
+//            homePage.getApplicationElement().click();
+//
+//            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+//            applicationGridPage.setData(leadAppID);
+//            Utilities.captureScreenShot(driver);
+//
+//            System.out.println(stage + ": DONE" );
+//            Utilities.captureScreenShot(driver);
+            stage="APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage=new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            de_applicationManagerPage.setData(leadAppID,accountDTO.getUserName());
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             // ========== LEAD DETAILS (DATA ENTRY) =================
             LeadDetailDEPage leadDetailDEPage= new LeadDetailDEPage(driver);
             leadDetailDEPage.setData(leadAppID);
+            Utilities.captureScreenShot(driver);
+
+            stage="APPLICATION GRID";
+            // ========== APPLICATION GRID =================
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()-> de_applicationManagerPage.getMenuApplicationElement().isDisplayed());
+
+            de_applicationManagerPage.getMenuApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            de_applicationManagerPage.getApplicationElement().click();
+            Utilities.captureScreenShot(driver);
+            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+            Utilities.captureScreenShot(driver);
+            ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
+            applicationGridPage.updateData(leadAppID);
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             stage="PERSONAL INFORMATION";

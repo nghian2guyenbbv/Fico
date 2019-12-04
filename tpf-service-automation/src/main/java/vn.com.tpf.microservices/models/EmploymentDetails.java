@@ -17,6 +17,8 @@ public class EmploymentDetails {
     public String designation;
     public String yearsInJob;
     public String monthsInJob;
+    public String totalYearsInOccupation;
+    public String totalMonthsInOccupation;
     public String toDate;
     public String fromDate;
     public String employmentLocation;
