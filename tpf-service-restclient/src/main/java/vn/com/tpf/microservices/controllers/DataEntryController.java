@@ -270,7 +270,7 @@ public class DataEntryController {
 				ObjectNode dataLog = mapper.createObjectNode();
 				dataLog.put("type", "[==HTTP-LOG==]");
 				dataLog.set("result", mapper.convertValue(res, JsonNode.class));
-				log.error("{}", dataLog);
+				log.info("{}", dataLog);
 			}
 			catch (Exception e) {
 				ObjectNode dataLog = mapper.createObjectNode();
@@ -357,7 +357,7 @@ public class DataEntryController {
 						ObjectNode dataLog = mapper.createObjectNode();
 						dataLog.put("type", "[==HTTP-LOG==]");
 						dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
-						log.error("{}", dataLog);
+						log.info("{}", dataLog);
 					}
 					catch (Exception e) {
 						ObjectNode dataLog = mapper.createObjectNode();
@@ -486,7 +486,7 @@ public class DataEntryController {
 						ObjectNode dataLog = mapper.createObjectNode();
 						dataLog.put("type", "[==HTTP-LOG==]");
 						dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
-						log.error("{}", dataLog);
+						log.info("{}", dataLog);
 					}
 					catch (Exception e) {
 						ObjectNode dataLog = mapper.createObjectNode();

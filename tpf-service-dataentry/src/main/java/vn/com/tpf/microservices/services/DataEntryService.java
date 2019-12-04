@@ -674,6 +674,12 @@ public class DataEntryService {
 				responseModel.setResult_code("0");
 			}
 			if (requestCommnentFromDigiTex){
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+				Update update = new Update();
+				update.set("status", "RETURNED");
+				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
                 Report report = new Report();
                 report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
@@ -700,6 +706,11 @@ public class DataEntryService {
 				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
 				JsonNode body = mapper.valueToTree(res.getBody());
 
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+				Update update = new Update();
+				update.set("status", "PROCESSING");
+				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
                 Report report = new Report();
 				report.setQuickLeadId(requestId);
@@ -712,6 +723,12 @@ public class DataEntryService {
             }
 
             if (responseCommnentFullAPPFromDigiTex){
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+				Update update = new Update();
+				update.set("status", "COMPLETED");
+				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
                 Report report = new Report();
 				report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
@@ -1126,6 +1143,7 @@ public class DataEntryService {
 						request.path("body").path("applicationId").textValue().equals("UNKNOW") != true) {
 					Update update = new Update();
 					update.set("applicationId", request.path("body").path("applicationId").textValue());
+					update.set("status", "PROCESSING");
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
