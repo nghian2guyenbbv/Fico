@@ -704,13 +704,18 @@ public class DataEntryService {
 					doc.put("documentId", item.getLink().getUrlPartner());
 					documents.add(doc);
 				}
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-						"comment", comment, "documents", documents)), headers);
-				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
-				JsonNode body = mapper.valueToTree(res.getBody());
+
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+						"comment", comment, "documents", documents)), JsonNode.class);
+				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+
+//				HttpHeaders headers = new HttpHeaders();
+//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+//						"comment", comment, "documents", documents)), headers);
+//				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
+//				JsonNode body = mapper.valueToTree(res.getBody());
 
 				Query queryUpdate = new Query();
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
@@ -1169,13 +1174,18 @@ public class DataEntryService {
 							}
 						}
 					}
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
-							"application-id", applicationId, "document-ids", inputQuery)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexCmInfoApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
+
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+//							"application-id", applicationId, "document-ids", inputQuery)), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexCmInfoApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 
 					Report report = new Report();
 					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
@@ -1266,13 +1276,15 @@ public class DataEntryService {
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 
 				}else{
 					errors = request.path("body").path("stage").textValue();
@@ -1314,13 +1326,17 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
-							"commend-id", commentId, "errors", errors)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+							"commend-id", commentId, "errors", errors)), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+//							"commend-id", commentId, "errors", errors)), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1380,13 +1396,15 @@ public class DataEntryService {
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 
 				}else{
 					errors = request.path("body").path("stage").textValue();
@@ -1428,13 +1446,17 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
-							"commend-id", commentId, "errors", errors)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+							"commend-id", commentId, "errors", errors)), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+//							"commend-id", commentId, "errors", errors)), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 				}
 
 				responseModel.setRequest_id(requestId);
