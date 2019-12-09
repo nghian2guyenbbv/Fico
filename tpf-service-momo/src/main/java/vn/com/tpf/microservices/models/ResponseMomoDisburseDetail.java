@@ -11,7 +11,7 @@ public class ResponseMomoDisburseDetail {
 
 	private String loanId;
 	private Integer tenor;
-	private Long rate;
+	private Double rate;
 	private String disbursementDate;
 	private String maturityDate;
 	private Integer dueDate;
