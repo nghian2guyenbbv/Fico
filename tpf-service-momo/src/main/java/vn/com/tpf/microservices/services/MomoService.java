@@ -430,7 +430,7 @@ public class MomoService {
 							if (momoStatus.getDetail() == null) {
 								momoStatus.setDetail(new ResponseMomoStatusDetail());
 							}
-							momoStatus.getDetail().setApplicationId(momo.getAppId());
+							momoStatus.getDetail().setApplicationId(null);
 							apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
 							break;
 						} else
@@ -644,7 +644,7 @@ public class MomoService {
 				break;
 			}
 			listCancelled.add(  mapper.createObjectNode().put("appId", momo.getAppId())
-					.put("customter", String.format("%s %s %s", momo.getFirstName(), momo.getMiddleName(), momo.getLastName()))
+					.put("customter", String.format("%s %s %s",  momo.getLastName(), momo.getMiddleName(),momo.getFirstName()))
 					.put("status", status));
 		}
 		

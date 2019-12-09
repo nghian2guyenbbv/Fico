@@ -44,7 +44,7 @@ public class ConvertService {
 			application.getComment().forEach(e -> {
 				ObjectNode doc = mapper.createObjectNode();
 				doc.put("commentId", e.getCommentId());
-				doc.put("state", e.getState());
+				doc.put("state", e.getStage());
 				doc.put("type", e.getType());
 				doc.put("code", e.getCode());
 				doc.put("request", e.getRequest());
