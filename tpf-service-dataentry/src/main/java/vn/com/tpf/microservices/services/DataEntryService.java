@@ -601,7 +601,7 @@ public class DataEntryService {
 //					String typeComment = checkCommentExist.get(0).getComment().get(0).getType();
 
 					if (checkCommentExist.size() <= 0){
-						if (item.getType().equals("DIGI-TEX")) {// digitex gui comment
+						if (item.getType().equals("DIGI-TEXX")) {// digitex gui comment
 //							if (typeComment.equals("DIGI-TEX")) {// digitex gui comment
 							Query queryAddComment = new Query();
 							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
@@ -622,7 +622,7 @@ public class DataEntryService {
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
 									if (itemComment.getResponse() == null) {
-										stageAuto = itemComment.getState();
+										stageAuto = itemComment.getStage();
 										Update update = new Update();
 										update.set("comment.$.response", item.getResponse());
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
@@ -662,6 +662,7 @@ public class DataEntryService {
 									}
 								}
 							}
+
                             responseCommnentToDigiTex = true;
 
 						}
@@ -674,10 +675,21 @@ public class DataEntryService {
 				responseModel.setResult_code("0");
 			}
 			if (requestCommnentFromDigiTex){
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+				Update update = new Update();
+				update.set("status", "RETURNED");
+				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp","reference_id", referenceId,
+								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
                 Report report = new Report();
                 report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
-                report.setFunction("COMMENT");
+                report.setFunction("DIGITEXX_COMMENT");
                 report.setStatus("RETURNED");
                 report.setCreatedBy(token.path("user_name").textValue());
                 report.setCreatedDate(new Date());
@@ -688,23 +700,53 @@ public class DataEntryService {
 				ArrayNode documents = mapper.createArrayNode();
 				for (Document item: documentCommnet) {
 					ObjectNode doc = mapper.createObjectNode();
-					doc.put("documentComment", item.getComment());
-					doc.put("documentId", item.getLink().getUrlPartner());
-					documents.add(doc);
-				}
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-						"comment", comment, "documents", documents)), headers);
-				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
-				JsonNode body = mapper.valueToTree(res.getBody());
 
+					if (item.getType().equals("TPF_ID Card") || item.getType().equals("TPF_Notarization of ID card")){
+						doc.put("document-type", "ID-Card");
+						doc.put("document-id", item.getLink().getUrlPartner());
+						documents.add(doc);
+					}else if (item.getType().equals("TPF_Family Book") || item.getType().equals("TPF_Notarization of Family Book")){
+						doc.put("document-type", "Household");
+						doc.put("document-id", item.getLink().getUrlPartner());
+						documents.add(doc);
+					}else if (item.getType().equals("TPF_Customer Photograph")){
+						doc.put("document-type", "Personal-Image");
+						doc.put("document-id", item.getLink().getUrlPartner());
+						documents.add(doc);
+					}else if (item.getType().equals("TPF_Application cum Credit Contract (ACCA)")){
+						doc.put("document-type", "ACCA-form");
+						doc.put("document-id", item.getLink().getUrlPartner());
+						documents.add(doc);
+					}
+				}
+
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+						"comment", comment, "documents", documents)), JsonNode.class);
+				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+
+//				HttpHeaders headers = new HttpHeaders();
+//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+//						"comment", comment, "documents", documents)), headers);
+//				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
+//				JsonNode body = mapper.valueToTree(res.getBody());
+
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+				Update update = new Update();
+				update.set("status", "PROCESSING");
+				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp","reference_id", referenceId,
+								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
                 Report report = new Report();
 				report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
-                report.setFunction("COMMENT");
+                report.setFunction("FICO_RETURN_COMMENT");
                 report.setStatus("PROCESSING");
                 report.setCreatedBy(token.path("user_name").textValue());
                 report.setCreatedDate(new Date());
@@ -712,11 +754,17 @@ public class DataEntryService {
             }
 
             if (responseCommnentFullAPPFromDigiTex){
+//				Query queryUpdate = new Query();
+//				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+//				Update update = new Update();
+//				update.set("status", "COMPLETED");
+//				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
                 Report report = new Report();
 				report.setQuickLeadId(requestId);
                 report.setApplicationId(data.getApplicationId());
-                report.setFunction("COMMENT");
-                report.setStatus("COMPLETED");
+                report.setFunction("DIGITEXX_RETURN_COMMENT");
+                report.setStatus("FULL_APP_FAIL");
                 report.setCreatedBy(token.path("user_name").textValue());
                 report.setCreatedDate(new Date());
                 mongoTemplate.save(report);
@@ -728,7 +776,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString() + e.getCause() + e.getStackTrace());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1126,6 +1174,7 @@ public class DataEntryService {
 						request.path("body").path("applicationId").textValue().equals("UNKNOW") != true) {
 					Update update = new Update();
 					update.set("applicationId", request.path("body").path("applicationId").textValue());
+					update.set("status", "PROCESSING");
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
@@ -1140,13 +1189,18 @@ public class DataEntryService {
 							}
 						}
 					}
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
-							"application-id", applicationId, "document-ids", inputQuery)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexCmInfoApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
+
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+//							"application-id", applicationId, "document-ids", inputQuery)), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexCmInfoApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 
 					Report report = new Report();
 					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
@@ -1237,19 +1291,21 @@ public class DataEntryService {
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
 					Update update = new Update();
-					update.set("status", "RESPONSED");
+					update.set("status", "FULL_APP_FAIL");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
@@ -1259,7 +1315,7 @@ public class DataEntryService {
 					commentModel.setCommentId(commentId);
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
-					commentModel.setState(request.path("body").path("stage").textValue());
+					commentModel.setStage(request.path("body").path("stage").textValue());
 					commentModel.setRequest(request.path("body").path("description").textValue());
 
 					Query queryAddComment = new Query();
@@ -1272,8 +1328,8 @@ public class DataEntryService {
 					Report report = new Report();
 					report.setQuickLeadId(resultUpdate.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
-					report.setFunction("SENDFULLAPP");
-					report.setStatus("RESPONSED");
+					report.setFunction("FICO_COMMENT");
+					report.setStatus("FULL_APP_FAIL");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					mongoTemplate.save(report);
@@ -1285,13 +1341,17 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
-							"commend-id", commentId, "errors", errors)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+							"commend-id", commentId, "errors", errors)), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+//							"commend-id", commentId, "errors", errors)), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1351,19 +1411,21 @@ public class DataEntryService {
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
 					Update update = new Update();
-					update.set("status", "RESPONSED");
+					update.set("status", "FULL_APP_FAIL");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
@@ -1373,7 +1435,7 @@ public class DataEntryService {
 					commentModel.setCommentId(commentId);
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
-					commentModel.setState(request.path("body").path("stage").textValue());
+					commentModel.setStage(request.path("body").path("stage").textValue());
 					commentModel.setRequest(request.path("body").path("description").textValue());
 
 					Query queryAddComment = new Query();
@@ -1386,8 +1448,8 @@ public class DataEntryService {
 					Report report = new Report();
 					report.setQuickLeadId(resultUpdate.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
-					report.setFunction("UPDATEFULLAPP");
-					report.setStatus("RESPONSED");
+					report.setFunction("FICO_COMMENT");
+					report.setStatus("FULL_APP_FAIL");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					mongoTemplate.save(report);
@@ -1399,13 +1461,17 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
-							"commend-id", commentId, "errors", errors)), headers);
-					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-					JsonNode body = mapper.valueToTree(res.getBody());
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+							"commend-id", commentId, "errors", errors)), JsonNode.class);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+
+//					HttpHeaders headers = new HttpHeaders();
+//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+//							"commend-id", commentId, "errors", errors)), headers);
+//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
+//					JsonNode body = mapper.valueToTree(res.getBody());
 				}
 
 				responseModel.setRequest_id(requestId);
