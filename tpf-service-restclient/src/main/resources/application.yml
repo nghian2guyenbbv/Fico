@@ -1,15 +1,16 @@
-#spring:
-#  rabbitmq:
-#    host: 192.168.0.203
-#security:
-#  oauth2:
-#    client:
-#      client-id: tpf-service-root
-#      client-secret: tpf-service-root
-#      access-token-uri: http://192.168.0.203:1100/oauth/token
-#
-#eureka:
-# client:
-#   serviceUrl:
-#     defaultZone:  http://192.168.0.203:8761/eureka
-#
+spring:
+  rabbitmq:
+    host: 192.168.0.203
+security:
+  oauth2:
+    client:
+      client-id: tpf-service-root
+      client-secret: tpf-service-root
+      access-token-uri: http://192.168.0.203:1100/oauth/token
+    resource:
+      token-info-uri: http://192.168.0.203:1100/oauth/check_token
+
+eureka:
+ client:
+   serviceUrl:
+     defaultZone:  http://192.168.0.203:8761/eureka
