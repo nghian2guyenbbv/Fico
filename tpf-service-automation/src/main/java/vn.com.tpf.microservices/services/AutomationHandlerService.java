@@ -59,6 +59,21 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
+    private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts,String project) throws Exception {
+        LoginDTO accountDTO = null;
+        while (Objects.isNull(accountDTO)) {
+            System.out.println("Wait to get account...");
+
+            accountDTO = accounts.poll();
+            if (!Objects.isNull(accountDTO)) {
+                System.out.println("Get it:" + accountDTO.toString());
+                System.out.println("Exist:" + accounts.size());
+            } else
+                Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
+        }
+
+        return accountDTO;
+    }
 
     private LoginDTO pollAccountFromQueue(Queue<LoginDTO> accounts,String project) throws Exception {
         LoginDTO accountDTO = null;
@@ -105,6 +120,15 @@ public class AutomationHandlerService {
 
 
         return accountDTO;
+    }
+
+    private void pushAccountToQueue_OLD(Queue<LoginDTO> accounts,LoginDTO accountDTO) {
+        synchronized (accounts) {
+            if (!Objects.isNull(accountDTO)) {
+                System.out.println("push to queue... : " + accountDTO.toString());
+                accounts.add(accountDTO);
+            }
+        }
     }
 
     private void pushAccountToQueue(LoginDTO accountDTO) {
@@ -156,7 +180,7 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "momoCreateApp":
-                    accountDTO = pollAccountFromQueue(accounts,project);
+                    accountDTO = pollAccountFromQueue_OLD(accounts,project);
                     runAutomation_momoCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "fptCreateApp":
@@ -2272,6 +2296,7 @@ public class AutomationHandlerService {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
 
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null,seleHost,selePort);
@@ -2292,17 +2317,36 @@ public class AutomationHandlerService {
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
 
-            System.out.println(stage + ": DONE");
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
 
             AutoAssignDTO autoAssignDTO = null;
             do {
                 try {
+                    Instant startIn = Instant.now();
+
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0));
                     autoAssignDTO = mongoTemplate.findOne(query, AutoAssignDTO.class);
 
                     if (!Objects.isNull(autoAssignDTO)) {
+
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(autoAssignDTO.getAppid()).and("username").is(autoAssignDTO.getUsername()));
+                        Update update = new Update();
+                        update.set("userauto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
+
+                        if(resultUpdate==null)
+                        {
+                            continue;
+                        }
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
                         stage = "HOME PAGE";
                         HomePage homePage = new HomePage(driver);
                         //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
@@ -2320,19 +2364,21 @@ public class AutomationHandlerService {
 
                         await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-                        de_applicationManagerPage.setData(appID, autoAssignDTO.getUsername());
+                        de_applicationManagerPage.setData(appID, autoAssignDTO.getUsername().toLowerCase());
                         //System.out.println(stage + ": DONE");
                         //Utilities.captureScreenShot(driver);
 
-                        System.out.println("DONE - Auto: " + accountDTO.getUserName() + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername());
+                        System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
                         // ========= UPDATE DB ============================
-                        Query queryUpdate = new Query();
-                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(autoAssignDTO.getAppid()).and("username").is(autoAssignDTO.getUsername()));
-                        Update update = new Update();
-                        update.set("userauto", accountDTO.getUserName());
-                        update.set("status", 1);
-                        AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appid").is(autoAssignDTO.getAppid()).and("username").is(autoAssignDTO.getUsername()));
+                        Update update1 = new Update();
+                        update1.set("userauto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        AutoAssignDTO resultUpdate1 = mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignDTO.class);
+
+                        System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
                     Query queryUpdate = new Query();
@@ -2346,7 +2392,7 @@ public class AutomationHandlerService {
                 }
             } while (!Objects.isNull(autoAssignDTO));
         } catch (Exception e) {
-            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            System.out.println("User Auto:" + accountDTO.getUserName() +" - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
