@@ -698,24 +698,50 @@ public class DataEntryService {
 
             if (responseCommnentToDigiTex){
 				ArrayNode documents = mapper.createArrayNode();
+				boolean checkIdCard = false;
+				boolean checkHousehold = false;
 				for (Document item: documentCommnet) {
 					ObjectNode doc = mapper.createObjectNode();
 
-					if (item.getType().equals("TPF_ID Card") || item.getType().equals("TPF_Notarization of ID card")){
-						doc.put("document-type", "ID-Card");
-						doc.put("document-id", item.getLink().getUrlPartner());
-						documents.add(doc);
-					}else if (item.getType().equals("TPF_Family Book") || item.getType().equals("TPF_Notarization of Family Book")){
-						doc.put("document-type", "Household");
-						doc.put("document-id", item.getLink().getUrlPartner());
-						documents.add(doc);
-					}else if (item.getType().equals("TPF_Customer Photograph")){
-						doc.put("document-type", "Personal-Image");
-						doc.put("document-id", item.getLink().getUrlPartner());
+					if (item.getType().equals("TPF_ID Card")){
+						if (!checkIdCard) {
+							doc.put("documentComment", item.getComment());
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+
+							checkIdCard = true;
+						}
+					}else if (item.getType().equals("TPF_Notarization of ID card")){
+						if (!checkIdCard) {
+							doc.put("documentComment", item.getComment());
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+
+							checkIdCard = true;
+						}
+					}if (item.getType().equals("TPF_Family Book")){
+						if (!checkHousehold) {
+							doc.put("documentComment", item.getComment());
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+
+							checkHousehold = true;
+						}
+					}else if (item.getType().equals("TPF_Notarization of Family Book")){
+						if (!checkHousehold) {
+							doc.put("documentComment", item.getComment());
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+
+							checkHousehold = true;
+						}
+					} else if (item.getType().equals("TPF_Customer Photograph")){
+						doc.put("documentComment", item.getComment());
+						doc.put("documentId", item.getLink().getUrlPartner());
 						documents.add(doc);
 					}else if (item.getType().equals("TPF_Application cum Credit Contract (ACCA)")){
-						doc.put("document-type", "ACCA-form");
-						doc.put("document-id", item.getLink().getUrlPartner());
+						doc.put("documentComment", item.getComment());
+						doc.put("documentId", item.getLink().getUrlPartner());
 						documents.add(doc);
 					}
 				}
@@ -954,7 +980,7 @@ public class DataEntryService {
 			UUID quickLeadId = UUID.randomUUID();
 			List<QLDocument> dataUpload = new ArrayList<>();
 			Assert.notNull(request.get("body"), "no body");
-			if (request.get("appId").isNull()){
+			if (request.get("appId").equals("new")){
 				try {
 					dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
 				} catch (IOException e) {

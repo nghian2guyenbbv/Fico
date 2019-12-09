@@ -235,11 +235,11 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/v1/dataentry/uploadfile")
+	@PostMapping("/v1/dataentry/uploadfile/{appId}")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
 	public ResponseEntity<?> uploadfile(@RequestHeader("Authorization") String token,
 										@RequestPart("files")  MultipartFile[] files,
-										@RequestPart(value = "appId", required = false)  String appId)
+										@PathVariable String appId)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
@@ -256,7 +256,7 @@ public class DataEntryController {
 		boolean validatePersonalImage = false;
 		boolean validateACCA = false;
 
-        if (appId == null) {
+        if (appId.equals("new")) {
 
             for (MultipartFile item : files) {
                 if (item.getOriginalFilename().equals("TPF_ID Card.pdf")) {
@@ -329,7 +329,7 @@ public class DataEntryController {
 				boolean checkHousehold = false;
 				int i = 0;
 
-				if (appId == null){
+				if (!appId.equals("new")){
 					ArrayNode documents = mapper.createArrayNode();
 					if(files != null) {
 
