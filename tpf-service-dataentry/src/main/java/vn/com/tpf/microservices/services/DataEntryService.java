@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
-import com.mongodb.operation.GroupOperation;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +20,6 @@ import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -35,20 +29,16 @@ import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
 
 import javax.annotation.PostConstruct;
-import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.match;
+import java.util.stream.Collectors;
 
 @Service
 public class DataEntryService {
@@ -1738,4 +1728,123 @@ public class DataEntryService {
 		}
 	}
 
+	public Map<String, Object> getListStatus(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String referenceId = UUID.randomUUID().toString();
+		try{
+			Query query = new Query();
+			query.addCriteria(Criteria.where("status").ne(null));
+
+			List<String> listStatus= mongoTemplate.findDistinct(query,"status",Application.class,String.class);
+
+			if (listStatus.size() > 0){
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(listStatus);
+				return Map.of("status", 200, "data", responseModel);
+			}else{
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				return Map.of("status", 200, "data", responseModel);
+			}
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getSearchReport(JsonNode request, JsonNode token) {
+		ResponseModel responseModel = new ResponseModel();
+		String requestId = request.path("body").path("request_id").textValue();
+		String referenceId = UUID.randomUUID().toString();
+		ByteArrayInputStream in = null;
+		try{
+			Assert.notNull(request.get("body"), "no body");
+
+			Criteria criteria=new Criteria();
+
+			if(request.path("body").path("data").path("applicationId").textValue()!=null)
+			{
+				criteria=Criteria.where("applicationId").is(request.path("body").path("data").path("applicationId").textValue());
+			}
+			else{
+				criteria=Criteria.where("applicationId").ne(null);
+			}
+
+			if (request.path("body").path("data").path("fromDate").textValue() != null && request.path("body").path("data").path("toDate").textValue() != null){
+				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
+				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
+
+				criteria.and("createdDate").gte(fromDate).lte(toDate);
+			}
+
+			if(request.path("body").path("data").path("status").textValue()!=null)
+			{
+				criteria.and("status").is(request.path("body").path("data").path("status").textValue());
+			}else
+			{
+				criteria.and("status").ne(null);
+			}
+
+			if(request.path("body").path("data").path("createBy").textValue()!=null)
+			{
+				criteria.and("userName").is(request.path("body").path("data").path("createBy").textValue());
+			}
+
+			MatchOperation matchOperation=Aggregation.match(criteria);
+
+			Aggregation aggregation = Aggregation.newAggregation(matchOperation);
+			AggregationResults<Application> output = mongoTemplate.aggregate(aggregation, Application.class,Application.class);
+			List<Application> resultData = output.getMappedResults();
+
+			List<Object> resultCustome=resultData.stream().map(temp -> {
+				ReportModel obj = new ReportModel();
+				obj.setApplicationId(temp.getApplicationId());
+				obj.setStatus(temp.getStatus());
+				if(temp.getApplicationInformation()!=null)
+				{
+					obj.setFullName(temp.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+					obj.setIdentificationNumber(temp.getApplicationInformation().getPersonalInformation().getIdentifications()
+							.stream().filter(c->c.getIdentificationType().equals("Current National ID")).findAny().isPresent()
+							?temp.getApplicationInformation().getPersonalInformation().getIdentifications()
+							.stream().filter(c->c.getIdentificationType().equals("Current National ID")).findAny().get().getIdentificationNumber():"");
+				}
+				obj.setCreatedDate(temp.getCreatedDate());
+				return obj;
+			}).collect(Collectors.toList());
+
+
+
+			if (resultCustome.size() > 0){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(resultCustome
+				);
+			}else{
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("1");
+				responseModel.setMessage("no data");
+			}
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
 }
