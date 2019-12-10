@@ -129,7 +129,7 @@ public class DataEntryController {
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 
-		JsonNode dataDescription = mapper.convertValue(mapper.writeValueAsString(description), JsonNode.class);
+		JsonNode dataDescription = mapper.readTree(description);
 
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
