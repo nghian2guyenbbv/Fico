@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.models.App;
 import vn.com.tpf.microservices.models.ReportStatus;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -118,30 +119,30 @@ public class AppService {
 			query.addCriteria(Criteria.where("createdAt").gte(fromDate).lte(toDate));
 		}
 
-//		if (request.path("param").path("project").textValue() != null && request.path("param").path("project").textValue().equals("dataentry")) {
-//			List<String> branchUser = new ArrayList<String>();
-//			try {
-//				if (info.get("branches") != null) {
-//					branchUser = mapper.readValue(info.get("branches").toString(), List.class);
-//					if (request.path("param").path("branchName").textValue() == null) {
-//						query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
-//					} else {
-//						String[] branchQuery = request.path("param").path("branchName").textValue().split(",");
-//						ArrayList<String> ar = new ArrayList<String>();
-//
-//						for (int i = 0; i < branchQuery.length; i++) {
-//							if (branchUser.contains(branchQuery[i]))
-//								ar.add(branchQuery[i]);
-//						}
-//						query.addCriteria(Criteria.where("optional.branchName").in(ar));
-//					}
-//				} else {
-//					query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
-//				}
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		if (request.path("param").path("project").textValue() != null && request.path("param").path("project").textValue().equals("dataentry")) {
+			List<String> branchUser = new ArrayList<String>();
+			try {
+				if (info.get("branches") != null) {
+					branchUser = mapper.readValue(info.get("branches").toString(), List.class);
+					if (request.path("param").path("branchName").textValue() == null) {
+						query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
+					} else {
+						String[] branchQuery = request.path("param").path("branchName").textValue().split(",");
+						ArrayList<String> ar = new ArrayList<String>();
+
+						for (int i = 0; i < branchQuery.length; i++) {
+							if (branchUser.contains(branchQuery[i]))
+								ar.add(branchQuery[i]);
+						}
+						query.addCriteria(Criteria.where("optional.branchName").in(ar));
+					}
+				} else {
+					query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 		long total = mongoTemplate.count(query, App.class);
 
@@ -271,11 +272,13 @@ public class AppService {
 		String dFrom = getDepartment(oEntity);
 		String dTo = getDepartment(entity);
 
-		if (dTo.isEmpty()) {
-			dTo = dFrom;
-		}
-		if (!dFrom.equals(dTo)) {
-			update.unset("assigned");
+		if (!project.equals("dataentry")) {
+			if (dTo.isEmpty()) {
+				dTo = dFrom;
+			}
+			if (!dFrom.equals(dTo)) {
+				update.unset("assigned");
+			}
 		}
 
 		App nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), App.class);
