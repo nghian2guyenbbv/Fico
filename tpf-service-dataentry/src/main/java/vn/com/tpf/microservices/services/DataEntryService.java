@@ -131,6 +131,47 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+	public Map<String, Object> addProductV2(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String requestId = request.path("body").path("request_id").textValue();
+		String referenceId = UUID.randomUUID().toString();
+		try{
+			Assert.notNull(request.get("body"), "no body");
+			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+
+			List<ProductV2> inputData = requestModel.getProductv2();
+
+			List<ProductV2> checkExist = mongoTemplate.findAll(ProductV2.class);
+			if (checkExist.size() > 0){
+				Query query = new Query();
+				Update update = new Update();
+				update.set("product", requestModel.getProductv2());
+				ProductV2 addProduct = mongoTemplate.findAndModify(query, update, ProductV2.class);
+
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+			}else{
+				mongoTemplate.insert(inputData, ProductV2.class);
+
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+			}
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 	public Map<String, Object> getProductByName(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
@@ -162,6 +203,51 @@ public class DataEntryService {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("productName").is(requestModel.getData().getSearch_value()));
 				data = mongoTemplate.find(query, Product.class);
+			}
+			if (data.size() > 0){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(data);
+			}else{
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("1");
+				responseModel.setMessage("productName not exist.");
+			}
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+
+
+			responseModel.setData(quickLeadId);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getProductByNameV2(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String requestId = request.path("body").path("request_id").textValue();
+		String referenceId = UUID.randomUUID().toString();
+		UUID quickLeadId = UUID.randomUUID();
+		try{
+			Assert.notNull(request.get("body"), "no body");
+			RequestProductModel requestModel = mapper.treeToValue(request.get("body"), RequestProductModel.class);
+
+			List<ProductV2> data = new ArrayList<>();
+			if (requestModel.getData().getSearch_value() == null || requestModel.getData().getSearch_value().equals("")){
+				data = mongoTemplate.findAll(ProductV2.class);
+			}else{
+				Query query = new Query();
+				query.addCriteria(Criteria.where("productName").is(requestModel.getData().getSearch_value()));
+				data = mongoTemplate.find(query, ProductV2.class);
 			}
 			if (data.size() > 0){
 				responseModel.setRequest_id(requestId);
@@ -980,7 +1066,7 @@ public class DataEntryService {
 			UUID quickLeadId = UUID.randomUUID();
 			List<QLDocument> dataUpload = new ArrayList<>();
 			Assert.notNull(request.get("body"), "no body");
-			if (request.get("appId").equals("new")){
+			if (request.get("appId").textValue().equals("new")){
 				try {
 					dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
 				} catch (IOException e) {
@@ -1532,7 +1618,8 @@ public class DataEntryService {
             Assert.notNull(request.get("body"), "no body");
 			Query query = new Query();
 
-			if (request.path("body").path("data").path("fromDate").textValue() != null && request.path("body").path("data").path("toDate").textValue() != null){
+			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
+					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
 				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
 				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
 
@@ -1583,7 +1670,8 @@ public class DataEntryService {
             inputQuery.add("RESPONSED");
 			inputQuery.add("PROCESSING");
 
-			if (request.path("body").path("data").path("fromDate").textValue() != null && request.path("body").path("data").path("toDate").textValue() != null){
+			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
+					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
 				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
 				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
 

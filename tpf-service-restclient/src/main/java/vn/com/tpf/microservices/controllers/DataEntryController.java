@@ -69,6 +69,20 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
+	@PostMapping("/v1/dataentry/addproductv2")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> addProductV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "addProductV2");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
 	@RequestMapping("/v1/dataentry/getproductbyname")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
 	public ResponseEntity<?> getProductByName(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
@@ -79,6 +93,44 @@ public class DataEntryController {
 		request.put("body", body);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@RequestMapping("/v1/dataentry/getproductbynamev2")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> getProductByNameV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getProductByNameV2");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@RequestMapping("/v1/dataentry/getproductbynamev2_test")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> getProductByNameV2Test(@RequestHeader("Authorization") String token,
+													@RequestPart("description")  String description)
+			throws Exception {
+
+		JsonNode body = null;
+		ObjectMapper mapper = new ObjectMapper();
+
+
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getProductByNameV2");
+		request.put("token", token);
+		request.put("body",  Map.of("request_id", "d062b2f8-dc", "date_time", "1565667082",
+				"data", Map.of("aaaaa", "d062b2f8-dc")));
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+
+		JsonNode dataDescription = mapper.convertValue(mapper.writeValueAsString(description), JsonNode.class);
+
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
