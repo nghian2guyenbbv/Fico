@@ -124,8 +124,12 @@ public class RabbitMQService {
 			switch (request.path("func").asText()) {
 				case "addProduct":
 					return response(message, payload, dataEntryService.addProduct(request));
+				case "addProductV2":
+					return response(message, payload, dataEntryService.addProductV2(request));
 				case "getProductByName":
 					return response(message, payload, dataEntryService.getProductByName(request));
+				case "getProductByNameV2":
+					return response(message, payload, dataEntryService.getProductByNameV2(request));
 				case "getAll":
 					return response(message, payload, dataEntryService.getAll(request));
 				case "getByAppId":
