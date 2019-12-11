@@ -782,7 +782,9 @@ public class DataEntryService {
 					if (item.getType().equals("TPF_ID Card")){
 						if (!checkIdCard) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkIdCard = true;
@@ -790,7 +792,9 @@ public class DataEntryService {
 					}else if (item.getType().equals("TPF_Notarization of ID card")){
 						if (!checkIdCard) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkIdCard = true;
@@ -798,7 +802,9 @@ public class DataEntryService {
 					}if (item.getType().equals("TPF_Family Book")){
 						if (!checkHousehold) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkHousehold = true;
@@ -806,18 +812,24 @@ public class DataEntryService {
 					}else if (item.getType().equals("TPF_Notarization of Family Book")){
 						if (!checkHousehold) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkHousehold = true;
 						}
 					} else if (item.getType().equals("TPF_Customer Photograph")){
 						doc.put("documentComment", item.getComment());
-						doc.put("documentId", item.getLink().getUrlPartner());
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+						}
 						documents.add(doc);
 					}else if (item.getType().equals("TPF_Application cum Credit Contract (ACCA)")){
 						doc.put("documentComment", item.getComment());
-						doc.put("documentId", item.getLink().getUrlPartner());
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+						}
 						documents.add(doc);
 					}
 				}
