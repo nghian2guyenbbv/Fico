@@ -725,7 +725,7 @@ public class DataEntryService {
 											for (Document itemCommentFico : item.getResponse().getDocuments()) {
 												Link link = new Link();
 												link.setUrlFico(itemCommentFico.getFilename());
-												link.setUrlPartner(itemCommentFico.getUrlId());
+												link.setUrlPartner(itemCommentFico.getUrlid());
 												itemCommentFico.setLink(link);
 											}
 										}
