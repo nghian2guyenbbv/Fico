@@ -687,7 +687,7 @@ public class DataEntryService {
 //					String typeComment = checkCommentExist.get(0).getComment().get(0).getType();
 
 					if (checkCommentExist.size() <= 0){
-						if (item.getType().equals("DIGI-TEXX")) {// digitex gui comment
+						if (item.getType().equals("DIGI-TEX")) {// digitex gui comment
 //							if (typeComment.equals("DIGI-TEX")) {// digitex gui comment
 							Query queryAddComment = new Query();
 							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
