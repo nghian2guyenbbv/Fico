@@ -130,6 +130,23 @@ public class DataEntryController {
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 
 		JsonNode dataDescription = mapper.readTree(description);
+		JsonNode jjj = mapper.createArrayNode();
+
+		((ArrayNode) jjj).add(dataDescription.get(0));
+		try {
+			for (JsonNode node : dataDescription){
+				for (JsonNode item : jjj) {
+					if (!node.path("file-name").textValue().equals(item.path("file-name").textValue())){
+						((ArrayNode) jjj).add(node);
+						break;
+					}
+				}
+			}
+		}catch (Exception ex){
+			return ResponseEntity.status(response.path("status").asInt(200))
+					.header("x-pagination-total", response.path("total").asText("0")).body(ex);
+		}
+
 
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -492,22 +509,25 @@ public class DataEntryController {
 						parts_02.add("description", Map.of("files", documents));
 					}
 					try {
-						HttpHeaders headers_DT = new HttpHeaders();
-						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexDocumentApi, entity_DT, Object.class);
+						if (parts_02.size() > 0) {
+							HttpHeaders headers_DT = new HttpHeaders();
+							headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+							ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexDocumentApi, entity_DT, Object.class);
 
-						Object map = mapper.valueToTree(res_DT.getBody());
-						outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+							Object map = mapper.valueToTree(res_DT.getBody());
+							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
 //						Map<String, List> map = mapper.readValue(res_DT.getBody().toString(), new TypeReference<Map<String, List>>() {});
 //						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
 
-						ObjectNode dataLog = mapper.createObjectNode();
-						dataLog.put("type", "[==HTTP-LOG==]");
-						dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
-						log.info("{}", dataLog);
+							ObjectNode dataLog = mapper.createObjectNode();
+							dataLog.put("type", "[==HTTP-LOG==]");
+							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+							log.info("{}", dataLog);
+
+						}
 					}
 					catch (Exception e) {
 						ObjectNode dataLog = mapper.createObjectNode();
@@ -716,22 +736,24 @@ public class DataEntryController {
 						parts_02.add("description", Map.of("files", documents));
 					}
 					try {
-						HttpHeaders headers_DT = new HttpHeaders();
-						headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-						ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexResumitDocumentApi, entity_DT, Object.class);
+						if (parts_02.size() > 0) {
+							HttpHeaders headers_DT = new HttpHeaders();
+							headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+							ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexResumitDocumentApi, entity_DT, Object.class);
 
 //						Map<String, List> map = mapper.readValue(res_DT.getBody().toString().replaceAll("\"\\{\\[","\\[").replaceAll("\\]\\}\"","\\]"), new TypeReference<Map<String, List>>() {});
 //						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
 
-						Object map = mapper.valueToTree(res_DT.getBody());
-						outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+							Object map = mapper.valueToTree(res_DT.getBody());
+							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
-						ObjectNode dataLog = mapper.createObjectNode();
-						dataLog.put("type", "[==HTTP-LOG==]");
-						dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
-						log.info("{}", dataLog);
+							ObjectNode dataLog = mapper.createObjectNode();
+							dataLog.put("type", "[==HTTP-LOG==]");
+							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+							log.info("{}", dataLog);
+						}
 					}
 					catch (Exception e) {
 						ObjectNode dataLog = mapper.createObjectNode();
