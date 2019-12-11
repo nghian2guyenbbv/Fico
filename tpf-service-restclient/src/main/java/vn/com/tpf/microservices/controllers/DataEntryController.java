@@ -369,9 +369,15 @@ public class DataEntryController {
 			}
 			if (!validateComment) {
 			} else {
-				return ResponseEntity.status(200)
-						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-								"result_code", 3, "message", "Sai Document!"));
+				if (validateIdCard || validateHousehold || validatePersonalImage || validateACCA){
+					return ResponseEntity.status(200)
+							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+									"result_code", 3, "message", "Document khong hop le!"));
+				}else {
+					return ResponseEntity.status(200)
+							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+									"result_code", 3, "message", "Sai Document!"));
+				}
 			}
 		}
 
