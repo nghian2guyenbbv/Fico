@@ -429,7 +429,7 @@ public class DataEntryController {
 				boolean checkHousehold = false;
 				int i = 0;
 
-				if (!appId.equals("new")){
+				if (appId.equals("new")){
 					ArrayNode documents = mapper.createArrayNode();
 					if(files != null) {
 

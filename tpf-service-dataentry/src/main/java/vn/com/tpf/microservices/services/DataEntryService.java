@@ -456,6 +456,26 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{
+			Assert.notNull(request.path("body").path("request_id"), "no body");
+			if(request.path("body").path("data").path("customerId").textValue().length() != 9) {
+				if (request.path("body").path("data").path("customerId").textValue().length() != 12) {
+					responseModel.setRequest_id(requestId);
+					responseModel.setReference_id(referenceId);
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("2");
+					responseModel.setMessage("Sai CMND!");
+					return Map.of("status", 200, "data", responseModel);
+				}
+			}
+			if(request.path("body").path("data").path("bankCardNumber").textValue().length() != 16) {
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("2");
+				responseModel.setMessage("Sai BankCardNumber!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -1862,6 +1882,14 @@ public class DataEntryService {
 			workbook.write(out);
 			return new ByteArrayInputStream(out.toByteArray());
 		}
+	}
+
+	public boolean isValidIdNumer(String strNum) {
+		if(!strNum.matches("^[0-9]+$") && strNum.length()!=9 && strNum.length()!=12)
+		{
+			return false;
+		}
+		return true;
 	}
 
 }
