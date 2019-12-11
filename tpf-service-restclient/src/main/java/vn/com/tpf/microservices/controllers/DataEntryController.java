@@ -324,6 +324,7 @@ public class DataEntryController {
 		boolean validateHousehold = false;
 		boolean validatePersonalImage = false;
 		boolean validateACCA = false;
+		boolean validateComment = false;
 
         if (appId.equals("new")) {
 
@@ -348,7 +349,31 @@ public class DataEntryController {
                         .header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
                                 "result_code", 3, "message", "Thieu document!"));
             }
-        }
+        }else {
+			for (MultipartFile item : files) {
+				if (item.getOriginalFilename().equals("TPF_ID Card.pdf")) {
+					validateIdCard = true;
+				} else if (item.getOriginalFilename().equals("TPF_Notarization of ID card.pdf")) {
+					validateIdCard = true;
+				} else if (item.getOriginalFilename().equals("TPF_Family Book.pdf")) {
+					validateHousehold = true;
+				} else if (item.getOriginalFilename().equals("TPF_Notarization of Family Book.pdf")) {
+					validateHousehold = true;
+				} else if (item.getOriginalFilename().equals("TPF_Customer Photograph.pdf")) {
+					validatePersonalImage = true;
+				} else if (item.getOriginalFilename().equals("TPF_Application cum Credit Contract (ACCA).pdf")) {
+					validateACCA = true;
+				}else {
+					validateComment = true;
+				}
+			}
+			if (!validateComment) {
+			} else {
+				return ResponseEntity.status(200)
+						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+								"result_code", 3, "message", "Sai Document!"));
+			}
+		}
 
 		try {
 			ResponseEntity<?> res = new ResponseEntity<Authenticator.Success>(HttpStatus.CREATED);
