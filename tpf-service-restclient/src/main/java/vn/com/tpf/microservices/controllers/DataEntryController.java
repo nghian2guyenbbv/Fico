@@ -555,6 +555,7 @@ public class DataEntryController {
 
 							ObjectNode dataLog = mapper.createObjectNode();
 							dataLog.put("type", "[==HTTP-LOG==]");
+							dataLog.put("url", urlDigitexDocumentApi);
 							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 							log.info("{}", dataLog);
 
@@ -782,6 +783,7 @@ public class DataEntryController {
 
 							ObjectNode dataLog = mapper.createObjectNode();
 							dataLog.put("type", "[==HTTP-LOG==]");
+							dataLog.put("url", urlDigitexResumitDocumentApi);
 							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 							log.info("{}", dataLog);
 						}
