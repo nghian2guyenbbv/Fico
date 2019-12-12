@@ -454,7 +454,7 @@ public class DataEntryController {
 //										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 //								parts_02.add("Household", multipartFileToSend.getResource());
 //							}else
-							if (item.path("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -462,7 +462,7 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 								doc.put("file-name", "ACCA-form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -478,7 +478,7 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf")){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
 							    if (!checkIdCard) {
                                     doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
                                     doc.put("md5", item.path("md5").textValue());
@@ -490,7 +490,7 @@ public class DataEntryController {
 
                                     checkIdCard = true;
                                 }
-							}else if (item.path("originalname").textValue().equals("TPF_Family Book.pdf")){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
 							    if (!checkHousehold) {
                                     doc.put("file-name", "Household_" + item.path("originalname").textValue());
                                     doc.put("md5", item.path("md5").textValue());
@@ -510,7 +510,7 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -522,7 +522,7 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -638,12 +638,12 @@ public class DataEntryController {
 //										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 //								parts_02.add("Household", multipartFileToSend.getResource());
 //							}else
-							if (item.path("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Customer Photograph.pdf")){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -653,12 +653,12 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 								doc.put("file-name", "ACCA-form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -677,13 +677,13 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf")){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
 							    if (!checkIdCard) {
                                     doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
                                     doc.put("md5", item.path("md5").textValue());
                                     String docId = null;
                                     for (int j = 0; j < countDocId; j++) {
-                                        if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_ID Card.pdf")) {
+                                        if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
                                             docId = response.path("data").path("data").get(j).path("urlid").textValue();
                                         }
                                     }
@@ -696,13 +696,13 @@ public class DataEntryController {
 
                                     checkIdCard = true;
                                 }
-							}else if (item.path("originalname").textValue().equals("TPF_Family Book.pdf")){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
 							    if (!checkHousehold) {
                                     doc.put("file-name", "Household_" + item.path("originalname").textValue());
                                     doc.put("md5", item.path("md5").textValue());
                                     String docId = null;
                                     for (int j = 0; j < countDocId; j++) {
-                                        if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Family Book.pdf")) {
+                                        if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
                                             docId = response.path("data").path("data").get(j).path("urlid").textValue();
                                         }
                                     }
@@ -724,13 +724,13 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")) {
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -744,13 +744,13 @@ public class DataEntryController {
 									checkIdCard = true;
 								}
 
-							} else if (item.path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")) {
+							} else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
