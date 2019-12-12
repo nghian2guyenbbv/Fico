@@ -457,6 +457,16 @@ public class DataEntryService {
 					return Map.of("status", 200, "data", responseModel);
 				}
 			}
+
+			if (!isNumer(request.path("body").path("data").path("customerId").textValue())) {
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("2");
+				responseModel.setMessage("Sai CMND!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
 			if(request.path("body").path("data").path("bankCardNumber").textValue().length() != 16) {
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(referenceId);
@@ -1995,6 +2005,14 @@ public class DataEntryService {
 	}
 	public boolean isValidIdNumer(String strNum) {
 		if(!strNum.matches("^[0-9]+$") && strNum.length()!=9 && strNum.length()!=12)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	public boolean isNumer(String strNum) {
+		if(!strNum.matches("^[0-9]+$"))
 		{
 			return false;
 		}
