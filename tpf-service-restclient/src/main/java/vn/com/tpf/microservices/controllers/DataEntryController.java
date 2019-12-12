@@ -928,7 +928,8 @@ public class DataEntryController {
 		for (JsonNode item : mainNode) {
 			if (updateNode != null) {
 				for (JsonNode item2 : updateNode) {
-					if (item.findPath("originalname").textValue().equals("TPF_ID Card.pdf") || item.findPath("originalname").textValue().equals("TPF_Notarization of ID card.pdf")) {
+					if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ID-Card")) {
 						    if (!checkIdCard) {
                                 ObjectNode doc = mapper.createObjectNode();
@@ -941,7 +942,8 @@ public class DataEntryController {
                                 checkIdCard=true;
                             }
 						}
-					} else if (item.findPath("originalname").textValue().equals("TPF_Family Book.pdf") || item.findPath("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Household")) {
                             if (!checkHousehold) {
                                 ObjectNode doc = mapper.createObjectNode();
@@ -954,7 +956,7 @@ public class DataEntryController {
                                 checkHousehold = true;
                             }
 						}
-					} else if (item.findPath("originalname").textValue().equals("TPF_Customer Photograph.pdf")) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
 							ObjectNode doc = mapper.createObjectNode();
 							doc.put("originalname", item.findPath("originalname").textValue());
@@ -963,7 +965,7 @@ public class DataEntryController {
 							doc.put("urlid", item2.findPath("document-id").asText(null));
 							((ArrayNode) resultNode).add(doc);
 						}
-					} else if (item.findPath("originalname").textValue().equals("TPF_Application cum Credit Contract (ACCA).pdf")) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ACCA-form")) {
 							ObjectNode doc = mapper.createObjectNode();
 							doc.put("originalname", item.findPath("originalname").textValue());

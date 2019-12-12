@@ -878,6 +878,17 @@ public class DataEntryService {
 						"comment", comment, "documents", documents)), JsonNode.class);
 				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
 
+//				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+//				if (resultDG != null){
+//					responseModel.setRequest_id(requestId);
+//					responseModel.setReference_id(referenceId);
+//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//					responseModel.setResult_code("1");
+//					responseModel.setMessage(resultDG);
+//
+//					return Map.of("status", 200, "data", responseModel);
+//				}
+
 //				HttpHeaders headers = new HttpHeaders();
 //				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 //				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
@@ -1347,6 +1358,7 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
 							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
+//					String resultDG =  apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
 
 //					HttpHeaders headers = new HttpHeaders();
 //					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
