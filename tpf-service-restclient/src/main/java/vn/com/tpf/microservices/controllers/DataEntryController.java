@@ -329,17 +329,17 @@ public class DataEntryController {
         if (appId.equals("new")) {
 
             for (MultipartFile item : files) {
-                if (item.getOriginalFilename().equals("TPF_ID Card.pdf")) {
+                if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
                     validateIdCard = true;
-                } else if (item.getOriginalFilename().equals("TPF_Notarization of ID card.pdf")) {
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
                     validateIdCard = true;
-                } else if (item.getOriginalFilename().equals("TPF_Family Book.pdf")) {
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
                     validateHousehold = true;
-                } else if (item.getOriginalFilename().equals("TPF_Notarization of Family Book.pdf")) {
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
                     validateHousehold = true;
-                } else if (item.getOriginalFilename().equals("TPF_Customer Photograph.pdf")) {
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
                     validatePersonalImage = true;
-                } else if (item.getOriginalFilename().equals("TPF_Application cum Credit Contract (ACCA).pdf")) {
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
                     validateACCA = true;
                 }
             }
@@ -351,17 +351,17 @@ public class DataEntryController {
             }
         }else {
 			for (MultipartFile item : files) {
-				if (item.getOriginalFilename().equals("TPF_ID Card.pdf")) {
+				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().equals("TPF_Notarization of ID card.pdf")) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().equals("TPF_Family Book.pdf")) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().equals("TPF_Notarization of Family Book.pdf")) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().equals("TPF_Customer Photograph.pdf")) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
 					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().equals("TPF_Application cum Credit Contract (ACCA).pdf")) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
 					validateACCA = true;
 				}else {
 					validateComment = true;
