@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -22,7 +23,7 @@ public class ConvertService {
 		app.put("appId", application.getApplicationId());
 		app.put("status", application.getStatus());
 		app.put("fullName",
-				(application.getQuickLead().getFirstName() + application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
+				(application.getQuickLead().getFirstName() + " " +application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
 		app.put("automationResult", application.getDescription());
 		app.put("assigned", application.getUserName());
 		ArrayNode documents = mapper.createArrayNode();
@@ -51,6 +52,7 @@ public class ConvertService {
 				doc.put("createdAt", e.getCreatedDate().toString());
 				try {
 					doc.put("response", mapper.writeValueAsString(e.getResponse()));
+					doc.put("responseJson", mapper.convertValue(e.getResponse(), ObjectNode.class));
 				} catch (JsonProcessingException e1) {
 					e1.printStackTrace();
 				}
