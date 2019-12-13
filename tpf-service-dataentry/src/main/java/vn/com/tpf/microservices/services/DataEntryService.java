@@ -1930,8 +1930,8 @@ public class DataEntryService {
 
 	public Map<String, Object> getSearchReport(JsonNode request, JsonNode token) {
 		long total=0;
-		int page = request.path("body").path("data").path("page").asInt(1);
-		int limit = request.path("body").path("data").path("limit").asInt(10);
+		int page=1;
+		int limit=10;
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -1969,15 +1969,34 @@ public class DataEntryService {
 				criteria.and("userName").is(request.path("body").path("data").path("createBy").textValue());
 			}
 
-			MatchOperation matchOperation=Aggregation.match(criteria);
-			LimitOperation limitOperation=Aggregation.limit(limit);
-			SkipOperation skipOperation=Aggregation.skip(page-1);
-			Aggregation aggregation = Aggregation.newAggregation(matchOperation,limitOperation,skipOperation);
+			List<Application> resultData=new ArrayList<Application>();
 
-			total=mongoTemplate.aggregate(Aggregation.newAggregation(matchOperation), Application.class,Application.class).getMappedResults().size();
+			//get by page, limit
+			if(!request.path("body").path("data").path("page").isNull() && !request.path("body").path("data").path("limit").isNull()) {
+				page = request.path("body").path("data").path("page").asInt(1);
+				limit = request.path("body").path("data").path("limit").asInt(10);
 
-			AggregationResults<Application> output = mongoTemplate.aggregate(aggregation, Application.class,Application.class);
-			List<Application> resultData = output.getMappedResults();
+				MatchOperation matchOperation=Aggregation.match(criteria);
+				LimitOperation limitOperation=Aggregation.limit(limit);
+				SkipOperation skipOperation=Aggregation.skip(page-1);
+				Aggregation aggregation = Aggregation.newAggregation(matchOperation,limitOperation,skipOperation);
+
+				total=mongoTemplate.aggregate(Aggregation.newAggregation(matchOperation), Application.class,Application.class).getMappedResults().size();
+
+				AggregationResults<Application> output = mongoTemplate.aggregate(aggregation, Application.class,Application.class);
+				resultData = output.getMappedResults();
+
+			}else//get all
+			{
+				MatchOperation matchOperation=Aggregation.match(criteria);
+				Aggregation aggregation = Aggregation.newAggregation(matchOperation);
+
+				total=mongoTemplate.aggregate(Aggregation.newAggregation(matchOperation), Application.class,Application.class).getMappedResults().size();
+
+				AggregationResults<Application> output = mongoTemplate.aggregate(aggregation, Application.class,Application.class);
+				resultData = output.getMappedResults();
+			}
+
 
 			List<Object> resultCustome=resultData.stream().map(temp -> {
 				ReportModel obj = new ReportModel();
@@ -2021,6 +2040,7 @@ public class DataEntryService {
 		}
 		return Map.of("status", 200, "data", responseModel,"total",total);
 	}
+
 	public boolean isValidIdNumer(String strNum) {
 		if(!strNum.matches("^[0-9]+$") && strNum.length()!=9 && strNum.length()!=12)
 		{
