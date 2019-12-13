@@ -702,7 +702,7 @@ public class ApiService {
 							((ArrayNode) resultNode).add(doc);
 						}
 					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
-						if (item2.findPath("document-type").textValue().equals("ACCA-form")) {
+						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
 							ObjectNode doc = mapper.createObjectNode();
 							doc.put("originalname", item.findPath("originalname").textValue());
 							doc.put("filename", item.findPath("filename").textValue());
