@@ -9,7 +9,11 @@ import java.util.Map;
 @Data
 @Document(collection = "dataentry_product_v2")
 public class ProductV2 {
+//    private String productName;
+//    private List<Map<String, List<String>>> documentName;
+//    int countProductName;
+
     private String productName;
-    private List<Map<String, List<String>>> documentName;
+    private List<ProductV2Sub> documentName;
     int countProductName;
 }
