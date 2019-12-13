@@ -446,6 +446,36 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{
+			Assert.notNull(request.path("body").path("request_id"), "no body");
+			if(request.path("body").path("data").path("customerId").textValue().length() != 9) {
+				if (request.path("body").path("data").path("customerId").textValue().length() != 12) {
+					responseModel.setRequest_id(requestId);
+					responseModel.setReference_id(referenceId);
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("2");
+					responseModel.setMessage("Sai CMND!");
+					return Map.of("status", 200, "data", responseModel);
+				}
+			}
+
+			if (!isNumer(request.path("body").path("data").path("customerId").textValue())) {
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("2");
+				responseModel.setMessage("Sai CMND!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			if(request.path("body").path("data").path("bankCardNumber").textValue().length() != 16) {
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("2");
+				responseModel.setMessage("Sai BankCardNumber!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -677,7 +707,7 @@ public class DataEntryService {
 //					String typeComment = checkCommentExist.get(0).getComment().get(0).getType();
 
 					if (checkCommentExist.size() <= 0){
-						if (item.getType().equals("DIGI-TEXX")) {// digitex gui comment
+						if (item.getType().equals("DIGI-TEX")) {// digitex gui comment
 //							if (typeComment.equals("DIGI-TEX")) {// digitex gui comment
 							Query queryAddComment = new Query();
 							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
@@ -725,7 +755,7 @@ public class DataEntryService {
 											for (Document itemCommentFico : item.getResponse().getDocuments()) {
 												Link link = new Link();
 												link.setUrlFico(itemCommentFico.getFilename());
-												link.setUrlPartner(itemCommentFico.getUrlId());
+												link.setUrlPartner(itemCommentFico.getUrlid());
 												itemCommentFico.setLink(link);
 											}
 										}
@@ -782,7 +812,9 @@ public class DataEntryService {
 					if (item.getType().equals("TPF_ID Card")){
 						if (!checkIdCard) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkIdCard = true;
@@ -790,7 +822,9 @@ public class DataEntryService {
 					}else if (item.getType().equals("TPF_Notarization of ID card")){
 						if (!checkIdCard) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkIdCard = true;
@@ -798,7 +832,9 @@ public class DataEntryService {
 					}if (item.getType().equals("TPF_Family Book")){
 						if (!checkHousehold) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkHousehold = true;
@@ -806,18 +842,24 @@ public class DataEntryService {
 					}else if (item.getType().equals("TPF_Notarization of Family Book")){
 						if (!checkHousehold) {
 							doc.put("documentComment", item.getComment());
-							doc.put("documentId", item.getLink().getUrlPartner());
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+							}
 							documents.add(doc);
 
 							checkHousehold = true;
 						}
 					} else if (item.getType().equals("TPF_Customer Photograph")){
 						doc.put("documentComment", item.getComment());
-						doc.put("documentId", item.getLink().getUrlPartner());
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+						}
 						documents.add(doc);
 					}else if (item.getType().equals("TPF_Application cum Credit Contract (ACCA)")){
 						doc.put("documentComment", item.getComment());
-						doc.put("documentId", item.getLink().getUrlPartner());
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+						}
 						documents.add(doc);
 					}
 				}
@@ -825,6 +867,17 @@ public class DataEntryService {
 				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
 						"comment", comment, "documents", documents)), JsonNode.class);
 				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+
+//				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+//				if (resultDG != null){
+//					responseModel.setRequest_id(requestId);
+//					responseModel.setReference_id(referenceId);
+//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//					responseModel.setResult_code("1");
+//					responseModel.setMessage(resultDG);
+//
+//					return Map.of("status", 200, "data", responseModel);
+//				}
 
 //				HttpHeaders headers = new HttpHeaders();
 //				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -1295,6 +1348,7 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
 							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
+//					String resultDG =  apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
 
 //					HttpHeaders headers = new HttpHeaders();
 //					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -1966,5 +2020,20 @@ public class DataEntryService {
 			responseModel.setMessage(e.getMessage());
 		}
 		return Map.of("status", 200, "data", responseModel,"total",total);
+	}
+	public boolean isValidIdNumer(String strNum) {
+		if(!strNum.matches("^[0-9]+$") && strNum.length()!=9 && strNum.length()!=12)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	public boolean isNumer(String strNum) {
+		if(!strNum.matches("^[0-9]+$"))
+		{
+			return false;
+		}
+		return true;
 	}
 }
