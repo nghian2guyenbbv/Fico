@@ -1977,13 +1977,14 @@ public class DataEntryService {
 			List<Application> resultData=new ArrayList<Application>();
 
 			//get by page, limit
-			if(!request.path("body").path("data").path("page").isNull() && !request.path("body").path("data").path("limit").isNull()) {
+			if(request.path("body").path("data").get("page")!=null && request.path("body").path("data").get("limit")!=null) {
 				page = request.path("body").path("data").path("page").asInt(1);
 				limit = request.path("body").path("data").path("limit").asInt(10);
 
 				MatchOperation matchOperation=Aggregation.match(criteria);
 				LimitOperation limitOperation=Aggregation.limit(limit);
 				SkipOperation skipOperation=Aggregation.skip((long)(page-1) * limit);
+
 				Aggregation aggregation = Aggregation.newAggregation(matchOperation,skipOperation,limitOperation);
 
 				total=mongoTemplate.aggregate(Aggregation.newAggregation(matchOperation), Application.class,Application.class).getMappedResults().size();
