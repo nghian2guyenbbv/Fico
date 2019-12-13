@@ -209,7 +209,7 @@ public class ApiService {
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
 								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
-						parts_02.add("ACCA-form", multipartFileToSend.getResource());
+						parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 					}
 				}
 
@@ -445,7 +445,7 @@ public class ApiService {
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
 								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
-						parts_02.add("ACCA-form", multipartFileToSend.getResource());
+						parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 					}
 				}
 
