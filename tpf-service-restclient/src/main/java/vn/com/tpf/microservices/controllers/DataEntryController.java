@@ -469,7 +469,7 @@ public class DataEntryController {
 
 								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
 										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-								parts_02.add("ACCA-form", multipartFileToSend.getResource());
+								parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 							}
 							i = i + 1;
 						}
@@ -667,7 +667,7 @@ public class DataEntryController {
 
 								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
 										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-								parts_02.add("ACCA-form", multipartFileToSend.getResource());
+								parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 							}
 							i = i + 1;
 						}
@@ -966,7 +966,7 @@ public class DataEntryController {
 							((ArrayNode) resultNode).add(doc);
 						}
 					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
-						if (item2.findPath("document-type").textValue().equals("ACCA-form")) {
+						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
 							ObjectNode doc = mapper.createObjectNode();
 							doc.put("originalname", item.findPath("originalname").textValue());
 							doc.put("filename", item.findPath("filename").textValue());
