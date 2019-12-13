@@ -764,6 +764,7 @@ public class DataEntryController {
 									checkHousehold = true;
 								}
 							}
+							i = i + 1;
 						}
 						parts_02.add("description", Map.of("files", documents));
 					}
