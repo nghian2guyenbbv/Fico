@@ -1978,8 +1978,8 @@ public class DataEntryService {
 
 				MatchOperation matchOperation=Aggregation.match(criteria);
 				LimitOperation limitOperation=Aggregation.limit(limit);
-				SkipOperation skipOperation=Aggregation.skip(page-1);
-				Aggregation aggregation = Aggregation.newAggregation(matchOperation,limitOperation,skipOperation);
+				SkipOperation skipOperation=Aggregation.skip((long)(page-1) * limit);
+				Aggregation aggregation = Aggregation.newAggregation(matchOperation,skipOperation,limitOperation);
 
 				total=mongoTemplate.aggregate(Aggregation.newAggregation(matchOperation), Application.class,Application.class).getMappedResults().size();
 
