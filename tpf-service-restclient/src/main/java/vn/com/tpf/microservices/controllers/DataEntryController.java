@@ -463,12 +463,12 @@ public class DataEntryController {
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
-								doc.put("file-name", "ACCA-form_" + item.path("originalname").textValue());
+								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
 
-								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + files[i].getOriginalFilename(),
-										"ACCA-form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
+										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("ACCA-form", multipartFileToSend.getResource());
 							}
 							i = i + 1;
@@ -654,7 +654,7 @@ public class DataEntryController {
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
 							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
-								doc.put("file-name", "ACCA-form_" + item.path("originalname").textValue());
+								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
@@ -665,8 +665,8 @@ public class DataEntryController {
 								doc.put("document-id", docId);
 								documents.add(doc);
 
-								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + files[i].getOriginalFilename(),
-										"ACCA-form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+								MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + files[i].getOriginalFilename(),
+										"ACCA-Form_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("ACCA-form", multipartFileToSend.getResource());
 							}
 							i = i + 1;

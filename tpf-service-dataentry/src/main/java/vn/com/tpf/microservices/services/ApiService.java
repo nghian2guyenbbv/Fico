@@ -198,7 +198,7 @@ public class ApiService {
 								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
 						parts_02.add("Personal-Image", multipartFileToSend.getResource());
 					}else if (item.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
-						doc.put("file-name", "ACCA-form_" + item.getOriginalname());
+						doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						documents.add(doc);
 
@@ -207,8 +207,8 @@ public class ApiService {
 						HttpEntity<String> entity = new HttpEntity<>(headers);
 						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
-						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + item.getOriginalname(),
-								"ACCA-form_" + item.getOriginalname(), "application/pdf", response.getBody());
+						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
+								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
 						parts_02.add("ACCA-form", multipartFileToSend.getResource());
 					}
 				}
@@ -427,7 +427,7 @@ public class ApiService {
 								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
 						parts_02.add("Personal-Image", multipartFileToSend.getResource());
 					}else if (item.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
-						doc.put("file-name", "ACCA-form_" + item.getOriginalname());
+						doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						String docId = null;
 						for (QLDocument item2 : dataUploadOld) {
@@ -443,8 +443,8 @@ public class ApiService {
 						HttpEntity<String> entity = new HttpEntity<>(headers);
 						ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
-						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-form_" + item.getOriginalname(),
-								"ACCA-form_" + item.getOriginalname(), "application/pdf", response.getBody());
+						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
+								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
 						parts_02.add("ACCA-form", multipartFileToSend.getResource());
 					}
 				}
