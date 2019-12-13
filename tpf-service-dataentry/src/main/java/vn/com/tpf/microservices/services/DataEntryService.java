@@ -1745,7 +1745,7 @@ public class DataEntryService {
             AggregationOperation project = Aggregation.project().andExpression("_id").as("status").andExpression("count").as("appNo");
             //AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
             Aggregation aggregation = Aggregation.newAggregation(match1, group, sort, project/*, limit*/);
-            AggregationResults<ReportStatus> results = mongoTemplate.aggregate(aggregation, Report.class, ReportStatus.class);
+            AggregationResults<ReportStatus> results = mongoTemplate.aggregate(aggregation, Application.class, ReportStatus.class);
 
             List<ReportStatus> resultData = results.getMappedResults();
 
