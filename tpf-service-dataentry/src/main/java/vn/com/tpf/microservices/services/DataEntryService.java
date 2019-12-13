@@ -1449,6 +1449,7 @@ public class DataEntryService {
 
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+//					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
 //					HttpHeaders headers = new HttpHeaders();
 //					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -1500,6 +1501,8 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+//					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+
 
 //					HttpHeaders headers = new HttpHeaders();
 //					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -1569,6 +1572,7 @@ public class DataEntryService {
 
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+//					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
 //					HttpHeaders headers = new HttpHeaders();
 //					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -1620,6 +1624,7 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+//					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
 //					HttpHeaders headers = new HttpHeaders();
 //					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
