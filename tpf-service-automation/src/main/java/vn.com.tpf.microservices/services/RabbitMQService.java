@@ -48,7 +48,7 @@ public class RabbitMQService {
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(600);
+		rabbitTemplate.setReplyTimeout(30000);
 	}
 
 //	public JsonNode getToken() {
