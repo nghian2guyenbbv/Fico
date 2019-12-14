@@ -1027,6 +1027,16 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-automation",
 							Map.of("func", "quickLeadApp","body",
 									appData.get(0)));
+
+					Update update = new Update();
+					update.set("status", "NEW");
+					Application resultUpdate = mongoTemplate.findAndModify(queryGetApp, update, Application.class);
+
+					List<Application> appDataFull = mongoTemplate.find(queryGetApp, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appDataFull.get(0))));
+
+
 				}else {
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
