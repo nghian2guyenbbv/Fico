@@ -1687,7 +1687,7 @@ public class DataEntryService {
 				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
 				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
 
-				match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate));
+				match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("applicationId").ne(null));
 			}else{
 				match1 = Aggregation.match(Criteria.where("applicationId").ne(null));
 			}
