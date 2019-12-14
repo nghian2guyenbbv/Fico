@@ -1034,7 +1034,8 @@ public class DataEntryService {
 
 					List<Application> appDataFull = mongoTemplate.find(queryGetApp, Application.class);
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appDataFull.get(0))));
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", appDataFull.get(0).getId()), "body", convertService.toAppDisplay(appDataFull.get(0))));
 
 
 				}else {
