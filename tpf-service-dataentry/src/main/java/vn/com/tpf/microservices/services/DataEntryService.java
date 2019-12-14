@@ -1665,17 +1665,46 @@ public class DataEntryService {
 		ByteArrayInputStream in = null;
         try{
             Assert.notNull(request.get("body"), "no body");
-			Query query = new Query();
+//			Query query = new Query();
+//
+//			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
+//					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
+//				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
+//				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
+//
+//				query.addCriteria(Criteria.where("createdDate").gte(fromDate).lte(toDate));
+//			}
+//
+//            List<Report> listData = mongoTemplate.find(query, Report.class);
 
+
+
+
+
+			AggregationOperation match1;
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
 					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
 				Timestamp fromDate = Timestamp.valueOf(request.path("body").path("data").path("fromDate").textValue() + " 00:00:00");
 				Timestamp toDate = Timestamp.valueOf(request.path("body").path("data").path("toDate").textValue() + " 23:23:59");
 
-				query.addCriteria(Criteria.where("createdDate").gte(fromDate).lte(toDate));
+				match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate));
+			}else{
+				match1 = Aggregation.match(Criteria.where("applicationId").ne(null));
 			}
 
-            List<Report> listData = mongoTemplate.find(query, Report.class);
+//			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
+			AggregationOperation group = Aggregation.group("applicationId", "status", "quickLeadId", "description", "function", "createdBy", "createdDate");
+			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
+//			AggregationOperation project = Aggregation.project().andExpression("_id").as("applicationId");//.andExpression("createdDate").as("createdDate2");
+			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
+			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project, limit*/);
+			AggregationResults<Report> results = mongoTemplate.aggregate(aggregation, Report.class, Report.class);
+
+			List<Report> listData = results.getMappedResults();
+
+
+
+
             // export excel
 			in = tatReportToExcel(listData);
 
@@ -1843,7 +1872,7 @@ public class DataEntryService {
 				row.createCell(1).setCellValue(item.getApplicationId());
 
 				Cell cell = row.createCell(2);
-				cell.setCellValue(Calendar.getInstance());
+				cell.setCellValue(item.getCreatedDate());
 				cell.setCellStyle(cellStyle);
 
 //				row.createCell(2).setCellValue(item.getCreatedDate());
