@@ -71,4 +71,16 @@ public class EmploymentDetails {
     @NotEmpty(message = "isMajorEmployment not null")
     private String isMajorEmployment;
 
+    @NotNull
+    @NotEmpty(message = "remarks not null")
+    private String remarks;
+
+    @NotNull
+    @NotEmpty(message = "totalYearsInOccupation not null")
+    private String totalYearsInOccupation;
+
+    @NotNull
+    @NotEmpty(message = "totalMonthsInOccupation not null")
+    private String totalMonthsInOccupation;
+
 }
