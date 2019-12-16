@@ -648,6 +648,7 @@ public class DataEntryService {
 						update.set("loanDetails", data.getLoanDetails());
 						update.set("references", data.getReferences());
 						update.set("dynamicForm", data.getDynamicForm());
+						update.set("lastModifiedDate", new Date());
 						Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
 
 //						--automation fullapp--
@@ -883,6 +884,7 @@ public class DataEntryService {
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 				Update update = new Update();
 				update.set("status", "RETURNED");
+				update.set("lastModifiedDate", new Date());
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -989,6 +991,7 @@ public class DataEntryService {
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 				Update update = new Update();
 				update.set("status", "PROCESSING");
+				update.set("lastModifiedDate", new Date());
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -1062,6 +1065,7 @@ public class DataEntryService {
 				Update update = new Update();
 				update.set("status", data.getStatus().toUpperCase());
 				update.set("description", data.getDescription());
+				update.set("lastModifiedDate", new Date());
 				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
 					update.set("userName_DE", token.path("user_name").textValue());
 				}
@@ -1128,6 +1132,7 @@ public class DataEntryService {
 
 					Update update = new Update();
 					update.set("status", "NEW");
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdate = mongoTemplate.findAndModify(queryGetApp, update, Application.class);
 
 					List<Application> appDataFull = mongoTemplate.find(queryGetApp, Application.class);
@@ -1161,6 +1166,7 @@ public class DataEntryService {
 					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
                     update.set("quickLead.$.documents", data.getDocuments());
 					update.set("status", "NEW");
+					update.set("lastModifiedDate", new Date());
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
@@ -1439,6 +1445,7 @@ public class DataEntryService {
 					Update update = new Update();
 					update.set("applicationId", request.path("body").path("applicationId").textValue());
 					update.set("status", "PROCESSING");
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
@@ -1492,6 +1499,7 @@ public class DataEntryService {
 					Update update = new Update();
 //					update.set("applicationId", "UNKNOWN");
 					update.set("status", "AUTO_QL_FAIL");
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -1540,6 +1548,7 @@ public class DataEntryService {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Report report = new Report();
@@ -1574,6 +1583,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					//save comment
@@ -1663,6 +1673,7 @@ public class DataEntryService {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Report report = new Report();
@@ -1697,6 +1708,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					//save comment
@@ -1800,7 +1812,7 @@ public class DataEntryService {
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
 			AggregationOperation group = Aggregation.group("applicationId", "status", "quickLeadId", "description", "function", "createdBy", "createdDate");
-			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id").and(Sort.Direction.ASC, "createdDate");
+			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
 //			AggregationOperation project = Aggregation.project().andExpression("_id").as("applicationId");//.andExpression("createdDate").as("createdDate2");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
 			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project, limit*/);
