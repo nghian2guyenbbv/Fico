@@ -21,8 +21,8 @@ public class Identification {
     private String issuingCountry;
 
 //    @NotNull
-//    @NotEmpty(message = "placeOfBirth not null")
-    private String placeOfBirth;
+//    @NotEmpty(message = "placeOfIssue not null")
+    private String placeOfIssue;
 
 //    @NotNull
 //    @NotEmpty(message = "issueDate not null")
