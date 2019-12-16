@@ -541,6 +541,17 @@ public class DataEntryController {
 					}
 					try {
 						if (parts_02.size() > 0) {
+                            try{
+                                ObjectNode dataLogReq = mapper.createObjectNode();
+                                dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+                                dataLogReq.put("method", "POST");
+                                dataLogReq.put("url", urlDigitexDocumentApi);
+                                dataLogReq.set("payload", mapper.convertValue(parts_02, JsonNode.class));
+                                log.info("{}", dataLogReq);
+                            }
+                            catch (Exception ex){}
+
+
 							HttpHeaders headers_DT = new HttpHeaders();
 							headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -554,7 +565,7 @@ public class DataEntryController {
 //						outputDT = mapper.readTree(mapper.writeValueAsString(map.get("output")));
 
 							ObjectNode dataLog = mapper.createObjectNode();
-							dataLog.put("type", "[==HTTP-LOG==]");
+							dataLog.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
 							dataLog.put("url", urlDigitexDocumentApi);
 							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 							log.info("{}", dataLog);
@@ -770,6 +781,17 @@ public class DataEntryController {
 					}
 					try {
 						if (parts_02.size() > 0) {
+						    try{
+                                ObjectNode dataLogReq = mapper.createObjectNode();
+                                dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+                                dataLogReq.put("method", "POST");
+                                dataLogReq.put("appId", appId);
+                                dataLogReq.put("url", urlDigitexResumitDocumentApi);
+                                dataLogReq.set("payload", mapper.convertValue(parts_02, JsonNode.class));
+                                log.info("{}", dataLogReq);
+                            }
+                            catch (Exception ex){}
+
 							HttpHeaders headers_DT = new HttpHeaders();
 							headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
 							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -783,7 +805,7 @@ public class DataEntryController {
 							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
 							ObjectNode dataLog = mapper.createObjectNode();
-							dataLog.put("type", "[==HTTP-LOG==]");
+							dataLog.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
 							dataLog.put("url", urlDigitexResumitDocumentApi);
 							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 							log.info("{}", dataLog);

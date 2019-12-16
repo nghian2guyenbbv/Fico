@@ -663,7 +663,7 @@ public class DataEntryService {
 										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 
                         Report report = new Report();
-                        report.setQuickLeadId(requestId);
+                        report.setQuickLeadId(dataFullApp.getQuickLeadId());
                         report.setApplicationId(data.getApplicationId());
                         report.setFunction("SENDAPP");
                         report.setStatus("PROCESSING");
@@ -769,6 +769,7 @@ public class DataEntryService {
 		String commentId = "";
 		String comment = "";
 		String stageAuto = "";
+		String quickLeadId = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
 		try{
@@ -817,6 +818,11 @@ public class DataEntryService {
 //						if (item.getType().equals("FICO")) {// digitex tra comment
 						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+							try{
+								quickLeadId = checkCommentExist.get(0).getQuickLeadId();
+							}
+							catch (Exception ex){}
+
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
 									if (itemComment.getResponse() == null) {
@@ -885,7 +891,7 @@ public class DataEntryService {
 								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
                 Report report = new Report();
-                report.setQuickLeadId(requestId);
+                report.setQuickLeadId(dataFullApp.getQuickLeadId());
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("DIGITEXX_COMMENT");
                 report.setStatus("RETURNED");
@@ -991,7 +997,7 @@ public class DataEntryService {
 								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
                 Report report = new Report();
-				report.setQuickLeadId(requestId);
+				report.setQuickLeadId(dataFullApp.getQuickLeadId());
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("FICO_RETURN_COMMENT");
                 report.setStatus("PROCESSING");
@@ -1008,7 +1014,7 @@ public class DataEntryService {
 //				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
                 Report report = new Report();
-				report.setQuickLeadId(requestId);
+				report.setQuickLeadId(quickLeadId);
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("DIGITEXX_RETURN_COMMENT");
                 report.setStatus("FULL_APP_FAIL");
@@ -1310,15 +1316,15 @@ public class DataEntryService {
 					responseModel.setMessage("AppId not exist.");
 				}
 
-				Report report = new Report();
-				report.setQuickLeadId(quickLeadId.toString());
-				report.setApplicationId(request.get("appId").asText());
-				report.setFunction("UPLOADFILE_COMMENT");
-				report.setStatus("RETURNED");
-				report.setDescription(description);
-				report.setCreatedBy(token.path("user_name").textValue());
-				report.setCreatedDate(new Date());
-				mongoTemplate.save(report);
+//				Report report = new Report();
+//				report.setQuickLeadId(quickLeadId.toString());
+//				report.setApplicationId(request.get("appId").asText());
+//				report.setFunction("UPLOADFILE_COMMENT");
+//				report.setStatus("RETURNED");
+//				report.setDescription(description);
+//				report.setCreatedBy(token.path("user_name").textValue());
+//				report.setCreatedDate(new Date());
+//				mongoTemplate.save(report);
 			}
 		}
 		catch (Exception e) {
@@ -1781,9 +1787,6 @@ public class DataEntryService {
 //            List<Report> listData = mongoTemplate.find(query, Report.class);
 
 
-
-
-
 			AggregationOperation match1;
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
 					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
@@ -1797,7 +1800,7 @@ public class DataEntryService {
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
 			AggregationOperation group = Aggregation.group("applicationId", "status", "quickLeadId", "description", "function", "createdBy", "createdDate");
-			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
+			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id").and(Sort.Direction.ASC, "createdDate");
 //			AggregationOperation project = Aggregation.project().andExpression("_id").as("applicationId");//.andExpression("createdDate").as("createdDate2");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
 			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project, limit*/);
