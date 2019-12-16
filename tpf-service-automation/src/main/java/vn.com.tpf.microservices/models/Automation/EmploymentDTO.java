@@ -20,4 +20,7 @@ public class EmploymentDTO implements Serializable {
 	private String durationYears;
 	private String durationMonths;
 	private String natureOfOccupation;
+	public String totalYearsInOccupation;
+	public String totalMonthsInOccupation;
+	private String remarks;
 }

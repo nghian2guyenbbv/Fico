@@ -76,7 +76,10 @@ public class DataInitial {
                 .level(employmentDetails.getDesignation())
                 .employmentStatus(employmentDetails.getEmploymentStatus())
                 .durationYears(employmentDetails.getYearsInJob())
-                .durationMonths(employmentDetails.getMonthsInJob()).build();
+                .durationMonths(employmentDetails.getMonthsInJob())
+                .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation())
+                .totalYearsInOccupation(employmentDetails.getTotalYearsInOccupation())
+                .remarks(employmentDetails.getRemarks()).build();
 
         //Income Detail
         List<IncomeDetailDTO> incomeDetailDTOList=new ArrayList<>();

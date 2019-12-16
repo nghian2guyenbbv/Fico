@@ -134,6 +134,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'totalMonthsInOccupationId_chzn')]//input")
     private WebElement totalMonthsInOccupationInputElement;
 
+    @FindBy(how = How.ID, using = "remarks")
+    @CacheLookup
+    private WebElement employerName;
+
     public DE_ApplicationInfoEmploymentDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver = driver;
@@ -280,6 +284,9 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         durationMonthsElement.clear();
         durationMonthsElement.sendKeys(data.getDurationMonths());
 
+
+        employerName.clear();
+        employerName.sendKeys(data.getRemarks());
         //click nua se mat check
         //employerAddressCheckElement.click();
 
@@ -291,13 +298,13 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         actions.moveToElement(totalYearsInOccupationIdElement).click().build().perform();
         await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> totalYearsInOccupationOptionElement.size() > 1);
-        totalYearsInOccupationInputElement.sendKeys(data.getDurationYears());
+        totalYearsInOccupationInputElement.sendKeys(data.getTotalYearsInOccupation());
         totalYearsInOccupationInputElement.sendKeys(Keys.ENTER);
 
         actions.moveToElement(totalMonthsInOccupationIdElement).click().build().perform();
         await("totalMonthInOccupationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> totalMonthsInOccupationOptionElement.size() > 1);
-        totalMonthsInOccupationInputElement.sendKeys(data.getDurationYears());
+        totalMonthsInOccupationInputElement.sendKeys(data.getTotalMonthsInOccupation());
         totalMonthsInOccupationInputElement.sendKeys(Keys.ENTER);
     }
 
