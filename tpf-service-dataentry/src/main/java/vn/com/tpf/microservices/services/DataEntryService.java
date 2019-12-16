@@ -572,8 +572,8 @@ public class DataEntryService {
 								if (item.getIssuingCountry() == null || item.getIssuingCountry().equals("")){
 									validIdentifications = validIdentifications + "issuingCountry not null;";
 								}
-								if (item.getPlaceOfBirth() == null || item.getPlaceOfBirth().equals("")){
-									validIdentifications = validIdentifications + "placeOfBirth not null;";
+								if (item.getPlaceOfIssue() == null || item.getPlaceOfIssue().equals("")){
+									validIdentifications = validIdentifications + "placeOfIssue not null;";
 								}
 								if (item.getIssueDate() == null || item.getIssueDate().equals("")){
 									validIdentifications = validIdentifications + "issueDate not null;";
