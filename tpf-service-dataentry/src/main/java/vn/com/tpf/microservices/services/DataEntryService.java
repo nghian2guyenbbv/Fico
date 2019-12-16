@@ -962,9 +962,9 @@ public class DataEntryService {
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 
 				Update update = new Update();
-				update.set("status", data.getStatus());
+				update.set("status", data.getStatus().toUpperCase());
 				update.set("description", data.getDescription());
-				if (data.getStatus().equals("MANUALLY")){
+				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
 					update.set("userName_DE", token.path("user_name").textValue());
 				}
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
@@ -979,7 +979,7 @@ public class DataEntryService {
 				report.setQuickLeadId(resultUpdate.getQuickLeadId());
 				report.setApplicationId(data.getApplicationId());
 				report.setFunction("UPDATESTATUS");
-				report.setStatus(data.getStatus());
+				report.setStatus(data.getStatus().toUpperCase());
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
 				mongoTemplate.save(report);
