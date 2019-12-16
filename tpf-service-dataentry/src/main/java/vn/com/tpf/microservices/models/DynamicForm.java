@@ -11,8 +11,8 @@ public class DynamicForm {
     @NotEmpty(message = "formName not null")
     private String formName;
 
-    @NotNull
-    @NotEmpty(message = "zalo not null")
+//    @NotNull
+//    @NotEmpty(message = "zalo not null")
     private String zalo;
 
     @NotNull

@@ -12,7 +12,7 @@ public class PersonalInformation {
     private PersonalInfo personalInfo;
     @Valid
     private List<Identification> identifications;
-    @Valid
+//    @Valid
     private List<Address> addresses;
     @Valid
     private CommunicationDetails communicationDetails;

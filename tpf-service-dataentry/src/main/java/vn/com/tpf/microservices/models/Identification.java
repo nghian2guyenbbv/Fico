@@ -16,8 +16,8 @@ public class Identification {
     @NotEmpty(message = "identificationNumber not null")
     private String identificationNumber;
 
-    @NotNull
-    @NotEmpty(message = "issuingCountry not null")
+//    @NotNull
+//    @NotEmpty(message = "issuingCountry not null")
     private String issuingCountry;
 
 //    @NotNull
