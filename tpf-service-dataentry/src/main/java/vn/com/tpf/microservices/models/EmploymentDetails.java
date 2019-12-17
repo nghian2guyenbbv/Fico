@@ -55,12 +55,12 @@ public class EmploymentDetails {
     @NotEmpty(message = "monthsInJob not null")
     private String monthsInJob;
 
-    @NotNull
-    @NotEmpty(message = "toDate not null")
+//    @NotNull
+//    @NotEmpty(message = "toDate not null")
     private String toDate;
 
-    @NotNull
-    @NotEmpty(message = "fromDate not null")
+//    @NotNull
+//    @NotEmpty(message = "fromDate not null")
     private String fromDate;
 
     @NotNull
