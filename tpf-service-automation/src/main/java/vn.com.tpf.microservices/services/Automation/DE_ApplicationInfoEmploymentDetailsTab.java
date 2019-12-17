@@ -56,6 +56,14 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     @CacheLookup
     private List<WebElement> natureOfBusinessOptionElement;
 
+    @FindBy(how = How.ID, using = "EmpTypeId_chzn")
+    @CacheLookup
+    private WebElement employmentTypeElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'EmpTypeId_chzn_o_')]")
+    @CacheLookup
+    private List<WebElement> employmentTypeOptionElement;
+
     @FindBy(how = How.ID, using = "natOfOccId_chzn")
     @CacheLookup
     private WebElement natureOfOccupationElement;
@@ -207,6 +215,21 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 //		await("Industry loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //				.until(() -> industrySelect.getOptions().size() > 0);
 //		industrySelect.selectByVisibleText(data.getIndustry());
+
+            if(!data.getEmploymentType().isEmpty())
+            {
+                employmentTypeElement.click();
+                await("employmentTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> employmentTypeOptionElement.size() > 0);
+                for (WebElement element : employmentTypeOptionElement) {
+                    if (element.getText().equals(data.getEmploymentType())) {
+                        element.click();
+                        break;
+                    }
+                }
+            }
+
+
 
 
             departmentNameElement.sendKeys(data.getDepartment());

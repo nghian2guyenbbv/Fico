@@ -31,7 +31,7 @@ public class DataInitial {
         //Identification
         List<IdentificationDTO> identificationDTOs = new ArrayList<>();
         for (Identification identification : application.getApplicationInformation().getPersonalInformation().getIdentifications()) {
-            identificationDTOs.add(new IdentificationDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getIssuingCountry()));
+            identificationDTOs.add(new IdentificationDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getIssuingCountry(),identification.getPlaceOfIssue()));
         }
 
         //Address
@@ -75,6 +75,7 @@ public class DataInitial {
                 .department(employmentDetails.getDepartmentName())
                 .level(employmentDetails.getDesignation())
                 .employmentStatus(employmentDetails.getEmploymentStatus())
+                .employmentType(employmentDetails.getEmploymentType())
                 .durationYears(employmentDetails.getYearsInJob())
                 .durationMonths(employmentDetails.getMonthsInJob())
                 .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation())
@@ -102,7 +103,7 @@ public class DataInitial {
                 .middleName(personalInfo.getMiddleName())
                 .lastName(personalInfo.getFirstName())
                 .dateOfBirth(personalInfo.getDateOfBirth())
-                .placeOfIssue("Hà Nội")
+                .placeOfIssue(identificationDTOs.stream().filter(x->x.getDocumentType().equals("Current National ID")).findAny().get().getPlaceOfIssue())
                 .maritalStatus(personalInfo.getMaritalStatus())
                 .national(personalInfo.getNationality())
                 .education(personalInfo.getCustomerCategoryCode())

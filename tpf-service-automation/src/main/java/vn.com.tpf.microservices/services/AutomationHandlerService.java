@@ -2325,7 +2325,7 @@ public class AutomationHandlerService {
                 try {
                     Instant startIn = Instant.now();
 
-                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0));
                     autoAssignDTO = mongoTemplate.findOne(query, AutoAssignDTO.class);
