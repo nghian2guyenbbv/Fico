@@ -28,15 +28,15 @@ public class DynamicForm {
     private String houseOwnership;
 
     @NotNull
-    @NotEmpty(message = "companyName not null")
+//    @NotEmpty(message = "companyName not null")
     private String companyName;
 
     @NotNull
-    @NotEmpty(message = "contractNumber not null")
+//    @NotEmpty(message = "contractNumber not null")
     private String contractNumber;
 
     @NotNull
-    @NotEmpty(message = "monthlyFee not null")
+//    @NotEmpty(message = "monthlyFee not null")
     private String monthlyFee;
 
     @NotNull
