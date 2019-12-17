@@ -13,7 +13,7 @@ public class Identification {
     private String identificationType;
 
     @NotNull
-    @NotEmpty(message = "identificationNumber not null")
+//    @NotEmpty(message = "identificationNumber not null")
     private String identificationNumber;
 
 //    @NotNull
