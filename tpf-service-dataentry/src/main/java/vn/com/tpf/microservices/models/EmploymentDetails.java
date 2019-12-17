@@ -32,7 +32,7 @@ public class EmploymentDetails {
     private String industry;
 
     @NotNull
-    @NotEmpty(message = "employmentType not null")
+//    @NotEmpty(message = "employmentType not null")
     private String employmentType;
 
     @NotNull
