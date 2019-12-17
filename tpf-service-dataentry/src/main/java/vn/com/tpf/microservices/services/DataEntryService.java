@@ -1821,8 +1821,8 @@ public class DataEntryService {
 			}
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
-			AggregationOperation group = Aggregation.group("applicationId", "status", "quickLeadId", "description", "function", "createdBy", "createdDate");
-			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
+			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy");
+			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id", "createdDate");
 //			AggregationOperation project = Aggregation.project().andExpression("_id").as("applicationId");//.andExpression("createdDate").as("createdDate2");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
 			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project, limit*/);
