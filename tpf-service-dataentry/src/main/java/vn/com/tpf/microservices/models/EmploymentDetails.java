@@ -24,7 +24,7 @@ public class EmploymentDetails {
     private String natureOfBusiness;
 
     @NotNull
-    @NotEmpty(message = "otherCompanyTaxCode not null")
+//    @NotEmpty(message = "otherCompanyTaxCode not null")
     private String otherCompanyTaxCode;
 
     @NotNull
@@ -68,7 +68,7 @@ public class EmploymentDetails {
     private String employmentLocation;
 
     @NotNull
-    @NotEmpty(message = "isMajorEmployment not null")
+//    @NotEmpty(message = "isMajorEmployment not null")
     private String isMajorEmployment;
 
     @NotNull
