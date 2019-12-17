@@ -1871,7 +1871,7 @@ public class DataEntryService {
             List<String> inputQuery = new ArrayList<String>();
             inputQuery.add("COMPLETED");
             inputQuery.add("RETURNED");
-            inputQuery.add("RESPONSED");
+            inputQuery.add("FULL_APP_FAIL");
 			inputQuery.add("PROCESSING");
 
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
