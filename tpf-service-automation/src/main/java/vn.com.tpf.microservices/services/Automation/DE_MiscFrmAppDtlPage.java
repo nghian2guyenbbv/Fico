@@ -96,7 +96,16 @@ public class DE_MiscFrmAppDtlPage {
         loanPurposeElement.click();
         await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getLoanPurpose(), loanPurposeOptionElement);
+        String[] listPurpose= data.getLoanPurpose().split(";");
+
+        if(listPurpose.length>0)
+        {
+            for (String loanPurpose : listPurpose) {
+                Utilities.chooseDropdownValue(loanPurpose, loanPurposeOptionElement);
+            }
+        }
+
+
 
         numberOfDependentsElement.sendKeys(data.getNumOfDependents());
 

@@ -103,6 +103,9 @@ public class DE_ApplicationInfoPersonalTab {
     private WebElement btnAddIdentElement;
 
     // Address
+    @FindBy(how = How.ID, using = "address")
+    private WebElement formAddressEditElement;
+
     @FindBy(how = How.ID, using = "loadaddress")
     @CacheLookup
     private WebElement btnLoadAddressElementElement;
@@ -392,6 +395,11 @@ public class DE_ApplicationInfoPersonalTab {
                 .until(() -> editTadAddressElement.isDisplayed());
         Actions actions = new Actions(_driver);
         editTadAddressElement.click();
+
+        await("formAddressEditElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> formAddressEditElement.isDisplayed());
+
+        Utilities.captureScreenShot(_driver);
         //editTadAddressElement.click();
         setAddressValue(applicationInfoDTO.getAddress());
         loadAddressSection();
@@ -416,7 +424,8 @@ public class DE_ApplicationInfoPersonalTab {
                 .until(() -> btnCheckDuplicateElement.isEnabled());
 
         btnCheckDuplicateElement.click();
-        await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+
+        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
 
         saveAndNext();
@@ -504,6 +513,7 @@ public class DE_ApplicationInfoPersonalTab {
     public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException {
         int index = 0;
         Actions actions = new Actions(_driver);
+        Utilities.captureScreenShot(_driver);
         for (AddressDTO data : datas) {
             await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnCreateAnotherElement.isEnabled());
@@ -618,6 +628,7 @@ public class DE_ApplicationInfoPersonalTab {
 //            	_driver.switchTo().alert().accept();
             }
             index++;
+            Utilities.captureScreenShot(_driver);
         }
     }
 

@@ -253,6 +253,15 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
             durationMonthsElement.sendKeys(data.getDurationMonths());
 
             employerAddressCheckElement.click();
+
+            if(!data.getIsMajorEmployment().isEmpty())
+            {
+                if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
+                {
+                    WebElement webElement=_driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input"));
+                    webElement.click();
+                }
+            }
         }
     }
 

@@ -31,7 +31,7 @@ public class DataInitial {
         //Identification
         List<IdentificationDTO> identificationDTOs = new ArrayList<>();
         for (Identification identification : application.getApplicationInformation().getPersonalInformation().getIdentifications()) {
-            identificationDTOs.add(new IdentificationDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getIssuingCountry(),identification.getPlaceOfIssue()));
+            identificationDTOs.add(new IdentificationDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getPlaceOfIssue(),identification.getIssuingCountry()));
         }
 
         //Address
@@ -80,6 +80,7 @@ public class DataInitial {
                 .durationMonths(employmentDetails.getMonthsInJob())
                 .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation())
                 .totalYearsInOccupation(employmentDetails.getTotalYearsInOccupation())
+                .isMajorEmployment(employmentDetails.getIsMajorEmployment())
                 .remarks(employmentDetails.getRemarks()).build();
 
         //Income Detail
@@ -178,7 +179,8 @@ public class DataInitial {
                         .loanPurpose(dynamicForm.getLoanPurpose())
                         .numOfDependents(dynamicForm.getNumberOfDependents())
                         .houseOwnership(dynamicForm.getHouseOwnership())
-                        .mortgagePaymentCost(dynamicForm.getMonthlyFee())
+                        //.mortgagePaymentCost(dynamicForm.getMonthlyFee())
+                        .mortgagePaymentCost(dynamicForm.getMonthlyRental())
                         .newBankCardNumber(dynamicForm.getNewBankCardNumber())
                         .salesAgentCode(dynamicForm.getSaleAgentCode())
                         .maxRequestRate(dynamicForm.getMaximumInterestedRate())
