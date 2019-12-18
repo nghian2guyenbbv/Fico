@@ -1617,7 +1617,7 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
@@ -1742,7 +1742,7 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
