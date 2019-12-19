@@ -1592,7 +1592,8 @@ public class DataEntryService {
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
 					commentModel.setStage(request.path("body").path("stage").textValue());
-					commentModel.setRequest(request.path("body").path("description").textValue());
+					commentModel.setDescription(request.path("body").path("description").textValue());
+					commentModel.setRequest(request.path("body").path("stage").textValue());
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
@@ -1717,7 +1718,8 @@ public class DataEntryService {
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
 					commentModel.setStage(request.path("body").path("stage").textValue());
-					commentModel.setRequest(request.path("body").path("description").textValue());
+					commentModel.setDescription(request.path("body").path("description").textValue());
+					commentModel.setRequest(request.path("body").path("stage").textValue());
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
