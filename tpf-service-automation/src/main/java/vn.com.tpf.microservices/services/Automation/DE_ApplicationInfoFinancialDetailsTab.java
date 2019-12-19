@@ -116,10 +116,17 @@ public class DE_ApplicationInfoFinancialDetailsTab {
                     break;
                 }
             }
-            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).clear();
-            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
 
             Utilities.captureScreenShot(_driver);
+
+            //_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
+
+            WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
+            Utilities.checkValueSendkeyAmount(data.getAmount(),we);
+
+            Utilities.captureScreenShot(_driver);
+
+            System.out.println("amoutn salary: " + data.getAmount());
 
             if(data.getIncomeHead().equals("Main Personal Income")) {
                 //add income detail
@@ -137,11 +144,16 @@ public class DE_ApplicationInfoFinancialDetailsTab {
                 incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
                 incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
 
+                Utilities.captureScreenShot(_driver);
                 incomeDetailForm_paymentModeElement.click();
+
                 await("incomeDetailForm_paymentModeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+
                         .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
                 incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
                 incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
+
+                Utilities.captureScreenShot(_driver);
 
                 childModalWindowDoneButtonIncomeDetailInlineGridElement.click();
                 Thread.sleep(3000);

@@ -133,6 +133,18 @@ public class Utilities {
         } while (!textSendkey.equals(inputValue) &&  i < 5);
     }
 
+    public static void checkValueSendkeyAmount(String inputValue, WebElement webElement) {
+        int i = 0;
+        String textSendkey = "";
+        do {
+            webElement.click();
+            webElement.clear();
+            webElement.sendKeys(inputValue);
+            textSendkey = webElement.getAttribute("value").replace(",","");
+            i++;
+        } while (!textSendkey.equals(inputValue) &&  i < 5);
+    }
+
     private static final String WORD_SEPARATOR = " ";
 
     public static String convertToTitleCaseSplitting(String text) {
