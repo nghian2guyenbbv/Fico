@@ -1591,7 +1591,7 @@ public class DataEntryService {
 
 					Update update = new Update();
 					update.set("status", "FULL_APP_FAIL");
-					update.set("description", request.path("body").path("description").textValue());
+					update.set("description", request.path("body").path("stage").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
@@ -1717,7 +1717,7 @@ public class DataEntryService {
 
 					Update update = new Update();
 					update.set("status", "FULL_APP_FAIL");
-					update.set("description", request.path("body").path("description").textValue());
+					update.set("description", request.path("body").path("stage").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
