@@ -21,10 +21,10 @@ public class ConvertService {
 		app.put("uuid", application.getId());
 		app.put("status", application.getStatus());
 		app.put("appId", application.getApplicationId());
-		app.put("status", application.getStatus());
+//		app.put("status", application.getStatus());
 		app.put("fullName",
 				(application.getQuickLead().getFirstName() + " " +application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
-		app.put("automationResult", application.getDescription());
+//		app.put("automationResult", application.getDescription());
 		app.put("assigned", application.getUserName());
 		ArrayNode documents = mapper.createArrayNode();
 		if(application.getQuickLead().getDocuments() != null) {

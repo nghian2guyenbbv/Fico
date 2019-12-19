@@ -551,11 +551,104 @@ public class DataEntryService {
 					Set<ConstraintViolation<Application>> constraintViolations = validator.validate(data);
 
 					if (constraintViolations.size() <= 0 || constraintViolations.isEmpty()){
+
+						String validIdentifications = null;
+						String validaddresses = null;
+						for (Identification item : data.getApplicationInformation().getPersonalInformation().getIdentifications()) {
+							if (item.getIdentificationType().toUpperCase().equals("Current National ID".toUpperCase())){
+								if (item.getIdentificationNumber() == null || item.getIdentificationNumber().equals("")){
+									validIdentifications = validIdentifications + "identificationNumber not null;";
+								}
+								if (item.getIssuingCountry() == null || item.getIssuingCountry().equals("")){
+									validIdentifications = validIdentifications + "issuingCountry not null;";
+								}
+								if (item.getPlaceOfIssue() == null || item.getPlaceOfIssue().equals("")){
+									validIdentifications = validIdentifications + "placeOfIssue not null;";
+								}
+								if (item.getIssueDate() == null || item.getIssueDate().equals("")){
+									validIdentifications = validIdentifications + "issueDate not null;";
+								}
+							}
+						}
+						if (validIdentifications != null){
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(UUID.randomUUID().toString());
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Current National ID: " + validIdentifications);
+
+							return Map.of("status", 200, "data", responseModel);
+						}
+
+						for (Address item : data.getApplicationInformation().getPersonalInformation().getAddresses()) {
+							if (item.getAddressType().toUpperCase().equals("Current Address".toUpperCase())){
+								if (item.getCountry() == null || item.getCountry().equals("")){
+									validaddresses = validaddresses + "country not null;";
+								}
+								if (item.getState() == null || item.getState().equals("")){
+									validaddresses = validaddresses + "state not null;";
+								}
+								if (item.getCity() == null || item.getCity().equals("")){
+									validaddresses = validaddresses + "city not null;";
+								}
+								if (item.getZipcode() == null || item.getZipcode().equals("")){
+									validaddresses = validaddresses + "zipcode not null;";
+								}
+								if (item.getArea() == null || item.getArea().equals("")){
+									validaddresses = validaddresses + "area not null;";
+								}
+								if (item.getAddressLine1() == null || item.getAddressLine1().equals("")){
+									validaddresses = validaddresses + "addressLine1 not null;";
+								}
+								if (item.getAddressLine2() == null || item.getAddressLine2().equals("")){
+									validaddresses = validaddresses + "addressLine2 not null;";
+								}
+								if (item.getAddressLine3() == null || item.getAddressLine3().equals("")){
+									validaddresses = validaddresses + "addressLine3 not null;";
+								}
+								if (item.getMonthsInCurrentAddress() == null || item.getMonthsInCurrentAddress().equals("")){
+									validaddresses = validaddresses + "monthsInCurrentAddress not null;";
+								}
+								if (item.getYearsInCurrentAddress() == null || item.getYearsInCurrentAddress().equals("")){
+									validaddresses = validaddresses + "yearsInCurrentAddress not null;";
+								}
+
+								if (item.getPhoneNumbers().size() <= 0){
+									validaddresses = validaddresses + "phoneNumbers not null;";
+								}else{
+									for (PhoneNumber item2 : item.getPhoneNumbers()) {
+										if (item2.getPhoneType().toUpperCase().equals("Mobile Phone".toUpperCase())){
+											if (item2.getIsdCode() == null || item2.getIsdCode().equals("")){
+												validaddresses = validaddresses + "isdCode not null;";
+											}
+											if (item2.getPhoneNumber() == null || item2.getPhoneNumber().equals("")){
+												validaddresses = validaddresses + "phoneNumber not null;";
+											}
+											if (item2.getCountryCode() == null || item2.getCountryCode().equals("")){
+												validaddresses = validaddresses + "countryCode not null;";
+											}
+										}
+									}
+								}
+							}
+						}
+						if (validaddresses != null){
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(UUID.randomUUID().toString());
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Current Address: " + validaddresses);
+
+							return Map.of("status", 200, "data", responseModel);
+						}
+
+
 						Update update = new Update();
 						update.set("applicationInformation", data.getApplicationInformation());
 						update.set("loanDetails", data.getLoanDetails());
 						update.set("references", data.getReferences());
 						update.set("dynamicForm", data.getDynamicForm());
+						update.set("lastModifiedDate", new Date());
 						Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
 
 //						--automation fullapp--
@@ -571,7 +664,7 @@ public class DataEntryService {
 										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 
                         Report report = new Report();
-                        report.setQuickLeadId(requestId);
+                        report.setQuickLeadId(dataFullApp.getQuickLeadId());
                         report.setApplicationId(data.getApplicationId());
                         report.setFunction("SENDAPP");
                         report.setStatus("PROCESSING");
@@ -677,6 +770,7 @@ public class DataEntryService {
 		String commentId = "";
 		String comment = "";
 		String stageAuto = "";
+		String quickLeadId = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
 		try{
@@ -725,6 +819,11 @@ public class DataEntryService {
 //						if (item.getType().equals("FICO")) {// digitex tra comment
 						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+							try{
+								quickLeadId = checkCommentExist.get(0).getQuickLeadId();
+							}
+							catch (Exception ex){}
+
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
 									if (itemComment.getResponse() == null) {
@@ -785,6 +884,7 @@ public class DataEntryService {
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 				Update update = new Update();
 				update.set("status", "RETURNED");
+				update.set("lastModifiedDate", new Date());
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -793,7 +893,7 @@ public class DataEntryService {
 								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
                 Report report = new Report();
-                report.setQuickLeadId(requestId);
+                report.setQuickLeadId(dataFullApp.getQuickLeadId());
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("DIGITEXX_COMMENT");
                 report.setStatus("RETURNED");
@@ -891,6 +991,7 @@ public class DataEntryService {
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 				Update update = new Update();
 				update.set("status", "PROCESSING");
+				update.set("lastModifiedDate", new Date());
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -899,7 +1000,7 @@ public class DataEntryService {
 								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
                 Report report = new Report();
-				report.setQuickLeadId(requestId);
+				report.setQuickLeadId(dataFullApp.getQuickLeadId());
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("FICO_RETURN_COMMENT");
                 report.setStatus("PROCESSING");
@@ -916,7 +1017,7 @@ public class DataEntryService {
 //				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
                 Report report = new Report();
-				report.setQuickLeadId(requestId);
+				report.setQuickLeadId(quickLeadId);
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("DIGITEXX_RETURN_COMMENT");
                 report.setStatus("FULL_APP_FAIL");
@@ -964,6 +1065,7 @@ public class DataEntryService {
 				Update update = new Update();
 				update.set("status", data.getStatus().toUpperCase());
 				update.set("description", data.getDescription());
+				update.set("lastModifiedDate", new Date());
 				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
 					update.set("userName_DE", token.path("user_name").textValue());
 				}
@@ -1030,6 +1132,7 @@ public class DataEntryService {
 
 					Update update = new Update();
 					update.set("status", "NEW");
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdate = mongoTemplate.findAndModify(queryGetApp, update, Application.class);
 
 					List<Application> appDataFull = mongoTemplate.find(queryGetApp, Application.class);
@@ -1063,6 +1166,7 @@ public class DataEntryService {
 					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
                     update.set("quickLead.$.documents", data.getDocuments());
 					update.set("status", "NEW");
+					update.set("lastModifiedDate", new Date());
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
@@ -1218,15 +1322,15 @@ public class DataEntryService {
 					responseModel.setMessage("AppId not exist.");
 				}
 
-				Report report = new Report();
-				report.setQuickLeadId(quickLeadId.toString());
-				report.setApplicationId(request.get("appId").asText());
-				report.setFunction("UPLOADFILE_COMMENT");
-				report.setStatus("RETURNED");
-				report.setDescription(description);
-				report.setCreatedBy(token.path("user_name").textValue());
-				report.setCreatedDate(new Date());
-				mongoTemplate.save(report);
+//				Report report = new Report();
+//				report.setQuickLeadId(quickLeadId.toString());
+//				report.setApplicationId(request.get("appId").asText());
+//				report.setFunction("UPLOADFILE_COMMENT");
+//				report.setStatus("RETURNED");
+//				report.setDescription(description);
+//				report.setCreatedBy(token.path("user_name").textValue());
+//				report.setCreatedDate(new Date());
+//				mongoTemplate.save(report);
 			}
 		}
 		catch (Exception e) {
@@ -1341,6 +1445,7 @@ public class DataEntryService {
 					Update update = new Update();
 					update.set("applicationId", request.path("body").path("applicationId").textValue());
 					update.set("status", "PROCESSING");
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
@@ -1394,6 +1499,7 @@ public class DataEntryService {
 					Update update = new Update();
 //					update.set("applicationId", "UNKNOWN");
 					update.set("status", "AUTO_QL_FAIL");
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -1442,6 +1548,7 @@ public class DataEntryService {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Report report = new Report();
@@ -1476,6 +1583,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					//save comment
@@ -1484,7 +1592,8 @@ public class DataEntryService {
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
 					commentModel.setStage(request.path("body").path("stage").textValue());
-					commentModel.setRequest(request.path("body").path("description").textValue());
+					commentModel.setDescription(request.path("body").path("description").textValue());
+					commentModel.setRequest(request.path("body").path("stage").textValue());
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
@@ -1509,7 +1618,7 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
@@ -1565,6 +1674,7 @@ public class DataEntryService {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Report report = new Report();
@@ -1599,6 +1709,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", request.path("body").path("description").textValue());
 					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					//save comment
@@ -1607,7 +1718,8 @@ public class DataEntryService {
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
 					commentModel.setStage(request.path("body").path("stage").textValue());
-					commentModel.setRequest(request.path("body").path("description").textValue());
+					commentModel.setDescription(request.path("body").path("description").textValue());
+					commentModel.setRequest(request.path("body").path("stage").textValue());
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
@@ -1632,7 +1744,7 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
@@ -1689,9 +1801,6 @@ public class DataEntryService {
 //            List<Report> listData = mongoTemplate.find(query, Report.class);
 
 
-
-
-
 			AggregationOperation match1;
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
 					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
@@ -1704,17 +1813,15 @@ public class DataEntryService {
 			}
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
-			AggregationOperation group = Aggregation.group("applicationId", "status", "quickLeadId", "description", "function", "createdBy", "createdDate");
-			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
-//			AggregationOperation project = Aggregation.project().andExpression("_id").as("applicationId");//.andExpression("createdDate").as("createdDate2");
+			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy");
+			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId", "createdDate");
+//			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId").and(Sort.Direction.DESC, "createdDate");
+//			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate");//.andExpression("createdDate").as("createdDate2");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
-			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project, limit*/);
+			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project /*, limit*/);
 			AggregationResults<Report> results = mongoTemplate.aggregate(aggregation, Report.class, Report.class);
 
 			List<Report> listData = results.getMappedResults();
-
-
-
 
             // export excel
 			in = tatReportToExcel(listData);
@@ -1756,7 +1863,7 @@ public class DataEntryService {
             List<String> inputQuery = new ArrayList<String>();
             inputQuery.add("COMPLETED");
             inputQuery.add("RETURNED");
-            inputQuery.add("RESPONSED");
+            inputQuery.add("FULL_APP_FAIL");
 			inputQuery.add("PROCESSING");
 
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")

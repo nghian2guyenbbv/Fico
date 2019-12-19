@@ -8,15 +8,15 @@ import javax.validation.constraints.NotNull;
 @Data
 public class Family {
     @NotNull
-    @NotEmpty(message = "memberName not null")
+//    @NotEmpty(message = "memberName not null")
     private String memberName;
 
     @NotNull
-    @NotEmpty(message = "phoneNumber not null")
+//    @NotEmpty(message = "phoneNumber not null")
     private String phoneNumber;
 
     @NotNull
-    @NotEmpty(message = "relationship not null")
+//    @NotEmpty(message = "relationship not null")
     private String relationship;
 
 }
