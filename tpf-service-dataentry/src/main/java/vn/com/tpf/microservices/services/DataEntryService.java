@@ -1554,7 +1554,7 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
-				if (request.path("body").path("status").textValue().equals("OK")) {
+				if (request.path("body").path("status").textValue().toUpperCase().equals("OK")) {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
@@ -1589,10 +1589,17 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
+					if (errors.toUpperCase().equals("END OF LEAD DETAIL") ||
+							errors.toUpperCase().equals("PERSONAL INFORMATION") ||
+							errors.toUpperCase().equals("EMPLOYMENT DETAILS")){
+					}else{
+						errors = "OTHER";
+					}
+
 					Update update = new Update();
 					update.set("status", "FULL_APP_FAIL");
-					update.set("description", request.path("body").path("stage").textValue());
-					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("description", errors);
+					update.set("stage", errors);
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1601,9 +1608,9 @@ public class DataEntryService {
 					commentModel.setCommentId(commentId);
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
-					commentModel.setStage(request.path("body").path("stage").textValue());
+					commentModel.setStage(errors);
 					commentModel.setDescription(request.path("body").path("description").textValue());
-					commentModel.setRequest(request.path("body").path("stage").textValue());
+					commentModel.setRequest(errors);
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
@@ -1675,12 +1682,12 @@ public class DataEntryService {
 		String errors = "";
 		try{
 			applicationId = request.path("body").path("applicationId").textValue();
-			errors = request.path("body").path("description").textValue();
+			errors = request.path("body").path("stage").textValue();
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
-				if (request.path("body").path("status").textValue().equals("OK")) {
+				if (request.path("body").path("status").textValue().toUpperCase().equals("OK")) {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
@@ -1715,10 +1722,17 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
+					if (errors.toUpperCase().equals("END OF LEAD DETAIL") ||
+							errors.toUpperCase().equals("PERSONAL INFORMATION") ||
+							errors.toUpperCase().equals("EMPLOYMENT DETAILS")){
+					}else{
+						errors = "OTHER";
+					}
+
 					Update update = new Update();
 					update.set("status", "FULL_APP_FAIL");
-					update.set("description", request.path("body").path("stage").textValue());
-					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("description", errors);
+					update.set("stage", errors);
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1727,9 +1741,9 @@ public class DataEntryService {
 					commentModel.setCommentId(commentId);
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
-					commentModel.setStage(request.path("body").path("stage").textValue());
+					commentModel.setStage(errors);
 					commentModel.setDescription(request.path("body").path("description").textValue());
-					commentModel.setRequest(request.path("body").path("stage").textValue());
+					commentModel.setRequest(errors);
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
