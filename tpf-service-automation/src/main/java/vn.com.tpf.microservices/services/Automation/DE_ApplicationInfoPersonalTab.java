@@ -153,6 +153,9 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chzn_o_')]")
     private List<WebElement> areaOptionElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chzn')]//input")
+    private WebElement areaInputElement;
+
     @FindBy(how = How.ID, using = "address1ToBeAddedInput_country")
     private WebElement address1Element;
 
@@ -594,12 +597,19 @@ public class DE_ApplicationInfoPersonalTab {
             actions.moveToElement(areaElement).click().build().perform();
             await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> areaOptionElement.size() > 1);
-            for (WebElement element : areaOptionElement) {
-                if (element.getText().equals(data.getArea())) {
-                    element.click();
-                    break;
-                }
-            }
+
+//            for (WebElement element : areaOptionElement) {
+//                if (element.getText().equals(data.getArea())) {
+//                    element.click();
+//                    break;
+//                }
+//            }
+
+            // sua bang cach nhap enter, hoa thuong deu dc
+            areaInputElement.sendKeys(data.getArea().toUpperCase());
+            areaInputElement.sendKeys(Keys.ENTER);
+
+
 //            Select areaSelect = new Select(areaElement);
 //            await("Area loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(() -> areaSelect.getOptions().size() > 0);

@@ -45,6 +45,18 @@ public class Utilities {
         }
     }
 
+    public static void chooseDropdownValueArray(String[] visibleTextValue, List<WebElement> optionElements) {
+        for(String purpose : visibleTextValue) {
+            System.out.println("purpose: " + purpose);
+            for (WebElement element : optionElements) {
+                if (element.getText().equals(purpose)) {
+                    element.click();
+                    //break;
+                }
+            }
+        }
+    }
+
     public static String getDropdownSelected(List<WebElement> optionElements) {
         for (WebElement element : optionElements) {
             if (element.getAttribute("class").contains("result-selected")) {

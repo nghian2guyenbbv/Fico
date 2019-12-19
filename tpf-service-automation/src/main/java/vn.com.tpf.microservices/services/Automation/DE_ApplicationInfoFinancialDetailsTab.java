@@ -78,6 +78,7 @@ public class DE_ApplicationInfoFinancialDetailsTab {
     private WebElement childModalWindowDoneButtonIncomeDetailInlineGridElement;
 
 
+
     //----------------------------UPDATE---------------------------------
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'DeleteIncDetails')]")
     @CacheLookup

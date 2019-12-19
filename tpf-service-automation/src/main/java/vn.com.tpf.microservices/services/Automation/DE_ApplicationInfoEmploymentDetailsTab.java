@@ -146,6 +146,13 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     @CacheLookup
     private WebElement employerName;
 
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'MajorChange')]")
+    private WebElement modalMajorChangeElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'MajorChange')]//a")
+    private List<WebElement> btnMajorChangeElement;
+
     public DE_ApplicationInfoEmploymentDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver = driver;
@@ -253,15 +260,6 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
             durationMonthsElement.sendKeys(data.getDurationMonths());
 
             employerAddressCheckElement.click();
-
-            if(!data.getIsMajorEmployment().isEmpty())
-            {
-                if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
-                {
-                    WebElement webElement=_driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input"));
-                    webElement.click();
-                }
-            }
         }
     }
 
@@ -324,7 +322,6 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 
     }
 
-
     public void setExperienceInIndustry(EmploymentDTO data) {
         Actions actions = new Actions(_driver);
         actions.moveToElement(totalYearsInOccupationIdElement).click().build().perform();
@@ -338,6 +335,26 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                 .until(() -> totalMonthsInOccupationOptionElement.size() > 1);
         totalMonthsInOccupationInputElement.sendKeys(data.getTotalMonthsInOccupation());
         totalMonthsInOccupationInputElement.sendKeys(Keys.ENTER);
+    }
+
+    public void setMajorOccupation(EmploymentDTO data) {
+        if(!data.getIsMajorEmployment().isEmpty())
+        {
+            if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
+            {
+                Utilities.captureScreenShot(_driver);
+                WebElement webElement=_driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input"));
+                webElement.click();
+
+                Utilities.captureScreenShot(_driver);
+                await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> modalMajorChangeElement.isDisplayed());
+                Utilities.captureScreenShot(_driver);
+                btnMajorChangeElement.get(0).click();
+
+                Utilities.captureScreenShot(_driver);
+            }
+        }
     }
 
     // TODO: compare original data vs element data and report if not equals

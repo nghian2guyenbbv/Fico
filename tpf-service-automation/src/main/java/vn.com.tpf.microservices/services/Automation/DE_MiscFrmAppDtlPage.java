@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -40,6 +41,10 @@ public class DE_MiscFrmAppDtlPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
+    @CacheLookup
+    private WebElement loanPurposeInputElement;
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
     @CacheLookup
@@ -100,9 +105,19 @@ public class DE_MiscFrmAppDtlPage {
 
         if(listPurpose.length>0)
         {
-            for (String loanPurpose : listPurpose) {
-                Utilities.chooseDropdownValue(loanPurpose, loanPurposeOptionElement);
+//            for (String loanPurpose : listPurpose) {
+//                System.out.println("purpose: " + loanPurpose);
+//                Utilities.chooseDropdownValue(loanPurpose, loanPurposeOptionElement);
+//                Utilities.captureScreenShot(_driver);
+//            }
+
+            for(String loanPurpose : listPurpose){
+                loanPurposeInputElement.sendKeys(loanPurpose);
+                loanPurposeInputElement.sendKeys(Keys.ENTER);
+                Utilities.captureScreenShot(_driver);
             }
+
+            //Utilities.chooseDropdownValueArray(listPurpose,loanPurposeOptionElement);
         }
 
 

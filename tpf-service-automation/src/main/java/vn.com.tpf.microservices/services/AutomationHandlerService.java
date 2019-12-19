@@ -488,6 +488,7 @@ public class AutomationHandlerService {
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
+            employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetails());
             employmentDetailsTab.getSaveAndNextBtnElement().click();
             Utilities.captureScreenShot(driver);
 
