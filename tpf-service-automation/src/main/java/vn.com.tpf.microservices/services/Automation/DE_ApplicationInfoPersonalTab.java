@@ -132,6 +132,9 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chzn_o_')]")
     private List<WebElement> regionOptionElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chzn')]//input")
+    private WebElement regionInputElement;
+
     @FindBy(how = How.ID, using = "city_country_chzn")
     private WebElement cityElement;
 
@@ -561,12 +564,22 @@ public class DE_ApplicationInfoPersonalTab {
             actions.moveToElement(regionElement).click().build().perform();
             await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> regionOptionElement.size() > 1);
-            for (WebElement element : regionOptionElement) {
-                if (element.getText().equals(data.getRegion())) {
-                    element.click();
-                    break;
-                }
-            }
+//            for (WebElement element : regionOptionElement) {
+//                if (element.getText().equals(data.getRegion())) {
+//                    element.click();
+//                    break;
+//                }
+//            }
+
+            //update lai chỗ này để load lại đia chỉ lần đầu tiên cho quicklead, nó ko load lai data nếu ko reload lai region
+            regionInputElement.sendKeys("Select");
+            regionInputElement.sendKeys(Keys.ENTER);
+
+            actions.moveToElement(regionElement).click().build().perform();
+            regionInputElement.sendKeys(data.getRegion());
+            regionInputElement.sendKeys(Keys.ENTER);
+            //end update
+
 //			Select regionSelect = new Select(regionElement);
 //			await("Region loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //			.until(() -> regionSelect.getOptions().size() > 0);

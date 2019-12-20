@@ -90,6 +90,14 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
+    //Update
+
+    //update loanpurpose
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+    @CacheLookup
+    private List<WebElement> loanPurposeCloseElement;
+
+
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver=driver;
@@ -142,9 +150,32 @@ public class DE_MiscFrmAppDtlPage {
         await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
         loanPurposeElement.click();
+
+        //xoa loanpurpose
+        if(loanPurposeCloseElement.size()>0)
+        {
+            for (WebElement we:loanPurposeCloseElement)
+            {
+                we.click();
+            }
+        }
+
+        loanPurposeElement.click();
+        loanPurposeElement.click();
         await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getLoanPurpose(), loanPurposeOptionElement);
+        //Utilities.chooseDropdownValue(data.getLoanPurpose(), loanPurposeOptionElement);
+
+        String[] listPurpose= data.getLoanPurpose().split(";");
+
+        if(listPurpose.length>0)
+        {
+            for(String loanPurpose : listPurpose){
+                loanPurposeInputElement.sendKeys(loanPurpose);
+                loanPurposeInputElement.sendKeys(Keys.ENTER);
+                Utilities.captureScreenShot(_driver);
+            }
+        }
 
         numberOfDependentsElement.clear();
         numberOfDependentsElement.sendKeys(data.getNumOfDependents());
