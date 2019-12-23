@@ -42,8 +42,6 @@ public class ApiService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private String urlFirstCheck;
-
 	@Value("${spring.url.firstcheck}")
 	private String urlFirstcheck;
 
