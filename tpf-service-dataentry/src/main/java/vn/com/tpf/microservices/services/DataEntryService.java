@@ -486,31 +486,26 @@ public class DataEntryService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			responseModel.setRequest_id(requestId);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("0");
-			responseModel.setData(Map.of("first_check_result", "pass"));
-
-//			String resultFirstCheck = apiService.firstCheck(request);
-//			if (resultFirstCheck.equals("pass")){
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("0");
-//			}else{
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("1");
-//				responseModel.setMessage(resultFirstCheck);
-//			}
-//
 //			responseModel.setRequest_id(requestId);
 //			responseModel.setReference_id(UUID.randomUUID().toString());
 //			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 //			responseModel.setResult_code("0");
-//			responseModel.setData(encStream3.toString());
+//			responseModel.setData(Map.of("first_check_result", "pass"));
+
+			String resultFirstCheck = apiService.firstCheck(request, token);
+			if (resultFirstCheck.equals("pass")){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(Map.of("first_check_result", "pass"));
+			}else{
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(Map.of("first_check_result", "fail"));
+			}
 
 		}
 		catch (Exception e) {

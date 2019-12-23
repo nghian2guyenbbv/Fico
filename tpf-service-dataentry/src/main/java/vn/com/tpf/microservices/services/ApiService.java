@@ -81,7 +81,7 @@ public class ApiService {
 		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
 	}
 
-	public String firstCheck(JsonNode request) {
+	public String firstCheck(JsonNode request, JsonNode token) {
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		try {
 			Assert.notNull(request.get("body"), "no body");
@@ -100,22 +100,34 @@ public class ApiService {
 			requestFirstCheck.setGender("");
 			requestFirstCheck.setPhoneNumber("");
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(urlFirstcheck, entity, Object.class);
-			JsonNode body = mapper.valueToTree(res.getBody());
+			try{
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
+				ResponseEntity<?> res = restTemplate.postForEntity(urlFirstcheck, entity, Object.class);
+				JsonNode body = mapper.valueToTree(res.getBody());
 
-			FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
-			FirstCheck firstCheck = new FirstCheck();
-			firstCheck.setRequest(requestFirstCheck);
-			firstCheck.setResponse(firstCheckResponse);
-			mongoTemplate.save(firstCheck);
+				FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
+				FirstCheck firstCheck = new FirstCheck();
+				firstCheck.setRequest(requestFirstCheck);
+				firstCheck.setResponse(firstCheckResponse);
+				firstCheck.setCreatedBy(token.path("user_name").textValue());
+				mongoTemplate.save(firstCheck);
 
-			if (firstCheckResponse.getFirst_check_result().equals("pass")){
+				if (firstCheckResponse.getFirst_check_result().toUpperCase().equals("PASS")){
+					return "pass";
+				}else {
+					return "fail";
+				}
+			}catch (Exception ex){
+				FirstCheck firstCheck = new FirstCheck();
+				firstCheck.setRequest(requestFirstCheck);
+				firstCheck.setDescription(ex.toString());
+				firstCheck.setCreatedBy(token.path("user_name").textValue());
+				mongoTemplate.save(firstCheck);
+
 				return "pass";
 			}
-			return "fail";
 
 		} catch (HttpClientErrorException e) {
 			log.info("[==HTTP-LOG-RESPONSE==] : {}",
