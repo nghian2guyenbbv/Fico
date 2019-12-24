@@ -914,58 +914,70 @@ public class DataEntryService {
 				for (Document item: documentCommnet) {
 					ObjectNode doc = mapper.createObjectNode();
 
-					if (item.getType().equals("TPF_ID Card")){
+					if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())){
 						if (!checkIdCard) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkIdCard = true;
 						}
-					}else if (item.getType().equals("TPF_Notarization of ID card")){
+					}else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())){
 						if (!checkIdCard) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkIdCard = true;
 						}
-					}if (item.getType().equals("TPF_Family Book")){
+					}if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())){
 						if (!checkHousehold) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkHousehold = true;
 						}
-					}else if (item.getType().equals("TPF_Notarization of Family Book")){
+					}else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())){
 						if (!checkHousehold) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkHousehold = true;
 						}
-					} else if (item.getType().equals("TPF_Customer Photograph")){
-						doc.put("documentComment", item.getComment());
+					} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())){
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						}
 						if (item.getLink() != null) {
 							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
 						}
-						documents.add(doc);
-					}else if (item.getType().equals("TPF_Application cum Credit Contract (ACCA)")){
-						doc.put("documentComment", item.getComment());
+					}else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						}
 						if (item.getLink() != null) {
 							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
 						}
-						documents.add(doc);
 					}
 				}
 
