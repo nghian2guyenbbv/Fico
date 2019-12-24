@@ -814,6 +814,26 @@ public class DataEntryService {
 //						if (item.getType().equals("FICO")) {// digitex tra comment
 						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+
+							//validate so luong tra comment tu digitex
+							int countCommentDG = 0;
+							for (CommentModel itemComment : listComment) {
+								if (itemComment.getType().equals("FICO")) {
+									if (itemComment.getResponse() != null) {
+										countCommentDG = countCommentDG + 1;
+									}
+								}
+							}
+							if (countCommentDG > 3){
+								responseModel.setRequest_id(requestId);
+								responseModel.setReference_id(referenceId);
+								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+								responseModel.setResult_code("1");
+								responseModel.setMessage("application can not retry!");
+								return Map.of("status", 200, "data", responseModel);
+							}
+							//
+
 							try{
 								quickLeadId = checkCommentExist.get(0).getQuickLeadId();
 							}
@@ -840,6 +860,19 @@ public class DataEntryService {
 							}
 
 						}else{//fico tra comment
+							try{
+								if (item.getResponse().getComment() == null || item.getResponse().getComment().equals("")){
+									responseModel.setRequest_id(requestId);
+									responseModel.setReference_id(referenceId);
+									responseModel.setDate_time(new Timestamp(new Date().getTime()));
+									responseModel.setResult_code("1");
+									responseModel.setMessage("vui lòng nhập comment!");
+									return Map.of("status", 200, "data", responseModel);
+								}
+							}catch (Exception ex){
+
+							}
+
 							documentCommnet = item.getResponse().getDocuments();
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							for (CommentModel itemComment : listComment) {
