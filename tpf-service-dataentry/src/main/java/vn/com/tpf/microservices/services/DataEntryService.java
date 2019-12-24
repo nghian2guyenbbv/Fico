@@ -1875,6 +1875,7 @@ public class DataEntryService {
             inputQuery.add("FULL_APP_FAIL");
 			inputQuery.add("MANUALLY");
 			inputQuery.add("PROCESSING");
+			inputQuery.add("CANCEL");
 
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
 					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
