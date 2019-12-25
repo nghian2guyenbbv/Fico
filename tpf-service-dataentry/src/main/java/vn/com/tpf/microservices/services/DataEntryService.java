@@ -765,6 +765,7 @@ public class DataEntryService {
 		String commentId = "";
 		String comment = "";
 		String stageAuto = "";
+		String errorAuto = "";
 		String quickLeadId = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
@@ -814,6 +815,9 @@ public class DataEntryService {
 //						if (item.getType().equals("FICO")) {// digitex tra comment
 						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+							if (checkCommentExist.get(0).getError() != null) {
+								errorAuto = checkCommentExist.get(0).getError();
+							}
 
 							//validate so luong tra comment tu digitex
 							int countCommentDG = 0;
@@ -855,6 +859,7 @@ public class DataEntryService {
 							if (item.getResponse().getData() != null){
 								Application dataUpdate = item.getResponse().getData();
 								dataUpdate.setStage(stageAuto);
+								dataUpdate.setError(errorAuto);
 								rabbitMQService.send("tpf-service-automation",
 										Map.of("func", "updateAppError","body", dataUpdate));
 							}
