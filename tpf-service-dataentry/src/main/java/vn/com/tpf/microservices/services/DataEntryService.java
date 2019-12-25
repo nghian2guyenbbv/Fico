@@ -1640,6 +1640,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", errors);
 					update.set("stage", errors);
+					update.set("error", request.path("body").path("error").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1773,6 +1774,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", errors);
 					update.set("stage", errors);
+					update.set("error", request.path("body").path("error").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
