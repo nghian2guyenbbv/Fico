@@ -822,22 +822,22 @@ public class DataEntryService {
 							}
 
 							//validate so luong tra comment tu digitex
-							int countCommentDG = 0;
-							for (CommentModel itemComment : listComment) {
-								if (itemComment.getType().equals("FICO")) {
-									if (itemComment.getResponse() != null) {
-										countCommentDG = countCommentDG + 1;
-									}
-								}
-							}
-							if (countCommentDG > 3){
-								responseModel.setRequest_id(requestId);
-								responseModel.setReference_id(referenceId);
-								responseModel.setDate_time(new Timestamp(new Date().getTime()));
-								responseModel.setResult_code("1");
-								responseModel.setMessage("application can not retry!");
-								return Map.of("status", 200, "data", responseModel);
-							}
+//							int countCommentDG = 0;
+//							for (CommentModel itemComment : listComment) {
+//								if (itemComment.getType().equals("FICO")) {
+//									if (itemComment.getResponse() != null) {
+//										countCommentDG = countCommentDG + 1;
+//									}
+//								}
+//							}
+//							if (countCommentDG > 3){
+//								responseModel.setRequest_id(requestId);
+//								responseModel.setReference_id(referenceId);
+//								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//								responseModel.setResult_code("1");
+//								responseModel.setMessage("application can not retry!");
+//								return Map.of("status", 200, "data", responseModel);
+//							}
 							//
 
 							try{
