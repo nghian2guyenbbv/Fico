@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -359,6 +360,11 @@ public class MomoService {
 		}
 
 		Momo momo = mapper.convertValue(data, Momo.class);
+		
+		momo.setFirstName(momo.getFirstName().toUpperCase());
+		momo.setLastName(momo.getLastName().toUpperCase());
+		momo.setMiddleName(momo.getMiddleName().toUpperCase());
+		
 		momo.getPhotos().forEach(e -> e.setUpdatedAt(new Date()));
 		momo.setCity(address.path("data").path("cityName").asText());
 		momo.setDistrict(address.path("data").path("areaName").asText());
@@ -374,7 +380,25 @@ public class MomoService {
 
 		return response(0, body, null);
 	}
+	
+	
+	public JsonNode retryAutomation(JsonNode request) throws Exception {
+	
+		Momo momo = mongoTemplate
+				.findOne(Query.query(Criteria.where("id").is(request.path("param").path("id").asText())), Momo.class);
 
+		if (momo == null) {
+			return response(404, mapper.createObjectNode().put("message", "Momo Loan Id Not Found"));
+		}
+		if(momo.getAutomationResult().isBlank() || momo.getAppId().isBlank() || !momo.getAppId().toUpperCase().contains("UNK")) 
+			return response(404, mapper.createObjectNode().put("message", "Momo Loan Id Cannt Retry"));
+		
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createApp", "reference_id", momo.getMomoLoanId() + UUID.randomUUID().toString(),
+				"body", convertService.toAppFinnone(momo)));
+		return response(0, mapper.createObjectNode().put("message", "retry partner id "+momo.getMomoLoanId()+" success"));
+	
+	}
+	
 	public JsonNode updateAutomation(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
@@ -404,7 +428,6 @@ public class MomoService {
 
 	public JsonNode updateStatus(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		log.info(body.path("app_id").asText());
 		Momo momo = mongoTemplate.findOne(Query.query(Criteria.where("appId").is(body.path("app_id").asText())),
 				Momo.class);
 
@@ -512,6 +535,7 @@ public class MomoService {
 
 		 return response(200, mapper.createObjectNode().put("message", "Update Status Success"));
 	}
+	
 
 	public JsonNode updateSms(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
@@ -526,7 +550,7 @@ public class MomoService {
 			return response(404, smsResponse);
 		}
 		
-		Query query = Query.query(Criteria.where("phoneNumber").is(body.path("phone_number").asText().replaceAll("^[0]", "+84")));
+		Query query = Query.query(Criteria.where("phoneNumber").is(body.path("phone_number").asText().replaceAll("^[0]", "+84")).and("status").is("APPROVED_FINNONE"));
 		query.with(Sort.by(Direction.DESC, "createdAt")).limit(1);
 
 		List<Momo> list = mongoTemplate.find(query, Momo.class);
@@ -543,10 +567,11 @@ public class MomoService {
 
 		Momo momo = list.get(0);
 	
-		if( momo.getSmsResult() == null || !momo.getSmsResult().equals("W") || !momo.getStatus().equals("APPROVED_FINNONE")) {
-			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
-			return response(404, smsResponse);
-		}else if (((new Date()).getTime() - momo.getUpdatedAt().getTime()) > 72*60*60*1000 ) { //72h
+//		if( momo.getSmsResult() == null || !momo.getSmsResult().equals("W") || !momo.getStatus().equals("APPROVED_FINNONE")) {
+//			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le. LH: 1900636633";
+//			return response(404, smsResponse);
+//		}else 
+			if (((new Date()).getTime() - momo.getUpdatedAt().getTime()) > 72*60*60*1000 ) { //72h
 			momo.setSmsResult("F");
 			smsResponse = "Cam on Quy khach da phan hoi thong tin. TN nay khong hop le do da qua 72H. LH: 1900636633";
 			
