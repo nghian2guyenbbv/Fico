@@ -1,7 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -91,8 +89,8 @@ public class RabbitMQService {
 					return response(message,payload,fptService.updatedappid(request));
 				case "addCommentFromFpt":
 					return response(message, payload,fptService.addCommentFromFpt(request));
-//				case "addCommentFromTpBank":
-//					return response(message, payload,fptService.addCommentFromTpBank(request));
+				case "addCommentFromTpBank":
+					return response(message, payload,fptService.addCommentFromTpBank(request));
 		
 //			case "getDetail":
 //				return response(message, payload, fptService.getDetail(request));
@@ -103,21 +101,12 @@ public class RabbitMQService {
 			}
 
 		} catch (IllegalArgumentException e) {
-			return response(message, payload, Map.of("status", 200, "data", ExceptionRespone(payload, 1,e.getMessage())));
+			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
 		} catch (DataIntegrityViolationException e) {
-			return response(message, payload, Map.of("status", 200, "data", ExceptionRespone(payload, 2, "Conflict")));
+			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 200, "data",  ExceptionRespone(payload, 3, e.toString())));
+			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
 		}
 	}
-	
-	private Object ExceptionRespone( byte[] payload,int result_code ,String message) throws UnsupportedEncodingException, IOException {
-		JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-		log.info("{}",request);
-		return  Map.of("result_code", result_code,"request_id", request.path("body").path("request_id").asText(), "reference_id", request.path("body").path("reference_id").asText(),"message", message);
-
-	}
-
-
 
 }

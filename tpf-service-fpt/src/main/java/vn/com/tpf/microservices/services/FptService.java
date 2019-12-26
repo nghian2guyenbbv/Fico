@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import vn.com.tpf.microservices.models.Comment;
 import vn.com.tpf.microservices.models.DocPostApproved;
 import vn.com.tpf.microservices.models.Fpt;
-
+import vn.com.tpf.microservices.models.Subcode;
 import vn.com.tpf.microservices.models.Supplement;
 
 @Service
@@ -71,24 +71,20 @@ public class FptService {
 		error.set("requestId", mapper.convertValue(requestId, JsonNode.class));
 		Map<?, ?> dateTime = Map.of("code", 101, "message", "date_time is required string and not empty");
 		error.set("dateTime", mapper.convertValue(dateTime, JsonNode.class));
-
+		
 		Map<?, ?> references = Map.of("code", 104, "message", "references");
 		error.set("references", mapper.convertValue(references, JsonNode.class));
 		Map<?, ?> postCodeNotExists = Map.of("code", 103, "message", "city not exits");
 		error.set("postCodeNotExists", mapper.convertValue(postCodeNotExists, JsonNode.class));
 	}
 
+	
 	private JsonNode validation(JsonNode body, List<String> fields) {
 		for (String field : fields) {
 			if (field.equals("request_id")
 					&& (!body.path("request_id").isTextual() || body.path("request_id").asText().isEmpty())) {
 				return error.get("requestId");
 			}
-			if (field.equals("date_time")
-					&& (!body.path("date_time").isTextual() || body.path("date_time").asText().isEmpty())) {
-				return error.get("dateTime");
-			}
-
 			if (field.equals("data.firstName") && (!body.path("data").path("firstName").isTextual()
 					|| body.path("data").path("firstName").asText().isEmpty())) {
 				return error.get("firstName");
@@ -180,7 +176,7 @@ public class FptService {
 			} else {
 				JsonNode loanDetail = body.path("data").path("loanDetail");
 				String a = loanDetail.path("product").asText();
-
+				
 				if (loanDetail.path("product").asText().isEmpty())
 					return error.get("loanDetail");
 				if (!loanDetail.path("tenor").isNumber())
@@ -403,114 +399,119 @@ public class FptService {
 
 		return response(200, mapper.convertValue(fpt, JsonNode.class));
 	}
+	
+	
 
-//	public JsonNode addCommentFromTpBank(JsonNode request) throws Exception {
-//
-//		Query query = new Query();
-//		Query querysupllement = new Query();
-//		Query queryreturned = new Query();
-//		JsonNode body = request.path("body");
-//		String cus_id = body.path("cus_id").asText();
-//		String type = body.path("type").asText();
-//		JsonNode comments = body.path("comments");
-//		if (cus_id.isEmpty()) {
-//			return response(404, mapper.createObjectNode().put("message", "Not Found cus_id"));
-//		}
-//		if (!type.matches("^(Returned|Supplement)$")) {
-//			return response(404, mapper.createObjectNode().put("message", "Error type"));
-//		}
-//		if (comments.size() == 0) {
-//			return response(404, mapper.createObjectNode().put("message", "Error Not Comment"));
-//		}
-//
-//		Fpt fpt = mongoTemplate.findOne(query.addCriteria(Criteria.where("custId").is(cus_id)), Fpt.class);
-//
-//		if (fpt == null) {
-//			return response(404, mapper.createObjectNode().put("message", "Not Found customer"));
-//		}
-//
-//		if (!fpt.getStatus().equals("PROCESSING")) {
-//			return response(404,
-//					mapper.createObjectNode().put("message", "Can not updated comment because Status is RETURNED"));
-//		}
-//		List<Comment> CommentReturned = mongoTemplate.find(queryreturned, Comment.class);
-//		queryreturned.addCriteria(Criteria.where("type").is("returned"));
-//		List<String> CodeReturned = new ArrayList<String>();
-//		for (Comment comment : CommentReturned) {
-//			for (Subcode subcode : comment.getSubcode()) {
-//				CodeReturned.add(subcode.getCode());
-//			}
-//		}
-//
-//		querysupllement.addCriteria(Criteria.where("type").is("supplement"));
-//		List<Comment> CommentSuplement = mongoTemplate.find(querysupllement, Comment.class);
-//
-//		List<String> CodeSupplement = new ArrayList<String>();
-//		for (Comment comment : CommentSuplement) {
-//			for (Subcode subcode : comment.getSubcode()) {
-//				CodeSupplement.add(subcode.getCode());
-//			}
-//		}
-//
-//		Set<Supplement> setcomments = new HashSet<Supplement>();
-//
-//		if (type.equals("Supplement")) {
-//
-//			if (comments.isArray()) {
-//				for (JsonNode jsonNode : comments) {
-//					String code = jsonNode.get("code").asText();
-//					String commentTpBank = jsonNode.get("comment").asText();
-//					if (CodeSupplement.contains(code)) {
-//						Supplement supplement = new Supplement();
-//						long millis = System.currentTimeMillis();
-//						java.util.Date date = new java.util.Date(millis);
-//						supplement.SupplemenTPBank(code, commentTpBank, "Supplement", date);
-//						setcomments.add(supplement);
-//					}
-//				}
-//			}
-//		} else if (type.equals("Returned")) {
-//
-//			if (comments.isArray()) {
-//				for (JsonNode jsonNode : comments) {
-//					String code = jsonNode.get("code").asText();
-//					String commentTpBank = jsonNode.get("comment").asText();
-//					if (CodeReturned.contains(code)) {
-//						Supplement supplement = new Supplement();
-//						long millis = System.currentTimeMillis();
-//						java.util.Date date = new java.util.Date(millis);
-//						supplement.SupplemenTPBank(code, commentTpBank, "Returned", date);
-//						setcomments.add(supplement);
-//					}
-//				}
-//			}
-//		} else {
-//			return response(404, mapper.createObjectNode().put("message", "Not Found Type comment"));
-//		}
-//
-//		if (setcomments.size() == 0) {
-//			return response(404, mapper.createObjectNode().put("message", "Code Not Found"));
-//		}
-//
-//		if (fpt.getSupplement() != null) {
-//			Set<Supplement> setsupplementsDB = (Set<Supplement>) fpt.getSupplement().stream()
-//					.collect(Collectors.toSet());
-//
-//			boolean MergSet = setcomments.addAll(setsupplementsDB);
-//
-//			if (MergSet == false) {
-//				return response(404, mapper.createObjectNode().put("message", "Not Merging"));
-//			}
-//		}
-//
-//		Update update = new Update();
-//		update.set("status", "RETURNED");
-//		update.set("Supplement", setcomments);
-//		mongoTemplate.updateFirst(query, update, Fpt.class);
-//
-//		return response(200, mapper.convertValue(fpt, JsonNode.class));
-//
-//	}
+	public JsonNode addCommentFromTpBank(JsonNode request) throws Exception {
+
+		Query query = new Query();
+		Query queryreturned = new Query();
+		Query querysupllement = new Query();
+		Update update = new Update();
+		JsonNode body = request.path("body");
+		String cus_id = body.path("cus_id").asText();
+		String type = body.path("type").asText();
+		JsonNode comments = body.path("comments");
+		if (cus_id.isEmpty()) {
+			return response(404, mapper.createObjectNode().put("message", "Not Found cus_id"));
+		}
+		if (!type.matches("^(Returned|Supplement)$")) {
+			return response(404, mapper.createObjectNode().put("message", "Error type"));
+		}
+		if(comments.size()==0) {
+			return response(404, mapper.createObjectNode().put("message", "Error Not Comment"));
+		}
+
+		Fpt fpt = mongoTemplate.findOne(query.addCriteria(Criteria.where("custId").is(cus_id)), Fpt.class);
+
+		if (fpt == null) {
+			return response(404, mapper.createObjectNode().put("message", "Not Found customer"));
+		}
+
+		if(!fpt.getStatus().equals("PROCESSING")) {
+			return response(404, mapper.createObjectNode().put("message", "Can not updated comment because Status is RETURNED"));
+		}
+		queryreturned.addCriteria(Criteria.where("type").is("returned"));
+		List<Comment> CommentReturned =  mongoTemplate.find(queryreturned,Comment.class);
+		List<String> CodeReturned = new ArrayList<String>();
+		for(Comment comment : CommentReturned ) {
+			for(Subcode subcode : comment.getSubcode() ) {
+				CodeReturned.add(subcode.getCode());
+			}
+		}
+		
+		querysupllement.addCriteria(Criteria.where("type").is("supplement"));
+		List<Comment> CommentSuplement =  mongoTemplate.find(querysupllement,Comment.class);
+		
+		List<String> CodeSupplement = new ArrayList<String>();
+		for(Comment comment : CommentSuplement ) {
+			for(Subcode subcode : comment.getSubcode() ) {
+				CodeSupplement.add(subcode.getCode());
+			}
+		}
+		
+		Set<Supplement> setcomments = new HashSet<Supplement>();
+
+		
+		if (type.equals("Supplement")) {
+
+			if (comments.isArray()) {
+				for (JsonNode jsonNode : comments) {
+					String code = jsonNode.get("code").asText();
+					String commentTpBank = jsonNode.get("comment").asText();
+					if (CodeSupplement.contains(code)) {
+						Supplement supplement = new Supplement();
+						long millis = System.currentTimeMillis();
+						java.util.Date date = new java.util.Date(millis);
+						supplement.SupplemenTPBank(code, commentTpBank, "Supplement", date);
+						setcomments.add(supplement);
+					}
+				}
+			}
+		} else if (type.equals("Returned")) {
+			
+
+			if (comments.isArray()) {
+				for (JsonNode jsonNode : comments) {
+					String code = jsonNode.get("code").asText();
+					String commentTpBank = jsonNode.get("comment").asText();
+					if (CodeReturned.contains(code)) {
+						Supplement supplement = new Supplement();
+						long millis = System.currentTimeMillis();
+						java.util.Date date = new java.util.Date(millis);
+						supplement.SupplemenTPBank(code, commentTpBank, "Returned", date);
+						setcomments.add(supplement);
+					}
+				}
+			}
+		} else {
+			return response(404, mapper.createObjectNode().put("message", "Not Found Type comment"));
+		}
+
+		if (setcomments.size() == 0) {
+			return response(404, mapper.createObjectNode().put("message", "Code Not Found"));
+		}
+		
+		
+
+		if (fpt.getSupplement() != null) {
+			Set<Supplement> setsupplementsDB = (Set<Supplement>) fpt.getSupplement().stream()
+					.collect(Collectors.toSet());
+
+			boolean MergSet = setcomments.addAll(setsupplementsDB);
+
+			if (MergSet == false) {
+				return response(404, mapper.createObjectNode().put("message", "Not Merging"));
+			}
+		}
+		
+		update.set("status","RETURNED");
+		update.set("Supplement", setcomments);
+		mongoTemplate.updateFirst(query, update, Fpt.class);
+
+		return response(200, mapper.convertValue(fpt, JsonNode.class));
+
+	}
 
 	public JsonNode adddocPostApproved(JsonNode request) throws Exception {
 
@@ -549,66 +550,41 @@ public class FptService {
 			return response(valid.get("code").asInt(), body,
 					mapper.createObjectNode().set("message", valid.get("message")));
 		}
-		JsonNode data = body.path("data");
-		JsonNode postCode = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddress", "reference_id", body.path("reference_id"), "param",
-						Map.of("postCode", data.path("issuePlace").asText())));
 
-		if (postCode.path("status").asInt() != 200) {
-			return response(error.get("postCodeNotExists").get("code").asInt(), body,
-					mapper.createObjectNode().set("message", error.get("postCodeNotExists").get("message")));
-		}
-		
-		((ObjectNode) data).put("issuePlace", postCode.path("data").path("cityName"));
 		Fpt fpt = mapper.convertValue(body.path("data"), Fpt.class);
-
-		fpt.getAddresses().forEach(address -> {
-			try {
-				JsonNode addr = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "getAddress",
-						"reference_id", body.path("reference_id"), "param", Map.of("areaCode", address.getDistrict())));
-				address.setDistrict(addr.path("data").path("areaName").asText());
-				address.setProvince(addr.path("data").path("cityName").asText());
-				address.setRegion(addr.path("data").path("region").asText());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
+		fpt.setStatus("PROCESSING");
 
 		mongoTemplate.save(fpt);
 
-		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
-				"body", convertService.toAppDisplay(fpt)));
-
-		return response(200, mapper.createObjectNode().put("message", "retry partner id " + fpt.getAppId() + " success"));
-
+		return response(0, body, mapper.convertValue(convertService.toAppFinnone(fpt), JsonNode.class));
 	}
 
 	// chua dung
 
-	public JsonNode updateAutomation(JsonNode request) throws Exception {
-		JsonNode body = request.path("body");
-
-		Assert.isTrue(body.path("transaction_id").isTextual() && !body.path("transaction_id").asText().isEmpty(),
-				"transaction_id is required and not empty");
-		Assert.isTrue(body.path("app_id").isTextual() && !body.path("app_id").asText().isEmpty(),
-				"app_id is required and not empty");
-		Assert.isTrue(body.path("automation_result").isTextual() && !body.path("automation_result").asText().isEmpty(),
-				"automation_result is required and not empty");
-
-		Query query = Query.query(Criteria.where("custId").is(body.path("transaction_id").asText()));
-		Update update = new Update().set("appId", body.path("app_id").asText())
-				.set("automationResult", body.path("automation_result").asText()).set("status", "PROCESSING");
-		Fpt fpt = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), Fpt.class);
-
-		if (fpt == null) {
-			return response(404, mapper.createObjectNode().put("message", "Cust Id Not Found"));
-		}
-
-		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
-				"param", Map.of("project", "fpt", "id", fpt.getId()), "body", convertService.toAppDisplay(fpt)));
-
-		return response(200, null);
-	}
+//	public JsonNode updateAutomation(JsonNode request) throws Exception {
+//		JsonNode body = request.path("body");
+//
+//		Assert.isTrue(body.path("transaction_id").isTextual() && !body.path("transaction_id").asText().isEmpty(),
+//				"transaction_id is required and not empty");
+//		Assert.isTrue(body.path("app_id").isTextual() && !body.path("app_id").asText().isEmpty(),
+//				"app_id is required and not empty");
+//		Assert.isTrue(body.path("automation_result").isTextual() && !body.path("automation_result").asText().isEmpty(),
+//				"automation_result is required and not empty");
+//
+//		Query query = Query.query(Criteria.where("custId").is(body.path("transaction_id").asText()));
+//		Update update = new Update().set("appId", body.path("app_id").asText())
+//				.set("automationResult", body.path("automation_result").asText()).set("status", "PROCESSING");
+//		Fpt fpt = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), Fpt.class);
+//
+//		if (fpt == null) {
+//			return response(404, mapper.createObjectNode().put("message", "Cust Id Not Found"));
+//		}
+//
+//		rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id", body.path("reference_id"),
+//				"param", Map.of("project", "fpt", "id", fpt.getId()), "body", convertService.toAppDisplay(fpt)));
+//
+//		return response(200, null);
+//	}
 //
 //	public JsonNode updateStatus(JsonNode request) throws Exception {
 //		JsonNode body = request.path("body");
