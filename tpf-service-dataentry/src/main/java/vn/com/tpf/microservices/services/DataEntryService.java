@@ -2152,6 +2152,8 @@ public class DataEntryService {
 		String referenceId = UUID.randomUUID().toString();
 		ByteArrayInputStream in = null;
 		try{
+			List<String> inputQuery = new ArrayList<String>();
+
 			Assert.notNull(request.get("body"), "no body");
 
 			Criteria criteria=new Criteria();
@@ -2171,9 +2173,13 @@ public class DataEntryService {
 				criteria.and("createdDate").gte(fromDate).lte(toDate);
 			}
 
-			if(request.path("body").path("data").path("status").textValue()!=null)
+			if(request.path("body").path("data").path("status")!=null && !request.path("body").path("data").path("status").toString().equals("") &&
+					!request.path("body").path("data").path("status").isNull())
 			{
-				criteria.and("status").is(request.path("body").path("data").path("status").textValue());
+				inputQuery = mapper.readValue(request.path("body").path("data").path("status").toString(), List.class);
+				if (inputQuery.size() > 0) {
+					criteria.and("status").in(inputQuery);
+				}
 			}else
 			{
 				criteria.and("status").ne(null);
