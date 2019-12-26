@@ -814,6 +814,8 @@ public class DataEntryService {
 					}else {
 //						if (item.getType().equals("FICO")) {// digitex tra comment
 						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
+							boolean checkResponseComment = false;
+
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							if (checkCommentExist.get(0).getError() != null) {
 								errorAuto = checkCommentExist.get(0).getError();
@@ -850,9 +852,22 @@ public class DataEntryService {
 										Update update = new Update();
 										update.set("comment.$.response", item.getResponse());
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+										checkResponseComment = true;
 									}
 								}
 							}
+
+							if (!checkResponseComment){
+								responseModel.setRequest_id(requestId);
+								responseModel.setReference_id(referenceId);
+								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+								responseModel.setResult_code("1");
+								responseModel.setMessage("applicationId can not return comment!");
+
+								return Map.of("status", 200, "data", responseModel);
+							}
+
                             responseCommnentFullAPPFromDigiTex = true;
 
 							// update automation
