@@ -2208,7 +2208,8 @@ public class DataEntryService {
 			List<Application> resultData=new ArrayList<Application>();
 
 			//get by page, limit
-			if(request.path("body").path("data").get("page")!=null && request.path("body").path("data").get("limit")!=null) {
+			if(request.path("body").path("data").get("page")!=null && request.path("body").path("data").get("limit")!=null &&
+					!request.path("body").path("data").get("page").isNull() && !request.path("body").path("data").get("limit").isNull()) {
 				page = request.path("body").path("data").path("page").asInt(1);
 				limit = request.path("body").path("data").path("limit").asInt(10);
 
