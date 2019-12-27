@@ -11,5 +11,6 @@ public class RequestModel{
     private Timestamp date_time;
     private Application data;
     private List<Product> product;
+    private List<ProductV2> productv2;
 }
 

@@ -31,7 +31,7 @@ public class DataInitial {
         //Identification
         List<IdentificationDTO> identificationDTOs = new ArrayList<>();
         for (Identification identification : application.getApplicationInformation().getPersonalInformation().getIdentifications()) {
-            identificationDTOs.add(new IdentificationDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getIssuingCountry()));
+            identificationDTOs.add(new IdentificationDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getPlaceOfIssue(),identification.getIssuingCountry()));
         }
 
         //Address
@@ -75,8 +75,13 @@ public class DataInitial {
                 .department(employmentDetails.getDepartmentName())
                 .level(employmentDetails.getDesignation())
                 .employmentStatus(employmentDetails.getEmploymentStatus())
+                .employmentType(employmentDetails.getEmploymentType())
                 .durationYears(employmentDetails.getYearsInJob())
-                .durationMonths(employmentDetails.getMonthsInJob()).build();
+                .durationMonths(employmentDetails.getMonthsInJob())
+                .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation())
+                .totalYearsInOccupation(employmentDetails.getTotalYearsInOccupation())
+                .isMajorEmployment(employmentDetails.getIsMajorEmployment())
+                .remarks(employmentDetails.getRemarks()).build();
 
         //Income Detail
         List<IncomeDetailDTO> incomeDetailDTOList=new ArrayList<>();
@@ -99,7 +104,7 @@ public class DataInitial {
                 .middleName(personalInfo.getMiddleName())
                 .lastName(personalInfo.getFirstName())
                 .dateOfBirth(personalInfo.getDateOfBirth())
-                .placeOfIssue("Hà Nội")
+                .placeOfIssue(identificationDTOs.stream().filter(x->x.getDocumentType().equals("Current National ID")).findAny().get().getPlaceOfIssue())
                 .maritalStatus(personalInfo.getMaritalStatus())
                 .national(personalInfo.getNationality())
                 .education(personalInfo.getCustomerCategoryCode())
@@ -174,7 +179,8 @@ public class DataInitial {
                         .loanPurpose(dynamicForm.getLoanPurpose())
                         .numOfDependents(dynamicForm.getNumberOfDependents())
                         .houseOwnership(dynamicForm.getHouseOwnership())
-                        .mortgagePaymentCost(dynamicForm.getMonthlyFee())
+                        //.mortgagePaymentCost(dynamicForm.getMonthlyFee())
+                        .mortgagePaymentCost(dynamicForm.getMonthlyRental())
                         .newBankCardNumber(dynamicForm.getNewBankCardNumber())
                         .salesAgentCode(dynamicForm.getSaleAgentCode())
                         .maxRequestRate(dynamicForm.getMaximumInterestedRate())

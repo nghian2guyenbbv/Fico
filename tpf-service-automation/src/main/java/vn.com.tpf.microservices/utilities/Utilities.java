@@ -45,6 +45,18 @@ public class Utilities {
         }
     }
 
+    public static void chooseDropdownValueArray(String[] visibleTextValue, List<WebElement> optionElements) {
+        for(String purpose : visibleTextValue) {
+            System.out.println("purpose: " + purpose);
+            for (WebElement element : optionElements) {
+                if (element.getText().equals(purpose)) {
+                    element.click();
+                    //break;
+                }
+            }
+        }
+    }
+
     public static String getDropdownSelected(List<WebElement> optionElements) {
         for (WebElement element : optionElements) {
             if (element.getAttribute("class").contains("result-selected")) {
@@ -129,6 +141,18 @@ public class Utilities {
             webElement.clear();
             webElement.sendKeys(inputValue);
             textSendkey = webElement.getAttribute("value");
+            i++;
+        } while (!textSendkey.equals(inputValue) &&  i < 5);
+    }
+
+    public static void checkValueSendkeyAmount(String inputValue, WebElement webElement) {
+        int i = 0;
+        String textSendkey = "";
+        do {
+            webElement.click();
+            webElement.clear();
+            webElement.sendKeys(inputValue);
+            textSendkey = webElement.getAttribute("value").replace(",","");
             i++;
         } while (!textSendkey.equals(inputValue) &&  i < 5);
     }
