@@ -1067,5 +1067,34 @@ public class DataEntryController {
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
+
+
+	@PostMapping("/v1/dataentry/deResponseQuery")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> deResponseQuery(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "deResponseQuery");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/deSaleQueue")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> deSaleQueue(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "deSaleQueue");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
 }
 

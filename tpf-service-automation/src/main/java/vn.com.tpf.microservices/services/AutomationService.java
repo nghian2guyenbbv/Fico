@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
+import vn.com.tpf.microservices.models.DEResponseQuery.DEResponseQueryDTO;
+import vn.com.tpf.microservices.models.DEResponseQuery.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.DataInitial;
@@ -305,4 +307,67 @@ public class AutomationService {
 		//awaitTerminationAfterShutdown(workerThreadPool);
 	}
 	//------------------------ END AUTO ASSIGN - FUNCTION -------------------------------------
+
+	//------------------------ AUTO ASSIGN - DE_ResponseQuery -------------------------------------
+	public Map<String, Object> DE_ResponseQuery(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+
+		System.out.println(request);
+
+		Assert.notNull(request.get("body"), "no body");
+		List<DEResponseQueryDTO> deResponseQueryDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<DEResponseQueryDTO>>(){});
+
+		new Thread(() -> {
+			try {
+				runAutomationDE_ResponseQuery(deResponseQueryDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, deResponseQueryDTOList);
+	}
+
+	private void runAutomationDE_ResponseQuery(List<DEResponseQueryDTO> deResponseQueryDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","DE");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//------------------------ END AUTO ASSIGN - DE_ResponseQuery -------------------------------------
+
+	//------------------------ AUTO ASSIGN - DE_SaleQueue -------------------------------------
+	public Map<String, Object> DE_SaleQueue(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+
+		System.out.println(request);
+
+		Assert.notNull(request.get("body"), "no body");
+		List<DESaleQueueDTO> deSaleQueueDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<DESaleQueueDTO>>(){});
+
+		new Thread(() -> {
+			try {
+				runAutomationDE_SaleQueue(deSaleQueueDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, deSaleQueueDTOList);
+	}
+
+	private void runAutomationDE_SaleQueue(List<DESaleQueueDTO> deSaleQueueDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","DE");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//------------------------ END AUTO ASSIGN - DE_Sale_Queue -------------------------------------
+
 }
