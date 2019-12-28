@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
+import vn.com.tpf.microservices.shared.ThirdPartyType;
 
 import javax.annotation.PostConstruct;
 import javax.validation.ConstraintViolation;
@@ -797,8 +798,7 @@ public class DataEntryService {
 //					String typeComment = checkCommentExist.get(0).getComment().get(0).getType();
 
 					if (checkCommentExist.size() <= 0){
-						if (item.getType().equals("DIGI-TEXX")) {// digitex gui comment
-//							if (typeComment.equals("DIGI-TEX")) {// digitex gui comment
+						if (ThirdPartyType.fromName(item.getType().toUpperCase()) != null) {// digitex gui comment
 							Query queryAddComment = new Query();
 							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 
@@ -809,7 +809,13 @@ public class DataEntryService {
 
                             requestCommnentFromDigiTex = true;
 						}else{
-							//xu ly tai fail automationfull - fico gui comment
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Comment Type Invalid!");
+
+							return Map.of("status", 200, "data", responseModel);
 						}
 					}else {
 //						if (item.getType().equals("FICO")) {// digitex tra comment
