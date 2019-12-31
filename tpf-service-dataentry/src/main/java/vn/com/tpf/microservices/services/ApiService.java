@@ -74,11 +74,20 @@ public class ApiService {
 
 	private RestTemplate restTemplate;
 
+	private RestTemplate restTemplateFirstCheck;
+
 	@PostConstruct
 	private void init() {
 		ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
 		restTemplate = new RestTemplate(factory);
 		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
+
+		SimpleClientHttpRequestFactory scrf = new SimpleClientHttpRequestFactory();
+		scrf.setConnectTimeout(1000*120);
+		scrf.setReadTimeout(1000*120);
+		ClientHttpRequestFactory factoryFirstCheck = new BufferingClientHttpRequestFactory(scrf);
+		restTemplateFirstCheck = new RestTemplate(factoryFirstCheck);
+		restTemplateFirstCheck.setInterceptors(Arrays.asList(new HttpLogService()));
 	}
 
 	public String firstCheck(JsonNode request, JsonNode token) {
@@ -100,12 +109,14 @@ public class ApiService {
 			requestFirstCheck.setGender("");
 			requestFirstCheck.setPhoneNumber("");
 
+			String logsTimeOut = "TimeOut two minute: ";
 			try{
 				HttpHeaders headers = new HttpHeaders();
 				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
-				ResponseEntity<?> res = restTemplate.postForEntity(urlFirstcheck, entity, Object.class);
+				ResponseEntity<?> res = restTemplateFirstCheck.postForEntity(urlFirstcheck, entity, Object.class);
 				JsonNode body = mapper.valueToTree(res.getBody());
+				logsTimeOut = "";
 
 				FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
 				FirstCheck firstCheck = new FirstCheck();
@@ -122,7 +133,7 @@ public class ApiService {
 			}catch (Exception ex){
 				FirstCheck firstCheck = new FirstCheck();
 				firstCheck.setRequest(requestFirstCheck);
-				firstCheck.setDescription(ex.toString());
+				firstCheck.setDescription(logsTimeOut + ex.toString());
 				firstCheck.setCreatedBy(token.path("user_name").textValue());
 				mongoTemplate.save(firstCheck);
 
