@@ -831,58 +831,59 @@ public class ApiService {
 			dataLogReq.set("payload", data);
 			log.info("{}", dataLogReq);
 
-//			String dataString = mapper.writeValueAsString(data);
-//
-//			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-//
-//			ObjectNode dataLogReq2 = mapper.createObjectNode();
-//			dataLogReq2.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX=PGP=]");
-//			dataLogReq2.set("payload", encrypt);
-//			log.info("{}", dataLogReq2);
-//
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("Accept", "application/pgp-encrypted");
-//			headers.set("Content-Type", "application/pgp-encrypted");
-//			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
-//			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-//
-//			ObjectNode dataLogReq3 = mapper.createObjectNode();
-//			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
-//			dataLogReq3.set("payload", mapper.readTree(res.getBody().toString()));
-//			log.info("{}", dataLogReq3);
-//
-//			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
-//
-//			ObjectNode dataLogRes = mapper.createObjectNode();
-//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-//			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-//			dataLogRes.set("payload", data);
-//			dataLogRes.put("result", decrypt.path("body").path("data").asText());
-//
-//			log.info("{}", dataLogRes);
-//			return decrypt.path("data");
+			String dataString = mapper.writeValueAsString(data);
+
+			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+
+			ObjectNode dataLogReq2 = mapper.createObjectNode();
+			dataLogReq2.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX=PGP=]");
+			dataLogReq2.set("payload", encrypt);
+			log.info("{}", dataLogReq2);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+			headers.set("Accept", "application/pgp-encrypted");
+			headers.set("Content-Type", "application/pgp-encrypted");
+			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+
+			ObjectNode dataLogReq3 = mapper.createObjectNode();
+			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
+			dataLogReq3.set("payload", mapper.readTree(res.getBody().toString()));
+			log.info("{}", dataLogReq3);
+
+			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
+
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+			dataLogRes.set("payload", data);
+			dataLogRes.put("result", decrypt.path("body").path("data").asText());
+
+			log.info("{}", dataLogRes);
+			return decrypt.path("data");
 
 			//------------- test khong pgp -------
 
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
-
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-			dataLogRes.put("status", 200);
-			dataLogRes.put("data", data.textValue());
-			dataLogRes.put("result", res.getBody().toString());
-			dataLogRes.set("payload", data);
-			log.info("{}", dataLogRes);
-
-			JsonNode body = mapper.valueToTree(res.getBody());
-			return body;
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
+//			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
+//
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+//			dataLogRes.put("status", 200);
+//			dataLogRes.put("data", data.textValue());
+//			dataLogRes.put("result", res.getBody().toString());
+//			dataLogRes.set("payload", data);
+//			log.info("{}", dataLogRes);
+//
+//			JsonNode body = mapper.valueToTree(res.getBody());
+//			return body;
 
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
