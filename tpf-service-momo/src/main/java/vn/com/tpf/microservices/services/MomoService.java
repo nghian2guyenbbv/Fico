@@ -408,15 +408,17 @@ public class MomoService {
 		Assert.isTrue(body.path("appId").isTextual() && !body.path("appId").asText().isEmpty(),
 				"appId is required and not empty");
 		
-
-		Query query = Query.query(Criteria.where("momoLoanId").is(body.path("partnerId").asText()).and("appId").is(null));
+		if( mongoTemplate.findOne(Query.query(Criteria.where("appId").is(body.path("appId").asText())), Momo.class) != null) 
+			return response(404, mapper.createObjectNode().put("message", "AppId Is Exits"));
+		
+		Query query = Query.query(Criteria.where("momoLoanId").is(body.path("partnerId").asText()).and("appId").is("UNKNOW"));
 		Update update = new Update().set("appId", body.path("appId").asText())
 				.set("automationResult","FIX").set("status", "PROCESSING");
 
 		Momo momo = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), Momo.class);
 		
 		if (momo == null) {
-			return response(404, mapper.createObjectNode().put("message", "Momo Loan Id Not Found Or AppId Not Null"));
+			return response(404, mapper.createObjectNode().put("message", "Momo Loan Id Not Found Or AppId Is UNKNOW"));
 		}
 
 		rabbitMQService.send("tpf-service-app",

@@ -291,8 +291,6 @@ public class AppService {
 	}
 
 	
-	
-	
 
 	public JsonNode updateAppId(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
@@ -311,9 +309,11 @@ public class AppService {
 			return response(404, mapper.createObjectNode().put("message", "PartnerId Not Found"), 0);
 		}
 
-		rabbitMQService.send("tpf-service-" + app.getProject().toLowerCase(), Map.of("func", "updateAppId", "body", body));
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-" + app.getProject().toLowerCase(), Map.of("func", "updateAppId", "body", body));
+		
+		return response(res.path("status").asInt(), res.path("data"), 0);
 
-		return response(200, null, 0);
+	
 	}
 	
 	public JsonNode updateStatus(JsonNode request) throws Exception {
