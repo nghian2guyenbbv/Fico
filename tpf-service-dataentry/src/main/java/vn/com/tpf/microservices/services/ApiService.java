@@ -865,7 +865,7 @@ public class ApiService {
 			dataLogRes.put("referenceId", referenceId);
 			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
 			dataLogRes.put("response", res.getBody());
-			dataLogRes.put("response_decrypt", decrypt.path("body").path("data").asText());
+			dataLogRes.put("response_decrypt", decrypt);
 			log.info("{}", dataLogRes);
 			return decrypt.path("data");
 
