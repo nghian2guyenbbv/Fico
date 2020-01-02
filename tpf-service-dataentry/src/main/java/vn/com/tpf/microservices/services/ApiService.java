@@ -826,11 +826,11 @@ public class ApiService {
 		String referenceId = UUID.randomUUID().toString();
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
-			dataLogReq.put("type", "[==HTTP-LOG-DIGITEXX==REQUEST==]");
+			dataLogReq.put("type", "[==DATAENTRY-DIGITEXX==REQUEST==]");
 			dataLogReq.put("referenceId", referenceId);
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
-			dataLogReq.set("payload", data);
+			dataLogReq.put("request_data", data);
 			log.info("{}", dataLogReq);
 
 			String dataString = mapper.writeValueAsString(data);
@@ -839,9 +839,9 @@ public class ApiService {
 					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
 
 			ObjectNode dataLogReq2 = mapper.createObjectNode();
-			dataLogReq2.put("type", "[==HTTP-LOG-DIGITEXX==REQUEST=PGP=]");
+			dataLogReq2.put("type", "[==DATAENTRY-DIGITEXX==REQUEST=PGP=]");
 			dataLogReq2.put("referenceId", referenceId);
-			dataLogReq2.set("payload", encrypt);
+			dataLogReq2.put("request_encrypt", encrypt);
 			log.info("{}", dataLogReq2);
 
 			HttpHeaders headers = new HttpHeaders();
@@ -852,7 +852,7 @@ public class ApiService {
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
 //			ObjectNode dataLogReq3 = mapper.createObjectNode();
-//			dataLogReq3.put("type", "[==HTTP-LOG-DIGITEXX==RESPONSE=PGP=]");
+//			dataLogReq3.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE=PGP=]");
 //			dataLogReq3.put("referenceId", referenceId);
 //			dataLogReq3.set("payload", mapper.readTree(res.getBody()));
 //			log.info("{}", dataLogReq3);
@@ -861,12 +861,11 @@ public class ApiService {
 					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
 
 			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-DIGITEXX==RESPONSE==]");
+			dataLogRes.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE==]");
 			dataLogRes.put("referenceId", referenceId);
-			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-			dataLogRes.set("payload", data);
-			dataLogRes.put("result", decrypt.path("body").path("data").asText());
-
+			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+			dataLogRes.put("response", res.getBody());
+			dataLogRes.put("response_decrypt", decrypt.path("body").path("data").asText());
 			log.info("{}", dataLogRes);
 			return decrypt.path("data");
 
