@@ -967,6 +967,8 @@ public class DataEntryService {
 						if (!checkIdCard) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
 							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
@@ -979,6 +981,8 @@ public class DataEntryService {
 						if (!checkIdCard) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
 							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
@@ -991,6 +995,8 @@ public class DataEntryService {
 						if (!checkHousehold) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
 							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
@@ -1003,6 +1009,8 @@ public class DataEntryService {
 						if (!checkHousehold) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
 							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
@@ -1014,6 +1022,8 @@ public class DataEntryService {
 					} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())){
 						if (item.getComment() != null) {
 							doc.put("documentComment", item.getComment());
+						}else{
+							doc.put("documentComment", "");
 						}
 						if (item.getLink() != null) {
 							doc.put("documentId", item.getLink().getUrlPartner());
@@ -1022,6 +1032,8 @@ public class DataEntryService {
 					}else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 						if (item.getComment() != null) {
 							doc.put("documentComment", item.getComment());
+						}else{
+							doc.put("documentComment", "");
 						}
 						if (item.getLink() != null) {
 							doc.put("documentId", item.getLink().getUrlPartner());
