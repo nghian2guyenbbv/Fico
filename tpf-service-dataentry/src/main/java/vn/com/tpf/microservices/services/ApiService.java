@@ -823,9 +823,11 @@ public class ApiService {
 	}
 
 	public JsonNode callApiDigitexx(String url, JsonNode data) {
+		String referenceId = UUID.randomUUID().toString();
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
-			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+			dataLogReq.put("type", "[==HTTP-LOG-DIGITEXX==REQUEST==]");
+			dataLogReq.put("referenceId", referenceId);
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
 			dataLogReq.set("payload", data);
@@ -837,7 +839,8 @@ public class ApiService {
 					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
 
 			ObjectNode dataLogReq2 = mapper.createObjectNode();
-			dataLogReq2.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX=PGP=]");
+			dataLogReq2.put("type", "[==HTTP-LOG-DIGITEXX==REQUEST=PGP=]");
+			dataLogReq2.put("referenceId", referenceId);
 			dataLogReq2.set("payload", encrypt);
 			log.info("{}", dataLogReq2);
 
@@ -849,7 +852,8 @@ public class ApiService {
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
 //			ObjectNode dataLogReq3 = mapper.createObjectNode();
-//			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
+//			dataLogReq3.put("type", "[==HTTP-LOG-DIGITEXX==RESPONSE=PGP=]");
+//			dataLogReq3.put("referenceId", referenceId);
 //			dataLogReq3.set("payload", mapper.readTree(res.getBody()));
 //			log.info("{}", dataLogReq3);
 
@@ -857,7 +861,8 @@ public class ApiService {
 					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
 
 			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+			dataLogRes.put("type", "[==HTTP-LOG-DIGITEXX==RESPONSE==]");
+			dataLogRes.put("referenceId", referenceId);
 			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
 			dataLogRes.set("payload", data);
 			dataLogRes.put("result", decrypt.path("body").path("data").asText());
