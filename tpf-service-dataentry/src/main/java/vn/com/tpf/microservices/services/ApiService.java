@@ -848,10 +848,10 @@ public class ApiService {
 			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
-			ObjectNode dataLogReq3 = mapper.createObjectNode();
-			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
-			dataLogReq3.set("payload", mapper.readTree(res.getBody().toString()));
-			log.info("{}", dataLogReq3);
+//			ObjectNode dataLogReq3 = mapper.createObjectNode();
+//			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
+//			dataLogReq3.set("payload", mapper.readTree(res.getBody()));
+//			log.info("{}", dataLogReq3);
 
 			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
