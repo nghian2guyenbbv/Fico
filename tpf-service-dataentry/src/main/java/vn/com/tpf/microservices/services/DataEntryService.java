@@ -1064,6 +1064,7 @@ public class DataEntryService {
 					}
 				}catch (Exception ex){}
 
+//
 //				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
 //				if (resultDG != null){
 //					responseModel.setRequest_id(requestId);
