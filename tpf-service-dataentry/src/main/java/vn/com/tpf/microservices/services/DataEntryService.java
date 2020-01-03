@@ -903,8 +903,8 @@ public class DataEntryService {
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
-//									if (item.getResponse() != null) {
-										if (itemComment.getResponse() == null) {
+									if (item.getResponse() != null) {
+//										if (itemComment.getResponse() == null) {
 											if (item.getResponse().getDocuments().size() > 0) {
 												for (Document itemCommentFico : item.getResponse().getDocuments()) {
 													Link link = new Link();
@@ -919,8 +919,8 @@ public class DataEntryService {
 											Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 											comment = item.getResponse().getComment();
-										}
-//									}
+//										}
+									}
 								}
 							}
 
@@ -1046,23 +1046,23 @@ public class DataEntryService {
 
 				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
 						"comment", comment, "documents", documents)), JsonNode.class);
-				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+//				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
 
-//				try {
-//					JsonNode responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
-//					if (!responseDG.path("error-code").textValue().equals("")) {
-//						if (!responseDG.path("error-code").textValue().equals("null")) {
-//							log.info("ReferenceId : " + referenceId);
-//							responseModel.setRequest_id(requestId);
-//							responseModel.setReference_id(referenceId);
-//							responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//							responseModel.setResult_code("1");
-//							responseModel.setMessage(responseDG.path("error-description").textValue());
-//
-//							return Map.of("status", 200, "data", responseModel);
-//						}
-//					}
-//				}catch (Exception ex){}
+				try {
+					JsonNode responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
+					if (!responseDG.path("error-code").textValue().equals("")) {
+						if (!responseDG.path("error-code").textValue().equals("null")) {
+							log.info("ReferenceId : " + referenceId);
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage(responseDG.path("error-description").textValue());
+
+							return Map.of("status", 200, "data", responseModel);
+						}
+					}
+				}catch (Exception ex){}
 
 //
 //				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
