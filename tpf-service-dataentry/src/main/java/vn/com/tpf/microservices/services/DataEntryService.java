@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
+import vn.com.tpf.microservices.shared.ThirdPartyType;
 
 import javax.annotation.PostConstruct;
 import javax.validation.ConstraintViolation;
@@ -476,31 +477,26 @@ public class DataEntryService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			responseModel.setRequest_id(requestId);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("0");
-			responseModel.setData(Map.of("first_check_result", "pass"));
-
-//			String resultFirstCheck = apiService.firstCheck(request);
-//			if (resultFirstCheck.equals("pass")){
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("0");
-//			}else{
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("1");
-//				responseModel.setMessage(resultFirstCheck);
-//			}
-//
 //			responseModel.setRequest_id(requestId);
 //			responseModel.setReference_id(UUID.randomUUID().toString());
 //			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 //			responseModel.setResult_code("0");
-//			responseModel.setData(encStream3.toString());
+//			responseModel.setData(Map.of("first_check_result", "pass"));
+
+			String resultFirstCheck = apiService.firstCheck(request, token);
+			if (resultFirstCheck.equals("pass")){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(Map.of("first_check_result", "pass"));
+			}else{
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(Map.of("first_check_result", "fail"));
+			}
 
 		}
 		catch (Exception e) {
@@ -770,6 +766,7 @@ public class DataEntryService {
 		String commentId = "";
 		String comment = "";
 		String stageAuto = "";
+		String errorAuto = "";
 		String quickLeadId = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
@@ -801,8 +798,7 @@ public class DataEntryService {
 //					String typeComment = checkCommentExist.get(0).getComment().get(0).getType();
 
 					if (checkCommentExist.size() <= 0){
-						if (item.getType().equals("DIGI-TEX")) {// digitex gui comment
-//							if (typeComment.equals("DIGI-TEX")) {// digitex gui comment
+						if (ThirdPartyType.fromName(item.getType().toUpperCase()) != null) {// digitex gui comment
 							Query queryAddComment = new Query();
 							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 
@@ -813,12 +809,43 @@ public class DataEntryService {
 
                             requestCommnentFromDigiTex = true;
 						}else{
-							//xu ly tai fail automationfull - fico gui comment
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Comment Type Invalid!");
+
+							return Map.of("status", 200, "data", responseModel);
 						}
 					}else {
 //						if (item.getType().equals("FICO")) {// digitex tra comment
 						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
+							boolean checkResponseComment = false;
+
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+							if (checkCommentExist.get(0).getError() != null) {
+								errorAuto = checkCommentExist.get(0).getError();
+							}
+
+							//validate so luong tra comment tu digitex
+//							int countCommentDG = 0;
+//							for (CommentModel itemComment : listComment) {
+//								if (itemComment.getType().equals("FICO")) {
+//									if (itemComment.getResponse() != null) {
+//										countCommentDG = countCommentDG + 1;
+//									}
+//								}
+//							}
+//							if (countCommentDG > 3){
+//								responseModel.setRequest_id(requestId);
+//								responseModel.setReference_id(referenceId);
+//								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//								responseModel.setResult_code("1");
+//								responseModel.setMessage("application can not retry!");
+//								return Map.of("status", 200, "data", responseModel);
+//							}
+							//
+
 							try{
 								quickLeadId = checkCommentExist.get(0).getQuickLeadId();
 							}
@@ -831,20 +858,47 @@ public class DataEntryService {
 										Update update = new Update();
 										update.set("comment.$.response", item.getResponse());
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+										checkResponseComment = true;
 									}
 								}
 							}
+
+							if (!checkResponseComment){
+								responseModel.setRequest_id(requestId);
+								responseModel.setReference_id(referenceId);
+								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+								responseModel.setResult_code("1");
+								responseModel.setMessage("applicationId can not return comment!");
+
+								return Map.of("status", 200, "data", responseModel);
+							}
+
                             responseCommnentFullAPPFromDigiTex = true;
 
 							// update automation
 							if (item.getResponse().getData() != null){
 								Application dataUpdate = item.getResponse().getData();
 								dataUpdate.setStage(stageAuto);
+								dataUpdate.setError(errorAuto);
 								rabbitMQService.send("tpf-service-automation",
 										Map.of("func", "updateAppError","body", dataUpdate));
 							}
 
 						}else{//fico tra comment
+							try{
+								if (item.getResponse().getComment() == null || item.getResponse().getComment().equals("")){
+									responseModel.setRequest_id(requestId);
+									responseModel.setReference_id(referenceId);
+									responseModel.setDate_time(new Timestamp(new Date().getTime()));
+									responseModel.setResult_code("1");
+									responseModel.setMessage("vui lòng nhập comment!");
+									return Map.of("status", 200, "data", responseModel);
+								}
+							}catch (Exception ex){
+
+							}
+
 							documentCommnet = item.getResponse().getDocuments();
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							for (CommentModel itemComment : listComment) {
@@ -909,58 +963,82 @@ public class DataEntryService {
 				for (Document item: documentCommnet) {
 					ObjectNode doc = mapper.createObjectNode();
 
-					if (item.getType().equals("TPF_ID Card")){
+					if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())){
 						if (!checkIdCard) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkIdCard = true;
 						}
-					}else if (item.getType().equals("TPF_Notarization of ID card")){
+					}else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())){
 						if (!checkIdCard) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkIdCard = true;
 						}
-					}if (item.getType().equals("TPF_Family Book")){
+					}if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())){
 						if (!checkHousehold) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkHousehold = true;
 						}
-					}else if (item.getType().equals("TPF_Notarization of Family Book")){
+					}else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())){
 						if (!checkHousehold) {
-							doc.put("documentComment", item.getComment());
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
+							}
 							if (item.getLink() != null) {
 								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
 							}
-							documents.add(doc);
 
 							checkHousehold = true;
 						}
-					} else if (item.getType().equals("TPF_Customer Photograph")){
-						doc.put("documentComment", item.getComment());
+					} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())){
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						}else{
+							doc.put("documentComment", "");
+						}
 						if (item.getLink() != null) {
 							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
 						}
-						documents.add(doc);
-					}else if (item.getType().equals("TPF_Application cum Credit Contract (ACCA)")){
-						doc.put("documentComment", item.getComment());
+					}else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						}else{
+							doc.put("documentComment", "");
+						}
 						if (item.getLink() != null) {
 							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
 						}
-						documents.add(doc);
 					}
 				}
 
@@ -1590,6 +1668,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", errors);
 					update.set("stage", errors);
+					update.set("error", request.path("body").path("error").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1723,6 +1802,7 @@ public class DataEntryService {
 					update.set("status", "FULL_APP_FAIL");
 					update.set("description", errors);
 					update.set("stage", errors);
+					update.set("error", request.path("body").path("error").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1880,6 +1960,7 @@ public class DataEntryService {
             inputQuery.add("FULL_APP_FAIL");
 			inputQuery.add("MANUALLY");
 			inputQuery.add("PROCESSING");
+			inputQuery.add("CANCEL");
 
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
 					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
@@ -2104,6 +2185,8 @@ public class DataEntryService {
 		String referenceId = UUID.randomUUID().toString();
 		ByteArrayInputStream in = null;
 		try{
+			List<String> inputQuery = new ArrayList<String>();
+
 			Assert.notNull(request.get("body"), "no body");
 
 			Criteria criteria=new Criteria();
@@ -2123,9 +2206,13 @@ public class DataEntryService {
 				criteria.and("createdDate").gte(fromDate).lte(toDate);
 			}
 
-			if(request.path("body").path("data").path("status").textValue()!=null)
+			if(request.path("body").path("data").path("status")!=null && !request.path("body").path("data").path("status").toString().equals("") &&
+					!request.path("body").path("data").path("status").isNull())
 			{
-				criteria.and("status").is(request.path("body").path("data").path("status").textValue());
+				inputQuery = mapper.readValue(request.path("body").path("data").path("status").toString(), List.class);
+				if (inputQuery.size() > 0) {
+					criteria.and("status").in(inputQuery);
+				}
 			}else
 			{
 				criteria.and("status").ne(null);
@@ -2139,7 +2226,8 @@ public class DataEntryService {
 			List<Application> resultData=new ArrayList<Application>();
 
 			//get by page, limit
-			if(request.path("body").path("data").get("page")!=null && request.path("body").path("data").get("limit")!=null) {
+			if(request.path("body").path("data").get("page")!=null && request.path("body").path("data").get("limit")!=null &&
+					!request.path("body").path("data").get("page").isNull() && !request.path("body").path("data").get("limit").isNull()) {
 				page = request.path("body").path("data").path("page").asInt(1);
 				limit = request.path("body").path("data").path("limit").asInt(10);
 

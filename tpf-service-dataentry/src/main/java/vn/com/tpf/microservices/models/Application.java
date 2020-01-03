@@ -36,6 +36,7 @@ public class Application {
     private String status;
     private String description;
     private String stage;
+    private String error;
     private String userName;
     private String userName_DE;
     @CreatedDate

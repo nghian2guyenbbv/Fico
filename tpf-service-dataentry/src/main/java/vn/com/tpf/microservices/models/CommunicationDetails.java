@@ -14,7 +14,7 @@ public class CommunicationDetails {
     private String primaryAddress;
 
     @NotNull
-    @NotEmpty(message = "primaryEmailId not null")
+//    @NotEmpty(message = "primaryEmailId not null")
     private String primaryEmailId;
 
     @Valid

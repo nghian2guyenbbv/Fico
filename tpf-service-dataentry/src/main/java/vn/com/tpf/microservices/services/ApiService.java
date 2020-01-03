@@ -42,8 +42,6 @@ public class ApiService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private String urlFirstCheck;
-
 	@Value("${spring.url.firstcheck}")
 	private String urlFirstcheck;
 
@@ -76,14 +74,23 @@ public class ApiService {
 
 	private RestTemplate restTemplate;
 
+	private RestTemplate restTemplateFirstCheck;
+
 	@PostConstruct
 	private void init() {
 		ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
 		restTemplate = new RestTemplate(factory);
 		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
+
+		SimpleClientHttpRequestFactory scrf = new SimpleClientHttpRequestFactory();
+		scrf.setConnectTimeout(1000*120);
+		scrf.setReadTimeout(1000*120);
+		ClientHttpRequestFactory factoryFirstCheck = new BufferingClientHttpRequestFactory(scrf);
+		restTemplateFirstCheck = new RestTemplate(factoryFirstCheck);
+		restTemplateFirstCheck.setInterceptors(Arrays.asList(new HttpLogService()));
 	}
 
-	public String firstCheck(JsonNode request) {
+	public String firstCheck(JsonNode request, JsonNode token) {
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		try {
 			Assert.notNull(request.get("body"), "no body");
@@ -102,22 +109,36 @@ public class ApiService {
 			requestFirstCheck.setGender("");
 			requestFirstCheck.setPhoneNumber("");
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(urlFirstcheck, entity, Object.class);
-			JsonNode body = mapper.valueToTree(res.getBody());
+			String logsTimeOut = "TimeOut two minute: ";
+			try{
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
+				ResponseEntity<?> res = restTemplateFirstCheck.postForEntity(urlFirstcheck, entity, Object.class);
+				JsonNode body = mapper.valueToTree(res.getBody());
+				logsTimeOut = "";
 
-			FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
-			FirstCheck firstCheck = new FirstCheck();
-			firstCheck.setRequest(requestFirstCheck);
-			firstCheck.setResponse(firstCheckResponse);
-			mongoTemplate.save(firstCheck);
+				FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
+				FirstCheck firstCheck = new FirstCheck();
+				firstCheck.setRequest(requestFirstCheck);
+				firstCheck.setResponse(firstCheckResponse);
+				firstCheck.setCreatedBy(token.path("user_name").textValue());
+				mongoTemplate.save(firstCheck);
 
-			if (firstCheckResponse.getFirst_check_result().equals("pass")){
+				if (firstCheckResponse.getFirst_check_result().toUpperCase().equals("PASS")){
+					return "pass";
+				}else {
+					return "fail";
+				}
+			}catch (Exception ex){
+				FirstCheck firstCheck = new FirstCheck();
+				firstCheck.setRequest(requestFirstCheck);
+				firstCheck.setDescription(logsTimeOut + ex.toString());
+				firstCheck.setCreatedBy(token.path("user_name").textValue());
+				mongoTemplate.save(firstCheck);
+
 				return "pass";
 			}
-			return "fail";
 
 		} catch (HttpClientErrorException e) {
 			log.info("[==HTTP-LOG-RESPONSE==] : {}",
@@ -802,57 +823,72 @@ public class ApiService {
 	}
 
 	public JsonNode callApiDigitexx(String url, JsonNode data) {
+		String referenceId = UUID.randomUUID().toString();
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
-			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+			dataLogReq.put("type", "[==DATAENTRY-DIGITEXX==REQUEST==]");
+			dataLogReq.put("referenceId", referenceId);
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
-			dataLogReq.set("payload", data);
+			dataLogReq.put("request_data", data);
 			log.info("{}", dataLogReq);
 
-//			String dataString = mapper.writeValueAsString(data);
-//
-//			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-//
-//			ObjectNode dataLogReq2 = mapper.createObjectNode();
-//			dataLogReq2.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX=PGP=]");
-//			dataLogReq2.set("payload", encrypt);
-//			log.info("{}", dataLogReq2);
-//
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("Accept", "application/pgp-encrypted");
-//			headers.set("Content-Type", "application/pgp-encrypted");
-//			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
-//			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-//
+			String dataString = mapper.writeValueAsString(data);
+
+			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+
+			ObjectNode dataLogReq2 = mapper.createObjectNode();
+			dataLogReq2.put("type", "[==DATAENTRY-DIGITEXX==REQUEST=PGP=]");
+			dataLogReq2.put("referenceId", referenceId);
+			dataLogReq2.put("request_encrypt", encrypt);
+			log.info("{}", dataLogReq2);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+			headers.set("Accept", "application/pgp-encrypted");
+			headers.set("Content-Type", "application/pgp-encrypted");
+			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+
 //			ObjectNode dataLogReq3 = mapper.createObjectNode();
-//			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
-//			dataLogReq3.set("payload", mapper.readTree(res.getBody().toString()));
+//			dataLogReq3.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE=PGP=]");
+//			dataLogReq3.put("referenceId", referenceId);
+//			dataLogReq3.set("payload", mapper.readTree(res.getBody()));
 //			log.info("{}", dataLogReq3);
-//
-//			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
-//
-//			ObjectNode dataLogRes = mapper.createObjectNode();
-//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-//			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-//			dataLogRes.set("payload", data);
-//			dataLogRes.put("result", decrypt.path("body").path("data").asText());
-//
-//			log.info("{}", dataLogRes);
-//			return decrypt.path("data");
+
+			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
+
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE==]");
+			dataLogRes.put("referenceId", referenceId);
+			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+			dataLogRes.put("response", res.getBody());
+			dataLogRes.put("response_decrypt", decrypt);
+			log.info("{}", dataLogRes);
+			return decrypt.path("data");
 
 			//------------- test khong pgp -------
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
-			JsonNode body = mapper.valueToTree(res.getBody());
 
-			return body.path("data");
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
+//			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
+//
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+//			dataLogRes.put("status", 200);
+//			dataLogRes.put("data", data.textValue());
+//			dataLogRes.put("result", res.getBody().toString());
+//			dataLogRes.set("payload", data);
+//			log.info("{}", dataLogRes);
+//
+//			JsonNode body = mapper.valueToTree(res.getBody());
+//			return body;
+
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
