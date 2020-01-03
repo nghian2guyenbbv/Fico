@@ -12,6 +12,8 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.SessionId;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,8 +83,9 @@ public class Utilities {
 
     public static void captureScreenShot(WebDriver ldriver) {
         File src = ((TakesScreenshot) ldriver).getScreenshotAs(OutputType.FILE);
+        SessionId session = ((RemoteWebDriver)ldriver).getSessionId();
         try {
-            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

@@ -113,6 +113,9 @@ public class DE_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private List<WebElement> btnConfirmDeleteVapNextElement;
 
+    @FindBy(how = How.XPATH, using = "//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")
+    private WebElement btnConfirmDeleteVapNextElement1;
+
     public DE_LoanDetailsSourcingDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;

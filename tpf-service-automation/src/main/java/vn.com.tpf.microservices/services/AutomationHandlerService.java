@@ -198,7 +198,14 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
         } finally {
             //logout(driver);
-            pushAccountToQueue(accountDTO);
+            if(project.equals("MOMO"))
+            {
+                pushAccountToQueue_OLD(accounts,accountDTO);
+            }else
+            {
+                pushAccountToQueue(accountDTO);
+            }
+
             if (driver != null) {
                 driver.close();
                 driver.quit();
@@ -694,7 +701,7 @@ public class AutomationHandlerService {
                     updateAppError_Full(driver,stageError,accountDTO,leadAppID,mapValue);
                     break;
                 default:
-                    updateAppError_PersonalInformation(driver,stageError,accountDTO,leadAppID,mapValue);
+                    updateAppError_Full(driver,stageError,accountDTO,leadAppID,mapValue);
                     break;
             }
 
@@ -907,7 +914,7 @@ public class AutomationHandlerService {
 
             if (e.getMessage().contains("Work flow failed!!!")) {
                 stage="END OF LEAD DETAIL";
-
+                application.setStage(stage);
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
 
@@ -916,6 +923,7 @@ public class AutomationHandlerService {
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
                         error += " - " + we.getText();
                     }
+                    application.setError(error);
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -1048,26 +1056,33 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
-            //update
-            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size() > 0);
+//            //update
+//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size() > 0);
+//
+//            await("modalBtnConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).findElement(By.id("confirmDeleteVapNext")).isDisplayed());
+//
+//            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
+//
+//            Actions actions = new Actions(driver);
+//
+//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size() > 0);
+//
+//            System.out.println(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
+//
+//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).isDisplayed());
+//
+//            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
 
-            await("modalBtnConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).findElement(By.id("confirmDeleteVapNext")).isDisplayed());
-
-            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
-
-            Actions actions = new Actions(driver);
-
-            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size() > 0);
-
-            System.out.println(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
-
-            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).isDisplayed());
-
-            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
+            try {
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
+                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+            } catch (Exception e) {
+            }
 
             System.out.println("LOAN DETAILS: DONE");
 
@@ -1118,7 +1133,7 @@ public class AutomationHandlerService {
 
             if (e.getMessage().contains("Work flow failed!!!")) {
                 stage = "END OF LEAD DETAIL";
-
+                application.setStage(stage);
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
 
@@ -1127,6 +1142,7 @@ public class AutomationHandlerService {
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
                         error += " - " + we.getText();
                     }
+                    application.setError(error);
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -1259,6 +1275,7 @@ public class AutomationHandlerService {
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
+            employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetails());
             employmentDetailsTab.getSaveAndNextBtnElement().click();
             Utilities.captureScreenShot(driver);
 
@@ -1391,7 +1408,7 @@ public class AutomationHandlerService {
 
             if (e.getMessage().contains("Work flow failed!!!")) {
                 stage = "END OF LEAD DETAIL";
-
+                application.setStage(stage);
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
 
@@ -1400,6 +1417,7 @@ public class AutomationHandlerService {
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
                         error += " - " + we.getText();
                     }
+                    application.setError(error);
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -1481,10 +1499,6 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
-            // ========== LEAD DETAILS (DATA ENTRY) =================
-            LeadDetailDEPage leadDetailDEPage= new LeadDetailDEPage(driver);
-            leadDetailDEPage.setData(leadAppID);
-            Utilities.captureScreenShot(driver);
 
             stage="APPLICATION GRID";
             // ========== APPLICATION GRID =================
@@ -1500,6 +1514,15 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             ApplicationGridPage applicationGridPage=new ApplicationGridPage(driver);
             applicationGridPage.updateData(leadAppID);
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+
+            stage="LEAD DETAILS (DATA ENTRY)";
+            // ========== LEAD DETAILS (DATA ENTRY) =================
+            LeadDetailDEPage leadDetailDEPage= new LeadDetailDEPage(driver);
+            leadDetailDEPage.setData(leadAppID);
+            Utilities.captureScreenShot(driver);
+
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
@@ -1566,26 +1589,34 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
-            //update
-            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size() > 0);
+//            //update
+//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size() > 0);
+//
+//            await("modalBtnConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).findElement(By.id("confirmDeleteVapNext")).isDisplayed());
+//
+//            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
+//
+//            Actions actions = new Actions(driver);
+//
+//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size() > 0);
+//
+//            System.out.println(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
+//
+//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).isDisplayed());
+//
+//            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
 
-            await("modalBtnConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).findElement(By.id("confirmDeleteVapNext")).isDisplayed());
 
-            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
-
-            Actions actions = new Actions(driver);
-
-            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size() > 0);
-
-            System.out.println(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
-
-            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).isDisplayed());
-
-            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
+            try {
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
+                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+            } catch (Exception e) {
+            }
 
             System.out.println("LOAN DETAILS: DONE");
 
@@ -1636,7 +1667,7 @@ public class AutomationHandlerService {
 
             if (e.getMessage().contains("Work flow failed!!!")) {
                 stage = "END OF LEAD DETAIL";
-
+                application.setStage(stage);
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
 
@@ -1645,6 +1676,7 @@ public class AutomationHandlerService {
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
                         error += " - " + we.getText();
                     }
+                    application.setError(error);
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -1757,31 +1789,31 @@ public class AutomationHandlerService {
             DE_ApplicationInfoPage appInfoPage = new DE_ApplicationInfoPage(driver);
             DE_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
 
-//            await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(()->personalTab.getPersonalCustomerDetailsElement().isDisplayed());
-//
-//            personalTab.updateValue(applicationInfoDTO);
-//
-//            System.out.println(stage + ": DONE" );
-//            Utilities.captureScreenShot(driver);
-//            stage="EMPLOYMENT DETAILS";
-//            // ========== EMPLOYMENT DETAILS =================
-//            await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
-//
-//            DE_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
-//            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
-//
-//            employmentDetailsTab.updateData(applicationInfoDTO.getEmploymentDetails());
-//            employmentDetailsTab.getDoneBtnElement().click();
-//            await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
-//            employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
-//            employmentDetailsTab.getSaveAndNextBtnElement().click();
-//
-//            System.out.println(stage + ": DONE" );
-//            Utilities.captureScreenShot(driver);
+            await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->personalTab.getPersonalCustomerDetailsElement().isDisplayed());
+
+            personalTab.updateValue(applicationInfoDTO);
+
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
+            stage="EMPLOYMENT DETAILS";
+            // ========== EMPLOYMENT DETAILS =================
+            await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
+
+            DE_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
+
+            employmentDetailsTab.updateData(applicationInfoDTO.getEmploymentDetails());
+            employmentDetailsTab.getDoneBtnElement().click();
+            await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
+            employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
+            employmentDetailsTab.getSaveAndNextBtnElement().click();
+
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
             stage="FINANCIAL DETAILS";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getIncomeDetails() != null && applicationInfoDTO.getIncomeDetails().size() > 0) {
@@ -1825,18 +1857,32 @@ public class AutomationHandlerService {
 //
 //            Actions actions=new Actions(driver);
 //
-            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size()>0);
+//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size()>0);
+//
+//            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
+//
+//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).isDisplayed());
+//
+//
+//            System.out.println("BTN :" + loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
+//
+//            //actions.moveToElement(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1)).click().build().perform();
+//
+//           loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
 
-            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
+            //kiem tra da co VAP Hay chua, neu co moi hien popup de close
+//            if(driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size()>0) {
 
-            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).isDisplayed());
+            try {
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
+                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+            } catch (Exception e) {
+            }
 
-
-            System.out.println("BTN :" + loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
-
-            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
+            //}
 
             System.out.println("LOAN DETAILS: DONE");
 
@@ -1925,7 +1971,7 @@ public class AutomationHandlerService {
 
             if (e.getMessage().contains("Work flow failed!!!")) {
                 stage = "END OF LEAD DETAIL";
-
+                application.setStage(stage);
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
 
@@ -1934,6 +1980,7 @@ public class AutomationHandlerService {
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
                         error += " - " + we.getText();
                     }
+                    application.setError(error);
                     System.out.println(stage + "=>" + error);
                 }
             }
