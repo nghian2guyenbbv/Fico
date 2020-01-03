@@ -41,7 +41,7 @@ public class ConvertService {
 		}
 
 		ArrayNode comments = mapper.createArrayNode();
-		if(application.getComment() != null){
+		if(application.getComment().size() > 0){
 			application.getComment().forEach(e -> {
 				ObjectNode doc = mapper.createObjectNode();
 				doc.put("commentId", e.getCommentId());
@@ -49,10 +49,11 @@ public class ConvertService {
 				doc.put("type", e.getType());
 				doc.put("code", e.getCode());
 				doc.put("request", e.getRequest());
-				doc.put("createdAt", e.getCreatedDate().toString());
+
 				try {
 					doc.put("response", mapper.writeValueAsString(e.getResponse()));
 					doc.put("responseJson", mapper.convertValue(e.getResponse(), ObjectNode.class));
+					doc.put("createdAt", e.getCreatedDate().toString());
 				} catch (JsonProcessingException e1) {
 					e1.printStackTrace();
 				}
