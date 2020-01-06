@@ -94,6 +94,13 @@ public class ApiService {
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		try {
 			Assert.notNull(request.get("body"), "no body");
+
+            List<DataentryAddress> dataAdd = new ArrayList<>();
+            Query query = new Query();
+            query.addCriteria(Criteria.where("areaCode").is(request.path("body").path("data").path("areaId").textValue()));
+            dataAdd = mongoTemplate.find(query, DataentryAddress.class);
+
+
 //			FirstCheckRequest requestFirstCheck = mapper.treeToValue(request.path("body").path("data"), FirstCheckRequest.class);
 			FirstCheckRequest requestFirstCheck = new FirstCheckRequest();
 			requestFirstCheck.setProject_name("de");
@@ -104,7 +111,9 @@ public class ApiService {
 			requestFirstCheck.setDsa_code(request.path("body").path("data").path("dsaCode").textValue());
 			requestFirstCheck.setBank_card_number(request.path("body").path("data").path("bankCardNumber").textValue());
 			requestFirstCheck.setCurrent_address(request.path("body").path("data").path("currentAddress").textValue());
-			requestFirstCheck.setArea_code(request.path("body").path("data").path("areaId").textValue());
+			if (dataAdd.size() > 0) {
+                requestFirstCheck.setArea_code(dataAdd.get(0).getF1AreaCode());
+            }
 			requestFirstCheck.setBirthday("");
 			requestFirstCheck.setGender("");
 			requestFirstCheck.setPhoneNumber("");
