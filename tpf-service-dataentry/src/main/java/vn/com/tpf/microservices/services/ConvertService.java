@@ -41,7 +41,7 @@ public class ConvertService {
 		}
 
 		ArrayNode comments = mapper.createArrayNode();
-		if(application.getComment().size() > 0){
+		if(application.getComment() != null){
 			application.getComment().forEach(e -> {
 				ObjectNode doc = mapper.createObjectNode();
 				doc.put("commentId", e.getCommentId());
