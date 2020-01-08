@@ -301,7 +301,10 @@ public class DataEntryService {
 
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(requestModel.getData().getApplicationId()));
+			query.with(new Sort(Sort.Direction.DESC, "comment.createdDate"));
+
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
+
 			if (checkExist.size() > 0){
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -698,7 +701,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.toString());
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1129,7 +1132,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.toString() + e.getCause() + e.getStackTrace());
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1195,7 +1198,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1223,10 +1226,6 @@ public class DataEntryService {
 					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp","body",
-									appData.get(0)));
-
 					Update update = new Update();
 					update.set("status", "NEW");
 					update.set("lastModifiedDate", new Date());
@@ -1237,6 +1236,9 @@ public class DataEntryService {
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", appDataFull.get(0).getId()), "body", convertService.toAppDisplay(appDataFull.get(0))));
 
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp","body",
+									appData.get(0)));
 
 				}else {
 					Query queryUpdate = new Query();
@@ -1272,10 +1274,6 @@ public class DataEntryService {
 					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp", "body",
-									appData.get(0)));
-
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
@@ -1287,6 +1285,10 @@ public class DataEntryService {
 					report.setCreatedBy(token.path("user_name").textValue());
 					report.setCreatedDate(new Date());
 					mongoTemplate.save(report);
+
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp", "body",
+									appData.get(0)));
 				}
 
 				responseModel.setRequest_id(requestId);
