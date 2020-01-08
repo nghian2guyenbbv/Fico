@@ -154,6 +154,7 @@ public class AutomationHandlerService {
             LogoutPage logoutPage = new LogoutPage(driver);
             logoutPage.logout();
         } catch (Exception e) {
+            System.out.println("LOGOUT:" + e.toString());
         }
     }
 
@@ -194,7 +195,7 @@ public class AutomationHandlerService {
             }
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("executor:" + e.toString());
             Utilities.captureScreenShot(driver);
         } finally {
             //logout(driver);
@@ -333,6 +334,7 @@ public class AutomationHandlerService {
 
             homePage.getMenuApplicationElement().click();
             homePage.getApplicationElement().click();
+            Utilities.captureScreenShot(driver);
             //logout(driver);
 
         } catch (Exception e) {
@@ -535,7 +537,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             // ==========VAP DETAILS=======================
-            if (loanDetailsVapDTO != null && !loanDetailsVapDTO.getVapProduct().equals("")) {
+            if (loanDetailsVapDTO != null && loanDetailsVapDTO.getVapProduct() !=null && !loanDetailsVapDTO.getVapProduct().equals("")) {
                 stage="LOAN DETAIL PAGE - VAP DETAIL TAB";
                 Utilities.captureScreenShot(driver);
                 DE_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new DE_LoanDetailsVapDetailsTab(driver);
@@ -1315,7 +1317,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             // ==========VAP DETAILS=======================
-            if (loanDetailsVapDTO != null && !loanDetailsVapDTO.getVapProduct().equals("")) {
+            if (loanDetailsVapDTO != null && loanDetailsVapDTO.getVapProduct()!=null && !loanDetailsVapDTO.getVapProduct().equals("")) {
                 stage="LOAN DETAIL PAGE - VAP DETAIL TAB";
                 Utilities.captureScreenShot(driver);
                 DE_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new DE_LoanDetailsVapDetailsTab(driver);
@@ -1890,7 +1892,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             // ========== VAP DETAILS =======================
-            if (loanDetailsVapDTO != null && !loanDetailsVapDTO.getVapProduct().equals("")) {
+            if (loanDetailsVapDTO != null && loanDetailsVapDTO.getVapProduct()!=null && !loanDetailsVapDTO.getVapProduct().equals("")) {
                 stage="LOAN DETAIL - VAP DETAIL TAB";
                 Utilities.captureScreenShot(driver);
                 DE_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new DE_LoanDetailsVapDetailsTab(driver);
@@ -2167,7 +2169,7 @@ public class AutomationHandlerService {
             System.out.println("LOAN DETAILS: DONE");
 
             // ==========VAP=======================
-            if (loanDetailsVapDTO != null && !loanDetailsVapDTO.getVapProduct().equals("")) {
+            if (loanDetailsVapDTO != null && loanDetailsVapDTO.getVapProduct()!=null && !loanDetailsVapDTO.getVapProduct().equals("")) {
                 stage="LOAN DETAIL PAGE - VAP DETAIL TAB";
                 Utilities.captureScreenShot(driver);
                 LD_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new LD_LoanDetailsVapDetailsTab(driver);
@@ -2465,7 +2467,7 @@ public class AutomationHandlerService {
             System.out.println("LOAN DETAILS: DONE");
 
             // ==========VAP=======================
-            if (loanDetailsVapDTO != null && !loanDetailsVapDTO.getVapProduct().equals("")) {
+            if (loanDetailsVapDTO != null && loanDetailsVapDTO.getVapProduct()!=null && !loanDetailsVapDTO.getVapProduct().equals("")) {
                 stage="LOAN DETAIL PAGE - VAP DETAIL TAB";
                 Utilities.captureScreenShot(driver);
                 LD_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new LD_LoanDetailsVapDetailsTab(driver);
