@@ -46,6 +46,27 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement loanPurposeInputElement;
 
+    //    //PRO
+//    //production khac id
+//    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+//    @CacheLookup
+//    private WebElement loanPurposeElement;
+//
+//    //production khac
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeOptionElement;
+
+    //update loanpurpose PRO
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeCloseElement;
+//
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurposee_frmAppDtl_0_chzn')]//input")
+//    @CacheLookup
+//    private WebElement loanPurposeInputElement;
+
+
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
     @CacheLookup
     private WebElement numberOfDependentsElement;
