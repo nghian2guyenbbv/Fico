@@ -238,16 +238,17 @@ public class AutomationHandlerService {
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
             //actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
-
-
+            
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
+
 
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
             stage="HOME PAGE";
             HomePage homePage = new HomePage(driver);
+
 
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
