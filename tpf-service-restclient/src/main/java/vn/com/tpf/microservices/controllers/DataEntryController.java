@@ -47,6 +47,9 @@ public class DataEntryController {
 	@Value("${spring.url.digitex-resumitdocumentapi}")
 	private String urlDigitexResumitDocumentApi;
 
+	@Value("${spring.url.digitex-token}")
+	private String digitexToken;
+
 	private RestTemplate restTemplate;
 
 	@PostConstruct
@@ -553,7 +556,7 @@ public class DataEntryController {
 
 
 							HttpHeaders headers_DT = new HttpHeaders();
-							headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+							headers_DT.set("authkey", digitexToken);
 							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 							ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexDocumentApi, entity_DT, Object.class);
@@ -583,7 +586,7 @@ public class DataEntryController {
 ////							Thread.sleep(30000);
 //							try{
 //								HttpHeaders headers_DT = new HttpHeaders();
-//								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//								headers_DT.set("authkey", digitexToken);
 //								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 //								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 //								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTex, entity_DT, Object.class);
@@ -793,7 +796,7 @@ public class DataEntryController {
                             catch (Exception ex){}
 
 							HttpHeaders headers_DT = new HttpHeaders();
-							headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+							headers_DT.set("authkey", digitexToken);
 							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 							ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexResumitDocumentApi, entity_DT, Object.class);
@@ -822,7 +825,7 @@ public class DataEntryController {
 ////							Thread.sleep(30000);
 //							try{
 //								HttpHeaders headers_DT = new HttpHeaders();
-//								headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//								headers_DT.set("authkey", digitexToken);
 //								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 //								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 //								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigiTexResubmit, entity_DT, Object.class);
