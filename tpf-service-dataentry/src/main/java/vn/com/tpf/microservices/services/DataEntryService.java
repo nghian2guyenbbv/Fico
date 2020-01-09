@@ -301,7 +301,7 @@ public class DataEntryService {
 
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(requestModel.getData().getApplicationId()));
-			query.with(new Sort(Sort.Direction.DESC, "comment.createdDate"));
+//			query.with(new Sort(Sort.Direction.DESC, "comment.createdDate"));
 
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 
@@ -821,8 +821,8 @@ public class DataEntryService {
 							return Map.of("status", 200, "data", responseModel);
 						}
 					}else {
-//						if (item.getType().equals("FICO")) {// digitex tra comment
-						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
+						if (item.getType().equals("FICO")) {// digitex tra comment
+//						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
 							boolean checkResponseComment = false;
 
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
