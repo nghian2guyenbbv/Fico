@@ -882,6 +882,9 @@ public class DataEntryService {
 							// update automation
 							if (item.getResponse().getData() != null){
 								Application dataUpdate = item.getResponse().getData();
+                                if (dataUpdate.getQuickLead().getDocumentsComment() != null){
+                                    dataUpdate.setDocuments(dataUpdate.getQuickLead().getDocumentsComment());
+                                }
 								dataUpdate.setStage(stageAuto);
 								dataUpdate.setError(errorAuto);
 								rabbitMQService.send("tpf-service-automation",
