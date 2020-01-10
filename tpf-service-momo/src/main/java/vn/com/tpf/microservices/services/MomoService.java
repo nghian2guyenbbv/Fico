@@ -684,7 +684,7 @@ public class MomoService {
 			listCancelled.add(mapper.createObjectNode().put("appId", momo.getAppId())
 					.put("customter",
 							String.format("%s %s %s", momo.getLastName(), momo.getMiddleName(), momo.getFirstName()))
-					.put("status", status).put("lastUpdated",  new SimpleDateFormat("dd/mm/yyyy hh:mm").format(momo.getUpdatedAt())));
+					.put("status", status).put("lastUpdated",  new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(momo.getUpdatedAt())));
 		}
 
 		return response(200, mapper.convertValue(listCancelled, JsonNode.class));
