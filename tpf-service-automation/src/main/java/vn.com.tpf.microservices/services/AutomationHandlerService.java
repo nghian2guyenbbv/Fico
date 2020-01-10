@@ -1934,6 +1934,8 @@ public class AutomationHandlerService {
 
 
             // ==========REFERENCES=================
+            System.out.println(stage + ": DONE" );
+            Utilities.captureScreenShot(driver);
             stage="REFERENCES";
             DE_ReferencesPage referencesPage = new DE_ReferencesPage(driver);
             await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
