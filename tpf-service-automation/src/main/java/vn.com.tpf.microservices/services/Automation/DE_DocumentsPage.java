@@ -124,14 +124,17 @@ public class DE_DocumentsPage {
 
     }
 
-    public void updateData(List<DocumentDTO> documentDTOS) throws IOException, InterruptedException {
+    public void updateData(List<DocumentDTO> documentDTOS,String downLoadFileURL) throws IOException, InterruptedException {
 
         await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
 
-        String fromFile = "http://192.168.0.203:3001/v1/file/";
-        String toFile = Constant.SCREENSHOT_PRE_PATH;
+       //String fromFile = "http://192.168.0.203:3001/v1/file/";
+        String fromFile = downLoadFileURL;
+        String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
         //do index=0 la 1 element khac
+        System.out.println("update doc - URLdownload: " + fromFile);
+
         int index = 0;
 
         List<String> updateField=new ArrayList<>();

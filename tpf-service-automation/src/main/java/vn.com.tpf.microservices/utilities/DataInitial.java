@@ -48,6 +48,8 @@ public class DataInitial {
                     .ward(address.getAddressLine3())
                     .residentDurationYear(address.getYearsInCurrentAddress())
                     .residentDurationMonth(address.getMonthsInCurrentAddress())
+                    .priStd(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
+                    .priNumber(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
                     .mobilePhone(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
             addressDTOs.add(addressDTO);
         }

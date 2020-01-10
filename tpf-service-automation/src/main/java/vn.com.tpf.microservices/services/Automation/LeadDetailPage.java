@@ -303,7 +303,7 @@ public class LeadDetailPage {
                             Thread.sleep(2000);
 
                             photoElement.get(_tempIndex).sendKeys(photoUrl);
-
+                            Utilities.captureScreenShot(_driver);
 //                        // Added sleep to make you see the difference.
 //                        Thread.sleep(2000);
                         }

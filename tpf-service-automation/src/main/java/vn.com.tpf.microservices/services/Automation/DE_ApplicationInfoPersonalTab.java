@@ -184,6 +184,11 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList1_phoneNumber']")
     private WebElement mobilePhoneNumberElement;
 
+    @FindBy(how = How.XPATH, using = "//*[@id='stdCode_phoneNumberList_new1']")
+    private WebElement primaryStdElement;
+
+    @FindBy(how = How.XPATH, using = "//*[@id='phoneNumber_phoneNumberList_new1']")
+    private WebElement primaryNumberElement;
 
     @FindBy(how = How.ID, using = "create_another_Address")
     private WebElement cbCreateAnotherElement;
@@ -307,6 +312,12 @@ public class DE_ApplicationInfoPersonalTab {
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'Mobile Phone')]")
     private WebElement updateMobilePhoneNumberElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'STD')]")
+    private WebElement updatePrimarySTDElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'NUMBER')]")
+    private WebElement updatePrimaryNumberElement;
 
 
     public DE_ApplicationInfoPersonalTab(WebDriver driver) {
@@ -637,6 +648,14 @@ public class DE_ApplicationInfoPersonalTab {
             currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
 //            currentCityYearsElement.sendKeys(data.getCityDurationYear());
 //            currentCityMonthsElement.sendKeys(data.getCityDurationMonth());
+
+
+            //dien so dien thoan ban neu co
+            primaryStdElement.clear();
+            primaryStdElement.sendKeys(data.getPriStd());
+            primaryNumberElement.clear();
+            primaryNumberElement.sendKeys(data.getPriNumber());
+
             mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             Utilities.captureScreenShot(_driver);
             actions.moveToElement(btnSaveAddressElement).click().build().perform();
@@ -786,6 +805,12 @@ public class DE_ApplicationInfoPersonalTab {
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+
+                updatePrimarySTDElement.clear();
+                updatePrimarySTDElement.sendKeys(data.getPriStd());
+                updatePrimaryNumberElement.clear();
+                updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 Utilities.captureScreenShot(_driver);
@@ -878,6 +903,11 @@ public class DE_ApplicationInfoPersonalTab {
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+
+                updatePrimarySTDElement.clear();
+                updatePrimarySTDElement.sendKeys(data.getPriStd());
+                updatePrimaryNumberElement.clear();
+                updatePrimaryNumberElement.sendKeys(data.getPriNumber());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());

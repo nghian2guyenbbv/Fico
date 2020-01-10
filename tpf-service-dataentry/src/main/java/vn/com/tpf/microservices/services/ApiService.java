@@ -63,6 +63,9 @@ public class ApiService {
 	@Value("${spring.url.digitex-feedbackapi}")
 	private String urlDigitexFeedbackApi;
 
+	@Value("${spring.url.digitex-token}")
+	private String digitexToken;
+
 	@Autowired
 	private ObjectMapper mapper;
 
@@ -343,7 +346,7 @@ public class ApiService {
 
 				try{
 					HttpHeaders headers_DT = new HttpHeaders();
-					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					headers_DT.set("authkey", digitexToken);
 					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexDocumentApi, entity_DT, Object.class);
@@ -615,7 +618,7 @@ public class ApiService {
 
 				try{
 					HttpHeaders headers_DT = new HttpHeaders();
-					headers_DT.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+					headers_DT.set("authkey", digitexToken);
 					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 					ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexResumitDocumentApi, entity_DT, Object.class);
@@ -808,7 +811,7 @@ public class ApiService {
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+			headers.set("authkey", digitexToken);
 			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
 			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
 			JsonNode body = mapper.valueToTree(res.getBody());
@@ -854,7 +857,7 @@ public class ApiService {
 			log.info("{}", dataLogReq2);
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+			headers.set("authkey", digitexToken);
 			headers.set("Accept", "application/pgp-encrypted");
 			headers.set("Content-Type", "application/pgp-encrypted");
 			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
@@ -883,7 +886,7 @@ public class ApiService {
 
 //			HttpHeaders headers = new HttpHeaders();
 //			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//			headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+//			headers.set("authkey", digitexToken);
 //			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
 //			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
 //
