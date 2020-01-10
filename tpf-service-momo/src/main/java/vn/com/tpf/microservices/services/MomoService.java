@@ -551,7 +551,15 @@ public class MomoService {
 							momoStatus.setDetail(new ResponseMomoStatusDetail());
 						}
 						momoStatus.getDetail().setApplicationId(momoDisburse.getDetail().getLoanId());
-						apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
+						int sendCount = 0; 
+						do {
+							JsonNode result =  apiService.sendStatusToMomo(mapper.convertValue(momoStatus, JsonNode.class));
+							if (result.path("resultCode").asText().equals("0")) 
+								return;
+							sendCount++;
+							Thread.sleep(5*60*1000);
+				        } while (sendCount <= 2);
+						
 					}
 				} catch (Exception e) {
 					log.error(e.toString());
@@ -651,7 +659,6 @@ public class MomoService {
 				new Criteria().andOperator(Criteria.where("status").is("APPROVED_FINNONE"),
 						Criteria.where("smsResult").is("F")),
 				new Criteria().andOperator(Criteria.where("status").is("APPROVED_FINNONE"),
-						Criteria.where("smsResult").is("W"),
 						Criteria.where("updatedAt").lte(new Date(new Date().getTime() - 72 * 60 * 60 * 1000))));
 
 		query.addCriteria(criteria);
@@ -677,7 +684,7 @@ public class MomoService {
 			listCancelled.add(mapper.createObjectNode().put("appId", momo.getAppId())
 					.put("customter",
 							String.format("%s %s %s", momo.getLastName(), momo.getMiddleName(), momo.getFirstName()))
-					.put("status", status).put("lastUpdated",  new SimpleDateFormat( "E, dd MMM yyyy HH:mm:ss z").format(momo.getUpdatedAt())));
+					.put("status", status).put("lastUpdated",  new SimpleDateFormat("dd/mm/yyyy hh:mm").format(momo.getUpdatedAt())));
 		}
 
 		return response(200, mapper.convertValue(listCancelled, JsonNode.class));
