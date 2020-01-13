@@ -1,4 +1,4 @@
-package vn.com.tpf.microservices.models.DEResponseQuery;
+package vn.com.tpf.microservices.models.DEReturn;
 
 
 import lombok.Builder;
@@ -9,10 +9,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Builder
 @Document(collection="automation_autoassign")
-public class DEResponseQueryDocumentDTO {
+public class DESaleQueueDocumentDTO {
     @Id
-    private String querycode;
+    private String documentname;
+    private String status;
     private String urlfile;
-    private String comment;
 
 }

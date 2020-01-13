@@ -18,15 +18,15 @@ import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
-import vn.com.tpf.microservices.models.DEResponseQuery.DEResponseQueryDTO;
-import vn.com.tpf.microservices.models.DEResponseQuery.DEResponseQueryDocumentDTO;
-import vn.com.tpf.microservices.models.DEResponseQuery.DESaleQueueDTO;
-import vn.com.tpf.microservices.models.DEResponseQuery.DESaleQueueDocumentDTO;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDocumentDTO;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.services.Automation.*;
-import vn.com.tpf.microservices.services.Automation.deResponseQuery.DE_ResApplicationManagerPage;
-import vn.com.tpf.microservices.services.Automation.deResponseQuery.DE_SaleApplicationManagerPage;
+import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
+import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -2532,11 +2532,11 @@ public class AutomationHandlerService {
 
                         stage = "APPLICATION MANAGER";
                         // ========== APPLICATION MANAGER =================
-                        DE_ResApplicationManagerPage de_ResApplicationManagerPage = new DE_ResApplicationManagerPage(driver);
-                        de_ResApplicationManagerPage.getResponseQueryElement().click();
+                        DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
+                        de_ReturnRaiseQueryPage.getResponseQueryElement().click();
 
                         List<DEResponseQueryDocumentDTO> lstDocument = deResponseQueryDTO.getDocument();
-                        de_ResApplicationManagerPage.setData(appID,lstDocument, deResponseQueryDTO.getUsername().toLowerCase());
+                        de_ReturnRaiseQueryPage.setData(appID,lstDocument, deResponseQueryDTO.getUsername().toLowerCase());
 
                         System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deResponseQueryDTO.getAppid() + " - User: " + deResponseQueryDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
@@ -2670,14 +2670,14 @@ public class AutomationHandlerService {
                         Update update = new Update();
                         update.set("userauto", accountDTO.getUserName());
                         update.set("status", 2);
-                        AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
+                        DESaleQueueDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, DESaleQueueDTO.class);
 
                         if(resultUpdate==null)
                         {
                             continue;
                         }
 
-                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
                         stage = "HOME PAGE";
                         HomePage homePage = new HomePage(driver);
@@ -2689,10 +2689,10 @@ public class AutomationHandlerService {
 
                         stage = "APPLICATION MANAGER";
                         // ========== APPLICATION MANAGER =================
-                        DE_SaleApplicationManagerPage de_SaleApplicationManagerPage = new DE_SaleApplicationManagerPage(driver);
-                        de_SaleApplicationManagerPage.getApplicationElement().click();
+                        DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
+                        de_ReturnSaleQueuePage.getApplicationElement().click();
                         List<DESaleQueueDocumentDTO> lstDocument = deSaleQueueDTO.getDocument();
-                        de_SaleApplicationManagerPage.setData(appID,lstDocument, commnetText, deSaleQueueDTO.getUsername().toLowerCase());
+                        de_ReturnSaleQueuePage.setData(appID,lstDocument, commnetText, deSaleQueueDTO.getUsername().toLowerCase());
 
                         System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
@@ -2702,7 +2702,7 @@ public class AutomationHandlerService {
                         Update update1 = new Update();
                         update1.set("userauto", accountDTO.getUserName());
                         update1.set("status", 1);
-                        AutoAssignDTO resultUpdate1 = mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignDTO.class);
+                        DESaleQueueDTO resultUpdate1 = mongoTemplate.findAndModify(queryUpdate1, update1, DESaleQueueDTO.class);
                         System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
@@ -2711,7 +2711,7 @@ public class AutomationHandlerService {
                     Update update = new Update();
                     update.set("userauto", accountDTO.getUserName());
                     update.set("status", 3);
-                    AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
+                    DESaleQueueDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, DESaleQueueDTO.class);
                     System.out.println(ex.getMessage());
                 }
             } while (!Objects.isNull(deSaleQueueDTO));

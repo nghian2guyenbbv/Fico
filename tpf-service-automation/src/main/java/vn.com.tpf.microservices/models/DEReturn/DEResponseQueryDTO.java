@@ -1,4 +1,4 @@
-package vn.com.tpf.microservices.models.DEResponseQuery;
+package vn.com.tpf.microservices.models.DEReturn;
 
 
 import lombok.Builder;

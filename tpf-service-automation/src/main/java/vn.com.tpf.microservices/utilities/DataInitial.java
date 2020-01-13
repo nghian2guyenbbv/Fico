@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
-import vn.com.tpf.microservices.models.DEResponseQuery.DEResponseQueryDTO;
-import vn.com.tpf.microservices.models.DEResponseQuery.DESaleQueueDTO;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 
 import java.util.ArrayList;

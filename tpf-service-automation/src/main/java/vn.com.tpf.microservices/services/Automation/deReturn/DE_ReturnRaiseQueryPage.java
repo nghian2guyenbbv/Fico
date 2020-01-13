@@ -1,4 +1,4 @@
-package vn.com.tpf.microservices.services.Automation.deResponseQuery;
+package vn.com.tpf.microservices.services.Automation.deReturn;
 
 import lombok.Getter;
 import org.openqa.selenium.WebDriver;
@@ -7,7 +7,7 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
-import vn.com.tpf.microservices.models.DEResponseQuery.DEResponseQueryDocumentDTO;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDocumentDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 
 @Getter
-public class DE_ResApplicationManagerPage {
+public class DE_ReturnRaiseQueryPage {
     private WebDriver _driver;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Response Query')]")
@@ -69,7 +69,7 @@ public class DE_ResApplicationManagerPage {
     @CacheLookup
     private WebElement btnSubmitResponseElement;
 
-    public DE_ResApplicationManagerPage(WebDriver driver) {
+    public DE_ReturnRaiseQueryPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
