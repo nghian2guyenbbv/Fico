@@ -103,6 +103,9 @@ public class DE_ApplicationInfoPersonalTab {
     private WebElement btnAddIdentElement;
 
     // Address
+    @FindBy(how = How.ID, using = "address")
+    private WebElement formAddressEditElement;
+
     @FindBy(how = How.ID, using = "loadaddress")
     @CacheLookup
     private WebElement btnLoadAddressElementElement;
@@ -129,6 +132,9 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chzn_o_')]")
     private List<WebElement> regionOptionElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chzn')]//input")
+    private WebElement regionInputElement;
+
     @FindBy(how = How.ID, using = "city_country_chzn")
     private WebElement cityElement;
 
@@ -149,6 +155,9 @@ public class DE_ApplicationInfoPersonalTab {
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chzn_o_')]")
     private List<WebElement> areaOptionElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chzn')]//input")
+    private WebElement areaInputElement;
 
     @FindBy(how = How.ID, using = "address1ToBeAddedInput_country")
     private WebElement address1Element;
@@ -175,6 +184,11 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList1_phoneNumber']")
     private WebElement mobilePhoneNumberElement;
 
+    @FindBy(how = How.XPATH, using = "//*[@id='stdCode_phoneNumberList_new1']")
+    private WebElement primaryStdElement;
+
+    @FindBy(how = How.XPATH, using = "//*[@id='phoneNumber_phoneNumberList_new1']")
+    private WebElement primaryNumberElement;
 
     @FindBy(how = How.ID, using = "create_another_Address")
     private WebElement cbCreateAnotherElement;
@@ -299,6 +313,12 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'Mobile Phone')]")
     private WebElement updateMobilePhoneNumberElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'STD')]")
+    private WebElement updatePrimarySTDElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'NUMBER')]")
+    private WebElement updatePrimaryNumberElement;
+
 
     public DE_ApplicationInfoPersonalTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -392,6 +412,11 @@ public class DE_ApplicationInfoPersonalTab {
                 .until(() -> editTadAddressElement.isDisplayed());
         Actions actions = new Actions(_driver);
         editTadAddressElement.click();
+
+        await("formAddressEditElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> formAddressEditElement.isDisplayed());
+
+        Utilities.captureScreenShot(_driver);
         //editTadAddressElement.click();
         setAddressValue(applicationInfoDTO.getAddress());
         loadAddressSection();
@@ -416,7 +441,8 @@ public class DE_ApplicationInfoPersonalTab {
                 .until(() -> btnCheckDuplicateElement.isEnabled());
 
         btnCheckDuplicateElement.click();
-        await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+
+        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
 
         saveAndNext();
@@ -504,10 +530,11 @@ public class DE_ApplicationInfoPersonalTab {
     public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException {
         int index = 0;
         Actions actions = new Actions(_driver);
+        Utilities.captureScreenShot(_driver);
         for (AddressDTO data : datas) {
-            await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> btnCreateAnotherElement.isEnabled());
-            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
+//            await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> btnCreateAnotherElement.isEnabled());
+//            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
 
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
@@ -548,12 +575,22 @@ public class DE_ApplicationInfoPersonalTab {
             actions.moveToElement(regionElement).click().build().perform();
             await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> regionOptionElement.size() > 1);
-            for (WebElement element : regionOptionElement) {
-                if (element.getText().equals(data.getRegion())) {
-                    element.click();
-                    break;
-                }
-            }
+//            for (WebElement element : regionOptionElement) {
+//                if (element.getText().equals(data.getRegion())) {
+//                    element.click();
+//                    break;
+//                }
+//            }
+
+            //update lai chỗ này để load lại đia chỉ lần đầu tiên cho quicklead, nó ko load lai data nếu ko reload lai region
+            regionInputElement.sendKeys("Select");
+            regionInputElement.sendKeys(Keys.ENTER);
+
+            actions.moveToElement(regionElement).click().build().perform();
+            regionInputElement.sendKeys(data.getRegion());
+            regionInputElement.sendKeys(Keys.ENTER);
+            //end update
+
 //			Select regionSelect = new Select(regionElement);
 //			await("Region loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //			.until(() -> regionSelect.getOptions().size() > 0);
@@ -584,12 +621,19 @@ public class DE_ApplicationInfoPersonalTab {
             actions.moveToElement(areaElement).click().build().perform();
             await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> areaOptionElement.size() > 1);
-            for (WebElement element : areaOptionElement) {
-                if (element.getText().equals(data.getArea())) {
-                    element.click();
-                    break;
-                }
-            }
+
+//            for (WebElement element : areaOptionElement) {
+//                if (element.getText().equals(data.getArea())) {
+//                    element.click();
+//                    break;
+//                }
+//            }
+
+            // sua bang cach nhap enter, hoa thuong deu dc
+            areaInputElement.sendKeys(data.getArea().toUpperCase());
+            areaInputElement.sendKeys(Keys.ENTER);
+
+
 //            Select areaSelect = new Select(areaElement);
 //            await("Area loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(() -> areaSelect.getOptions().size() > 0);
@@ -604,6 +648,14 @@ public class DE_ApplicationInfoPersonalTab {
             currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
 //            currentCityYearsElement.sendKeys(data.getCityDurationYear());
 //            currentCityMonthsElement.sendKeys(data.getCityDurationMonth());
+
+
+            //dien so dien thoan ban neu co
+            primaryStdElement.clear();
+            primaryStdElement.sendKeys(data.getPriStd());
+            primaryNumberElement.clear();
+            primaryNumberElement.sendKeys(data.getPriNumber());
+
             mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             Utilities.captureScreenShot(_driver);
             actions.moveToElement(btnSaveAddressElement).click().build().perform();
@@ -618,6 +670,7 @@ public class DE_ApplicationInfoPersonalTab {
 //            	_driver.switchTo().alert().accept();
             }
             index++;
+            Utilities.captureScreenShot(_driver);
         }
     }
 
@@ -639,6 +692,8 @@ public class DE_ApplicationInfoPersonalTab {
             }
         }
 
+        Utilities.captureScreenShot(_driver);
+
         await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCreateAnotherElement.isDisplayed());
 
@@ -654,6 +709,20 @@ public class DE_ApplicationInfoPersonalTab {
 
             if(_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]")).size()!=0)
             {
+
+                //check xem có nhiều type bị trùng ko
+
+                int count=_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'deleteTag')]")).size();
+
+                if(count>1)
+                {
+                    List<WebElement> list=_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'deleteTag')]"));
+                    for(WebElement we : list.subList(1,list.size()))
+                    {
+                        we.click();
+                    }
+                }
+
 
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
                 we.click();
@@ -687,12 +756,19 @@ public class DE_ApplicationInfoPersonalTab {
                 actions.moveToElement(regionElement).click().build().perform();
                 await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> regionOptionElement.size() > 1);
-                for (WebElement element : regionOptionElement) {
-                    if (element.getText().equals(data.getRegion())) {
-                        element.click();
-                        break;
-                    }
-                }
+//                for (WebElement element : regionOptionElement) {
+//                    if (element.getText().equals(data.getRegion())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
+
+                regionInputElement.sendKeys("Select");
+                regionInputElement.sendKeys(Keys.ENTER);
+                actions.moveToElement(regionElement).click().build().perform();
+
+                regionInputElement.sendKeys(data.getRegion());
+                regionInputElement.sendKeys(Keys.ENTER);
 
                 actions.moveToElement(cityElement).click().build().perform();
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -709,12 +785,14 @@ public class DE_ApplicationInfoPersonalTab {
                 actions.moveToElement(areaElement).click().build().perform();
                 await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> areaOptionElement.size() > 1);
-                for (WebElement element : areaOptionElement) {
-                    if (element.getText().equals(data.getArea())) {
-                        element.click();
-                        break;
-                    }
-                }
+//                for (WebElement element : areaOptionElement) {
+//                    if (element.getText().equals(data.getArea())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
+                areaInputElement.sendKeys(data.getArea().toUpperCase());
+                areaInputElement.sendKeys(Keys.ENTER);
 
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
@@ -727,6 +805,12 @@ public class DE_ApplicationInfoPersonalTab {
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+
+                updatePrimarySTDElement.clear();
+                updatePrimarySTDElement.sendKeys(data.getPriStd());
+                updatePrimaryNumberElement.clear();
+                updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 Utilities.captureScreenShot(_driver);
@@ -767,12 +851,20 @@ public class DE_ApplicationInfoPersonalTab {
                 actions.moveToElement(regionElement).click().build().perform();
                 await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> regionOptionElement.size() > 1);
-                for (WebElement element : regionOptionElement) {
-                    if (element.getText().equals(data.getRegion())) {
-                        element.click();
-                        break;
-                    }
-                }
+//                for (WebElement element : regionOptionElement) {
+//                    if (element.getText().equals(data.getRegion())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
+
+                regionInputElement.sendKeys("Select");
+                regionInputElement.sendKeys(Keys.ENTER);
+                actions.moveToElement(regionElement).click().build().perform();
+
+                regionInputElement.sendKeys(data.getRegion());
+                regionInputElement.sendKeys(Keys.ENTER);
+
 
                 actions.moveToElement(cityElement).click().build().perform();
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -790,12 +882,15 @@ public class DE_ApplicationInfoPersonalTab {
                 actions.moveToElement(areaElement).click().build().perform();
                 await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> areaOptionElement.size() > 1);
-                for (WebElement element : areaOptionElement) {
-                    if (element.getText().equals(data.getArea())) {
-                        element.click();
-                        break;
-                    }
-                }
+//                for (WebElement element : areaOptionElement) {
+//                    if (element.getText().equals(data.getArea())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
+                areaInputElement.sendKeys(data.getArea().toUpperCase());
+                areaInputElement.sendKeys(Keys.ENTER);
+
 
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
@@ -808,6 +903,11 @@ public class DE_ApplicationInfoPersonalTab {
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+
+                updatePrimarySTDElement.clear();
+                updatePrimarySTDElement.sendKeys(data.getPriStd());
+                updatePrimaryNumberElement.clear();
+                updatePrimaryNumberElement.sendKeys(data.getPriNumber());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());

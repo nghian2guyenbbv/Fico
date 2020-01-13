@@ -9,6 +9,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.utilities.Constant;
+import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.List;
 import java.util.Objects;
@@ -116,7 +117,7 @@ public class DE_ApplicationManagerPage {
                 break;
             }
         }
-
+        Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
     }
 }

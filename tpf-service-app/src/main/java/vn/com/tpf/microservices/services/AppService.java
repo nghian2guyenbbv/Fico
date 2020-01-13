@@ -1,9 +1,8 @@
 package vn.com.tpf.microservices.services;
 
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.*;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,13 +18,12 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import vn.com.tpf.microservices.models.App;
 import vn.com.tpf.microservices.models.ReportStatus;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.*;
 
 @Service
 public class AppService {
@@ -121,30 +119,30 @@ public class AppService {
 			query.addCriteria(Criteria.where("createdAt").gte(fromDate).lte(toDate));
 		}
 
-//		if (request.path("param").path("project").textValue() != null && request.path("param").path("project").textValue().equals("dataentry")) {
-//			List<String> branchUser = new ArrayList<String>();
-//			try {
-//				if (info.get("branches") != null) {
-//					branchUser = mapper.readValue(info.get("branches").toString(), List.class);
-//					if (request.path("param").path("branchName").textValue() == null) {
-//						query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
-//					} else {
-//						String[] branchQuery = request.path("param").path("branchName").textValue().split(",");
-//						ArrayList<String> ar = new ArrayList<String>();
-//
-//						for (int i = 0; i < branchQuery.length; i++) {
-//							if (branchUser.contains(branchQuery[i]))
-//								ar.add(branchQuery[i]);
-//						}
-//						query.addCriteria(Criteria.where("optional.branchName").in(ar));
-//					}
-//				} else {
-//					query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
-//				}
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		if (request.path("param").path("project").textValue() != null && request.path("param").path("project").textValue().equals("dataentry")) {
+			List<String> branchUser = new ArrayList<String>();
+			try {
+				if (info.get("branches") != null) {
+					branchUser = mapper.readValue(info.get("branches").toString(), List.class);
+					if (request.path("param").path("branchName").textValue() == null) {
+						query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
+					} else {
+						String[] branchQuery = request.path("param").path("branchName").textValue().split(",");
+						ArrayList<String> ar = new ArrayList<String>();
+
+						for (int i = 0; i < branchQuery.length; i++) {
+							if (branchUser.contains(branchQuery[i]))
+								ar.add(branchQuery[i]);
+						}
+						query.addCriteria(Criteria.where("optional.branchName").in(ar));
+					}
+				} else {
+					query.addCriteria(Criteria.where("optional.branchName").in(branchUser));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 		long total = mongoTemplate.count(query, App.class);
 
@@ -274,11 +272,13 @@ public class AppService {
 		String dFrom = getDepartment(oEntity);
 		String dTo = getDepartment(entity);
 
-		if (dTo.isEmpty()) {
-			dTo = dFrom;
-		}
-		if (!dFrom.equals(dTo)) {
-			update.unset("assigned");
+		if (!project.equals("dataentry")) {
+			if (dTo.isEmpty()) {
+				dTo = dFrom;
+			}
+			if (!dFrom.equals(dTo)) {
+				update.unset("assigned");
+			}
 		}
 
 		App nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), App.class);
@@ -290,6 +290,32 @@ public class AppService {
 		return response(200, mapper.convertValue(nEntity, JsonNode.class), 0);
 	}
 
+	
+
+	public JsonNode updateAppId(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		Assert.isTrue(body.path("project").isTextual() && !body.path("project").asText().isEmpty(),
+				"project is required and not empty");
+		
+		Assert.isTrue(body.path("appId").isTextual() && !body.path("appId").asText().isEmpty(),
+				"appId is required and not empty");
+		Assert.isTrue(body.path("partnerId").isTextual() && !body.path("partnerId").asText().isEmpty(),
+				"partnerId is required and not empty");
+		
+		Query query = Query.query(Criteria.where("project").is(body.path("project").asText()).and("partnerId").is(body.path("partnerId").asText()));
+		App app = mongoTemplate.findOne(query, App.class);
+
+		if (app == null) {
+			return response(404, mapper.createObjectNode().put("message", "PartnerId Not Found"), 0);
+		}
+
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-" + app.getProject().toLowerCase(), Map.of("func", "updateAppId", "body", body));
+		
+		return response(res.path("status").asInt(), res.path("data"), 0);
+
+	
+	}
+	
 	public JsonNode updateStatus(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
@@ -315,6 +341,8 @@ public class AppService {
 
 		return response(200, null, 0);
 	}
+	
+
 
 	public JsonNode getCountStatus(JsonNode request) {
 		String referenceId = UUID.randomUUID().toString();

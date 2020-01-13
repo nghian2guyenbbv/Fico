@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -53,6 +54,9 @@ public class RabbitMQService {
 	private RabbitTemplate rabbitTemplate;
 
 	@Autowired
+	private RabbitMQService rabbitMQService;
+
+	@Autowired
 	private RestTemplate restTemplate;
 
 	@Autowired
@@ -72,12 +76,12 @@ public class RabbitMQService {
 		String body = "username=" + username + "&password=" + password + "&grant_type=password";
 		HttpEntity<?> entity = new HttpEntity<>(body, headers);
 		try {
-			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);	
+			ResponseEntity<?> res = restTemplate.exchange(url, method, entity, Map.class);
 			return mapper.valueToTree(res.getBody());
-		} catch (HttpClientErrorException  e) {
-			log.error("{} {} {}",username,password,e.getResponseBodyAsString());
+		} catch (HttpClientErrorException e) {
+			log.error("{} {} {}", username, password, e.getResponseBodyAsString());
 			return null;
-		}		
+		}
 	}
 
 	public JsonNode checkToken(String[] token) {
@@ -129,7 +133,7 @@ public class RabbitMQService {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "serial" })
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
@@ -142,7 +146,11 @@ public class RabbitMQService {
 				String password = request.path("body").path("password").asText();
 				JsonNode data = getToken(username, password);
 				if (data != null) {
-					return response(message, payload, Map.of("status", 200, "data", data));
+					rabbitMQService.sendAndReceive("tpf-service-authentication", new HashMap<String,String>() {{
+						put("func", "logout");
+						put("token", "Bearer " + data.get("access_token").asText());
+					}});
+					return response(message, payload, Map.of("status", 200, "data", getToken(username, password)));
 				}
 				return response(message, payload,
 						Map.of("status", 400, "data", Map.of("message", "Username or Password Invalid")));
@@ -168,7 +176,8 @@ public class RabbitMQService {
 				}
 				return response(message, payload, Map.of("status", 200, "data", info));
 			default:
-				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+				return response(message, payload,
+						Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
 
 		} catch (IllegalArgumentException e) {

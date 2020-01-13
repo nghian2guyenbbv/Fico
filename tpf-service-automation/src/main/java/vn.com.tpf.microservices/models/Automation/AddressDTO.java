@@ -24,5 +24,9 @@ public class AddressDTO implements Serializable {
 	private String cityDurationYear;
 	private String cityDurationMonth;
 	private String mobilePhone;
-	
+
+
+	//so dien thoai ban
+	private String priStd;
+	private String priNumber;
 }

@@ -14,5 +14,6 @@ public class IdentificationDTO implements Serializable {
 	private String documentNumber;
 	private String issueDate;
 	private String expirationDate;
+	private String placeOfIssue;
 	private String countryOfIssue;
 }

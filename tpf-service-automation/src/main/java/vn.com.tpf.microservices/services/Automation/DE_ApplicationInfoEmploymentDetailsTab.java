@@ -56,6 +56,14 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     @CacheLookup
     private List<WebElement> natureOfBusinessOptionElement;
 
+    @FindBy(how = How.ID, using = "EmpTypeId_chzn")
+    @CacheLookup
+    private WebElement employmentTypeElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'EmpTypeId_chzn_o_')]")
+    @CacheLookup
+    private List<WebElement> employmentTypeOptionElement;
+
     @FindBy(how = How.ID, using = "natOfOccId_chzn")
     @CacheLookup
     private WebElement natureOfOccupationElement;
@@ -75,6 +83,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     @FindBy(how = How.ID, using = "departmentName")
     @CacheLookup
     private WebElement departmentNameElement;
+
+    @FindBy(how = How.ID, using = "employeeNo")
+    @CacheLookup
+    private WebElement otherCompanyTaxCodeElement;
 
     @FindBy(how = How.ID, using = "EmpStatId_chzn")
     @CacheLookup
@@ -133,6 +145,17 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'totalMonthsInOccupationId_chzn')]//input")
     private WebElement totalMonthsInOccupationInputElement;
+
+    @FindBy(how = How.ID, using = "remarks")
+    @CacheLookup
+    private WebElement employerName;
+
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'MajorChange')]")
+    private WebElement modalMajorChangeElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'MajorChange')]//a")
+    private List<WebElement> btnMajorChangeElement;
 
     public DE_ApplicationInfoEmploymentDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -204,8 +227,25 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 //				.until(() -> industrySelect.getOptions().size() > 0);
 //		industrySelect.selectByVisibleText(data.getIndustry());
 
+            if(!data.getEmploymentType().isEmpty())
+            {
+                employmentTypeElement.click();
+                await("employmentTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> employmentTypeOptionElement.size() > 0);
+                for (WebElement element : employmentTypeOptionElement) {
+                    if (element.getText().equals(data.getEmploymentType())) {
+                        element.click();
+                        break;
+                    }
+                }
+            }
+
+
+
 
             departmentNameElement.sendKeys(data.getDepartment());
+
+            otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
 
             employmentStatusElement.click();
             await("employmentStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -222,14 +262,26 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 //		employmentStatusSelect.selectByVisibleText(data.getEmploymentStatus());
 
             levelElement.sendKeys(data.getLevel());
+
+            Utilities.captureScreenShot(_driver);
             durationYearsElement.sendKeys(data.getDurationYears());
             durationMonthsElement.sendKeys(data.getDurationMonths());
+            Utilities.captureScreenShot(_driver);
+            employerName.clear();
+            employerName.sendKeys(data.getRemarks());
 
             employerAddressCheckElement.click();
         }
     }
 
     public void updateData(EmploymentDTO data) throws JsonParseException, JsonMappingException, IOException {
+
+        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size()==0)
+        {
+            System.out.println("Create new employ: " + data.getOccupationType());
+            setData(data);
+            return;
+        }
 
         WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
         we.click();
@@ -263,6 +315,9 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         departmentNameElement.clear();
         departmentNameElement.sendKeys(data.getDepartment());
 
+        otherCompanyTaxCodeElement.clear();
+        otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
+
         employmentStatusElement.click();
         await("employmentStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> employmentStatusOptionElement.size() > 0);
@@ -280,25 +335,49 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         durationMonthsElement.clear();
         durationMonthsElement.sendKeys(data.getDurationMonths());
 
+
+        employerName.clear();
+        employerName.sendKeys(data.getRemarks());
         //click nua se mat check
         //employerAddressCheckElement.click();
 
     }
 
-
     public void setExperienceInIndustry(EmploymentDTO data) {
         Actions actions = new Actions(_driver);
+        Utilities.captureScreenShot(_driver);
         actions.moveToElement(totalYearsInOccupationIdElement).click().build().perform();
         await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> totalYearsInOccupationOptionElement.size() > 1);
-        totalYearsInOccupationInputElement.sendKeys(data.getDurationYears());
+        totalYearsInOccupationInputElement.sendKeys(String.valueOf(data.getTotalYearsInOccupation()));
         totalYearsInOccupationInputElement.sendKeys(Keys.ENTER);
-
+        Utilities.captureScreenShot(_driver);
         actions.moveToElement(totalMonthsInOccupationIdElement).click().build().perform();
         await("totalMonthInOccupationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> totalMonthsInOccupationOptionElement.size() > 1);
-        totalMonthsInOccupationInputElement.sendKeys(data.getDurationYears());
+        totalMonthsInOccupationInputElement.sendKeys(String.valueOf(data.getTotalMonthsInOccupation()));
         totalMonthsInOccupationInputElement.sendKeys(Keys.ENTER);
+        Utilities.captureScreenShot(_driver);
+    }
+
+    public void setMajorOccupation(EmploymentDTO data) {
+        if(!data.getIsMajorEmployment().isEmpty())
+        {
+            if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
+            {
+                Utilities.captureScreenShot(_driver);
+                WebElement webElement=_driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input"));
+                webElement.click();
+
+                Utilities.captureScreenShot(_driver);
+                await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> modalMajorChangeElement.isDisplayed());
+                Utilities.captureScreenShot(_driver);
+                btnMajorChangeElement.get(0).click();
+
+                Utilities.captureScreenShot(_driver);
+            }
+        }
     }
 
     // TODO: compare original data vs element data and report if not equals
