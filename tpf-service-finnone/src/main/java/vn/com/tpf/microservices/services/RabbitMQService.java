@@ -83,7 +83,9 @@ public class RabbitMQService {
 			case "getLoan":
 				return response(message, payload, finnoneService.getLoan(request));
 			case "getCheckDupApplication":
-				return response(message, payload, finnoneService.getCheckDupApplication(request));		
+				return response(message, payload, finnoneService.getCheckDupApplication(request));	
+			case "getCheckList":
+				return response(message, payload, finnoneService.getCheckList(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

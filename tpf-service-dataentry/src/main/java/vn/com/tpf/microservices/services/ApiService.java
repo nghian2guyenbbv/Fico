@@ -98,21 +98,90 @@ public class ApiService {
 		restTemplateFirstCheck.setInterceptors(Arrays.asList(new HttpLogService()));
 	}
 
+//	public String firstCheck(JsonNode request, JsonNode token) {
+//		Map<?, ?> data = Map.of("file", request.path("body"));
+//		try {
+//			Assert.notNull(request.get("body"), "no body");
+//
+//			List<DataentryAddress> dataAdd = new ArrayList<>();
+//			Query query = new Query();
+//			query.addCriteria(Criteria.where("areaCode").is(request.path("body").path("data").path("areaId").textValue()));
+//			dataAdd = mongoTemplate.find(query, DataentryAddress.class);
+//
+//
+////			FirstCheckRequest requestFirstCheck = mapper.treeToValue(request.path("body").path("data"), FirstCheckRequest.class);
+//			FirstCheckRequest requestFirstCheck = new FirstCheckRequest();
+//			requestFirstCheck.setProject_name("de");
+//
+//			requestFirstCheck.setRequest_id("de-"+ UUID.randomUUID().toString().substring(0,11));
+//			requestFirstCheck.setFull_name(request.path("body").path("data").path("customerName").textValue());
+//			requestFirstCheck.setCustomer_id(request.path("body").path("data").path("customerId").textValue());
+//			requestFirstCheck.setDsa_code(request.path("body").path("data").path("dsaCode").textValue());
+//			requestFirstCheck.setBank_card_number(request.path("body").path("data").path("bankCardNumber").textValue());
+//			requestFirstCheck.setCurrent_address(request.path("body").path("data").path("currentAddress").textValue());
+//			if (dataAdd.size() > 0) {
+//				requestFirstCheck.setArea_code(dataAdd.get(0).getF1AreaCode());
+//			}
+//			requestFirstCheck.setBirthday("");
+//			requestFirstCheck.setGender("");
+//			requestFirstCheck.setPhoneNumber("");
+//
+//			String logsTimeOut = "TimeOut two minute: ";
+//			try{
+//				HttpHeaders headers = new HttpHeaders();
+//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
+//				ResponseEntity<?> res = restTemplateFirstCheck.postForEntity(urlFirstcheck, entity, Object.class);
+//				JsonNode body = mapper.valueToTree(res.getBody());
+//				logsTimeOut = "";
+//
+//				FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
+//				FirstCheck firstCheck = new FirstCheck();
+//				firstCheck.setRequest(requestFirstCheck);
+//				firstCheck.setResponse(firstCheckResponse);
+//				firstCheck.setCreatedBy(token.path("user_name").textValue());
+//				mongoTemplate.save(firstCheck);
+//
+//				if (firstCheckResponse.getFirst_check_result().toUpperCase().equals("PASS")){
+//					return "pass";
+//				}else {
+//					return "fail";
+//				}
+//			}catch (Exception ex){
+//				FirstCheck firstCheck = new FirstCheck();
+//				firstCheck.setRequest(requestFirstCheck);
+//				firstCheck.setDescription(logsTimeOut + ex.toString());
+//				firstCheck.setCreatedBy(token.path("user_name").textValue());
+//				mongoTemplate.save(firstCheck);
+//
+//				return "pass";
+//			}
+//
+//		} catch (HttpClientErrorException e) {
+//			log.info("[==HTTP-LOG-RESPONSE==] : {}",
+//					Map.of("payload", data, "status", e.getStatusCode(), "result", e.getResponseBodyAsString()));
+//			return e.getMessage();
+//
+//		} catch (Exception e) {
+//			log.info("[==HTTP-LOG-RESPONSE==] : {}", Map.of("payload", data, "status", 500, "result", e.getMessage()));
+//			return e.getCause().toString();
+//		}
+//	}
+
 	public String firstCheck(JsonNode request, JsonNode token) {
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		try {
 			Assert.notNull(request.get("body"), "no body");
+			String areaCode = "";
 
 			List<DataentryAddress> dataAdd = new ArrayList<>();
 			Query query = new Query();
 			query.addCriteria(Criteria.where("areaCode").is(request.path("body").path("data").path("areaId").textValue()));
 			dataAdd = mongoTemplate.find(query, DataentryAddress.class);
 
-
 //			FirstCheckRequest requestFirstCheck = mapper.treeToValue(request.path("body").path("data"), FirstCheckRequest.class);
 			FirstCheckRequest requestFirstCheck = new FirstCheckRequest();
 			requestFirstCheck.setProject_name("de");
-
 			requestFirstCheck.setRequest_id("de-"+ UUID.randomUUID().toString().substring(0,11));
 			requestFirstCheck.setFull_name(request.path("body").path("data").path("customerName").textValue());
 			requestFirstCheck.setCustomer_id(request.path("body").path("data").path("customerId").textValue());
@@ -121,50 +190,60 @@ public class ApiService {
 			requestFirstCheck.setCurrent_address(request.path("body").path("data").path("currentAddress").textValue());
 			if (dataAdd.size() > 0) {
 				requestFirstCheck.setArea_code(dataAdd.get(0).getF1AreaCode());
+				areaCode = dataAdd.get(0).getF1AreaCode();
 			}
 			requestFirstCheck.setBirthday("");
 			requestFirstCheck.setGender("");
 			requestFirstCheck.setPhoneNumber("");
 
-			String logsTimeOut = "TimeOut two minute: ";
 			try{
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(requestFirstCheck), headers);
-				ResponseEntity<?> res = restTemplateFirstCheck.postForEntity(urlFirstcheck, entity, Object.class);
-				JsonNode body = mapper.valueToTree(res.getBody());
-				logsTimeOut = "";
+				JsonNode resultFirstCheck = null;
+				FirstCheckResponse firstCheckResponse = new FirstCheckResponse();
+				JsonNode checkList = rabbitMQService.sendAndReceive("tpf-service-esb",
+						Map.of("func", "getCheckList", "reference_id", request.path("body").path("request_id").textValue(), "param",
+								Map.of("bank_card_number", request.path("body").path("data").path("bankCardNumber").textValue(),
+										"dsa_code",request.path("body").path("data").path("dsaCode").textValue(),
+										"area_code",areaCode)));
 
-				FirstCheckResponse firstCheckResponse = mapper.treeToValue(body, FirstCheckResponse.class);
+//				if (checkList.path("status").asInt() == 200) {
+//					resultFirstCheck = mapper.valueToTree(checkList.path("data"));
+//				}
+
+				firstCheckResponse.setFirst_check_result(mapper.writeValueAsString(checkList));
+				firstCheckResponse.setStatus(checkList.path("status").asInt());
+				firstCheckResponse.setResult(checkList.path("data").path("result").asText(null));
+				firstCheckResponse.setDescription(checkList.path("data").path("description").asText(null) +" : "+checkList.path("data").path("message").asText(null));
+
 				FirstCheck firstCheck = new FirstCheck();
 				firstCheck.setRequest(requestFirstCheck);
 				firstCheck.setResponse(firstCheckResponse);
 				firstCheck.setCreatedBy(token.path("user_name").textValue());
 				mongoTemplate.save(firstCheck);
 
-				if (firstCheckResponse.getFirst_check_result().toUpperCase().equals("PASS")){
+				if (checkList.path("status").asInt() == 200) {
+					if (checkList.path("data").path("result").asInt() == 0){
+						return "pass";
+					}else {
+						return "fail";
+					}
+				}else{
 					return "pass";
-				}else {
-					return "fail";
 				}
 			}catch (Exception ex){
 				FirstCheck firstCheck = new FirstCheck();
 				firstCheck.setRequest(requestFirstCheck);
-				firstCheck.setDescription(logsTimeOut + ex.toString());
+				firstCheck.setDescription(ex.toString());
 				firstCheck.setCreatedBy(token.path("user_name").textValue());
 				mongoTemplate.save(firstCheck);
 
 				return "pass";
 			}
-
-		} catch (HttpClientErrorException e) {
-			log.info("[==HTTP-LOG-RESPONSE==] : {}",
-					Map.of("payload", data, "status", e.getStatusCode(), "result", e.getResponseBodyAsString()));
-			return e.getMessage();
-
 		} catch (Exception e) {
-			log.info("[==HTTP-LOG-RESPONSE==] : {}", Map.of("payload", data, "status", 500, "result", e.getMessage()));
-			return e.getCause().toString();
+			FirstCheck firstCheck = new FirstCheck();
+			firstCheck.setDescription(e.toString());
+			firstCheck.setCreatedBy(token.path("user_name").textValue());
+			mongoTemplate.save(firstCheck);
+			return "pass";
 		}
 	}
 
