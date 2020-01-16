@@ -18,4 +18,8 @@ public class FirstCheckResponse {
     private List<FirstCheckLoanOffer> loan_offer;
     private FirstCheckLoanInfor loan_infor;
 
+    private int status;
+    private String result;
+    private String description;
+
 }
