@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class FinnoneService {
 	
 
-
 	@Autowired
 	private ObjectMapper mapper;
 	
@@ -42,7 +41,7 @@ public class FinnoneService {
 				data.put("reasonId", rows.path("data").path("reasonId").asInt());
 				return response(200, data);
 			}else {
-				data.put("message", rows.path("data").path("Message").asText());
+				data.put("description", rows.path("data").path("Message").asText());
 				return response(500, data);
 			}
 		
@@ -51,6 +50,28 @@ public class FinnoneService {
 			return response(500, data);
 		}
 	}
+	
+	
+	public JsonNode getCheckList(JsonNode request) {
+		ObjectNode data = mapper.createObjectNode();
+		try {
+			String query = String.format("SELECT  FN_CHECK_LIST ('%s','%s','%s') RESULT FROM DUAL", request.path("param").path("bank_card_number").asText(),request.path("param").path("dsa_code").asText(),request.path("param").path("area_code").asText());
+			String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
+					(rs, rowNum) ->
+				rs.getString(("RESULT")
+	        ));
+			JsonNode rows =  mapper.readTree(row_string);
+			data.put("result", rows.path("result").asInt());    // 0 -> fail . 1 -> pass
+			data.put("description", rows.path("description").asText());
+			return response(200, data);
+
+		}catch (Exception e) {
+			data.put("result", 0);
+			data.put("description", e.getMessage());
+			return response(200, data);
+		}
+	}
+	
 
 	public JsonNode getLoan(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();
@@ -98,7 +119,6 @@ public class FinnoneService {
 		ObjectNode data = mapper.createObjectNode();
 		try {
 			String query = String.format("SELECT  FN_CHECK_DUP_APPLICATION ('%s','%s','%s') RESULT FROM DUAL", request.path("param").path("nationalId").asText(),request.path("param").path("fullName").asText(),request.path("param").path("dob").asText());
-			System.err.println(query);
 			String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
 					(rs, rowNum) ->
 				rs.getString(("RESULT")
