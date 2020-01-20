@@ -409,10 +409,11 @@ public class ApiService {
 					jNode = mergeFile(array, outputDT);
 
 				} catch (Exception e) {
+					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
+							Map.of("Exception: ", e.toString(), "payload", request));
 					ObjectNode doc = mapper.createObjectNode();
 					doc.put("uploadDigiTex", "FAIL");
-					((ArrayNode) jNode).add(doc);
-					return jNode;
+					return doc;
 				}
 
 			}else{
@@ -621,28 +622,26 @@ public class ApiService {
 					jNode = mergeFile(array, outputDT);
 
 				} catch (Exception e) {
+					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
+							Map.of("Exception: ", e.toString(), "payload", request));
 					ObjectNode doc = mapper.createObjectNode();
 					doc.put("uploadDigiTex", "FAIL");
-					((ArrayNode) jNode).add(doc);
-					return jNode;
+					return doc;
 				}
 			}
 		} catch (HttpClientErrorException e) {
-			System.out.println("===result response===" + e.toString());
-			log.info("[==HTTP-LOG-RESPONSE==] : {}",
-					Map.of("payload", data, "status", e.getStatusCode(), "result", e.getResponseBodyAsString()));
-
+			log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
+					Map.of("Exception: ", e.toString()));
 			ObjectNode doc = mapper.createObjectNode();
 			doc.put("uploadDigiTex", "FAIL");
-			((ArrayNode) jNode).add(doc);
+			return doc;
 
 		} catch (Exception e) {
-			System.out.println("===result response===" + e.toString());
-			log.info("[==HTTP-LOG-RESPONSE==] : {}", Map.of("payload", data, "status", 500, "result", e.getMessage()));
-
+			log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
+					Map.of("Exception: ", e.toString()));
 			ObjectNode doc = mapper.createObjectNode();
 			doc.put("uploadDigiTex", "FAIL");
-			((ArrayNode) jNode).add(doc);
+			return doc;
 		}
 		return jNode;
 	}
