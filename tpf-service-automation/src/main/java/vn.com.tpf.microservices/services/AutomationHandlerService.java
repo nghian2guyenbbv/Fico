@@ -1083,15 +1083,23 @@ public class AutomationHandlerService {
 
             try {
                 await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
-                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+
+                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
+
+                System.out.println("test");
             } catch (Exception e) {
+                System.out.println("VAP:" + e.toString());
             }
 
             System.out.println("LOAN DETAILS: DONE");
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
+
+
+
 
             // ==========MISC FRM APP DTL=================
             stage = "MISC FRM APPDTL";
@@ -1104,6 +1112,7 @@ public class AutomationHandlerService {
                     .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
+
             miscFrmAppDtlPage._getBtnSaveElement().click();
 
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -1617,8 +1626,10 @@ public class AutomationHandlerService {
 
             try {
                 await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
-                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+
+                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
             } catch (Exception e) {
             }
 
@@ -1881,10 +1892,14 @@ public class AutomationHandlerService {
 //            if(driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size()>0) {
 
             try {
+
                 await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
-                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+
+                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
             } catch (Exception e) {
+                log.info("Vap:" + e.toString());
             }
 
             //}

@@ -70,7 +70,7 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private List<WebElement> loanPurposeCloseElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurposee_frmAppDtl_0_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
     @CacheLookup
     private WebElement loanPurposeInputElement;
 
