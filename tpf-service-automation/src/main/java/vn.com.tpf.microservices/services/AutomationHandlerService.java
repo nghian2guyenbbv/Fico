@@ -25,6 +25,7 @@ import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.services.Automation.*;
+import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnApplicationManagerPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
@@ -2684,6 +2685,7 @@ public class AutomationHandlerService {
                         //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
                         // ========== APPLICATIONS =================
                         String appID = deSaleQueueDTO.getAppid();
+                        String lastUpdate = deSaleQueueDTO.getLastupdate();
                         String commnetText = deSaleQueueDTO.getCommenttext();
                         homePage.getMenuApplicationElement().click();
 
@@ -2692,7 +2694,15 @@ public class AutomationHandlerService {
                         DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
                         de_ReturnSaleQueuePage.getApplicationElement().click();
                         List<DESaleQueueDocumentDTO> lstDocument = deSaleQueueDTO.getDocument();
-                        de_ReturnSaleQueuePage.setData(appID,lstDocument, commnetText, deSaleQueueDTO.getUsername().toLowerCase());
+                        de_ReturnSaleQueuePage.setData(appID, lstDocument, commnetText, deSaleQueueDTO.getUsername().toLowerCase());
+
+                        DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
+                        for (DESaleQueueDocumentDTO documentList : lstDocument) {
+                            if (documentList.getDocumentname().contains("(ACCA)")) {
+                                de_ReturnApplicationManagerPage.setData(appID, lastUpdate);
+                            }
+                            break;
+                        }
 
                         System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 

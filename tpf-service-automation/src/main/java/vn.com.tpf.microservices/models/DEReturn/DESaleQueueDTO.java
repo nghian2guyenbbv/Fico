@@ -26,6 +26,8 @@ public class DESaleQueueDTO {
     private Date createDate;
     @LastModifiedDate
     private Date lastDate;
+    private String lastupdate;
+    private int checkACCA = 0;
 
     private List<DESaleQueueDocumentDTO> document;
     private String commenttext;

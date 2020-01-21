@@ -14,5 +14,4 @@ public class DESaleQueueDocumentDTO {
     private String documentname;
     private String status;
     private String urlfile;
-
 }

@@ -1,18 +1,17 @@
 package vn.com.tpf.microservices.services.Automation.deReturn;
 
 import lombok.Getter;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.CacheLookup;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.How;
-import org.openqa.selenium.support.PageFactory;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.Before;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.*;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -21,10 +20,6 @@ import static org.awaitility.Awaitility.await;
 @Getter
 public class DE_ReturnSaleQueuePage {
     private WebDriver _driver;
-
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//span[contains(text(),'Applicationssss')]")
-    @CacheLookup
-    private WebElement applicationElements;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//span[contains(text(),'Applications')]")
     @CacheLookup
@@ -108,12 +103,13 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private WebElement documentBtnUploadElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")
+    @FindBys(
+        @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Saves')]")
+    )
     @CacheLookup
     private WebElement documentBtnSaveElement;
 
     @FindBy(how = How.ID, using = "document_table_body_container")
-//    @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv']//input[contains(@id,'submitDocuments')]")
     @CacheLookup
     private WebElement documentTableBodyElement;
 
@@ -152,56 +148,59 @@ public class DE_ReturnSaleQueuePage {
     }
 
     public void setData(String appId, List<DESaleQueueDocumentDTO> lstDocument, String commnetText,String user) {
+        try{
 
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationDivAssignedElement.isDisplayed());
+            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> applicationDivAssignedElement.isDisplayed());
 
-        poolElement.click();
+            poolElement.click();
 
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationDivPoolElement.isDisplayed());
+            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> applicationDivPoolElement.isDisplayed());
 
-        applicationPoolNumberElement.clear();
-        applicationPoolNumberElement.sendKeys(appId);
+            applicationPoolNumberElement.clear();
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationPoolElement.size() > 2);
+            applicationPoolNumberElement.sendKeys(appId);
 
-        WebElement applicationPoolAssignToMeNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'"+ appId +"')]//img[contains(@id, 'AssignToMe')]"));
-        applicationPoolAssignToMeNumberElement.click();
+            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> tbApplicationPoolElement.size() > 2);
 
+            WebElement applicationPoolAssignToMeNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'"+ appId +"')]//img[contains(@id, 'AssignToMe')]"));
 
-        //Assigned
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationFormElement.isDisplayed());
+            applicationPoolAssignToMeNumberElement.click();
 
+            //Assigned
+            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> applicationFormElement.isDisplayed());
 
-        applicationAssignedNumberElement.clear();
-        applicationAssignedNumberElement.sendKeys(appId);
+            applicationAssignedNumberElement.clear();
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 2);
+            applicationAssignedNumberElement.sendKeys(appId);
 
-        WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + appId +"')]"));
-        applicationIdAssignedNumberElement.click();
+            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> appChildTabsElement.isDisplayed());
+            WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + appId +"')]"));
 
-        applicationBtnDocumentElement.click();
+            applicationIdAssignedNumberElement.click();
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentElement.isDisplayed());
+            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> appChildTabsElement.isDisplayed());
 
-        btnGetDocumentElement.click();
+            applicationBtnDocumentElement.click();
 
-        lstDocument.forEach(documentList -> {
+            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentElement.isDisplayed());
 
-            if (documentList.getDocumentname().indexOf("(ACCA)") > 0){
+            btnGetDocumentElement.click();
+
+            lstDocument.forEach(documentList -> {
+
                 await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentTableElement.size() > 2);
 
                 documentNameElement.clear();
+
                 documentNameElement.sendKeys(documentList.getDocumentname());
 
                 await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -213,42 +212,44 @@ public class DE_ReturnSaleQueuePage {
                         .until(() -> documentUploadElement.isDisplayed());
 
                 documentBtnUploadElement.sendKeys(documentList.getUrlfile());
-            }
-        });
 
-        documentNameElement.clear();
-        documentNameElement.sendKeys(" ");
+            });
 
-        await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentTableElement.size() > 3);
+            documentNameElement.clear();
 
-        documentBtnSaveElement.click();
+            documentNameElement.sendKeys(" ");
 
-        await("document_table_body visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentTableElement.size() > 2);
+            await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentTableElement.size() > 3);
 
+            documentBtnSaveElement.click();
 
-        documentLoadActivityElement.click();
+            await("document_table_body visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentTableElement.size() > 2);
 
-        await("document_activity visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentActivityElement.isDisplayed());
+            documentLoadActivityElement.click();
 
-        documentBtnCommentElement.click();
+            await("document_activity visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentActivityElement.isDisplayed());
 
-        await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentTextCommentElement.isDisplayed());
+            documentBtnCommentElement.click();
 
-        documentTextCommentElement.sendKeys(commnetText);
+            await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentTextCommentElement.isDisplayed());
 
-        documentBtnAddCommnetElement.click();
+            documentTextCommentElement.sendKeys(commnetText);
 
-        await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentBtnCommentElement.isDisplayed());
+            documentBtnAddCommnetElement.click();
 
-        JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
-        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+            JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
+            jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-        Utilities.captureScreenShot(_driver);
+            Utilities.captureScreenShot(_driver);
 
+        }catch (NotFoundException ex){
+
+            System.out.println(ex.getCause());
+
+        }
     }
 }
