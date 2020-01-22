@@ -549,7 +549,7 @@ public class DataEntryController {
                                 dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
                                 dataLogReq.put("method", "POST");
                                 dataLogReq.put("url", urlDigitexDocumentApi);
-                                dataLogReq.set("payload", mapper.convertValue(parts_02, JsonNode.class));
+								dataLogReq.put("data", parts_02.toString());
                                 log.info("{}", dataLogReq);
                             }
                             catch (Exception ex){}
@@ -790,7 +790,7 @@ public class DataEntryController {
                                 dataLogReq.put("method", "POST");
                                 dataLogReq.put("appId", appId);
                                 dataLogReq.put("url", urlDigitexResumitDocumentApi);
-                                dataLogReq.set("payload", mapper.convertValue(parts_02, JsonNode.class));
+								dataLogReq.put("data", parts_02.toString());
                                 log.info("{}", dataLogReq);
                             }
                             catch (Exception ex){}
