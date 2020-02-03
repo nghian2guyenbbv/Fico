@@ -450,7 +450,7 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{
-			Assert.notNull(request.path("body").path("request_id"), "no body");
+//			Assert.notNull(request.path("body").path("request_id"), "no body");
 			if(request.path("body").path("data").path("customerId").textValue().length() != 9) {
 				if (request.path("body").path("data").path("customerId").textValue().length() != 12) {
 					responseModel.setRequest_id(requestId);
@@ -1538,7 +1538,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("3");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage("Others error");
 		}
  		return Map.of("status", 200, "data", responseModel);
 

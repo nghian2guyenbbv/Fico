@@ -87,6 +87,8 @@ public class RabbitMQService {
 				return response(message, payload, appService.getReason(request));
 			case "getLoan":
 				return response(message, payload, appService.getLoan(request));
+			case "getCheckList":
+				return response(message, payload, appService.getCheckList(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
