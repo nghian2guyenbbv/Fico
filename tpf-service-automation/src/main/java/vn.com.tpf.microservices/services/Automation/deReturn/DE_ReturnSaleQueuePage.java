@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.is;
 
 @Getter
 public class DE_ReturnSaleQueuePage {
@@ -148,7 +149,6 @@ public class DE_ReturnSaleQueuePage {
     }
 
     public void setData(String appId, List<DESaleQueueDocumentDTO> lstDocument, String commnetText,String user) {
-        try{
 
             await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> applicationDivAssignedElement.isDisplayed());
@@ -244,12 +244,10 @@ public class DE_ReturnSaleQueuePage {
             JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
             jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(_driver::getTitle, is("Application Grid"));
+
             Utilities.captureScreenShot(_driver);
 
-        }catch (NotFoundException ex){
-
-            System.out.println(ex.getCause());
-
-        }
     }
 }
