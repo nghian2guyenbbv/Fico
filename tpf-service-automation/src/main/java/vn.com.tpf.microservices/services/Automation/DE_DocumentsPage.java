@@ -75,7 +75,7 @@ public class DE_DocumentsPage {
     @CacheLookup
     private List<WebElement> docNameElement;
 
-        @FindBy(how = How.XPATH, using = "//*[contains(@id, 'photoimg')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'photoimg')]")
     @CacheLookup
     private List<WebElement> photoElement;
 
@@ -167,7 +167,7 @@ public class DE_DocumentsPage {
                         // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 
-                        photoElement.get(_tempIndex).sendKeys(photoUrl);
+                        photoElement.get(_tempIndex).sendKeys(photoUrl);//
                         //System.out.println("up oki");
                         // Added sleep to make you see the difference.
                         Thread.sleep(2000);

@@ -12,8 +12,8 @@ public class PersonalInfo {
     @NotEmpty(message = "firstName not null")
     private String firstName;
 
-    @NotNull
-    @NotEmpty(message = "middleName not null")
+//    @NotNull
+//    @NotEmpty(message = "middleName not null")
     private String middleName;
 
     @NotNull

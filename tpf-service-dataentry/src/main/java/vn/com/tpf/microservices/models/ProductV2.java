@@ -15,5 +15,6 @@ public class ProductV2 {
 
     private String productName;
     private List<ProductV2Sub> documentName;
+    private List<ProductV2Sub> documentOthers;
     int countProductName;
 }
