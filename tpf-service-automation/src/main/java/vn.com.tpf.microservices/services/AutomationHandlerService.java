@@ -315,18 +315,17 @@ public class AutomationHandlerService {
                     .until(()->leadsPage.getNotifyTextSuccessElement().size()>0);
 
             String leadAppID="";
-            for (WebElement e: leadsPage.getNotifyTextSuccessElement())
-            {
-                System.out.println(e.getText());
-                if(e.getText().contains("APPL")){
-                    leadAppID=e.getText().substring(e.getText().indexOf("APPL"),e.getText().indexOf("APPL") + 12);
-                }
-            }
-            System.out.println("APPID: => " + leadAppID);
-
-            Utilities.captureScreenShot(driver);
-            System.out.println(stage + ": DONE" );
-
+//            for (WebElement e: leadsPage.getNotifyTextSuccessElement())
+//            {
+//                System.out.println(e.getText());
+//                if(e.getText().contains("APPL")){
+//                    leadAppID=e.getText().substring(e.getText().indexOf("APPL"),e.getText().indexOf("APPL") + 12);
+//                }
+//            }
+//            System.out.println("APPID: => " + leadAppID);
+//
+//            Utilities.captureScreenShot(driver);
+//            System.out.println(stage + ": DONE" );
 
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage="APPLICATION MANAGER";
@@ -340,6 +339,18 @@ public class AutomationHandlerService {
 
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+            //get appID moi o day
+            leadAppID=de_applicationManagerPage.getAppID(leadApp);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getBackBtnElement().isDisplayed());
+
+            de_applicationManagerPage.getBackBtnElement().click();
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(()->de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
             de_applicationManagerPage.setData(leadAppID,accountDTO.getUserName());
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
@@ -347,6 +358,7 @@ public class AutomationHandlerService {
             //-------------------- END ---------------------------
 
             application.setApplicationId(leadAppID);
+            application.setLeadApp(leadApp);
 
             //UPDATE STATUS
             application.setStatus("OK");
@@ -390,7 +402,12 @@ public class AutomationHandlerService {
 
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            updateStatusRabbit(application,"updateAutomation");
+            try {
+                updateStatusRabbit(application,"updateAutomation");
+            }catch (Exception e)
+            {
+                System.out.println(e.toString());
+            }
             logout(driver);
         }
     }

@@ -28,4 +28,6 @@ public class Application {
     private String stage;
     private String error;
     private String reference_id;
+
+    private String leadApp;
 }
