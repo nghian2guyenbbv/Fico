@@ -3,11 +3,10 @@ package vn.com.tpf.microservices.filters;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -47,19 +46,19 @@ public class ApiFilter implements Filter {
 		return ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 	}
 
-	private Duration DurationDateTime(String date_time) {
-
-		try {
-			ZonedDateTime result = ZonedDateTime.parse(date_time, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-			return Duration.between(result,
-					ZonedDateTime.parse(ZonedDateTimeNow(), DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-
-		} catch (Exception e) {
-			log.error("{}", e.getMessage());
-			return null;
-		}
-
-	}
+//	private Duration DurationDateTime(String date_time) {
+//
+//		try {
+//			ZonedDateTime result = ZonedDateTime.parse(date_time, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+//			return Duration.between(result,
+//					ZonedDateTime.parse(ZonedDateTimeNow(), DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+//
+//		} catch (Exception e) {
+//			log.error("{}", e.getMessage());
+//			return null;
+//		}
+//
+//	}
 
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)

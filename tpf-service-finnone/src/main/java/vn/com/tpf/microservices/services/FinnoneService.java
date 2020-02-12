@@ -61,7 +61,7 @@ public class FinnoneService {
 				rs.getString(("RESULT")
 	        ));
 			JsonNode rows =  mapper.readTree(row_string);
-			data.put("result", rows.path("result").asInt());    // 0 -> fail . 1 -> pass
+			data.put("result", rows.path("result").asInt());    // 0 -> pass . 1 -> fail
 			data.put("description", rows.path("description").asText());
 			return response(200, data);
 
@@ -118,7 +118,7 @@ public class FinnoneService {
 	public JsonNode getCheckDupApplication(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();
 		try {
-			String query = String.format("SELECT  FN_CHECK_DUP_APPLICATION ('%s','%s','%s') RESULT FROM DUAL", request.path("param").path("nationalId").asText(),request.path("param").path("fullName").asText(),request.path("param").path("dob").asText());
+			String query = String.format("SELECT  FN_CHECK_DUP_APPLICATION_V2 ('%s','%s','%s','%s') RESULT FROM DUAL", request.path("body").path("appId").asText(), request.path("body").path("nationalId").asText(),request.path("body").path("fullName").asText(),request.path("body").path("dob").asText());
 			String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
 					(rs, rowNum) ->
 				rs.getString(("RESULT")
