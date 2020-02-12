@@ -1128,7 +1128,8 @@ public class DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/get-token")
-	public ResponseEntity<?> getTokenSGBPO(@RequestBody JsonNode body)
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> getTokenSGBPO(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("body", body);
