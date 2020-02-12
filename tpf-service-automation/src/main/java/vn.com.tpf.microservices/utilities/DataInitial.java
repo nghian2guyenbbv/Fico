@@ -70,6 +70,7 @@ public class DataInitial {
         EmploymentDetails employmentDetails=application.getApplicationInformation().getEmploymentDetails();
         EmploymentDTO employmentDTO = EmploymentDTO.builder()
                 .occupationType(employmentDetails.getOccupationType())
+                .employeeNumber(employmentDetails.getEmployeeNumber())
                 .taxCode(employmentDetails.getEmployerCode())
                 .natureOfBussiness(employmentDetails.getNatureOfBusiness())
                 .natureOfOccupation("Unemployed")
