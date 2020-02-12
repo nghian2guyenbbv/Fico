@@ -120,7 +120,7 @@ public class DataEntryController {
 													@RequestPart("description")  String description)
 			throws Exception {
 
-		JsonNode body = null;
+
 		ObjectMapper mapper = new ObjectMapper();
 
 
