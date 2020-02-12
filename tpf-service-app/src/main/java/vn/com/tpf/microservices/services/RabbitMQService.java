@@ -91,6 +91,8 @@ public class RabbitMQService {
 				return response(message, payload, appService.updateApp(request));
 			case "updateStatus":
 				return response(message, payload, appService.updateStatus(request));
+			case "updateAppId":
+				return response(message, payload, appService.updateAppId(request));	
 			case "getCountStatus":
 				return response(message, payload, appService.getCountStatus(request));
 			default:

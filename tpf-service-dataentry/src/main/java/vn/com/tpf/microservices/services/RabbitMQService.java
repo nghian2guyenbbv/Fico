@@ -45,6 +45,9 @@ public class RabbitMQService {
 	private RabbitTemplate rabbitTemplate;
 
 	@Autowired
+	private RabbitTemplate rabbitTemplateFirstCheck;
+
+	@Autowired
 	private RestTemplate restTemplate;
 
 	@Autowired
@@ -53,6 +56,7 @@ public class RabbitMQService {
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
+		rabbitTemplateFirstCheck.setReplyTimeout(1000 * 120);
 	}
 
 	public JsonNode checkToken(String[] token) {
@@ -81,6 +85,17 @@ public class RabbitMQService {
 	public JsonNode sendAndReceive(String appId, Object object) throws Exception {
 		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
 		Message response = rabbitTemplate.sendAndReceive(appId, request);
+
+		if (response != null) {
+			return mapper.readTree(new String(response.getBody(), "UTF-8"));
+		}
+
+		return null;
+	}
+
+	public JsonNode sendAndReceiveFirstCheck(String appId, Object object) throws Exception {
+		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
+		Message response = rabbitTemplateFirstCheck.sendAndReceive(appId, request);
 
 		if (response != null) {
 			return mapper.readTree(new String(response.getBody(), "UTF-8"));

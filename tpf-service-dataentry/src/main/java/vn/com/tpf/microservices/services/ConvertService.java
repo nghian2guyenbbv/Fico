@@ -21,10 +21,10 @@ public class ConvertService {
 		app.put("uuid", application.getId());
 		app.put("status", application.getStatus());
 		app.put("appId", application.getApplicationId());
-		app.put("status", application.getStatus());
+//		app.put("status", application.getStatus());
 		app.put("fullName",
 				(application.getQuickLead().getFirstName() + " " +application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
-		app.put("automationResult", application.getDescription());
+//		app.put("automationResult", application.getDescription());
 		app.put("assigned", application.getUserName());
 		ArrayNode documents = mapper.createArrayNode();
 		if(application.getQuickLead().getDocuments() != null) {
@@ -49,10 +49,11 @@ public class ConvertService {
 				doc.put("type", e.getType());
 				doc.put("code", e.getCode());
 				doc.put("request", e.getRequest());
-				doc.put("createdAt", e.getCreatedDate().toString());
+
 				try {
 					doc.put("response", mapper.writeValueAsString(e.getResponse()));
 					doc.put("responseJson", mapper.convertValue(e.getResponse(), ObjectNode.class));
+					doc.put("createdAt", mapper.convertValue(e.getCreatedDate(), JsonNode.class));
 				} catch (JsonProcessingException e1) {
 					e1.printStackTrace();
 				}

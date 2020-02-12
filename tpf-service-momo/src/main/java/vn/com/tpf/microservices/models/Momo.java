@@ -23,7 +23,7 @@ public class Momo {
 	@Id
 	private String id;
 
-	@Indexed(unique = true, sparse = true)
+	@Indexed
 	private String appId;
 	@Indexed(unique = true, sparse = true)
 	private String momoLoanId;

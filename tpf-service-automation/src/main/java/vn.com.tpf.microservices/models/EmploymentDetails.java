@@ -23,5 +23,6 @@ public class EmploymentDetails {
     public String fromDate;
     public String employmentLocation;
     public String isMajorEmployment;
+    public String remarks;
 
 }

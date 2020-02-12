@@ -24,7 +24,7 @@ public class EmploymentDetails {
     private String natureOfBusiness;
 
     @NotNull
-    @NotEmpty(message = "otherCompanyTaxCode not null")
+//    @NotEmpty(message = "otherCompanyTaxCode not null")
     private String otherCompanyTaxCode;
 
     @NotNull
@@ -32,7 +32,7 @@ public class EmploymentDetails {
     private String industry;
 
     @NotNull
-    @NotEmpty(message = "employmentType not null")
+//    @NotEmpty(message = "employmentType not null")
     private String employmentType;
 
     @NotNull
@@ -55,12 +55,12 @@ public class EmploymentDetails {
     @NotEmpty(message = "monthsInJob not null")
     private String monthsInJob;
 
-    @NotNull
-    @NotEmpty(message = "toDate not null")
+//    @NotNull
+//    @NotEmpty(message = "toDate not null")
     private String toDate;
 
-    @NotNull
-    @NotEmpty(message = "fromDate not null")
+//    @NotNull
+//    @NotEmpty(message = "fromDate not null")
     private String fromDate;
 
     @NotNull
@@ -68,7 +68,7 @@ public class EmploymentDetails {
     private String employmentLocation;
 
     @NotNull
-    @NotEmpty(message = "isMajorEmployment not null")
+//    @NotEmpty(message = "isMajorEmployment not null")
     private String isMajorEmployment;
 
     @NotNull

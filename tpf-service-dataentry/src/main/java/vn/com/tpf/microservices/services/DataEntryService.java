@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
+import vn.com.tpf.microservices.shared.ThirdPartyType;
 
 import javax.annotation.PostConstruct;
 import javax.validation.ConstraintViolation;
@@ -300,7 +301,10 @@ public class DataEntryService {
 
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(requestModel.getData().getApplicationId()));
+//			query.with(new Sort(Sort.Direction.DESC, "comment.createdDate"));
+
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
+
 			if (checkExist.size() > 0){
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -446,7 +450,7 @@ public class DataEntryService {
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
 		try{
-			Assert.notNull(request.path("body").path("request_id"), "no body");
+//			Assert.notNull(request.path("body").path("request_id"), "no body");
 			if(request.path("body").path("data").path("customerId").textValue().length() != 9) {
 				if (request.path("body").path("data").path("customerId").textValue().length() != 12) {
 					responseModel.setRequest_id(requestId);
@@ -476,31 +480,26 @@ public class DataEntryService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			responseModel.setRequest_id(requestId);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("0");
-			responseModel.setData(Map.of("first_check_result", "pass"));
-
-//			String resultFirstCheck = apiService.firstCheck(request);
-//			if (resultFirstCheck.equals("pass")){
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("0");
-//			}else{
-//				responseModel.setRequest_id(requestId);
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code("1");
-//				responseModel.setMessage(resultFirstCheck);
-//			}
-//
 //			responseModel.setRequest_id(requestId);
 //			responseModel.setReference_id(UUID.randomUUID().toString());
 //			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 //			responseModel.setResult_code("0");
-//			responseModel.setData(encStream3.toString());
+//			responseModel.setData(Map.of("first_check_result", "pass"));
+
+			String resultFirstCheck = apiService.firstCheck(request, token);
+			if (resultFirstCheck.equals("pass")){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(Map.of("first_check_result", "pass"));
+			}else{
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("0");
+				responseModel.setData(Map.of("first_check_result", "fail"));
+			}
 
 		}
 		catch (Exception e) {
@@ -702,7 +701,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.toString());
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -766,10 +765,12 @@ public class DataEntryService {
 		String referenceId = UUID.randomUUID().toString();
 		boolean requestCommnentFromDigiTex = false;
         boolean responseCommnentToDigiTex = false;
+        boolean responseCommnentToDigiTexDuplicate = false;
 		String applicationId = "";
 		String commentId = "";
 		String comment = "";
 		String stageAuto = "";
+		String errorAuto = "";
 		String quickLeadId = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
@@ -801,8 +802,7 @@ public class DataEntryService {
 //					String typeComment = checkCommentExist.get(0).getComment().get(0).getType();
 
 					if (checkCommentExist.size() <= 0){
-						if (item.getType().equals("DIGI-TEX")) {// digitex gui comment
-//							if (typeComment.equals("DIGI-TEX")) {// digitex gui comment
+						if (ThirdPartyType.fromName(item.getType().toUpperCase()) != null) {// digitex gui comment
 							Query queryAddComment = new Query();
 							queryAddComment.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 
@@ -813,12 +813,43 @@ public class DataEntryService {
 
                             requestCommnentFromDigiTex = true;
 						}else{
-							//xu ly tai fail automationfull - fico gui comment
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Comment Type Invalid!");
+
+							return Map.of("status", 200, "data", responseModel);
 						}
 					}else {
-//						if (item.getType().equals("FICO")) {// digitex tra comment
-						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
+						if (item.getType().equals("FICO")) {// digitex tra comment
+//						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
+							boolean checkResponseComment = false;
+
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
+							if (checkCommentExist.get(0).getError() != null) {
+								errorAuto = checkCommentExist.get(0).getError();
+							}
+
+							//validate so luong tra comment tu digitex
+//							int countCommentDG = 0;
+//							for (CommentModel itemComment : listComment) {
+//								if (itemComment.getType().equals("FICO")) {
+//									if (itemComment.getResponse() != null) {
+//										countCommentDG = countCommentDG + 1;
+//									}
+//								}
+//							}
+//							if (countCommentDG > 3){
+//								responseModel.setRequest_id(requestId);
+//								responseModel.setReference_id(referenceId);
+//								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//								responseModel.setResult_code("1");
+//								responseModel.setMessage("application can not retry!");
+//								return Map.of("status", 200, "data", responseModel);
+//							}
+							//
+
 							try{
 								quickLeadId = checkCommentExist.get(0).getQuickLeadId();
 							}
@@ -831,39 +862,73 @@ public class DataEntryService {
 										Update update = new Update();
 										update.set("comment.$.response", item.getResponse());
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+										checkResponseComment = true;
 									}
 								}
 							}
+
+							if (!checkResponseComment){
+								responseModel.setRequest_id(requestId);
+								responseModel.setReference_id(referenceId);
+								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+								responseModel.setResult_code("1");
+								responseModel.setMessage("applicationId can not return comment!");
+
+								return Map.of("status", 200, "data", responseModel);
+							}
+
                             responseCommnentFullAPPFromDigiTex = true;
 
 							// update automation
 							if (item.getResponse().getData() != null){
 								Application dataUpdate = item.getResponse().getData();
+                                if (checkCommentExist.get(0).getQuickLead().getDocumentsComment() != null){
+                                    dataUpdate.setDocuments(checkCommentExist.get(0).getQuickLead().getDocumentsComment());
+                                }
 								dataUpdate.setStage(stageAuto);
+								dataUpdate.setError(errorAuto);
 								rabbitMQService.send("tpf-service-automation",
 										Map.of("func", "updateAppError","body", dataUpdate));
 							}
 
 						}else{//fico tra comment
+							try{
+								if (item.getResponse().getComment() == null || item.getResponse().getComment().equals("")){
+									responseModel.setRequest_id(requestId);
+									responseModel.setReference_id(referenceId);
+									responseModel.setDate_time(new Timestamp(new Date().getTime()));
+									responseModel.setResult_code("1");
+									responseModel.setMessage("vui lòng nhập comment!");
+									return Map.of("status", 200, "data", responseModel);
+								}
+							}catch (Exception ex){
+
+							}
+
 							documentCommnet = item.getResponse().getDocuments();
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
-									if (itemComment.getResponse() == null) {
-										if (item.getResponse().getDocuments().size() > 0){
-											for (Document itemCommentFico : item.getResponse().getDocuments()) {
-												Link link = new Link();
-												link.setUrlFico(itemCommentFico.getFilename());
-												link.setUrlPartner(itemCommentFico.getUrlid());
-												itemCommentFico.setLink(link);
+									if (item.getResponse() != null) {
+										if (itemComment.getResponse() == null) {
+											if (item.getResponse().getDocuments().size() > 0) {
+												for (Document itemCommentFico : item.getResponse().getDocuments()) {
+													Link link = new Link();
+													link.setUrlFico(itemCommentFico.getFilename());
+													link.setUrlPartner(itemCommentFico.getUrlid());
+													itemCommentFico.setLink(link);
+												}
 											}
+
+											Update update = new Update();
+											update.set("comment.$.response", item.getResponse());
+											Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+											comment = item.getResponse().getComment();
+
+                                        	responseCommnentToDigiTexDuplicate = true;
 										}
-
-										Update update = new Update();
-										update.set("comment.$.response", item.getResponse());
-										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
-
-										comment = item.getResponse().getComment();
 									}
 								}
 							}
@@ -903,110 +968,160 @@ public class DataEntryService {
             }
 
             if (responseCommnentToDigiTex){
-				ArrayNode documents = mapper.createArrayNode();
-				boolean checkIdCard = false;
-				boolean checkHousehold = false;
-				for (Document item: documentCommnet) {
-					ObjectNode doc = mapper.createObjectNode();
+                if (responseCommnentToDigiTexDuplicate) {
+                    ArrayNode documents = mapper.createArrayNode();
+                    boolean checkIdCard = false;
+                    boolean checkHousehold = false;
+                    for (Document item: documentCommnet) {
+                        ObjectNode doc = mapper.createObjectNode();
 
-					if (item.getType().equals("TPF_ID Card")){
-						if (!checkIdCard) {
-							doc.put("documentComment", item.getComment());
-							if (item.getLink() != null) {
-								doc.put("documentId", item.getLink().getUrlPartner());
-							}
-							documents.add(doc);
+                        if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())){
+                            if (!checkIdCard) {
+                                if (item.getComment() != null) {
+                                    doc.put("documentComment", item.getComment());
+                                }else{
+                                    doc.put("documentComment", "");
+                                }
+                                if (item.getLink() != null) {
+                                    doc.put("documentId", item.getLink().getUrlPartner());
+                                    documents.add(doc);
+                                }
 
-							checkIdCard = true;
-						}
-					}else if (item.getType().equals("TPF_Notarization of ID card")){
-						if (!checkIdCard) {
-							doc.put("documentComment", item.getComment());
-							if (item.getLink() != null) {
-								doc.put("documentId", item.getLink().getUrlPartner());
-							}
-							documents.add(doc);
+                                checkIdCard = true;
+                            }
+                        }else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())){
+                            if (!checkIdCard) {
+                                if (item.getComment() != null) {
+                                    doc.put("documentComment", item.getComment());
+                                }else{
+                                    doc.put("documentComment", "");
+                                }
+                                if (item.getLink() != null) {
+                                    doc.put("documentId", item.getLink().getUrlPartner());
+                                    documents.add(doc);
+                                }
 
-							checkIdCard = true;
-						}
-					}if (item.getType().equals("TPF_Family Book")){
-						if (!checkHousehold) {
-							doc.put("documentComment", item.getComment());
-							if (item.getLink() != null) {
-								doc.put("documentId", item.getLink().getUrlPartner());
-							}
-							documents.add(doc);
+                                checkIdCard = true;
+                            }
+                        }if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())){
+                            if (!checkHousehold) {
+                                if (item.getComment() != null) {
+                                    doc.put("documentComment", item.getComment());
+                                }else{
+                                    doc.put("documentComment", "");
+                                }
+                                if (item.getLink() != null) {
+                                    doc.put("documentId", item.getLink().getUrlPartner());
+                                    documents.add(doc);
+                                }
 
-							checkHousehold = true;
-						}
-					}else if (item.getType().equals("TPF_Notarization of Family Book")){
-						if (!checkHousehold) {
-							doc.put("documentComment", item.getComment());
-							if (item.getLink() != null) {
-								doc.put("documentId", item.getLink().getUrlPartner());
-							}
-							documents.add(doc);
+                                checkHousehold = true;
+                            }
+                        }else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())){
+                            if (!checkHousehold) {
+                                if (item.getComment() != null) {
+                                    doc.put("documentComment", item.getComment());
+                                }else{
+                                    doc.put("documentComment", "");
+                                }
+                                if (item.getLink() != null) {
+                                    doc.put("documentId", item.getLink().getUrlPartner());
+                                    documents.add(doc);
+                                }
 
-							checkHousehold = true;
-						}
-					} else if (item.getType().equals("TPF_Customer Photograph")){
-						doc.put("documentComment", item.getComment());
-						if (item.getLink() != null) {
-							doc.put("documentId", item.getLink().getUrlPartner());
-						}
-						documents.add(doc);
-					}else if (item.getType().equals("TPF_Application cum Credit Contract (ACCA)")){
-						doc.put("documentComment", item.getComment());
-						if (item.getLink() != null) {
-							doc.put("documentId", item.getLink().getUrlPartner());
-						}
-						documents.add(doc);
-					}
-				}
+                                checkHousehold = true;
+                            }
+                        } else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())){
+                            if (item.getComment() != null) {
+                                doc.put("documentComment", item.getComment());
+                            }else{
+                                doc.put("documentComment", "");
+                            }
+                            if (item.getLink() != null) {
+                                doc.put("documentId", item.getLink().getUrlPartner());
+                                documents.add(doc);
+                            }
+                        }else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+                            if (item.getComment() != null) {
+                                doc.put("documentComment", item.getComment());
+                            }else{
+                                doc.put("documentComment", "");
+                            }
+                            if (item.getLink() != null) {
+                                doc.put("documentId", item.getLink().getUrlPartner());
+                                documents.add(doc);
+                            }
+                        }
+                    }
 
-				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-						"comment", comment, "documents", documents)), JsonNode.class);
-				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+                    JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+                            "comment", comment, "documents", documents)), JsonNode.class);
+    //				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
 
-//				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
-//				if (resultDG != null){
-//					responseModel.setRequest_id(requestId);
-//					responseModel.setReference_id(referenceId);
-//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//					responseModel.setResult_code("1");
-//					responseModel.setMessage(resultDG);
-//
-//					return Map.of("status", 200, "data", responseModel);
-//				}
+                    try {
+                        JsonNode responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
+                        if (!responseDG.path("error-code").textValue().equals("")) {
+                            if (!responseDG.path("error-code").textValue().equals("null")) {
+                                log.info("ReferenceId : " + referenceId);
+                                responseModel.setRequest_id(requestId);
+                                responseModel.setReference_id(referenceId);
+                                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                                responseModel.setResult_code("1");
+                                responseModel.setMessage(responseDG.path("error-description").textValue());
 
-//				HttpHeaders headers = new HttpHeaders();
-//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-//				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-//						"comment", comment, "documents", documents)), headers);
-//				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
-//				JsonNode body = mapper.valueToTree(res.getBody());
+                                return Map.of("status", 200, "data", responseModel);
+                            }
+                        }
+                    }catch (Exception ex){}
 
-				Query queryUpdate = new Query();
-				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
-				Update update = new Update();
-				update.set("status", "PROCESSING");
-				update.set("lastModifiedDate", new Date());
-				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+    //
+    //				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+    //				if (resultDG != null){
+    //					responseModel.setRequest_id(requestId);
+    //					responseModel.setReference_id(referenceId);
+    //					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+    //					responseModel.setResult_code("1");
+    //					responseModel.setMessage(resultDG);
+    //
+    //					return Map.of("status", 200, "data", responseModel);
+    //				}
 
-				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
-				rabbitMQService.send("tpf-service-app",
-						Map.of("func", "updateApp","reference_id", referenceId,
-								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+    //				HttpHeaders headers = new HttpHeaders();
+    //				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+    //				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+    //				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+    //						"comment", comment, "documents", documents)), headers);
+    //				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
+    //				JsonNode body = mapper.valueToTree(res.getBody());
 
-                Report report = new Report();
-				report.setQuickLeadId(dataFullApp.getQuickLeadId());
-                report.setApplicationId(data.getApplicationId());
-                report.setFunction("FICO_RETURN_COMMENT");
-                report.setStatus("PROCESSING");
-                report.setCreatedBy(token.path("user_name").textValue());
-                report.setCreatedDate(new Date());
-                mongoTemplate.save(report);
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+                    Update update = new Update();
+                    update.set("status", "PROCESSING");
+                    update.set("lastModifiedDate", new Date());
+                    Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+                    Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+                    rabbitMQService.send("tpf-service-app",
+                            Map.of("func", "updateApp","reference_id", referenceId,
+                                    "param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
+                    Report report = new Report();
+                    report.setQuickLeadId(dataFullApp.getQuickLeadId());
+                    report.setApplicationId(data.getApplicationId());
+                    report.setFunction("FICO_RETURN_COMMENT");
+                    report.setStatus("PROCESSING");
+                    report.setCreatedBy(token.path("user_name").textValue());
+                    report.setCreatedDate(new Date());
+                    mongoTemplate.save(report);
+                }else{
+                    responseModel.setRequest_id(requestId);
+                    responseModel.setReference_id(referenceId);
+                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                    responseModel.setResult_code("1");
+                    responseModel.setMessage("Không thể trả thêm comment!");
+                    return Map.of("status", 200, "data", responseModel);
+                }
             }
 
             if (responseCommnentFullAPPFromDigiTex){
@@ -1032,7 +1147,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.toString() + e.getCause() + e.getStackTrace());
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1098,7 +1213,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1126,10 +1241,6 @@ public class DataEntryService {
 					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp","body",
-									appData.get(0)));
-
 					Update update = new Update();
 					update.set("status", "NEW");
 					update.set("lastModifiedDate", new Date());
@@ -1140,6 +1251,9 @@ public class DataEntryService {
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", appDataFull.get(0).getId()), "body", convertService.toAppDisplay(appDataFull.get(0))));
 
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp","body",
+									appData.get(0)));
 
 				}else {
 					Query queryUpdate = new Query();
@@ -1175,10 +1289,6 @@ public class DataEntryService {
 					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp", "body",
-									appData.get(0)));
-
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
@@ -1190,6 +1300,10 @@ public class DataEntryService {
 					report.setCreatedBy(token.path("user_name").textValue());
 					report.setCreatedDate(new Date());
 					mongoTemplate.save(report);
+
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp", "body",
+									appData.get(0)));
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1424,7 +1538,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("3");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage("Others error");
 		}
  		return Map.of("status", 200, "data", responseModel);
 
@@ -1544,7 +1658,7 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
-				if (request.path("body").path("status").textValue().equals("OK")) {
+				if (request.path("body").path("status").textValue().toUpperCase().equals("OK")) {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
@@ -1579,10 +1693,18 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
+					if (errors.toUpperCase().equals("END OF LEAD DETAIL") ||
+							errors.toUpperCase().equals("PERSONAL INFORMATION") ||
+							errors.toUpperCase().equals("EMPLOYMENT DETAILS")){
+					}else{
+						errors = "OTHER";
+					}
+
 					Update update = new Update();
 					update.set("status", "FULL_APP_FAIL");
-					update.set("description", request.path("body").path("description").textValue());
-					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("description", errors);
+					update.set("stage", errors);
+					update.set("error", request.path("body").path("error").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1591,8 +1713,9 @@ public class DataEntryService {
 					commentModel.setCommentId(commentId);
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
-					commentModel.setStage(request.path("body").path("stage").textValue());
-					commentModel.setRequest(request.path("body").path("description").textValue());
+					commentModel.setStage(errors);
+					commentModel.setDescription(request.path("body").path("description").textValue());
+					commentModel.setRequest(errors);
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
@@ -1617,7 +1740,7 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
@@ -1664,12 +1787,12 @@ public class DataEntryService {
 		String errors = "";
 		try{
 			applicationId = request.path("body").path("applicationId").textValue();
-			errors = request.path("body").path("description").textValue();
+			errors = request.path("body").path("stage").textValue();
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
-				if (request.path("body").path("status").textValue().equals("OK")) {
+				if (request.path("body").path("status").textValue().toUpperCase().equals("OK")) {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
 					update.set("description", request.path("body").path("description").textValue());
@@ -1704,10 +1827,18 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
+					if (errors.toUpperCase().equals("END OF LEAD DETAIL") ||
+							errors.toUpperCase().equals("PERSONAL INFORMATION") ||
+							errors.toUpperCase().equals("EMPLOYMENT DETAILS")){
+					}else{
+						errors = "OTHER";
+					}
+
 					Update update = new Update();
 					update.set("status", "FULL_APP_FAIL");
-					update.set("description", request.path("body").path("description").textValue());
-					update.set("stage", request.path("body").path("stage").textValue());
+					update.set("description", errors);
+					update.set("stage", errors);
+					update.set("error", request.path("body").path("error").textValue());
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
@@ -1716,8 +1847,9 @@ public class DataEntryService {
 					commentModel.setCommentId(commentId);
 					commentModel.setType("FICO");
 					commentModel.setCode("FICO_ERR");
-					commentModel.setStage(request.path("body").path("stage").textValue());
-					commentModel.setRequest(request.path("body").path("description").textValue());
+					commentModel.setStage(errors);
+					commentModel.setDescription(request.path("body").path("description").textValue());
+					commentModel.setRequest(errors);
 
 					Query queryAddComment = new Query();
 					queryAddComment.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
@@ -1742,7 +1874,7 @@ public class DataEntryService {
 
 					//fico gui comment
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
@@ -1811,17 +1943,15 @@ public class DataEntryService {
 			}
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
-			AggregationOperation group = Aggregation.group("applicationId", "status", "quickLeadId", "description", "function", "createdBy", "createdDate");
-			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
-//			AggregationOperation project = Aggregation.project().andExpression("_id").as("applicationId");//.andExpression("createdDate").as("createdDate2");
+			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy");
+			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId", "createdDate");
+//			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId").and(Sort.Direction.DESC, "createdDate");
+//			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate");//.andExpression("createdDate").as("createdDate2");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
-			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project, limit*/);
+			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project /*, limit*/);
 			AggregationResults<Report> results = mongoTemplate.aggregate(aggregation, Report.class, Report.class);
 
 			List<Report> listData = results.getMappedResults();
-
-
-
 
             // export excel
 			in = tatReportToExcel(listData);
@@ -1863,8 +1993,10 @@ public class DataEntryService {
             List<String> inputQuery = new ArrayList<String>();
             inputQuery.add("COMPLETED");
             inputQuery.add("RETURNED");
-            inputQuery.add("RESPONSED");
+            inputQuery.add("FULL_APP_FAIL");
+			inputQuery.add("MANUALLY");
 			inputQuery.add("PROCESSING");
+			inputQuery.add("CANCEL");
 
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
 					&& request.path("body").path("data").path("toDate").textValue() != null && !request.path("body").path("data").path("toDate").textValue().equals("")){
@@ -2089,6 +2221,8 @@ public class DataEntryService {
 		String referenceId = UUID.randomUUID().toString();
 		ByteArrayInputStream in = null;
 		try{
+			List<String> inputQuery = new ArrayList<String>();
+
 			Assert.notNull(request.get("body"), "no body");
 
 			Criteria criteria=new Criteria();
@@ -2108,9 +2242,13 @@ public class DataEntryService {
 				criteria.and("createdDate").gte(fromDate).lte(toDate);
 			}
 
-			if(request.path("body").path("data").path("status").textValue()!=null)
+			if(request.path("body").path("data").path("status")!=null && !request.path("body").path("data").path("status").toString().equals("") &&
+					!request.path("body").path("data").path("status").isNull())
 			{
-				criteria.and("status").is(request.path("body").path("data").path("status").textValue());
+				inputQuery = mapper.readValue(request.path("body").path("data").path("status").toString(), List.class);
+				if (inputQuery.size() > 0) {
+					criteria.and("status").in(inputQuery);
+				}
 			}else
 			{
 				criteria.and("status").ne(null);
@@ -2124,7 +2262,8 @@ public class DataEntryService {
 			List<Application> resultData=new ArrayList<Application>();
 
 			//get by page, limit
-			if(request.path("body").path("data").get("page")!=null && request.path("body").path("data").get("limit")!=null) {
+			if(request.path("body").path("data").get("page")!=null && request.path("body").path("data").get("limit")!=null &&
+					!request.path("body").path("data").get("page").isNull() && !request.path("body").path("data").get("limit").isNull()) {
 				page = request.path("body").path("data").path("page").asInt(1);
 				limit = request.path("body").path("data").path("limit").asInt(10);
 

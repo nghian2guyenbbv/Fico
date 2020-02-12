@@ -56,5 +56,13 @@ public class AppService {
 				request.path("reference_id"), "param", Map.of("appId", request.path("param").path("appId").asText())));
 		return response(loan.path("status").asInt(), loan.path("data"));
 	}
+	
+	public JsonNode getCheckList(JsonNode request) throws Exception {
+		JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-finnone",
+				Map.of("func", "getCheckList", "reference_id", request.path("reference_id"), "param", Map.of("bank_card_number",
+						request.path("param").path("bank_card_number").asText(),"dsa_code", request.path("param").path("dsa_code").asText(),
+						"area_code",request.path("param").path("area_code").asText() )));
+		return response(reason.path("status").asInt(), reason.path("data"));
+	}
 
 }

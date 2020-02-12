@@ -276,7 +276,7 @@ public class LeadDetailPage {
                                                         "TPF_Customer Photograph","TPF_Health Insurance Card","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
                                                         "TPF_Employer Confirmation","TPF_Labor Contract","TPF_Salary slip",
                                                         "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac",
-                                        "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills"); //
+                                        "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills","TPF_Confirm_student_infomation"); //
             Utilities.captureScreenShot(_driver);
 
             for (WebElement element : docNameElement) {
@@ -303,7 +303,7 @@ public class LeadDetailPage {
                             Thread.sleep(2000);
 
                             photoElement.get(_tempIndex).sendKeys(photoUrl);
-
+                            Utilities.captureScreenShot(_driver);
 //                        // Added sleep to make you see the difference.
 //                        Thread.sleep(2000);
                         }
