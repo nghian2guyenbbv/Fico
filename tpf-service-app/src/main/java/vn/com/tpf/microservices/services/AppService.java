@@ -290,6 +290,32 @@ public class AppService {
 		return response(200, mapper.convertValue(nEntity, JsonNode.class), 0);
 	}
 
+	
+
+	public JsonNode updateAppId(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		Assert.isTrue(body.path("project").isTextual() && !body.path("project").asText().isEmpty(),
+				"project is required and not empty");
+		
+		Assert.isTrue(body.path("appId").isTextual() && !body.path("appId").asText().isEmpty(),
+				"appId is required and not empty");
+		Assert.isTrue(body.path("partnerId").isTextual() && !body.path("partnerId").asText().isEmpty(),
+				"partnerId is required and not empty");
+		
+		Query query = Query.query(Criteria.where("project").is(body.path("project").asText()).and("partnerId").is(body.path("partnerId").asText()));
+		App app = mongoTemplate.findOne(query, App.class);
+
+		if (app == null) {
+			return response(404, mapper.createObjectNode().put("message", "PartnerId Not Found"), 0);
+		}
+
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-" + app.getProject().toLowerCase(), Map.of("func", "updateAppId", "body", body));
+		
+		return response(res.path("status").asInt(), res.path("data"), 0);
+
+	
+	}
+	
 	public JsonNode updateStatus(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
@@ -315,6 +341,8 @@ public class AppService {
 
 		return response(200, null, 0);
 	}
+	
+
 
 	public JsonNode getCountStatus(JsonNode request) {
 		String referenceId = UUID.randomUUID().toString();

@@ -75,7 +75,7 @@ public class DE_DocumentsPage {
     @CacheLookup
     private List<WebElement> docNameElement;
 
-        @FindBy(how = How.XPATH, using = "//*[contains(@id, 'photoimg')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'photoimg')]")
     @CacheLookup
     private List<WebElement> photoElement;
 
@@ -124,19 +124,24 @@ public class DE_DocumentsPage {
 
     }
 
-    public void updateData(List<DocumentDTO> documentDTOS) throws IOException, InterruptedException {
-
+    public void updateData(List<DocumentDTO> documentDTOS,String downLoadFileURL) throws IOException, InterruptedException {
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
 
-        String fromFile = "http://192.168.0.203:3001/v1/file/";
-        String toFile = Constant.SCREENSHOT_PRE_PATH;
+       //String fromFile = "http://192.168.0.203:3001/v1/file/";
+        String fromFile = downLoadFileURL;
+        String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
         //do index=0 la 1 element khac
+        System.out.println("update doc - URLdownload: " + fromFile);
+
         int index = 0;
 
         List<String> updateField=new ArrayList<>();
         for(DocumentDTO documentDTO:documentDTOS){
-            updateField.add(documentDTO.originalname);
+            updateField.add(documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
+
+            System.out.println("name;" + documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
         }
 
 //        List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book",
@@ -148,7 +153,9 @@ public class DE_DocumentsPage {
             final int _tempIndex = index;
             String docName = element.getText();
             if (updateField.contains(docName)) {
-                DocumentDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.type.equals(docName)).findAny().orElse(null);
+
+                //do type truyen sang null
+                DocumentDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalname.contains(docName)).findAny().orElse(null);
                 if(documentDTO!=null){
                     toFile+= UUID.randomUUID().toString()+"_"+ docName +".pdf";
                     //File file = new File(toFile + documentDTO.getFilename());
@@ -156,12 +163,12 @@ public class DE_DocumentsPage {
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();
-                        System.out.println(photoUrl);
+                        System.out.println("paht;" + photoUrl);
                         // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 
-                        photoElement.get(_tempIndex).sendKeys(photoUrl);
-                        System.out.println("up oki");
+                        photoElement.get(_tempIndex).sendKeys(photoUrl);//
+                        //System.out.println("up oki");
                         // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 

@@ -34,17 +34,46 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement tabMiscFrmAppDtlContainerElement;
 
-    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
+    ///UAT
+//    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
+//    @CacheLookup
+//    private WebElement loanPurposeElement;
+//
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeOptionElement;
+//
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
+//    @CacheLookup
+//    private WebElement loanPurposeInputElement;
+    //Update
+
+//    //update loanpurpose
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeCloseElement;
+
+
+        //PRO
+    //production khac id
+    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
     @CacheLookup
     private WebElement loanPurposeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
+    //production khac
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
+    //update loanpurpose PRO
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+    @CacheLookup
+    private List<WebElement> loanPurposeCloseElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
     @CacheLookup
     private WebElement loanPurposeInputElement;
+
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
     @CacheLookup
@@ -90,12 +119,6 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
-    //Update
-
-    //update loanpurpose
-    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
-    @CacheLookup
-    private List<WebElement> loanPurposeCloseElement;
 
 
     public DE_MiscFrmAppDtlPage(WebDriver driver) {

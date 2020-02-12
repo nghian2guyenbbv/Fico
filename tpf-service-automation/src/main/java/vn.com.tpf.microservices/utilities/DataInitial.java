@@ -48,6 +48,8 @@ public class DataInitial {
                     .ward(address.getAddressLine3())
                     .residentDurationYear(address.getYearsInCurrentAddress())
                     .residentDurationMonth(address.getMonthsInCurrentAddress())
+                    .priStd(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
+                    .priNumber(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
                     .mobilePhone(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
             addressDTOs.add(addressDTO);
         }
@@ -78,8 +80,9 @@ public class DataInitial {
                 .employmentType(employmentDetails.getEmploymentType())
                 .durationYears(employmentDetails.getYearsInJob())
                 .durationMonths(employmentDetails.getMonthsInJob())
-                .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation())
-                .totalYearsInOccupation(employmentDetails.getTotalYearsInOccupation())
+                .otherCompanyTaxCode(employmentDetails.getOtherCompanyTaxCode())
+                .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation().isEmpty()?0:Integer.parseInt(employmentDetails.getTotalMonthsInOccupation()))
+                .totalYearsInOccupation(employmentDetails.getTotalYearsInOccupation().isEmpty()?0:Integer.parseInt(employmentDetails.getTotalYearsInOccupation()))
                 .isMajorEmployment(employmentDetails.getIsMajorEmployment())
                 .remarks(employmentDetails.getRemarks()).build();
 
@@ -100,9 +103,9 @@ public class DataInitial {
 
         ApplicationInfoDTO applicationInfoDTO = ApplicationInfoDTO.builder()
                 .gender(personalInfo.getGender())
-                .firstName(personalInfo.getLastName())
+                .firstName(personalInfo.getFirstName())
                 .middleName(personalInfo.getMiddleName())
-                .lastName(personalInfo.getFirstName())
+                .lastName(personalInfo.getLastName())
                 .dateOfBirth(personalInfo.getDateOfBirth())
                 .placeOfIssue(identificationDTOs.stream().filter(x->x.getDocumentType().equals("Current National ID")).findAny().get().getPlaceOfIssue())
                 .maritalStatus(personalInfo.getMaritalStatus())
@@ -135,11 +138,15 @@ public class DataInitial {
         map.put("LoanDetailsDTO", loanDetailsDTO);
 
         //LoanVAP
-        LoanDetailsVapDTO loanDetailsVapDTO = LoanDetailsVapDTO.builder()
-                .vapProduct(loanDetails.getVapDetails().vapProduct) //set branch default la FPT
-                .vapTreatment(loanDetails.getVapDetails().vapTreatment)
-                .insuranceCompany(loanDetails.getVapDetails().getInsuranceCompany())
-                .build();
+        LoanDetailsVapDTO loanDetailsVapDTO = LoanDetailsVapDTO.builder().build();
+        if(loanDetails.getVapDetails()!=null)
+        {
+            loanDetailsVapDTO = LoanDetailsVapDTO.builder()
+                    .vapProduct(loanDetails.getVapDetails().vapProduct) //set branch default la FPT
+                    .vapTreatment(loanDetails.getVapDetails().vapTreatment)
+                    .insuranceCompany(loanDetails.getVapDetails().getInsuranceCompany())
+                    .build();
+        }
         map.put("LoanDetailsVapDTO", loanDetailsVapDTO);
 
         ////********************************END LOAN DETAIL DTO************************************////
@@ -440,7 +447,7 @@ public class DataInitial {
                 .houseOwnership("Family Owned without Mortgage")
                 .mortgagePaymentCost("0")
                 .newBankCardNumber("2222222222222222")
-                //.salesAgentCode("DS0001100") /UAT
+                //.salesAgentCode("DS0001100") //UAT
                 .salesAgentCode("MM99999") //PRO
                 .maxRequestRate("62").build();
         map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);

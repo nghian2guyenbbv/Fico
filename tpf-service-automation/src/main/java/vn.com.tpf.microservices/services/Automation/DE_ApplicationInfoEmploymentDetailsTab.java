@@ -84,6 +84,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     @CacheLookup
     private WebElement departmentNameElement;
 
+    @FindBy(how = How.ID, using = "employeeNo")
+    @CacheLookup
+    private WebElement otherCompanyTaxCodeElement;
+
     @FindBy(how = How.ID, using = "EmpStatId_chzn")
     @CacheLookup
     private WebElement employmentStatusElement;
@@ -241,6 +245,8 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 
             departmentNameElement.sendKeys(data.getDepartment());
 
+            otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
+
             employmentStatusElement.click();
             await("employmentStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentStatusOptionElement.size() > 0);
@@ -256,14 +262,26 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 //		employmentStatusSelect.selectByVisibleText(data.getEmploymentStatus());
 
             levelElement.sendKeys(data.getLevel());
+
+            Utilities.captureScreenShot(_driver);
             durationYearsElement.sendKeys(data.getDurationYears());
             durationMonthsElement.sendKeys(data.getDurationMonths());
+            Utilities.captureScreenShot(_driver);
+            employerName.clear();
+            employerName.sendKeys(data.getRemarks());
 
             employerAddressCheckElement.click();
         }
     }
 
     public void updateData(EmploymentDTO data) throws JsonParseException, JsonMappingException, IOException {
+
+        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size()==0)
+        {
+            System.out.println("Create new employ: " + data.getOccupationType());
+            setData(data);
+            return;
+        }
 
         WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
         we.click();
@@ -297,6 +315,9 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         departmentNameElement.clear();
         departmentNameElement.sendKeys(data.getDepartment());
 
+        otherCompanyTaxCodeElement.clear();
+        otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
+
         employmentStatusElement.click();
         await("employmentStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> employmentStatusOptionElement.size() > 0);
@@ -324,17 +345,19 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 
     public void setExperienceInIndustry(EmploymentDTO data) {
         Actions actions = new Actions(_driver);
+        Utilities.captureScreenShot(_driver);
         actions.moveToElement(totalYearsInOccupationIdElement).click().build().perform();
         await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> totalYearsInOccupationOptionElement.size() > 1);
-        totalYearsInOccupationInputElement.sendKeys(data.getTotalYearsInOccupation());
+        totalYearsInOccupationInputElement.sendKeys(String.valueOf(data.getTotalYearsInOccupation()));
         totalYearsInOccupationInputElement.sendKeys(Keys.ENTER);
-
+        Utilities.captureScreenShot(_driver);
         actions.moveToElement(totalMonthsInOccupationIdElement).click().build().perform();
         await("totalMonthInOccupationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> totalMonthsInOccupationOptionElement.size() > 1);
-        totalMonthsInOccupationInputElement.sendKeys(data.getTotalMonthsInOccupation());
+        totalMonthsInOccupationInputElement.sendKeys(String.valueOf(data.getTotalMonthsInOccupation()));
         totalMonthsInOccupationInputElement.sendKeys(Keys.ENTER);
+        Utilities.captureScreenShot(_driver);
     }
 
     public void setMajorOccupation(EmploymentDTO data) {
