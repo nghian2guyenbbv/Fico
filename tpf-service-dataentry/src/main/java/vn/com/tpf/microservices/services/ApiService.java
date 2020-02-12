@@ -792,13 +792,21 @@ public class ApiService {
 
 				try{
 					HttpHeaders headers_DT = new HttpHeaders();
-					if(partner.get("partnerId").equals("1")){
-						headers_DT.set("authkey", digitexToken);
+
+					Object url = mapper.convertValue(partner, Map.class).get("url");
+					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+
+					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+						headers_DT.set("authkey", partner.get("token").toString());
+					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
+						headers_DT.set("authkey", tokenPartner);
 					}
+
 					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
-					Object url = mapper.convertValue(partner, Map.class).get("url");
 					String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
 
 					ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(documentApi, entity_DT, Object.class);
@@ -992,11 +1000,21 @@ public class ApiService {
 
 				try{
 					HttpHeaders headers_DT = new HttpHeaders();
-					headers_DT.set("authkey", digitexToken);
+
+					Object url = mapper.convertValue(partner, Map.class).get("url");
+					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+
+					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+						headers_DT.set("authkey", partner.get("token").toString());
+					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
+						headers_DT.set("authkey", tokenPartner);
+					}
+
 					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
-					Object url = mapper.convertValue(partner, Map.class).get("url");
 					String resubmitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
 
 					ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(resubmitDocumentApi, entity_DT, Object.class);
