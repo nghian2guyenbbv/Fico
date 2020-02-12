@@ -12,8 +12,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.models.Partner;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PartnerService {
@@ -28,7 +28,6 @@ public class PartnerService {
     private MongoTemplate mongoTemplate;
 
     private JsonNode response(int status, Object object) {
-
         ObjectNode response = mapper.createObjectNode();
         JsonNode data = mapper.convertValue(object, JsonNode.class);
 
@@ -36,85 +35,49 @@ public class PartnerService {
         return response;
     }
 
-    private String setFilterBy(JsonNode request){
-
-        if (request.path("param").path("partnerId").isTextual()) {
-            return "partnerId";
-        } else if(request.path("param").path("partnerName").isTextual()){
-            return "partnerName";
-        } else if(request.path("param").path("project").isTextual()){
-            return "project";
+    private List<Partner> getPartner(Map<String, Object> params){
+        Query dynamicQuery = new Query();
+        if(params.isEmpty()){
+            return mongoTemplate.findAll(Partner.class);
+        } else {
+            Criteria cri = new Criteria();
+            params.forEach((k, v) -> {
+                if (v instanceof String)
+                    v = ((String) v).toUpperCase();
+                cri.and(k).is(v);
+            });
+            dynamicQuery.addCriteria(cri);
+            return mongoTemplate.find(dynamicQuery, Partner.class);
         }
-        return null;
     }
 
-    private List<Partner> getPartner(String filterBy, String filterValue, String status){
+    public JsonNode getPartner(JsonNode request) {
+        if(request.path("body").isNull())
+            return response(200, "body null");
 
-        List<Partner> result;
+        Map params = mapper.convertValue(request.path("body"), Map.class);
 
-        if(filterBy.isEmpty() || filterBy.isBlank()){
-            if(status.isEmpty()){
-                result = mongoTemplate.findAll(Partner.class);
-            } else {
-                Query query = new Query();
-                query.addCriteria(Criteria.where("status").is(status));
-                result = mongoTemplate.find(query, Partner.class);
+        List<Partner> result = this.getPartner(params);
+        if(result == null || result.isEmpty()){
+            return response(200, NOT_FOUND);
+        }
+        return response(200, mapper.convertValue(result, JsonNode.class));
+    }
+
+    public JsonNode updateStatus1Partner(JsonNode request) {
+        try {
+            Map params = mapper.convertValue(request.path("body"), Map.class);
+            List<Partner> result = this.getPartner(params);
+
+            if(result == null || result.isEmpty()){
+                return response(200, NOT_FOUND);
             }
-        } else {
-            Query query = new Query();
-            query.addCriteria(Criteria.where(filterBy).is(filterValue));
-            result = mongoTemplate.find(query, Partner.class);
-        }
-        return result;
-    }
-
-    public JsonNode getAllPartners(JsonNode request) {
-
-        List<Partner> lstPartner;
-
-        if(request.path("params").path("status").isTextual() && !request.path("params").path("status").isNull()){
-            String status = request.path("params").path("status").asText();
-            lstPartner = this.getPartner(null, null, status);
-        } else {
-            lstPartner = this.getPartner(null, null, null);
-        }
-
-        if(lstPartner.isEmpty()){
+            result.get(0).setStatus(request.path("body").path("status").asText());
+            mongoTemplate.save(result.get(0));
+            return response(200, mapper.convertValue(result, JsonNode.class));
+        } catch (Exception e) {
+            log.error("Error on " + "PartnerService.updateStatus1Partner(JsonNode request)");
             return response(200, NOT_FOUND);
         }
-        return response(200, mapper.convertValue(lstPartner, JsonNode.class));
-    }
-
-    public JsonNode getPartnerByFilter(JsonNode request) {
-
-        String filterBy = this.setFilterBy(request);
-
-        if(request.path("param").path(filterBy).isNull()){
-            return response(200, "filterBy " + NOT_FOUND);
-        }
-        String filterValue = request.path("param").path(filterBy).asText();
-
-        List<Partner> lstPartner = this.getPartner(filterBy, filterValue, null);
-
-        if(lstPartner.isEmpty()){
-            return response(200, NOT_FOUND);
-        }
-        return response(200, mapper.convertValue(lstPartner, JsonNode.class));
-    }
-
-    public JsonNode updateOnePartnerStatus(JsonNode request) {
-
-        String filterBy = this.setFilterBy(request);
-
-        String filterValue = request.path("param").path(filterBy).asText();
-
-        List<Partner> lstPartner = this.getPartner(filterBy, filterValue, null);
-
-        if(lstPartner.isEmpty()){
-            return response(200, NOT_FOUND);
-        }
-        lstPartner.get(0).setStatus(request.path("param").path("status").asText());
-        mongoTemplate.save(lstPartner.get(0));
-        return response(200, NOT_FOUND);
     }
 }

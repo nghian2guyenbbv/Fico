@@ -265,7 +265,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/v1/dataentry/commentapp")
+	@PostMapping("/v1/old/dataentry/commentapp")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
 	public ResponseEntity<?> comment(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -293,7 +293,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/v1/dataentry/quicklead")
+	@PostMapping("/v1/old/dataentry/quicklead")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> quicklead(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -877,7 +877,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@RequestMapping("/v1/dataentry/uploaddigitex")
+	@RequestMapping("/v1/old/dataentry/uploaddigitex")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> uploadDigiTex(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -1065,6 +1065,74 @@ public class DataEntryController {
 		request.put("func", "getSearchReport");
 		request.put("token", token);
 		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/get-partner")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> getPartner(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getPartner");
+		request.put("body", body);
+		request.put("token", token);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/commentapp")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	public ResponseEntity<?> commentV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "commentAppV2");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/quicklead")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> quickleadV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "quickLeadV2");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@RequestMapping("/v1/dataentry/uploaddigitex")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> uploadPartner(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("token", token);
+		request.put("body", body);
+		request.put("func", "uploadPartner");
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/get-token")
+	public ResponseEntity<?> getTokenSGBPO(@RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("body", body);
+		request.put("func", "getTokenSaigonBpo");
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
