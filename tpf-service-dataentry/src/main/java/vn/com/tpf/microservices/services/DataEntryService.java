@@ -1979,26 +1979,38 @@ public class DataEntryService {
             String appId = "";
             Date startDate = new Date();
             Date finishDate = new Date();
-			for (Report item:listData) {
-				if (item.getApplications().get(0).getApplicationInformation() == null) {
-					item.setFullName(item.getApplications().get(0).getQuickLead().getFirstName() + " " + item.getApplications().get(0).getQuickLead().getLastName());
-					item.setIdentificationNumber(item.getApplications().get(0).getQuickLead().getIdentificationNumber());
-				}else{
-					item.setFullName(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
-					item.setIdentificationNumber(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
-				}
+            for (Report item:listData) {
+                try {
+                    try{
+                        if (item.getApplications().size() > 0) {
+                            if (item.getApplications().get(0).getApplicationInformation() == null) {
+                                item.setFullName(item.getApplications().get(0).getQuickLead().getFirstName() + " " + item.getApplications().get(0).getQuickLead().getLastName());
+                                item.setIdentificationNumber(item.getApplications().get(0).getQuickLead().getIdentificationNumber());
+                            } else {
+                                if (item.getApplications().get(0).getApplicationInformation().getPersonalInformation() != null) {
+                                    item.setFullName(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+                                    item.setIdentificationNumber(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception exx) {
+                    }
 
-				if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
-                    startDate = item.getCreatedDate();
-                    appId = item.getApplicationId();
-                }else {
-                    if (item.getApplicationId().equals(appId) && !item.getStatus().equals("COMPLETED")) {
-                        finishDate = item.getCreatedDate();
+                    if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
+                        startDate = item.getCreatedDate();
+                        appId = item.getApplicationId();
                     } else {
-                        item.setDuration(Duration.between(startDate.toInstant(), finishDate.toInstant()).toMinutes());
+                        if (item.getApplicationId().equals(appId) && !item.getStatus().equals("COMPLETED")) {
+                            finishDate = item.getCreatedDate();
+                        } else {
+                            item.setDuration(Duration.between(startDate.toInstant(), finishDate.toInstant()).toMinutes());
+                        }
                     }
                 }
-			}
+                catch (Exception ex) {
+                }
+            }
 
             // export excel
 			in = tatReportToExcel(listData);
