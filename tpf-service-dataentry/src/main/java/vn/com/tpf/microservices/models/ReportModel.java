@@ -11,4 +11,8 @@ public class ReportModel {
     private String fullName;
     private String identificationNumber;
     private Date createdDate;
+    private Date updateDate;
+
+    private String createdBy;
+    private String saleBranch;
 }

@@ -22,8 +22,11 @@ public class ConvertService {
 		app.put("status", application.getStatus());
 		app.put("appId", application.getApplicationId());
 //		app.put("status", application.getStatus());
-		app.put("fullName",
-				(application.getQuickLead().getFirstName() + " " +application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
+		if (application.getApplicationInformation() != null){
+			app.put("fullName", application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+		}else {
+			app.put("fullName", (application.getQuickLead().getFirstName() + " " + application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
+		}
 //		app.put("automationResult", application.getDescription());
 		app.put("assigned", application.getUserName());
 		ArrayNode documents = mapper.createArrayNode();
