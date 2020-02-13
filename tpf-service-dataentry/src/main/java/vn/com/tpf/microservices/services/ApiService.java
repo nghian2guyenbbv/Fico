@@ -1377,13 +1377,18 @@ public class ApiService {
 		String tokenPartner = "";
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			headers.setBasicAuth(account.get("userName").toString(), account.get("passWord").toString());
-			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(account), headers);
+			headers.setBasicAuth(account.get("userAuthorization").toString(), account.get("passwordAuthorization").toString());
+			Map bodyRequest = new HashMap();
+			bodyRequest.put("username", account.get("userName").toString());
+			bodyRequest.put("password", account.get("passWord").toString());
+			bodyRequest.put("grant_type", account.get("grant_type").toString());
+
+			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(bodyRequest), headers);
 			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, String.class);
 			JsonNode body = mapper.convertValue(res.getBody(), JsonNode.class);
 			tokenPartner = body.path("access_token").asText();
 		}catch (Exception e){
-			log.error("Error in ApiService.getTokenSaigonBpo");
+			log.error("Error in ApiService.getTokenSaigonBpo: " + e.getMessage());
 		}
 
 		return tokenPartner;

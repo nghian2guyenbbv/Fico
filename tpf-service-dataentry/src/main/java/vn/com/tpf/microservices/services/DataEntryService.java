@@ -2442,6 +2442,9 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> updateFullAppV2(JsonNode request, JsonNode token) {
+		if(!request.path("body").path("partnerId").isTextual()){
+			return Map.of("status", 200, "data", "partnerId not found");
+		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2584,6 +2587,9 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> quickLeadV2(JsonNode request, JsonNode token) {
+		if(!request.path("body").path("partnerId").isTextual()){
+			return Map.of("status", 200, "data", "partnerId not found");
+		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2698,6 +2704,9 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> commentAppV2(JsonNode request, JsonNode token) {
+		if(!request.path("body").path("partnerId").isTextual()){
+			return Map.of("status", 200, "data", "partnerId not found");
+		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -3060,6 +3069,9 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> updateAutomationV2(JsonNode request, JsonNode token) {
+		if(!request.path("body").path("partnerId").isTextual()){
+			return Map.of("status", 200, "data", "partnerId not found");
+		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -3165,6 +3177,9 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> updateAppErrorV2(JsonNode request, JsonNode token) {
+		if(!request.path("body").path("partnerId").isTextual()){
+			return Map.of("status", 200, "data", "partnerId not found");
+		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String applicationId = "";
@@ -3309,6 +3324,9 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> uploadPartner(JsonNode request, JsonNode token) throws Exception {
+		if(!request.path("body").path("partnerId").isTextual()){
+			return Map.of("status", 200, "data", "partnerId not found");
+		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -3400,6 +3418,9 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> getTokenSaigonBpo(JsonNode request, JsonNode token) throws Exception{
+		if(!request.path("body").path("partnerId").isTextual()){
+			return Map.of("status", 200, "data", "partnerId not found");
+		}
 		String partnerId = request.path("body").path("partnerId").asText();
 		Map partner = this.getPartner(partnerId);
 		Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
