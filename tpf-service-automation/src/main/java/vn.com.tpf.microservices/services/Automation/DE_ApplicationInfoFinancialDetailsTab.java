@@ -78,6 +78,7 @@ public class DE_ApplicationInfoFinancialDetailsTab {
     private WebElement childModalWindowDoneButtonIncomeDetailInlineGridElement;
 
 
+
     //----------------------------UPDATE---------------------------------
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'DeleteIncDetails')]")
     @CacheLookup
@@ -116,7 +117,17 @@ public class DE_ApplicationInfoFinancialDetailsTab {
                     break;
                 }
             }
-            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
+
+            Utilities.captureScreenShot(_driver);
+
+            //_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
+
+            WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
+            Utilities.checkValueSendkeyAmount(data.getAmount(),we);
+
+            Utilities.captureScreenShot(_driver);
+
+            System.out.println("amoutn salary: " + data.getAmount());
 
             if(data.getIncomeHead().equals("Main Personal Income")) {
                 //add income detail
@@ -129,16 +140,21 @@ public class DE_ApplicationInfoFinancialDetailsTab {
                         .until(() -> incomeDetailForm_incomeSourceElement.isEnabled());
 
                 actions.moveToElement(incomeDetailForm_incomeSourceElement).click().build().perform();
-                await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("incomeDetailForm_incomeSourceOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> incomeDetailForm_incomeSourceOptionElement.size() > 1);
                 incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
                 incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
 
+                Utilities.captureScreenShot(_driver);
                 incomeDetailForm_paymentModeElement.click();
-                await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+
+                await("incomeDetailForm_paymentModeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+
                         .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
                 incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
                 incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
+
+                Utilities.captureScreenShot(_driver);
 
                 childModalWindowDoneButtonIncomeDetailInlineGridElement.click();
                 Thread.sleep(3000);

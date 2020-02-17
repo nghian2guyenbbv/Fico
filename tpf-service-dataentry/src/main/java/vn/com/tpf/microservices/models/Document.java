@@ -10,5 +10,5 @@ public class Document {
 
     private String originalname;
     private String filename;
-    private String urlId;
+    private String urlid;
 }

@@ -7,8 +7,8 @@ import lombok.Data;
 
 @Data
 @JsonInclude(Include.NON_NULL)
-public class Returned {
-
+public class Comment {
+	private String type;
 	private String code;
 	private String commentTpf;
 	private String commentFpt;

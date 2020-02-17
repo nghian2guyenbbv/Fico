@@ -404,6 +404,16 @@ public class PGPInfo {
 					"H6yN35iJRVFhXrqm1C8CwKNN/A54Jx+3LZX8SuQWJ6BJEVEALv5H9LEoGkXNgq+7\n" +
 					"nMc+dM2RR/1xoNqtcivDBRw6p7350MJSXPlVKe/yXnTF\n" +
 					"=lBb4\n" +
+					"Version: BCPG C# v1.8.5.0\n" +
+					"\n" +
+					"mIsEXhRrJgEEAMWIqTn8lcPtjJT15Hn+NfEQUq/HCvoFlRy5LHu5Uv0pwJQp6dlO\n" +
+					"fbN1DNvpnzC1Ys/zrK5BnMVVbyNkDA3ABQB5pi2ChFK2Rq3SP/K4hK2QBIfmKORY\n" +
+					"vZAlbMIu6mDzYn8gyXfpquy2yd5HReUMzTzAkFlqjdZEm8m6LdakXZKtAAUTtBFU\n" +
+					"UEZpY28tUHJvZHVjdGlvboicBBABAgAGBQJeFB3OAAoJEMwgfRsCNmiWY/QEAKxi\n" +
+					"dh6tn/UiF4RD6zNskEqGEsJjPIQeIOGHjJFo+IY7lQHWV/rG/nKpvyokqcDM63x6\n" +
+					"vPgSjMPOj4/aUGO5xuIlWgc+h1C11YDhzBcufyGTMirI+IB8wuhcuq5CJJw1kaZ7\n" +
+					"0iNY/ieUK6NFeEXXCW1q5rot5VHULNQu7gNvtBEN\n" +
+					"=+Ygn\n" +
 					"-----END PGP PUBLIC KEY BLOCK-----" + "",
 			"test",
 			"-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n" + "Version: Keybase OpenPGP v1.0.0\r\n"

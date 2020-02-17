@@ -1,10 +1,7 @@
 package vn.com.tpf.microservices.services;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +12,10 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -45,6 +45,9 @@ public class RabbitMQService {
 	private RabbitTemplate rabbitTemplate;
 
 	@Autowired
+	private RabbitTemplate rabbitTemplateFirstCheck;
+
+	@Autowired
 	private RestTemplate restTemplate;
 
 	@Autowired
@@ -53,6 +56,7 @@ public class RabbitMQService {
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
+		rabbitTemplateFirstCheck.setReplyTimeout(1000 * 120);
 	}
 
 	public JsonNode checkToken(String[] token) {
@@ -81,6 +85,17 @@ public class RabbitMQService {
 	public JsonNode sendAndReceive(String appId, Object object) throws Exception {
 		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
 		Message response = rabbitTemplate.sendAndReceive(appId, request);
+
+		if (response != null) {
+			return mapper.readTree(new String(response.getBody(), "UTF-8"));
+		}
+
+		return null;
+	}
+
+	public JsonNode sendAndReceiveFirstCheck(String appId, Object object) throws Exception {
+		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
+		Message response = rabbitTemplateFirstCheck.sendAndReceive(appId, request);
 
 		if (response != null) {
 			return mapper.readTree(new String(response.getBody(), "UTF-8"));
@@ -124,8 +139,12 @@ public class RabbitMQService {
 			switch (request.path("func").asText()) {
 				case "addProduct":
 					return response(message, payload, dataEntryService.addProduct(request));
+				case "addProductV2":
+					return response(message, payload, dataEntryService.addProductV2(request));
 				case "getProductByName":
 					return response(message, payload, dataEntryService.getProductByName(request));
+				case "getProductByNameV2":
+					return response(message, payload, dataEntryService.getProductByNameV2(request));
 				case "getAll":
 					return response(message, payload, dataEntryService.getAll(request));
 				case "getByAppId":
@@ -154,11 +173,11 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.updateStatus(request, token));
 				case "uploadFile":
 					return response(message, payload, dataEntryService.uploadFile(request, token));
-				case "updateAutomation":
+				case "old_updateAutomation":
 					return response(message, payload, dataEntryService.updateAutomation(request, token));
-				case "updateFullApp":
+				case "old_updateFullApp":
 					return response(message, payload, dataEntryService.updateFullApp(request, token));
-				case "updateAppError":
+				case "old_updateAppError":
 					return response(message, payload, dataEntryService.updateAppError(request, token));
 				case "uploadDigiTex":
 					return response(message, payload, dataEntryService.uploadDigiTex(request, token));
@@ -168,6 +187,26 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getStatusReport(request, token));
 				case "getDocumentId":
 					return response(message, payload, dataEntryService.getDocumentId(request, token));
+				case "getListStatus":
+					return response(message, payload, dataEntryService.getListStatus(request));
+				case "getSearchReport":
+					return response(message, payload, dataEntryService.getSearchReport(request,token));
+				case "getPartner":
+					return response(message, payload, dataEntryService.getPartner(request,token));
+				case "quickLeadV2":
+					return response(message, payload, dataEntryService.quickLeadV2(request, token));
+				case "commentAppV2":
+					return response(message, payload, dataEntryService.commentAppV2(request, token));
+				case "updateAutomation":
+					return response(message, payload, dataEntryService.updateAutomationV2(request, token));
+				case "updateAppError":
+					return response(message, payload, dataEntryService.updateAppErrorV2(request, token));
+				case "updateFullApp":
+					return response(message, payload, dataEntryService.updateFullAppV2(request, token));
+				case "uploadPartner":
+					return response(message, payload, dataEntryService.uploadPartner(request, token));
+				case "getTokenSaigonBpo":
+					return response(message, payload, dataEntryService.getTokenSaigonBpo(request, token));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

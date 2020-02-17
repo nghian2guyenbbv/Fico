@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -33,13 +34,46 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement tabMiscFrmAppDtlContainerElement;
 
-    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
+    ///UAT
+//    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
+//    @CacheLookup
+//    private WebElement loanPurposeElement;
+//
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeOptionElement;
+//
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
+//    @CacheLookup
+//    private WebElement loanPurposeInputElement;
+    //Update
+
+//    //update loanpurpose
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeCloseElement;
+
+
+        //PRO
+    //production khac id
+    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
     @CacheLookup
     private WebElement loanPurposeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
+    //production khac
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
+
+    //update loanpurpose PRO
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+    @CacheLookup
+    private List<WebElement> loanPurposeCloseElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
+    @CacheLookup
+    private WebElement loanPurposeInputElement;
+
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
     @CacheLookup
@@ -85,6 +119,8 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
+
+
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver=driver;
@@ -96,7 +132,26 @@ public class DE_MiscFrmAppDtlPage {
         loanPurposeElement.click();
         await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getLoanPurpose(), loanPurposeOptionElement);
+        String[] listPurpose= data.getLoanPurpose().split(";");
+
+        if(listPurpose.length>0)
+        {
+//            for (String loanPurpose : listPurpose) {
+//                System.out.println("purpose: " + loanPurpose);
+//                Utilities.chooseDropdownValue(loanPurpose, loanPurposeOptionElement);
+//                Utilities.captureScreenShot(_driver);
+//            }
+
+            for(String loanPurpose : listPurpose){
+                loanPurposeInputElement.sendKeys(loanPurpose);
+                loanPurposeInputElement.sendKeys(Keys.ENTER);
+                Utilities.captureScreenShot(_driver);
+            }
+
+            //Utilities.chooseDropdownValueArray(listPurpose,loanPurposeOptionElement);
+        }
+
+
 
         numberOfDependentsElement.sendKeys(data.getNumOfDependents());
 
@@ -118,9 +173,32 @@ public class DE_MiscFrmAppDtlPage {
         await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
         loanPurposeElement.click();
+
+        //xoa loanpurpose
+        if(loanPurposeCloseElement.size()>0)
+        {
+            for (WebElement we:loanPurposeCloseElement)
+            {
+                we.click();
+            }
+        }
+
+        loanPurposeElement.click();
+        loanPurposeElement.click();
         await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getLoanPurpose(), loanPurposeOptionElement);
+        //Utilities.chooseDropdownValue(data.getLoanPurpose(), loanPurposeOptionElement);
+
+        String[] listPurpose= data.getLoanPurpose().split(";");
+
+        if(listPurpose.length>0)
+        {
+            for(String loanPurpose : listPurpose){
+                loanPurposeInputElement.sendKeys(loanPurpose);
+                loanPurposeInputElement.sendKeys(Keys.ENTER);
+                Utilities.captureScreenShot(_driver);
+            }
+        }
 
         numberOfDependentsElement.clear();
         numberOfDependentsElement.sendKeys(data.getNumOfDependents());

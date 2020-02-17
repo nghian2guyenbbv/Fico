@@ -12,6 +12,8 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.SessionId;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +47,18 @@ public class Utilities {
         }
     }
 
+    public static void chooseDropdownValueArray(String[] visibleTextValue, List<WebElement> optionElements) {
+        for(String purpose : visibleTextValue) {
+            System.out.println("purpose: " + purpose);
+            for (WebElement element : optionElements) {
+                if (element.getText().equals(purpose)) {
+                    element.click();
+                    //break;
+                }
+            }
+        }
+    }
+
     public static String getDropdownSelected(List<WebElement> optionElements) {
         for (WebElement element : optionElements) {
             if (element.getAttribute("class").contains("result-selected")) {
@@ -69,8 +83,9 @@ public class Utilities {
 
     public static void captureScreenShot(WebDriver ldriver) {
         File src = ((TakesScreenshot) ldriver).getScreenshotAs(OutputType.FILE);
+        SessionId session = ((RemoteWebDriver)ldriver).getSessionId();
         try {
-            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+            FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -129,6 +144,18 @@ public class Utilities {
             webElement.clear();
             webElement.sendKeys(inputValue);
             textSendkey = webElement.getAttribute("value");
+            i++;
+        } while (!textSendkey.equals(inputValue) &&  i < 5);
+    }
+
+    public static void checkValueSendkeyAmount(String inputValue, WebElement webElement) {
+        int i = 0;
+        String textSendkey = "";
+        do {
+            webElement.click();
+            webElement.clear();
+            webElement.sendKeys(inputValue);
+            textSendkey = webElement.getAttribute("value").replace(",","");
             i++;
         } while (!textSendkey.equals(inputValue) &&  i < 5);
     }

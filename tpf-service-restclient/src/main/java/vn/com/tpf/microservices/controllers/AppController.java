@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.services.RabbitMQService;
 
@@ -55,6 +56,19 @@ public class AppController {
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-app", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
+	
+	
+	@PostMapping("/v1/app/update_app_id")
+	public ResponseEntity<?> updateAppId(@RequestBody JsonNode body) throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "updateAppId");
+		request.put("body",((ObjectNode)body).put("reference_id",  UUID.randomUUID().toString()));
+		
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-app", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+	
+
 
 	@PutMapping("/v1/app/{id}")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-app')")

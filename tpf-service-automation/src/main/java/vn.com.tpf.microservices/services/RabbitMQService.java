@@ -48,7 +48,7 @@ public class RabbitMQService {
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
+		rabbitTemplate.setReplyTimeout(30000);
 	}
 
 //	public JsonNode getToken() {
@@ -155,6 +155,8 @@ public class RabbitMQService {
 				{
 					return response(message, payload, automationService.fptCreateApp(request));
 				}
+			case "autoAssign":
+					return response(message, payload, automationService.DE_AutoAssign(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

@@ -7,16 +7,16 @@ import javax.validation.constraints.NotNull;
 
 @Data
 public class VapDetails {
-    @NotNull
-    @NotEmpty(message = "vapProduct not null")
+//    @NotNull
+//    @NotEmpty(message = "vapProduct not null")
     private String vapProduct;
 
-    @NotNull
-    @NotEmpty(message = "vapTreatment not null")
+//    @NotNull
+//    @NotEmpty(message = "vapTreatment not null")
     private String vapTreatment;
 
-    @NotNull
-    @NotEmpty(message = "insuranceCompany not null")
+//    @NotNull
+//    @NotEmpty(message = "insuranceCompany not null")
     private String insuranceCompany;
 
 }

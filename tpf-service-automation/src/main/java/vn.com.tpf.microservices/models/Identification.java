@@ -8,7 +8,7 @@ public class Identification {
     public String identificationType;
     public String identificationNumber;
     public String issuingCountry;
-    public String placeOfBirth;
+    public String placeOfIssue;
     public String issueDate;
     public String expiryDate;
 

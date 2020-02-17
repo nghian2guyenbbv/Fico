@@ -8,14 +8,15 @@ public class Constant {
     public static int THREAD_NUM = 10;
     public static int INPUT_TIMES = 3;
     public static int WAIT_ACCOUNT_TIMEOUT = 20000; // milis
+    public static int WAIT_ACCOUNT_GET_NULL = 2000; // milis
 
-    public static String SCREENSHOT_PRE_PATH = "C:/selenium/finnone_";
+    public static String SCREENSHOT_PRE_PATH = "C:/selenium/";
     public static String SCREENSHOT_PRE_PATH_DOC = "/doc/";
     public static String SCREENSHOT_PRE_PATH_DOCKER = "/images/";
     public static String SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD = "/images/download/";
     public static String SCREENSHOT_EXTENSION = ".png";
     public static String SAMPLE_IMG_FILE_PATH = "C:\\finnone.png";
-    public static String FINNONE_LOGIN_URL = "http://10.1.66.20:4141/finnone-webapp/app/auth/login";
+    //public static String FINNONE_LOGIN_URL = "http://10.1.66.20:4141/finnone-webapp/app/auth/login";
    //public static String FINNONE_LOGIN_URL_PRO = "http://10.1.64.22:4141/finnone-webapp/app/auth/login";
 
 }
