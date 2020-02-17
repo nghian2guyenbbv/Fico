@@ -821,7 +821,7 @@ public class ApiService {
 					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 							Map.of("Exception: ", e.toString(), "payload", request));
 					ObjectNode doc = mapper.createObjectNode();
-					doc.put("uploadPartner", "FAIL");
+					doc.put("uploadDigiTex", "FAIL");
 					return doc;
 				}
 
@@ -1029,7 +1029,7 @@ public class ApiService {
 					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 							Map.of("Exception: ", e.toString(), "payload", request));
 					ObjectNode doc = mapper.createObjectNode();
-					doc.put("uploadPartner", "FAIL");
+					doc.put("uploadDigiTex", "FAIL");
 					return doc;
 				}
 			}
@@ -1037,14 +1037,14 @@ public class ApiService {
 			log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 					Map.of("Exception: ", e.toString()));
 			ObjectNode doc = mapper.createObjectNode();
-			doc.put("uploadPartner", "FAIL");
+			doc.put("uploadDigiTex", "FAIL");
 			return doc;
 
 		} catch (Exception e) {
 			log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 					Map.of("Exception: ", e.toString()));
 			ObjectNode doc = mapper.createObjectNode();
-			doc.put("uploadPartner", "FAIL");
+			doc.put("uploadDigiTex", "FAIL");
 			return doc;
 		}
 		return jNode;
