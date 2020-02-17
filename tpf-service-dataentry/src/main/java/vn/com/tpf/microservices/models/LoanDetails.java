@@ -9,7 +9,7 @@ public class LoanDetails {
     @Valid
     private SourcingDetails sourcingDetails;
 
-    @Valid
+//    @Valid
     private VapDetails vapDetails;
 
 }

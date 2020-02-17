@@ -39,7 +39,7 @@ public class SeleniumGridDriver {
             chromeOptions.addArguments("--disable-dev-shm-usage");
 //            chromeOptions.addArguments("start-maximized");
             chromeOptions.addArguments("window-size=2560x3000");
-            //chromeOptions.addArguments("window-size=1920x1080");
+            //chromeOptions.addArguments("--window-size=2560,1080");
 //            chromeOptions.setCapability("platform", platform);
             this.driver = new RemoteWebDriver(new URL("http://" + seleHost + ":"+ selePort + "/wd/hub"), chromeOptions);
         } else if (browser.equalsIgnoreCase("firefox")) {

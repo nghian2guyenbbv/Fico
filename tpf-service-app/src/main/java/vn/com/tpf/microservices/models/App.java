@@ -23,7 +23,7 @@ public class App {
 	private String project;
 	@Indexed(unique = true, sparse = true)
 	private String uuid;
-	@Indexed(unique = true, sparse = true)
+	@Indexed
 	private String appId;
 	private String assigned;
 	private String partnerId;

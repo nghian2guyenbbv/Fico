@@ -60,11 +60,12 @@ public class ApiService {
 			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 					Map.of("func", "pgpDecrypt", "body", Map.of("project", "momo", "data", res.getBody().toString())));
 			
+			
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
 			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
 			dataLogRes.set("payload", data);
-			dataLogRes.put("result", decrypt.path("body").path("data").asText());
+			dataLogRes.set("result", decrypt.path("data"));
 			
 			log.info("{}", dataLogRes);
 

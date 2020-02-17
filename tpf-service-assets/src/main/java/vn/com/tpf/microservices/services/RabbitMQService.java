@@ -35,6 +35,9 @@ public class RabbitMQService {
 	@Autowired
 	private PGPService pgpService;
 
+	@Autowired
+	private PartnerService partnerService;
+
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
@@ -86,6 +89,10 @@ public class RabbitMQService {
 				return response(message, payload, pgpService.pgpDecrypt(request));
 			case "getAddress":
 				return response(message, payload, addressService.getAddress(request));
+			case "getPartner":
+				return response(message, payload, partnerService.getPartner(request));
+			case "updateStatus1Partner":
+				return response(message, payload, partnerService.updateStatus1Partner(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

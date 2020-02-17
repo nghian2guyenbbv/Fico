@@ -13,16 +13,16 @@ public class Identification {
     private String identificationType;
 
     @NotNull
-    @NotEmpty(message = "identificationNumber not null")
+//    @NotEmpty(message = "identificationNumber not null")
     private String identificationNumber;
 
-    @NotNull
-    @NotEmpty(message = "issuingCountry not null")
+//    @NotNull
+//    @NotEmpty(message = "issuingCountry not null")
     private String issuingCountry;
 
 //    @NotNull
-//    @NotEmpty(message = "placeOfBirth not null")
-    private String placeOfBirth;
+//    @NotEmpty(message = "placeOfIssue not null")
+    private String placeOfIssue;
 
 //    @NotNull
 //    @NotEmpty(message = "issueDate not null")

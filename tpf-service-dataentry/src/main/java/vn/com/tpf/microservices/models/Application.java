@@ -1,7 +1,9 @@
 package vn.com.tpf.microservices.models;
 
 import lombok.Data;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.Valid;
@@ -34,9 +36,13 @@ public class Application {
     private String status;
     private String description;
     private String stage;
+    private String error;
     private String userName;
     private String userName_DE;
+    @CreatedDate
     private Date createdDate;
+    @LastModifiedDate
     private Date lastModifiedDate;
 
+    private String partnerId;
 }

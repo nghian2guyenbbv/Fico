@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -116,6 +117,13 @@ public class DE_LoanDetailsVapDetailsTab {
     }
 
     public void updateData(LoanDetailsVapDTO data) {
+
+        //kiem tra neu chua co thi tao, cho update FULL
+        if(_driver.findElements(By.xpath("//*[contains(@id,'vap_details_Table')]//*[contains(@id,'edit')]")).size()==0){
+            setData(data);
+            return;
+        }
+
         await("editVapElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> editVapElement.isDisplayed());
 

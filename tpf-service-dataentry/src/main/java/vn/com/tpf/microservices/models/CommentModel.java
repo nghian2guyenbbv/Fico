@@ -7,9 +7,10 @@ import java.util.Date;
 @Data
 public class CommentModel {
     private String commentId;
-    private String state;
+    private String stage;
     private String type;
     private String code;
+    private String description;
     private String request;
     private CommentResponseModel response;
     private Date createdDate;
