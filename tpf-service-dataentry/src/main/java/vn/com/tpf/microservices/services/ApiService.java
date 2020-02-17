@@ -1377,6 +1377,7 @@ public class ApiService {
 		String tokenPartner = "";
 		try {
 			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			headers.setBasicAuth(account.get("userAuthorization").toString(), account.get("passwordAuthorization").toString());
 			Map bodyRequest = new HashMap();
 			bodyRequest.put("username", account.get("userName").toString());
