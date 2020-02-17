@@ -308,7 +308,7 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/v1/dataentry/uploadfile/{appId}")
+	@PostMapping("/v1/old/dataentry/uploadfile/{appId}")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
 	public ResponseEntity<?> uploadfile(@RequestHeader("Authorization") String token,
 										@RequestPart("files")  MultipartFile[] files,
@@ -1224,11 +1224,13 @@ public class DataEntryController {
 		try {
 			Map<String, Object> partnerMap = new HashMap<>();
 			partnerMap.put("partnerId", partnerId);
-			JsonNode partnerResponse = rabbitMQService.sendAndReceive("tpf-service-assets",
+			JsonNode partnerResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry",
 					Map.of("func", "getPartner","body", partnerMap));
 			Map partner = new HashMap();
 			if(partnerResponse == null || partnerResponse.get("data").isNull()){
-				log.info("Not found partner");
+				return ResponseEntity.status(200)
+						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+								"result_code", 3, "message", "Partner not found!"));
 			} else {
 				partner = mapper.convertValue(partnerResponse.get("data").get(0), Map.class);
 			}

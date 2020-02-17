@@ -25,6 +25,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.shared.ThirdPartyType;
@@ -2419,7 +2420,6 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> getPartner(JsonNode request, JsonNode token) throws Exception{
-		Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getPartner","body", request.path("body")));
 		if(response == null){
@@ -2429,7 +2429,6 @@ public class DataEntryService {
 	}
 
 	private Map<String, Object> getPartner(String id) throws Exception{
-		Assert.notNull(id, "partnerId is null!");
 		Map partnerMap = new HashMap();
 		partnerMap.put("partnerId", id);
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-assets",
@@ -2442,9 +2441,6 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> updateFullAppV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2457,6 +2453,11 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
+				String partnerId = "";
+				partnerId = checkExist.get(0).getPartnerId();
+				if(StringUtils.isEmpty(partnerId)){
+					return Map.of("status", 200, "data", "partnerId null");
+				}
 				if (request.path("body").path("status").textValue().toUpperCase().equals("OK")) {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
@@ -2471,6 +2472,7 @@ public class DataEntryService {
 					report.setStatus("COMPLETED");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
+					report.setPartnerId(partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -2480,8 +2482,6 @@ public class DataEntryService {
 
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
 
-					Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
-					String partnerId = request.path("body").path("partnerId").asText();
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
@@ -2535,6 +2535,7 @@ public class DataEntryService {
 					report.setStatus("FULL_APP_FAIL");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
+					report.setPartnerId(partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -2547,8 +2548,6 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 
-					Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
-					String partnerId = request.path("body").path("partnerId").asText();
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
@@ -2653,7 +2652,6 @@ public class DataEntryService {
 					update.set("status", "NEW");
 					update.set("lastModifiedDate", new Date());
 
-					Assert.notNull(data.getPartnerId(), "partnerId is null!");
 					update.set("quickLead.partnerId", data.getPartnerId());
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
@@ -2704,9 +2702,6 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> commentAppV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2985,8 +2980,13 @@ public class DataEntryService {
 							"comment", comment, "documents", documents)), JsonNode.class);
 
 					try {
-						Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
-						String partnerId = request.path("body").path("partnerId").asText();
+						String partnerId = "";
+						if(checkExist.size() > 0){
+							partnerId = checkExist.get(0).getPartnerId();
+						}
+						if(StringUtils.isEmpty(partnerId)){
+							return Map.of("status", 200, "data", "partnerId null");
+						}
 						Map partner = getPartner(partnerId);
 						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 						String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
@@ -3080,6 +3080,11 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
+				String partnerId = "";
+				partnerId = checkExist.get(0).getPartnerId();
+				if(StringUtils.isEmpty(partnerId)){
+					return Map.of("status", 200, "data", "partnerId null");
+				}
 				if (request.path("body").path("applicationId").textValue() != null && request.path("body").path("applicationId").equals("") != true &&
 						request.path("body").path("applicationId").textValue().equals("") != true && request.path("body").path("applicationId").textValue().equals("UNKNOWN") != true &&
 						request.path("body").path("applicationId").textValue().equals("UNKNOW") != true) {
@@ -3105,8 +3110,7 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
 							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
 
-					Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
-					String partnerId = request.path("body").path("partnerId").asText();
+
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
@@ -3127,6 +3131,7 @@ public class DataEntryService {
 					report.setStatus("PROCESSING");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
+					report.setPartnerId(partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -3140,6 +3145,7 @@ public class DataEntryService {
 					report.setStatus("AUTO_QL_FAIL");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
+					report.setPartnerId(partnerId);
 					mongoTemplate.save(report);
 
 					Update update = new Update();
@@ -3177,9 +3183,6 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> updateAppErrorV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String applicationId = "";
@@ -3193,6 +3196,11 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
+				String partnerId = "";
+				partnerId = checkExist.get(0).getPartnerId();
+				if(StringUtils.isEmpty(partnerId)){
+					return Map.of("status", 200, "data", "partnerId null");
+				}
 				if (request.path("body").path("status").textValue().toUpperCase().equals("OK")) {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
@@ -3207,6 +3215,7 @@ public class DataEntryService {
 					report.setStatus("COMPLETED");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
+					report.setPartnerId(partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -3216,8 +3225,6 @@ public class DataEntryService {
 
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
 
-					Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
-					String partnerId = request.path("body").path("partnerId").textValue();
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
@@ -3272,6 +3279,7 @@ public class DataEntryService {
 					report.setStatus("FULL_APP_FAIL");
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
+					report.setPartnerId(partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -3284,8 +3292,6 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 
-					Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
-					String partnerId = request.path("body").path("partnerId").textValue();
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
@@ -3324,22 +3330,27 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> uploadPartner(JsonNode request, JsonNode token) throws Exception {
-		if(!request.path("body").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
-
-		Assert.notNull(request.path("body").path("partnerId"), "partnerId is null!");
-		String partnerId = request.path("body").path("partnerId").asText();
-		Map partner = getPartner(partnerId);
 
 		try{
 			UUID quickLeadId = UUID.randomUUID();
 			List<QLDocument> dataUpload = new ArrayList<>();
 			Assert.notNull(request.get("body"), "no body");
 			if (request.path("body").path("data").path("applicationId").textValue() == null){
+				String partnerId = "";
+				Query query = new Query();
+				query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").textValue()));
+				List<Application> checkExist = mongoTemplate.find(query, Application.class);
+				if(checkExist.size() > 0){
+					partnerId = checkExist.get(0).getPartnerId();
+				}
+				if(StringUtils.isEmpty(partnerId)){
+					return Map.of("status", 200, "data", "partnerId null");
+				}
+				Map partner = getPartner(partnerId);
+
 				JsonNode resultUpload = apiService.retryUploadPartner(request, partner);
 				if (resultUpload.path("uploadDigiTex").textValue() == null) {
 					dataUpload = mapper.readValue(resultUpload.toString(), new TypeReference<List<QLDocument>>() {
@@ -3372,6 +3383,17 @@ public class DataEntryService {
 					responseModel.setMessage("uploadFile Partner fail!");
 				}
 			}else{
+				String partnerId = "";
+				Query query = new Query();
+				query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
+				List<Application> checkExist = mongoTemplate.find(query, Application.class);
+				if(checkExist.size() > 0){
+					partnerId = checkExist.get(0).getPartnerId();
+				}
+				if(StringUtils.isEmpty(partnerId)){
+					return Map.of("status", 200, "data", "partnerId null");
+				}
+				Map partner = getPartner(partnerId);
 				JsonNode resultUpload = apiService.retryUploadPartner(request, partner);
 				if (resultUpload.path("uploadDigiTex").textValue() == null) {
 					dataUpload = mapper.readValue(resultUpload.toString(), new TypeReference<List<QLDocument>>() {

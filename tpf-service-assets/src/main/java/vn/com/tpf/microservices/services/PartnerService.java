@@ -19,7 +19,6 @@ import java.util.Map;
 public class PartnerService {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final String NOT_FOUND = "NOT FOUND";
 
     @Autowired
     private ObjectMapper mapper;
@@ -59,7 +58,7 @@ public class PartnerService {
 
         List<Partner> result = this.getPartner(params);
         if(result == null || result.isEmpty()){
-            return response(200, NOT_FOUND);
+            return response(200, null);
         }
         return response(200, mapper.convertValue(result, JsonNode.class));
     }
@@ -70,14 +69,14 @@ public class PartnerService {
             List<Partner> result = this.getPartner(params);
 
             if(result == null || result.isEmpty()){
-                return response(200, NOT_FOUND);
+                return response(200, null);
             }
             result.get(0).setStatus(request.path("body").path("status").asText());
             mongoTemplate.save(result.get(0));
             return response(200, mapper.convertValue(result, JsonNode.class));
         } catch (Exception e) {
-            log.error("Error on " + "PartnerService.updateStatus1Partner(JsonNode request)");
-            return response(200, NOT_FOUND);
+            log.error("Error on " + "PartnerService.updateStatus1Partner(JsonNode request)" + e.getMessage());
+            return response(200, null);
         }
     }
 }
