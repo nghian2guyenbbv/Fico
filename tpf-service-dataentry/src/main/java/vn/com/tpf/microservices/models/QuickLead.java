@@ -33,4 +33,5 @@ public class QuickLead {
     private List<QLDocument> documents;
     private List<QLDocument> documentsComment;
 
+    private String partnerId;
 }
