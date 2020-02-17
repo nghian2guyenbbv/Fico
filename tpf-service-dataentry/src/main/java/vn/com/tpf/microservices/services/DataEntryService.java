@@ -38,6 +38,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1556,28 +1557,39 @@ public class DataEntryService {
 				if (request.path("body").path("applicationId").textValue() != null && request.path("body").path("applicationId").equals("") != true &&
 						request.path("body").path("applicationId").textValue().equals("") != true && request.path("body").path("applicationId").textValue().equals("UNKNOWN") != true &&
 						request.path("body").path("applicationId").textValue().equals("UNKNOW") != true) {
-					Update update = new Update();
-					update.set("applicationId", request.path("body").path("applicationId").textValue());
-					update.set("status", "PROCESSING");
-					update.set("lastModifiedDate", new Date());
-					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
-					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
-							resultUpdatetest.getQuickLead().getFirstName();
-					String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
-					String applicationId = request.path("body").path("applicationId").textValue();
-					ArrayList<String> inputQuery = new ArrayList<String>();
-					if (resultUpdatetest.getQuickLead().getDocuments() != null) {
-						for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
-							if (item.getUrlid() != null) {
-								inputQuery.add(item.getUrlid());
-							}
-						}
-					}
+                    Query queryAppId = new Query();
+                    queryAppId.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
+                    List<Application> checkExistAppId = mongoTemplate.find(queryAppId, Application.class);
+                    if (checkExistAppId.size() > 0){
+                        responseModel.setRequest_id(requestId);
+                        responseModel.setReference_id(UUID.randomUUID().toString());
+                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                        responseModel.setResult_code("1");
+                        responseModel.setMessage("applicationId duplicate.");
+                    }else {
+                        Update update = new Update();
+                        update.set("applicationId", request.path("body").path("applicationId").textValue());
+                        update.set("status", "PROCESSING");
+                        update.set("lastModifiedDate", new Date());
+                        Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
-							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
-					apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
+                        String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
+                                resultUpdatetest.getQuickLead().getFirstName();
+                        String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
+                        String applicationId = request.path("body").path("applicationId").textValue();
+                        ArrayList<String> inputQuery = new ArrayList<String>();
+                        if (resultUpdatetest.getQuickLead().getDocuments() != null) {
+                            for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
+                                if (item.getUrlid() != null) {
+                                    inputQuery.add(item.getUrlid());
+                                }
+                            }
+                        }
+
+                        JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+                                "application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
+                        apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
 //					String resultDG =  apiService.callApiDigitexx(urlDigitexCmInfoApi,dataSend);
 
 //					HttpHeaders headers = new HttpHeaders();
@@ -1588,19 +1600,20 @@ public class DataEntryService {
 //					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexCmInfoApi, entity, Object.class);
 //					JsonNode body = mapper.valueToTree(res.getBody());
 
-					Report report = new Report();
-					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
-					report.setApplicationId(request.path("body").path("applicationId").textValue());
-					report.setFunction("QUICKLEAD");
-					report.setStatus("PROCESSING");
-					report.setCreatedBy("AUTOMATION");
-					report.setCreatedDate(new Date());
-					mongoTemplate.save(report);
+                        Report report = new Report();
+                        report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
+                        report.setApplicationId(request.path("body").path("applicationId").textValue());
+                        report.setFunction("QUICKLEAD");
+                        report.setStatus("PROCESSING");
+                        report.setCreatedBy("AUTOMATION");
+                        report.setCreatedDate(new Date());
+                        mongoTemplate.save(report);
 
-					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
-					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp","reference_id", referenceId,
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+                        Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+                        rabbitMQService.send("tpf-service-app",
+                                Map.of("func", "updateApp", "reference_id", referenceId,
+                                        "param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+                    }
 				}else{
 					Report report = new Report();
 					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
@@ -1930,6 +1943,16 @@ public class DataEntryService {
 //
 //            List<Report> listData = mongoTemplate.find(query, Report.class);
 
+			LookupOperation lookupOperation = LookupOperation.newLookup()
+					.from("dataentry")
+					.localField("applicationId")
+					.foreignField("applicationId")
+					.as("applications");
+
+//			AggregationOperation replaceRoot = Aggregation.replaceRoot().withValueOf(ArrayOperators.ArrayElemAt.arrayOf("$dataentry_report").elementAt(0), );
+//			AggregationOperation replaceRoot = Aggregation.replaceRoot().withValueOf(ObjectOperators.valueOf("$dataentry_report").mergeWith(Aggregation.ROOT));
+
+
 
 			AggregationOperation match1;
 			if (request.path("body").path("data").path("fromDate").textValue() != null && !request.path("body").path("data").path("fromDate").textValue().equals("")
@@ -1943,15 +1966,51 @@ public class DataEntryService {
 			}
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
-			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy");
+			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy", "applications");
 			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId", "createdDate");
 //			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId").and(Sort.Direction.DESC, "createdDate");
-//			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate");//.andExpression("createdDate").as("createdDate2");
+			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate");//.andExpression("createdDate").as("createdDate2");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
-			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort /*, project /*, limit*/);
+			Aggregation aggregation = Aggregation.newAggregation(match1, lookupOperation, group, sort /*,  project/*, limit*/);
 			AggregationResults<Report> results = mongoTemplate.aggregate(aggregation, Report.class, Report.class);
 
 			List<Report> listData = results.getMappedResults();
+
+            String appId = "";
+            Date startDate = new Date();
+            Date finishDate = new Date();
+            for (Report item:listData) {
+                try {
+                    try{
+                        if (item.getApplications().size() > 0) {
+                            if (item.getApplications().get(0).getApplicationInformation() == null) {
+                                item.setFullName(item.getApplications().get(0).getQuickLead().getFirstName() + " " + item.getApplications().get(0).getQuickLead().getLastName());
+                                item.setIdentificationNumber(item.getApplications().get(0).getQuickLead().getIdentificationNumber());
+                            } else {
+                                if (item.getApplications().get(0).getApplicationInformation().getPersonalInformation() != null) {
+                                    item.setFullName(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+                                    item.setIdentificationNumber(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception exx) {
+                    }
+
+                    if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
+                        startDate = item.getCreatedDate();
+                        appId = item.getApplicationId();
+                    } else {
+                        if (item.getApplicationId().equals(appId) && !item.getStatus().equals("COMPLETED")) {
+                            finishDate = item.getCreatedDate();
+                        } else {
+                            item.setDuration(Duration.between(startDate.toInstant(), finishDate.toInstant()).toMinutes());
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                }
+            }
 
             // export excel
 			in = tatReportToExcel(listData);
@@ -2079,7 +2138,7 @@ public class DataEntryService {
 	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
-		String[] COLUMNs = {"Seq", "App no.", "Create Date", "Create By", "Status"};
+		String[] COLUMNs = {"Seq", "App no.", "Action", "Create Date", "Create By", "Status", "Full Name", "ID", "Duration(Minutes)"};
 		try(
 				Workbook workbook = new XSSFWorkbook();
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -2115,19 +2174,23 @@ public class DataEntryService {
 
 				CellStyle cellStyle = workbook.createCellStyle();
 				CreationHelper createHelper_2 = workbook.getCreationHelper();
-				short dateFormat = createHelper_2.createDataFormat().getFormat("M/d/yyyy HH:MM AM/PM");
+				short dateFormat = createHelper_2.createDataFormat().getFormat("M/d/yyyy HH:MM:SS AM/PM");
 				cellStyle.setDataFormat(dateFormat);
 
 				row.createCell(0).setCellValue(rowIdx - 1);
 				row.createCell(1).setCellValue(item.getApplicationId());
+				row.createCell(2).setCellValue(item.getFunction());
 
-				Cell cell = row.createCell(2);
+				Cell cell = row.createCell(3);
 				cell.setCellValue(item.getCreatedDate());
 				cell.setCellStyle(cellStyle);
 
 //				row.createCell(2).setCellValue(item.getCreatedDate());
-				row.createCell(3).setCellValue(item.getCreatedBy());
-				row.createCell(4).setCellValue(item.getStatus());
+				row.createCell(4).setCellValue(item.getCreatedBy());
+				row.createCell(5).setCellValue(item.getStatus());
+				row.createCell(6).setCellValue(item.getFullName());
+				row.createCell(7).setCellValue(item.getIdentificationNumber());
+                row.createCell(8).setCellValue(item.getDuration());
 
 			}
 
@@ -2301,8 +2364,14 @@ public class DataEntryService {
 							.stream().filter(c->c.getIdentificationType().equals("Current National ID")).findAny().isPresent()
 							?temp.getApplicationInformation().getPersonalInformation().getIdentifications()
 							.stream().filter(c->c.getIdentificationType().equals("Current National ID")).findAny().get().getIdentificationNumber():"");
-				}
+				}else {
+                    obj.setFullName(temp.getQuickLead().getFirstName() +" "+ temp.getQuickLead().getLastName());
+                    obj.setIdentificationNumber(temp.getQuickLead().getIdentificationNumber());
+                }
 				obj.setCreatedDate(temp.getCreatedDate());
+				obj.setSaleBranch(temp.getQuickLead().getSourcingBranch());
+				obj.setCreatedBy(temp.getUserName());
+				obj.setUpdateDate(temp.getLastModifiedDate());
 				return obj;
 			}).collect(Collectors.toList());
 
