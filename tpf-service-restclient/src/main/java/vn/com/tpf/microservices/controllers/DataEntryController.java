@@ -1379,6 +1379,7 @@ public class DataEntryController {
 					try {
 						if (parts_02.size() > 0) {
 							String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
+							System.out.println("documentApi line 1382: " + documentApi);
 							try{
 								ObjectNode dataLogReq = mapper.createObjectNode();
 								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==]");
@@ -1401,16 +1402,22 @@ public class DataEntryController {
 
 								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
 
+								System.out.println("Get token line 1404" + tokenResponse);
+
 								if(!StringUtils.isEmpty(tokenResponse.path("data").asText())){
 									String tokenPartner = tokenResponse.path("data").asText();
 									headers_DT.set("authkey", tokenPartner);
+									System.out.println("token partner line 1409" + tokenPartner);
 								} else {
-									log.info("Not get token saigonbpo");
+									log.info("Not get token saigon-bpo");
 								}
 							}
+
 							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 							ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
+
+							System.out.println("respone linr 1420" + res_DT);
 
 							Object map = mapper.valueToTree(res_DT.getBody());
 							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
@@ -1575,6 +1582,7 @@ public class DataEntryController {
 					try {
 						if (parts_02.size() > 0) {
 							String resumitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
+							System.out.println("resumitDocumentApi line 1585" + resumitDocumentApi);
 							try{
 								ObjectNode dataLogReq = mapper.createObjectNode();
 								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==]");
@@ -1590,25 +1598,33 @@ public class DataEntryController {
 
 							if(partner.get("partnerId").equals("1")){
 								headers_DT.set("authkey", partner.get("token").toString());
+								System.out.println("token line 1601 " + partner.get("token").toString());
 							} else if(partner.get("partnerId").equals("2")){
 								Map<String, Object> tokenMap = new HashMap<>();
 								tokenMap.put("token", token);
 								tokenMap.put("func", "getTokenSaigonBpo");
 								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
 
+								System.out.println("response line 1608: " + tokenResponse);
+
 								if(!StringUtils.isEmpty(tokenResponse.path("data").asText())){
 									String tokenPartner = tokenResponse.path("data").asText();
 									headers_DT.set("authkey", tokenPartner);
+									System.out.println("tokenPartner line 1613: " + tokenPartner);
 								} else {
-									log.info("Not get token saigonbpo");
+									log.info("Not get token saigon-bpo");
 								}
 							}
 							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 							ResponseEntity<?> res_DT = restTemplate.postForEntity(resumitDocumentApi, entity_DT, Object.class);
 
+							System.out.println("response line 1622: " + res_DT);
+
 							Object map = mapper.valueToTree(res_DT.getBody());
 							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+
+							System.out.println("outputDT line 1627: " + outputDT);
 
 							ObjectNode dataLog = mapper.createObjectNode();
 							dataLog.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");
