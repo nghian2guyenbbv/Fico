@@ -395,7 +395,7 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
-            if(application.getApplicationId()== null || application.getApplicationId().isEmpty())
+            if(application.getApplicationId()== null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0 )
             {
                 application.setApplicationId("UNKNOW");
             }
@@ -1084,58 +1084,60 @@ public class AutomationHandlerService {
             leadDetailDEPage.setData(leadAppID);
             Utilities.captureScreenShot(driver);
 
-            // ==========LOAN DETAILS=================
-            stage = "LOAN DETAIL - SOURCING DETAIL TAB";
-            DE_LoanDetailsPage loanDetailsPage = new DE_LoanDetailsPage(driver);
-            Utilities.captureScreenShot(driver);
-            loanDetailsPage.getTabLoanDetailsElement().click();
 
-            DE_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new DE_LoanDetailsSourcingDetailsTab(driver);
-            await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
-            await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
-            loanDetailsSourcingDetailsTab.updateData(loanDetailsDTO);
-            Utilities.captureScreenShot(driver);
-            loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
-
-//            //update
-//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size() > 0);
+            //tam thoi commnet lai
+//            // ==========LOAN DETAILS=================
+//            stage = "LOAN DETAIL - SOURCING DETAIL TAB";
+//            DE_LoanDetailsPage loanDetailsPage = new DE_LoanDetailsPage(driver);
+//            Utilities.captureScreenShot(driver);
+//            loanDetailsPage.getTabLoanDetailsElement().click();
 //
-//            await("modalBtnConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).findElement(By.id("confirmDeleteVapNext")).isDisplayed());
+//            DE_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new DE_LoanDetailsSourcingDetailsTab(driver);
+//            await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
+//            await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
+//            loanDetailsSourcingDetailsTab.updateData(loanDetailsDTO);
+//            Utilities.captureScreenShot(driver);
+//            loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 //
-//            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
+////            //update
+////            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+////                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size() > 0);
+////
+////            await("modalBtnConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+////                    .until(() -> loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().get(1).findElement(By.id("confirmDeleteVapNext")).isDisplayed());
+////
+////            System.out.println(loanDetailsSourcingDetailsTab.getModalConfirmDeleteVapNextElement().size());
+////
+////            Actions actions = new Actions(driver);
+////
+////            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+////                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size() > 0);
+////
+////            System.out.println(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
+////
+////            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+////                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).isDisplayed());
+////
+////            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
 //
-//            Actions actions = new Actions(driver);
+//            try {
+//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
 //
-//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size() > 0);
+//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
 //
-//            System.out.println(loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().size());
+//                System.out.println("test");
+//            } catch (Exception e) {
+//                System.out.println("VAP:" + e.toString());
+//            }
 //
-//            await("getBtnConfirmDeleteVapNextElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).isDisplayed());
+//            System.out.println("LOAN DETAILS: DONE");
 //
-//            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement().get(1).click();
-
-            try {
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
-
-                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
-
-                System.out.println("test");
-            } catch (Exception e) {
-                System.out.println("VAP:" + e.toString());
-            }
-
-            System.out.println("LOAN DETAILS: DONE");
-
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+//            System.out.println(stage + ": DONE");
+//            Utilities.captureScreenShot(driver);
 
 
 

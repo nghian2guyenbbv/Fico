@@ -30,4 +30,5 @@ public class Application {
     private String reference_id;
 
     private String leadApp;
+    private String automationAcc;
 }
