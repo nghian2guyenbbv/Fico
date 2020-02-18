@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -798,26 +799,41 @@ public class ApiService {
 
 					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
 						headers_DT.set("authkey", partner.get("token").toString());
+						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+						String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
+						System.out.println("documentApi line 812: " + documentApi);
+
+						ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(documentApi, entity_DT, Object.class);
+
+						Object map = mapper.valueToTree(res_DT.getBody());
+
+						JsonNode outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+						ArrayNode array = mapper.valueToTree(dataUpload);
+						jNode = mergeFile(array, outputDT);
+
+
 					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
-						System.out.println("tokenPartner line 804: " + tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
+						}
 						headers_DT.set("authkey", tokenPartner);
+						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+						String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
+
+						ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(documentApi, entity_DT, Object.class);
+
+						Object map = mapper.valueToTree(res_DT.getBody());
+
+						JsonNode outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+						ArrayNode array = mapper.valueToTree(dataUpload);
+						jNode = mergeFile(array, outputDT);
 					}
-
-					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-
-					String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
-					System.out.println("documentApi line 812: " + documentApi);
-
-					ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(documentApi, entity_DT, Object.class);
-
-					Object map = mapper.valueToTree(res_DT.getBody());
-
-					JsonNode outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-					ArrayNode array = mapper.valueToTree(dataUpload);
-					jNode = mergeFile(array, outputDT);
 
 				} catch (Exception e) {
 					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
@@ -1008,27 +1024,38 @@ public class ApiService {
 
 					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
 						headers_DT.set("authkey", partner.get("token").toString());
+						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+						String resubmitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
+						log.info("{}", entity_DT.toString());
+						ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(resubmitDocumentApi, entity_DT, Object.class);
+						log.info("{}", res_DT.toString());
+						Object map = mapper.valueToTree(res_DT.getBody());
+
+						JsonNode outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+						ArrayNode array = mapper.valueToTree(dataUpload);
+						jNode = mergeFile(array, outputDT);
 					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
-						System.out.println("tokenPartner line 1014: " + tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
+						}
 						headers_DT.set("authkey", tokenPartner);
+						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+						String resubmitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
+						log.info("{}", entity_DT.toString());
+						ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(resubmitDocumentApi, entity_DT, Object.class);
+						log.info("{}", res_DT.toString());
+						Object map = mapper.valueToTree(res_DT.getBody());
+
+						JsonNode outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+						ArrayNode array = mapper.valueToTree(dataUpload);
+						jNode = mergeFile(array, outputDT);
 					}
-
-					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-
-					String resubmitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
-					System.out.println("resubmitDocumentApi line 1022: " + resubmitDocumentApi);
-
-					ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(resubmitDocumentApi, entity_DT, Object.class);
-
-					Object map = mapper.valueToTree(res_DT.getBody());
-
-					JsonNode outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-					ArrayNode array = mapper.valueToTree(dataUpload);
-					jNode = mergeFile(array, outputDT);
-
 				} catch (Exception e) {
 					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 							Map.of("Exception: ", e.toString(), "payload", request));
@@ -1324,50 +1351,67 @@ public class ApiService {
 
 	public JsonNode callApiPartner(String url, JsonNode data, String token, String partnerId) {
 		String referenceId = UUID.randomUUID().toString();
-		System.out.println("url line 1327: " + url);
 		try {
+//			ObjectNode dataLogReq = mapper.createObjectNode();
+//			dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
+//			dataLogReq.put("referenceId", referenceId);
+//			dataLogReq.put("method", "POST");
+//			dataLogReq.put("url", url);
+//			dataLogReq.put("request_data", data);
+//			log.info("{}", dataLogReq);
+//
+//			String dataString = mapper.writeValueAsString(data);
+//
+//
+//			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+//					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+//
+//			ObjectNode dataLogReq2 = mapper.createObjectNode();
+//			dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
+//			dataLogReq2.put("referenceId", referenceId);
+//			dataLogReq2.put("request_encrypt", encrypt);
+//			log.info("{}", dataLogReq2);
+//
+//			HttpHeaders headers = new HttpHeaders();
+//
+//			headers.set("authkey", token);
+//
+//			headers.set("Accept", "application/pgp-encrypted");
+//			headers.set("Content-Type", "application/pgp-encrypted");
+//			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+//
+//			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+//
+//			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+//					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
+//
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
+//			dataLogRes.put("referenceId", referenceId);
+//			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+//			dataLogRes.put("response", res.getBody());
+//			dataLogRes.put("response_decrypt", decrypt);
+//			log.info("{}", dataLogRes);
+//			return decrypt.path("data");
+
 			ObjectNode dataLogReq = mapper.createObjectNode();
-			dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
+			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==NOT==PGP]");
 			dataLogReq.put("referenceId", referenceId);
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
-			dataLogReq.put("request_data", data);
+			dataLogReq.set("payload", data);
 			log.info("{}", dataLogReq);
 
-			String dataString = mapper.writeValueAsString(data);
-
-
-			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-
-			ObjectNode dataLogReq2 = mapper.createObjectNode();
-			dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
-			dataLogReq2.put("referenceId", referenceId);
-			dataLogReq2.put("request_encrypt", encrypt);
-			log.info("{}", dataLogReq2);
-
 			HttpHeaders headers = new HttpHeaders();
-
+			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			headers.setBearerAuth(token);
 			headers.set("authkey", token);
-
-			headers.set("Accept", "application/pgp-encrypted");
-			headers.set("Content-Type", "application/pgp-encrypted");
-			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
-
-			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-
-			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
-
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
-			dataLogRes.put("referenceId", referenceId);
-			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-			dataLogRes.put("response", res.getBody());
-			dataLogRes.put("response_decrypt", decrypt);
-			log.info("{}", dataLogRes);
-			return decrypt.path("data");
-
+			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
+			log.info("{}", entity.toString());
+			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
+			log.info("{}", res.toString());
+			JsonNode body = mapper.valueToTree(res.getBody());
+			return body;
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");

@@ -2495,7 +2495,9 @@ public class DataEntryService {
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						System.out.println("tokenPartner line 2498: " + tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
 						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 				}else{
@@ -2564,7 +2566,9 @@ public class DataEntryService {
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						System.out.println("tokenPartner line 2567: " + tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
 						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 				}
@@ -3008,7 +3012,9 @@ public class DataEntryService {
 							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-							System.out.println("tokenPartner line 3011: " + tokenPartner);
+							if(StringUtils.isEmpty(tokenPartner)){
+								return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+							}
 							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
 						}
 
@@ -3136,7 +3142,9 @@ public class DataEntryService {
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						System.out.println("tokenPartner line 3139: " + tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
 						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
 					}
 
@@ -3255,7 +3263,9 @@ public class DataEntryService {
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						System.out.println("tokenPartner line 3258: " + tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
 						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 
@@ -3325,7 +3335,9 @@ public class DataEntryService {
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						System.out.println("tokenPartner line 3328: " + tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
 						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 				}
