@@ -1324,50 +1324,66 @@ public class ApiService {
 
 	public JsonNode callApiPartner(String url, JsonNode data, String token, String partnerId) {
 		String referenceId = UUID.randomUUID().toString();
-		System.out.println("url line 1327: " + url);
 		try {
+//			ObjectNode dataLogReq = mapper.createObjectNode();
+//			dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
+//			dataLogReq.put("referenceId", referenceId);
+//			dataLogReq.put("method", "POST");
+//			dataLogReq.put("url", url);
+//			dataLogReq.put("request_data", data);
+//			log.info("{}", dataLogReq);
+//
+//			String dataString = mapper.writeValueAsString(data);
+//
+//
+//			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+//					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+//
+//			ObjectNode dataLogReq2 = mapper.createObjectNode();
+//			dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
+//			dataLogReq2.put("referenceId", referenceId);
+//			dataLogReq2.put("request_encrypt", encrypt);
+//			log.info("{}", dataLogReq2);
+//
+//			HttpHeaders headers = new HttpHeaders();
+//
+//			headers.set("authkey", token);
+//
+//			headers.set("Accept", "application/pgp-encrypted");
+//			headers.set("Content-Type", "application/pgp-encrypted");
+//			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+//
+//			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+//
+//			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+//					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
+//
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
+//			dataLogRes.put("referenceId", referenceId);
+//			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+//			dataLogRes.put("response", res.getBody());
+//			dataLogRes.put("response_decrypt", decrypt);
+//			log.info("{}", dataLogRes);
+//			return decrypt.path("data");
+
 			ObjectNode dataLogReq = mapper.createObjectNode();
-			dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
+			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==NOT==PGP]");
 			dataLogReq.put("referenceId", referenceId);
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
-			dataLogReq.put("request_data", data);
+			dataLogReq.set("payload", data);
 			log.info("{}", dataLogReq);
 
-			String dataString = mapper.writeValueAsString(data);
-
-
-			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-
-			ObjectNode dataLogReq2 = mapper.createObjectNode();
-			dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
-			dataLogReq2.put("referenceId", referenceId);
-			dataLogReq2.put("request_encrypt", encrypt);
-			log.info("{}", dataLogReq2);
-
 			HttpHeaders headers = new HttpHeaders();
-
+			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			headers.setBearerAuth(token);
 			headers.set("authkey", token);
-
-			headers.set("Accept", "application/pgp-encrypted");
-			headers.set("Content-Type", "application/pgp-encrypted");
-			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
-
-			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-
-			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
-
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
-			dataLogRes.put("referenceId", referenceId);
-			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-			dataLogRes.put("response", res.getBody());
-			dataLogRes.put("response_decrypt", decrypt);
-			log.info("{}", dataLogRes);
-			return decrypt.path("data");
-
+			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
+			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
+			System.out.println("Body of response line 1384: " + res.toString());
+			JsonNode body = mapper.valueToTree(res.getBody());
+			return body;
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");

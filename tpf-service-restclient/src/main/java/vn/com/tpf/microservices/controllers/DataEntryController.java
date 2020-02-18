@@ -1393,6 +1393,21 @@ public class DataEntryController {
 							HttpHeaders headers_DT = new HttpHeaders();
 							if(partner.get("partnerId").equals("1")){
 								headers_DT.set("authkey", partner.get("token").toString());
+
+								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
+
+								System.out.println("respone linr 1420" + res_DT);
+
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+
+								ObjectNode dataLog = mapper.createObjectNode();
+								dataLog.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");
+								dataLog.put("url", documentApi);
+								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+								log.info("{}", dataLog);
 							} else if(partner.get("partnerId").equals("2")){
 								Map<String, Object> tokenMap = new HashMap<>();
 								Map<String, Object> tokenBodyMap = new HashMap<>();
@@ -1402,31 +1417,35 @@ public class DataEntryController {
 
 								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
 
-								System.out.println("Get token line 1404" + tokenResponse);
+								System.out.println("Get token line 1420" + tokenResponse);
 
 								if(!StringUtils.isEmpty(tokenResponse.path("data").asText())){
 									String tokenPartner = tokenResponse.path("data").asText();
+									headers_DT.setBearerAuth(tokenPartner);
 									headers_DT.set("authkey", tokenPartner);
-									System.out.println("token partner line 1409" + tokenPartner);
+									System.out.println("token partner line 1426" + tokenPartner);
+
+									headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+									HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+									ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
+
+									System.out.println("respone line 1432" + res_DT);
+
+									Object map = mapper.valueToTree(res_DT.getBody());
+									outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+
+									ObjectNode dataLog = mapper.createObjectNode();
+									dataLog.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");
+									dataLog.put("url", documentApi);
+									dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+									log.info("{}", dataLog);
 								} else {
 									log.info("Not get token saigon-bpo");
+									return ResponseEntity.status(200)
+											.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+													"result_code", 3, "message", "Not get token saigon-bpo"));
 								}
 							}
-
-							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-							ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
-
-							System.out.println("respone linr 1420" + res_DT);
-
-							Object map = mapper.valueToTree(res_DT.getBody());
-							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-
-							ObjectNode dataLog = mapper.createObjectNode();
-							dataLog.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");
-							dataLog.put("url", documentApi);
-							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
-							log.info("{}", dataLog);
 						}
 					}
 					catch (Exception e) {
