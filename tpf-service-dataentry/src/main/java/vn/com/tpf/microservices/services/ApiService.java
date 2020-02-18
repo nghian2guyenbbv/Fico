@@ -801,6 +801,7 @@ public class ApiService {
 					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
+						System.out.println("tokenPartner line 804: " + tokenPartner);
 						headers_DT.set("authkey", tokenPartner);
 					}
 
@@ -808,6 +809,7 @@ public class ApiService {
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 					String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
+					System.out.println("documentApi line 812: " + documentApi);
 
 					ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(documentApi, entity_DT, Object.class);
 
@@ -821,7 +823,7 @@ public class ApiService {
 					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 							Map.of("Exception: ", e.toString(), "payload", request));
 					ObjectNode doc = mapper.createObjectNode();
-					doc.put("uploadPartner", "FAIL");
+					doc.put("uploadDigiTex", "FAIL");
 					return doc;
 				}
 
@@ -1009,6 +1011,7 @@ public class ApiService {
 					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
+						System.out.println("tokenPartner line 1014: " + tokenPartner);
 						headers_DT.set("authkey", tokenPartner);
 					}
 
@@ -1016,6 +1019,7 @@ public class ApiService {
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 					String resubmitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
+					System.out.println("resubmitDocumentApi line 1022: " + resubmitDocumentApi);
 
 					ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(resubmitDocumentApi, entity_DT, Object.class);
 
@@ -1029,7 +1033,7 @@ public class ApiService {
 					log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 							Map.of("Exception: ", e.toString(), "payload", request));
 					ObjectNode doc = mapper.createObjectNode();
-					doc.put("uploadPartner", "FAIL");
+					doc.put("uploadDigiTex", "FAIL");
 					return doc;
 				}
 			}
@@ -1037,14 +1041,14 @@ public class ApiService {
 			log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 					Map.of("Exception: ", e.toString()));
 			ObjectNode doc = mapper.createObjectNode();
-			doc.put("uploadPartner", "FAIL");
+			doc.put("uploadDigiTex", "FAIL");
 			return doc;
 
 		} catch (Exception e) {
 			log.info("[==HTTP-LOG-RESPONSE==Exception] : {}",
 					Map.of("Exception: ", e.toString()));
 			ObjectNode doc = mapper.createObjectNode();
-			doc.put("uploadPartner", "FAIL");
+			doc.put("uploadDigiTex", "FAIL");
 			return doc;
 		}
 		return jNode;
@@ -1318,8 +1322,9 @@ public class ApiService {
 		}
 	}
 
-	public JsonNode callApiPartner(String url, JsonNode data, String token) {
+	public JsonNode callApiPartner(String url, JsonNode data, String token, String partnerId) {
 		String referenceId = UUID.randomUUID().toString();
+		System.out.println("url line 1327: " + url);
 		try {
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
@@ -1330,6 +1335,7 @@ public class ApiService {
 			log.info("{}", dataLogReq);
 
 			String dataString = mapper.writeValueAsString(data);
+
 
 			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
@@ -1347,6 +1353,7 @@ public class ApiService {
 			headers.set("Accept", "application/pgp-encrypted");
 			headers.set("Content-Type", "application/pgp-encrypted");
 			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+
 			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
 			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
@@ -1377,11 +1384,12 @@ public class ApiService {
 		String tokenPartner = "";
 		try {
 			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 			headers.setBasicAuth(account.get("userAuthorization").toString(), account.get("passwordAuthorization").toString());
 			Map bodyRequest = new HashMap();
 			bodyRequest.put("username", account.get("userName").toString());
 			bodyRequest.put("password", account.get("passWord").toString());
-			bodyRequest.put("grant_type", account.get("grant_type").toString());
+			bodyRequest.put("grant_type", "password");
 
 			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(bodyRequest), headers);
 			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, String.class);
@@ -1390,7 +1398,9 @@ public class ApiService {
 		}catch (Exception e){
 			log.error("Error in ApiService.getTokenSaigonBpo: " + e.getMessage());
 		}
-
 		return tokenPartner;
 	}
+
+
+
 }
