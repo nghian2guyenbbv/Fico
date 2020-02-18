@@ -312,11 +312,9 @@ public class AutomationService {
 	//------------------------ AUTO ASSIGN - DE_ResponseQuery -------------------------------------
 	public Map<String, Object> DE_ResponseQuery(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		String reference_id = request.path("reference_id").asText();
-
 		System.out.println(request);
-
 		Assert.notNull(request.get("body"), "no body");
+//		DEResponseQueryDTO deResponseQueryDTOList = mapper.treeToValue(request.path("body").path("data"), DEResponseQueryDTO.class);
 		List<DEResponseQueryDTO> deResponseQueryDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<DEResponseQueryDTO>>(){});
 
 		new Thread(() -> {
@@ -343,10 +341,7 @@ public class AutomationService {
 	//------------------------ AUTO ASSIGN - DE_SaleQueue -------------------------------------
 	public Map<String, Object> DE_SaleQueue(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		String reference_id = request.path("reference_id").asText();
-
 		System.out.println(request);
-
 		Assert.notNull(request.get("body"), "no body");
 		List<DESaleQueueDTO> deSaleQueueDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<DESaleQueueDTO>>(){});
 

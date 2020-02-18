@@ -74,7 +74,7 @@ public class DE_ReturnRaiseQueryPage {
         _driver = driver;
     }
 
-    public void setData(String appId, List<DEResponseQueryDocumentDTO> lstDocument, String user) {
+    public void setData(String appId, List<DEResponseQueryDocumentDTO> lstDocument) {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> responseQueryFormElement.isDisplayed());
 
@@ -91,13 +91,13 @@ public class DE_ReturnRaiseQueryPage {
 
         lstDocument.forEach(documentList -> {
             textSeachResponseQueryElement.clear();
-            textSeachResponseQueryElement.sendKeys(documentList.getQuerycode());
+            textSeachResponseQueryElement.sendKeys(documentList.getQueryCode());
             idRowCalculationElement.click();
             await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> tbDivResponseQueryElement.size() > 0);
             textResponseElement.clear();
-            textResponseElement.sendKeys(documentList.getComment());
-            btnUploadFileElement.sendKeys(documentList.getUrlfile());
+            textResponseElement.sendKeys(documentList.getComments());
+            btnUploadFileElement.sendKeys(documentList.getUrlFile());
         });
 
         Utilities.captureScreenShot(_driver);

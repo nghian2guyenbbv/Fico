@@ -8,10 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Builder
-@Document(collection="automation_autoassign")
+@Document(collection="sale_queue")
 public class DESaleQueueDocumentDTO {
     @Id
-    private String documentname;
-    private String status;
-    private String urlfile;
+    private String documentName;
+    private String statusDocument;
+    private String urlFile;
 }

@@ -24,6 +24,7 @@ import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
+import vn.com.tpf.microservices.models.ResponseAutomationModel;
 import vn.com.tpf.microservices.services.Automation.*;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnApplicationManagerPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
@@ -32,6 +33,10 @@ import vn.com.tpf.microservices.services.Automation.lending.*;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -170,8 +175,6 @@ public class AutomationHandlerService {
         LoginDTO accountDTO = null;
         try {
 
-
-            selePort = "4444";
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser,fin1URL, null,seleHost,selePort);
             driver = setupTestDriver.getDriver();
 
@@ -201,10 +204,12 @@ public class AutomationHandlerService {
                     runAutomationDE_autoAssign(driver, mapValue,project, browser);
                     break;
                 case "runAutomationDE_ResponseQuery":
-                    runAutomationDE_responseQuery(driver, mapValue,project, browser);
+                    accountDTO = pollAccountFromQueue(accounts,project);
+                    runAutomationDE_responseQuery(driver, mapValue, accountDTO);
                     break;
                 case "runAutomationDE_SaleQueue":
-                    runAutomationDE_saleQueue(driver, mapValue,project, browser);
+                    accountDTO = pollAccountFromQueue(accounts,project);
+                    runAutomationDE_saleQueue(driver, mapValue, accountDTO);
                     break;
             }
 
@@ -2820,77 +2825,23 @@ public class AutomationHandlerService {
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 
     //------------------------ AUTO ASSIGN DE RESPONSE QUERY-----------------------------------------------------
-    public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue,String project,String browser) throws Exception {
+    public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Timestamp date_time = new Timestamp(new Date().getTime());
+        Instant start = Instant.now();
+        String appId = "";
         String stage= "";
+        DEResponseQueryDTO deResponseQueryDTO = DEResponseQueryDTO.builder().build();
+        log.info("{}", deResponseQueryDTO);
         try {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
             List<DEResponseQueryDTO> deResponseQueryDTOList = (List<DEResponseQueryDTO>) mapValue.get("DEResponseQueryList");
-            //*************************** END GET DATA *********************//
-            List<LoginDTO> loginDTOList=new ArrayList<LoginDTO>();
-
-            LoginDTO accountDTONew = null;
-            do{
-                //get list account finone available
-                Query query = new Query();
-                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
-                AccountFinOneDTO accountFinOneDTO=mongoTemplate.findOne(query, AccountFinOneDTO.class);
-                if (!Objects.isNull(accountFinOneDTO)) {
-                    accountDTONew=new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
-
-                    Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
-                    Update update = new Update();
-                    update.set("active", 1);
-                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
-
-                    if(resultUpdate==null)
-                    {
-                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
-                        accountDTONew=null;
-                    }
-                    else {
-                        loginDTOList.add(accountDTONew);
-                        System.out.println("Get it:" + accountDTONew.toString());
-                    }
-                } else
-                    accountDTONew=null;
-            }while (!Objects.isNull(accountDTONew));
-
-            //insert data
             mongoTemplate.insert(deResponseQueryDTOList, DEResponseQueryDTO.class);
-
-            if(loginDTOList.size()>0) {
-                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
-
-                for (LoginDTO loginDTO: loginDTOList){
-                    workerThreadPoolDE.execute(new Runnable () {
-                        @Override
-                        public void run() {
-                            runAutomationDE_responseQuery_run(loginDTO,browser);
-                        }
-                    });
-                }
-
-            }
-        } catch (Exception e) {
-            System.out.println(stage + "=> MESSAGE " + e.getMessage() +"\n TRACE: " + e.toString());
-            e.printStackTrace();
-            Utilities.captureScreenShot(driver);
-        }
-    }
-
-    private void runAutomationDE_responseQuery_run(LoginDTO accountDTO, String browser) {
-        WebDriver driver = null;
-        Instant start = Instant.now();
-        String stage = "";
-        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-        try {
-            selePort = "4444";
-            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null,seleHost,selePort);
-            driver = setupTestDriver.getDriver();
-            //get account run
-            stage = "LOGIN FINONE";
+            //*************************** END GET DATA *********************//
+            Actions actions=new Actions(driver);
+            System.out.println(stage + ": DONE" );
+            stage="LOGIN FINONE";
             HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
@@ -2898,155 +2849,105 @@ public class AutomationHandlerService {
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
-            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
-            DEResponseQueryDTO deResponseQueryDTO = null;
             do {
-                try {
-                    Instant startIn = Instant.now();
-                    Query query = new Query();
-                    query.addCriteria(Criteria.where("status").is(0));
-                    deResponseQueryDTO = mongoTemplate.findOne(query, DEResponseQueryDTO.class);
+                Query query = new Query();
+                query.addCriteria(Criteria.where("status").is(0));
+                deResponseQueryDTO = mongoTemplate.findOne(query, DEResponseQueryDTO.class);
 
-                    if (!Objects.isNull(deResponseQueryDTO)) {
+                if (!Objects.isNull(deResponseQueryDTO)) {
 
-                        //update app
-                        Query queryUpdate = new Query();
-                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(deResponseQueryDTO.getAppid()).and("username").is(deResponseQueryDTO.getUsername()));
-                        Update update = new Update();
-                        update.set("userauto", accountDTO.getUserName());
-                        update.set("status", 2);
-                        AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
-
-                        if(resultUpdate==null)
-                        {
-                            continue;
-                        }
-
-                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppid() + " - User: " + deResponseQueryDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
-
-                        stage = "HOME PAGE";
-                        HomePage homePage = new HomePage(driver);
-                        //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
-                        // ========== APPLICATIONS =================
-                        String appID = deResponseQueryDTO.getAppid();
-                        homePage.getMenuApplicationElement().click();
-
-                        stage = "APPLICATION MANAGER";
-                        // ========== APPLICATION MANAGER =================
-                        DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
-                        de_ReturnRaiseQueryPage.getResponseQueryElement().click();
-
-                        List<DEResponseQueryDocumentDTO> lstDocument = deResponseQueryDTO.getDocument();
-                        de_ReturnRaiseQueryPage.setData(appID,lstDocument, deResponseQueryDTO.getUsername().toLowerCase());
-
-                        System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deResponseQueryDTO.getAppid() + " - User: " + deResponseQueryDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
-
-                        // ========= UPDATE DB ============================
-                        Query queryUpdate1 = new Query();
-                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appid").is(deResponseQueryDTO.getAppid()).and("username").is(deResponseQueryDTO.getUsername()));
-                        Update update1 = new Update();
-                        update1.set("userauto", accountDTO.getUserName());
-                        update1.set("status", 1);
-                        AutoAssignDTO resultUpdate1 = mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignDTO.class);
-                        System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppid() + " - User: " + deResponseQueryDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
-                    }
-                } catch (Exception ex) {
+                    //update app
                     Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(deResponseQueryDTO.getAppid()).and("username").is(deResponseQueryDTO.getUsername()));
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(deResponseQueryDTO.getAppId()).and("userName").is(deResponseQueryDTO.getUserName()));
                     Update update = new Update();
                     update.set("userauto", accountDTO.getUserName());
-                    update.set("status", 3);
-                    AutoAssignDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignDTO.class);
-                    System.out.println(ex.getMessage());
+                    update.set("status", 2);
+                    DEResponseQueryDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, DEResponseQueryDTO.class);
+
+                    if(resultUpdate==null)
+                    {
+                        continue;
+                    }
+
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                    stage = "HOME PAGE";
+                    HomePage homePage = new HomePage(driver);
+                    //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
+                    // ========== APPLICATIONS =================
+                    appId = deResponseQueryDTO.getAppId();
+                    homePage.getMenuApplicationElement().click();
+
+                    stage = "APPLICATION MANAGER";
+                    // ========== APPLICATION MANAGER =================
+                    DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
+                    de_ReturnRaiseQueryPage.getResponseQueryElement().click();
+
+                    List<DEResponseQueryDocumentDTO> lstDocument = deResponseQueryDTO.getDocuments();
+                    de_ReturnRaiseQueryPage.setData(appId, lstDocument);
+
+                    System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                    // ========= UPDATE DB ============================
+                    Query queryUpdate1 = new Query();
+                    queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()).and("userName").is(deResponseQueryDTO.getUserName()));
+                    Update update1 = new Update();
+                    update1.set("userauto", accountDTO.getUserName());
+                    update1.set("status", 1);
+                    System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                 }
             } while (!Objects.isNull(deResponseQueryDTO));
+            responseModel.setRequest_id(deResponseQueryDTO.getReference_id());
+            responseModel.setReference_id(UUID.randomUUID().toString());
+            responseModel.setDate_time(date_time);
+            responseModel.setResult_code(0);
+            responseModel.setData(deResponseQueryDTO);
+            Utilities.captureScreenShot(driver);
+
         } catch (Exception e) {
             System.out.println("User Auto:" + accountDTO.getUserName() +" - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
+
+            responseModel.setRequest_id(deResponseQueryDTO.getReference_id());
+            responseModel.setReference_id(UUID.randomUUID().toString());
+            responseModel.setDate_time(date_time);
+            responseModel.setResult_code(500);
+            responseModel.setMessage(e.getMessage());
+            responseModel.setData(deResponseQueryDTO);
 
             Utilities.captureScreenShot(driver);
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            DEReturn_updateStatusRabbit(responseModel,"updateAutomation");
             logout(driver);
-            pushAccountToQueue(accountDTO);
         }
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
+
     //------------------------ AUTO ASSIGN DE SALE QUERY-----------------------------------------------------
-    public void runAutomationDE_saleQueue(WebDriver driver, Map<String, Object> mapValue,String project,String browser) throws Exception {
+    public void runAutomationDE_saleQueue(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Timestamp date_time = new Timestamp(new Date().getTime());
+        Instant start = Instant.now();
+        String appId = "";
         String stage= "";
+        DESaleQueueDTO deSaleQueueDTO = DESaleQueueDTO.builder().build();
+        log.info("{}", deSaleQueueDTO);
         try {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
             List<DESaleQueueDTO> deSaleQueueDTOList = (List<DESaleQueueDTO>) mapValue.get("DESaleQueueList");
-            //*************************** END GET DATA *********************//
-            List<LoginDTO> loginDTOList=new ArrayList<LoginDTO>();
-
-            LoginDTO accountDTONew = null;
-            do{
-                //get list account finone available
-                Query query = new Query();
-                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
-                AccountFinOneDTO accountFinOneDTO=mongoTemplate.findOne(query, AccountFinOneDTO.class);
-                if (!Objects.isNull(accountFinOneDTO)) {
-                    accountDTONew=new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
-
-                    Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
-                    Update update = new Update();
-                    update.set("active", 1);
-                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
-
-                    if(resultUpdate==null)
-                    {
-                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
-                        accountDTONew=null;
-                    }
-                    else {
-                        loginDTOList.add(accountDTONew);
-                        System.out.println("Get it:" + accountDTONew.toString());
-                    }
-                } else
-                    accountDTONew=null;
-            }while (!Objects.isNull(accountDTONew));
-
-            //insert data
             mongoTemplate.insert(deSaleQueueDTOList, DESaleQueueDTO.class);
-
-            if(loginDTOList.size()>0) {
-                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
-
-                for (LoginDTO loginDTO: loginDTOList){
-                    workerThreadPoolDE.execute(new Runnable () {
-                        @Override
-                        public void run() {
-                            runAutomationDE_saleQueue_run(loginDTO,browser);
-                        }
-                    });
-                }
-
-            }
-        } catch (Exception e) {
-            System.out.println(stage + "=> MESSAGE " + e.getMessage() +"\n TRACE: " + e.toString());
-            e.printStackTrace();
-            Utilities.captureScreenShot(driver);
-        }
-    }
-
-    private void runAutomationDE_saleQueue_run(LoginDTO accountDTO, String browser) {
-        WebDriver driver = null;
-        Instant start = Instant.now();
-        String stage = "";
-        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-        try {
-            selePort = "4444";
-            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null,seleHost,selePort);
-            driver = setupTestDriver.getDriver();
-            //get account run
-            stage = "LOGIN FINONE";
+            //*************************** END GET DATA *********************//
+            Actions actions=new Actions(driver);
+            System.out.println(stage + ": DONE" );
+            stage="LOGIN FINONE";
             HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
@@ -3054,90 +2955,99 @@ public class AutomationHandlerService {
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
-            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+
+            System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
-
-            DESaleQueueDTO deSaleQueueDTO = null;
             do {
-                try {
-                    Instant startIn = Instant.now();
-                    Query query = new Query();
-                    query.addCriteria(Criteria.where("status").is(0));
-                    deSaleQueueDTO = mongoTemplate.findOne(query, DESaleQueueDTO.class);
+                Query query = new Query();
+                query.addCriteria(Criteria.where("status").is(0));
+                deSaleQueueDTO = mongoTemplate.findOne(query, DESaleQueueDTO.class);
 
-                    if (!Objects.isNull(deSaleQueueDTO)) {
+                if (!Objects.isNull(deSaleQueueDTO)) {
 
-                        //update app
-                        Query queryUpdate = new Query();
-                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(deSaleQueueDTO.getAppid()).and("username").is(deSaleQueueDTO.getUsername()));
-                        Update update = new Update();
-                        update.set("userauto", accountDTO.getUserName());
-                        update.set("status", 2);
-                        DESaleQueueDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, DESaleQueueDTO.class);
-
-                        if(resultUpdate==null)
-                        {
-                            continue;
-                        }
-
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
-
-                        stage = "HOME PAGE";
-                        HomePage homePage = new HomePage(driver);
-                        //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
-                        // ========== APPLICATIONS =================
-                        String appID = deSaleQueueDTO.getAppid();
-                        String lastUpdate = deSaleQueueDTO.getLastupdate();
-                        String commnetText = deSaleQueueDTO.getCommenttext();
-                        homePage.getMenuApplicationElement().click();
-
-                        stage = "APPLICATION MANAGER";
-                        // ========== APPLICATION MANAGER =================
-                        DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
-                        de_ReturnSaleQueuePage.getApplicationElement().click();
-                        List<DESaleQueueDocumentDTO> lstDocument = deSaleQueueDTO.getDocument();
-                        de_ReturnSaleQueuePage.setData(appID, lstDocument, commnetText, deSaleQueueDTO.getUsername().toLowerCase());
-
-                        DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
-                        for (DESaleQueueDocumentDTO documentList : lstDocument) {
-                            if (documentList.getDocumentname().contains("(ACCA)")) {
-                                de_ReturnApplicationManagerPage.setData(appID, lastUpdate);
-                            }
-                            break;
-                        }
-
-                        System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
-
-                        // ========= UPDATE DB ============================
-                        Query queryUpdate1 = new Query();
-                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appid").is(deSaleQueueDTO.getAppid()).and("username").is(deSaleQueueDTO.getUsername()));
-                        Update update1 = new Update();
-                        update1.set("userauto", accountDTO.getUserName());
-                        update1.set("status", 1);
-                        DESaleQueueDTO resultUpdate1 = mongoTemplate.findAndModify(queryUpdate1, update1, DESaleQueueDTO.class);
-                        System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppid() + " - User: " + deSaleQueueDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
-                    }
-                } catch (Exception ex) {
+                    //update app
                     Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appid").is(deSaleQueueDTO.getAppid()).and("username").is(deSaleQueueDTO.getUsername()));
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(deSaleQueueDTO.getAppId()).and("userName").is(deSaleQueueDTO.getUserName()));
                     Update update = new Update();
                     update.set("userauto", accountDTO.getUserName());
-                    update.set("status", 3);
+                    update.set("status", 2);
                     DESaleQueueDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, DESaleQueueDTO.class);
-                    System.out.println(ex.getMessage());
+
+                    if(resultUpdate==null)
+                    {
+                        continue;
+                    }
+
+                    System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                    stage = "HOME PAGE";
+                    HomePage homePage = new HomePage(driver);
+                    //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
+                    // ========== APPLICATIONS =================
+                    appId = deSaleQueueDTO.getAppId();
+                    String lastUpdate = deSaleQueueDTO.getLastupdate();
+                    String commnetText = deSaleQueueDTO.getCommentText();
+                    homePage.getMenuApplicationElement().click();
+
+                    stage = "APPLICATION MANAGER";
+                    // ========== APPLICATION MANAGER =================
+                    DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
+                    de_ReturnSaleQueuePage.getApplicationElement().click();
+                    List<DESaleQueueDocumentDTO> lstDocument = deSaleQueueDTO.getDatadocument();
+                    de_ReturnSaleQueuePage.setData(appId, lstDocument, commnetText);
+
+                    DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
+                    for (DESaleQueueDocumentDTO documentList : lstDocument) {
+                        if (documentList.getDocumentName().contains("(ACCA)")) {
+                            de_ReturnApplicationManagerPage.setData(appId, lastUpdate);
+                        }
+                        break;
+                    }
+
+                    System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                    // ========= UPDATE DB ============================
+                    Query queryUpdate1 = new Query();
+                    queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()).and("userName").is(deSaleQueueDTO.getUserName()));
+                    Update update1 = new Update();
+                    update1.set("userauto", accountDTO.getUserName());
+                    update1.set("status", 1);
+                    System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                 }
             } while (!Objects.isNull(deSaleQueueDTO));
+            responseModel.setRequest_id(deSaleQueueDTO.getReference_id());
+            responseModel.setReference_id(UUID.randomUUID().toString());
+            responseModel.setDate_time(date_time);
+            responseModel.setResult_code(0);
+            responseModel.setData(deSaleQueueDTO);
+            Utilities.captureScreenShot(driver);
+
         } catch (Exception e) {
+            responseModel.setRequest_id(deSaleQueueDTO.getReference_id());
+            responseModel.setReference_id(UUID.randomUUID().toString());
+            responseModel.setDate_time(date_time);
+            responseModel.setResult_code(500);
+            responseModel.setMessage(e.getMessage());
+            responseModel.setData(deSaleQueueDTO);
+
             System.out.println("User Auto:" + accountDTO.getUserName() +" - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
-
             Utilities.captureScreenShot(driver);
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            DEReturn_updateStatusRabbit(responseModel,"updateAutomation");
             logout(driver);
-            pushAccountToQueue(accountDTO);
         }
+    }
+    //------------------------ END AUTO ASSIGN -----------------------------------------------------
+
+    //------------------------ START UPDATE RABBITMQ -----------------------------------------------------
+    private void DEReturn_updateStatusRabbit(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
+        JsonNode jsonNode= rabbitMQService.sendAndReceive("tpf-service-dataentry",
+                Map.of("func", func,"body", responseAutomationModel.getData()));
+        System.out.println("rabit:=>" + jsonNode.toString());
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 }
