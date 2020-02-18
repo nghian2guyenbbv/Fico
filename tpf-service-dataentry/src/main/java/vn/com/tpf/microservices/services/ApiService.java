@@ -1376,22 +1376,23 @@ public class ApiService {
 	public String getTokenSaigonBpo(String url, Map account){
 		String tokenPartner = "";
 		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-			headers.setBasicAuth(account.get("userAuthorization").toString(), account.get("passwordAuthorization").toString());
-			Map bodyRequest = new HashMap();
-			bodyRequest.put("username", account.get("userName").toString());
-			bodyRequest.put("password", account.get("passWord").toString());
-			bodyRequest.put("grant_type", account.get("grant_type").toString());
-
-			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(bodyRequest), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, String.class);
-			JsonNode body = mapper.convertValue(res.getBody(), JsonNode.class);
+			HttpHeaders headersAuth = new HttpHeaders();
+			headersAuth.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			headersAuth.setBasicAuth(account.get("userAuthorization").toString(),  account.get("passwordAuthorization").toString());
+			MultiValueMap<String, String> mapToken= new LinkedMultiValueMap<String, String>();
+			mapToken.add("username", account.get("userName").toString());
+			mapToken.add("password", account.get("passWord").toString());
+			mapToken.add("grant_type", "password");
+			HttpEntity<MultiValueMap<String, String>> requestToken = new HttpEntity<MultiValueMap<String, String>>(mapToken, headersAuth);
+			ResponseEntity<?> responseGetToken = restTemplate.postForEntity(url, requestToken , Object.class );
+			JsonNode body = mapper.convertValue(responseGetToken.getBody(), JsonNode.class);
 			tokenPartner = body.path("access_token").asText();
 		}catch (Exception e){
 			log.error("Error in ApiService.getTokenSaigonBpo: " + e.getMessage());
 		}
-
 		return tokenPartner;
 	}
+
+
+
 }
