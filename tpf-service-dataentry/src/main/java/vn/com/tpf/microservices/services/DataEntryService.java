@@ -1554,6 +1554,19 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
+				try{
+					if (checkExist.get(0).getApplicationId() != null){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is exist!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
+				}
+				catch (Exception e) {
+				}
 				if (request.path("body").path("applicationId").textValue() != null && request.path("body").path("applicationId").equals("") != true &&
 						request.path("body").path("applicationId").textValue().equals("") != true && request.path("body").path("applicationId").textValue().equals("UNKNOWN") != true &&
 						request.path("body").path("applicationId").textValue().equals("UNKNOW") != true) {
@@ -1567,6 +1580,8 @@ public class DataEntryService {
                         responseModel.setDate_time(new Timestamp(new Date().getTime()));
                         responseModel.setResult_code("1");
                         responseModel.setMessage("applicationId duplicate.");
+
+						return Map.of("status", 200, "data", responseModel);
                     }else {
                         Update update = new Update();
                         update.set("applicationId", request.path("body").path("applicationId").textValue());
