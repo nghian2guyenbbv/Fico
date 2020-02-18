@@ -4,7 +4,6 @@ import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
@@ -22,56 +21,50 @@ public class DE_ApplicationManagerPage {
     private WebDriver _driver;
 
     @FindBy(how = How.ID, using = "applicationManagerForm1")
-    @CacheLookup
     private WebElement applicationManagerFormElement;
 
     @FindBy(how = How.ID, using = "appManager_lead_application_number")
-    @CacheLookup
     private WebElement applicationNumberElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicationManagerForm1')]//input[@type='button']")
-    @CacheLookup
     private WebElement searchApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr")
-    @CacheLookup
     private List<WebElement> tdApplicationElement;
 
     @FindBy(how = How.ID, using = "showTasks")
-    @CacheLookup
     private WebElement showTaskElement;
 
     @FindBy(how = How.ID, using = "taskTableDiv")
-    @CacheLookup
     private WebElement taskTableDivElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'edit_button0')]//input[@type='button']")
-    @CacheLookup
     private WebElement editElement;
 
     @FindBy(how = How.ID, using = "Text_selected_user0")
-    @CacheLookup
     private WebElement textSelectUserElement;
 
     @FindBy(how = How.ID, using = "holder")
-    @CacheLookup
     private WebElement textSelectUserContainerElement;
 
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
-    @CacheLookup
     private List<WebElement> textSelectUserOptionElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
-    @CacheLookup
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//li[contains(@class,'application-column-loan')]//span[contains(text(),'Applications')]")
-    @CacheLookup
     private WebElement applicationElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
-    @CacheLookup
     private WebElement menuApplicationElement;
+
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'backSaveBtns')]//input[@type='button']")
+    private WebElement backBtnElement;
+
+    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
+    private WebElement applicationTableAppIDElement;
 
     public DE_ApplicationManagerPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -119,5 +112,31 @@ public class DE_ApplicationManagerPage {
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
+    }
+
+    public String getAppID(String leadApp) {
+        String appID="";
+        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationManagerFormElement.isDisplayed());
+
+        applicationNumberElement.sendKeys(leadApp);
+        searchApplicationElement.click();
+
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tdApplicationElement.size() > 0);
+
+        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> showTaskElement.isDisplayed());
+
+        showTaskElement.click();
+
+        await("applicationTableAppIDElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationTableAppIDElement.isDisplayed());
+
+        appID=applicationTableAppIDElement.getText();
+
+        Utilities.captureScreenShot(_driver);
+
+        return appID;
     }
 }

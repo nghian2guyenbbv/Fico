@@ -193,7 +193,8 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                 }
             }
         } else {
-            companyTaxCodeElement.sendKeys("%%%");
+            //companyTaxCodeElement.sendKeys("%%%");
+            companyTaxCodeElement.sendKeys(data.getEmployeeNumber());
             await("Occupation Type option loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> occupationTypeOthersElement.isDisplayed());
             occupationTypeOthersElement.click();
@@ -287,7 +288,8 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         we.click();
 
         companyTaxCodeElement.clear();
-        companyTaxCodeElement.sendKeys("%%%");
+        //companyTaxCodeElement.sendKeys("%%%");
+        companyTaxCodeElement.sendKeys(data.getEmployeeNumber());
         await("Occupation Type option loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeOthersElement.isDisplayed());
         occupationTypeOthersElement.click();
