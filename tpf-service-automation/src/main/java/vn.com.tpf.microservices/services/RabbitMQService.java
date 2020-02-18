@@ -157,6 +157,10 @@ public class RabbitMQService {
 				}
 			case "autoAssign":
 					return response(message, payload, automationService.DE_AutoAssign(request));
+			case "deResponseQuery":
+				return response(message, payload, automationService.DE_ResponseQuery(request));
+			case "deSaleQueue":
+				return response(message, payload, automationService.DE_SaleQueue(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
