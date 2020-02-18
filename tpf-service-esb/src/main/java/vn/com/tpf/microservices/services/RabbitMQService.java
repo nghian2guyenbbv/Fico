@@ -90,7 +90,7 @@ public class RabbitMQService {
 			case "getCheckList":
 				return response(message, payload, appService.getCheckList(request));
 			default:
-				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+				return response(message, payload, appService.sendFinnOne(request));
 			}
 
 		} catch (IllegalArgumentException e) {

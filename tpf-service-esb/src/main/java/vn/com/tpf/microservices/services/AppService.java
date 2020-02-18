@@ -64,5 +64,11 @@ public class AppService {
 						"area_code",request.path("param").path("area_code").asText() )));
 		return response(reason.path("status").asInt(), reason.path("data"));
 	}
+	
+	public JsonNode sendFinnOne(JsonNode request) throws Exception {
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-finnone",
+				request);
+		return response(response.path("status").asInt(), response.path("data"));
+	}
 
 }
