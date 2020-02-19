@@ -1357,6 +1357,7 @@ public class DataEntryService {
 				app.setStatus("NEW");
 				app.setUserName(token.path("user_name").textValue());
 				app.setCreatedDate(new Date());
+				app.setPartnerId(request.get("partnerId").asText());
 				mongoTemplate.save(app);
 
 				Map<String, Object> responseUI = new HashMap<>();
@@ -1388,6 +1389,7 @@ public class DataEntryService {
 				report.setDescription(description);
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				report.setPartnerId(request.get("partnerId").asText());
 				mongoTemplate.save(report);
 			}else {
 				Query query = new Query();
