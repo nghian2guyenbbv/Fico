@@ -3091,9 +3091,7 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> updateAutomationV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
+		System.out.println("request line 3094" + request.toString());
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
