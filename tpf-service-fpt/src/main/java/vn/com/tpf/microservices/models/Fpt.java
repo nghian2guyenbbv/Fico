@@ -15,7 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
 @Data
-@Document
+@Document(collection = "fpt")
 @JsonInclude(Include.NON_NULL)
 public class Fpt {
 
