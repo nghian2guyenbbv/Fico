@@ -1421,6 +1421,9 @@ public class DataEntryController {
 								headers_DT.setBearerAuth(tokenPartner);
 								headers_DT.set("authkey", tokenPartner);
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								parts_02.remove("description");
+								parts_02.add("Description", Map.of("files", documents));
+								parts_02.set("access_token", tokenPartner);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 								ObjectNode dataLogReq = mapper.createObjectNode();
@@ -1632,8 +1635,12 @@ public class DataEntryController {
 											.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
 													"result_code", 3, "message", "Not get token saigon-bpo"));
 								}
+								headers_DT.setBearerAuth(tokenPartner);
 								headers_DT.set("authkey", tokenPartner);
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								parts_02.remove("description");
+								parts_02.add("Description", Map.of("files", documents));
+								parts_02.set("access_token", tokenPartner);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 								ObjectNode dataLogReq = mapper.createObjectNode();
