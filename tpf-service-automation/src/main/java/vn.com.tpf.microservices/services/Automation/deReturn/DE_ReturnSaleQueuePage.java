@@ -148,7 +148,7 @@ public class DE_ReturnSaleQueuePage {
         _driver = driver;
     }
 
-    public void setData(String appId, List<DESaleQueueDocumentDTO> lstDocument, String commnetText,String user) {
+    public void setData(String appId, List<DESaleQueueDocumentDTO> lstDocument, String commnetText) {
 
             await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> applicationDivAssignedElement.isDisplayed());
@@ -201,17 +201,17 @@ public class DE_ReturnSaleQueuePage {
 
                 documentNameElement.clear();
 
-                documentNameElement.sendKeys(documentList.getDocumentname());
+                documentNameElement.sendKeys(documentList.getDocumentName());
 
                 await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentTableElement.size() > 2);
 
-                documentStatusElement.sendKeys(documentList.getStatus());
+                documentStatusElement.sendKeys(documentList.getStatusDocument());
 
                 await("application_upload visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentUploadElement.isDisplayed());
 
-                documentBtnUploadElement.sendKeys(documentList.getUrlfile());
+                documentBtnUploadElement.sendKeys(documentList.getUrlFile());
 
             });
 

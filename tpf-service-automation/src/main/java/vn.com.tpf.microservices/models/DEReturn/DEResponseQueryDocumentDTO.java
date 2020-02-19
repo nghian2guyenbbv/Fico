@@ -8,11 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Builder
-@Document(collection="automation_autoassign")
+@Document(collection="response_query")
 public class DEResponseQueryDocumentDTO {
-    @Id
-    private String querycode;
-    private String urlfile;
-    private String comment;
+    private String queryCode;
+    private String urlFile;
+    private String comments;
 
 }

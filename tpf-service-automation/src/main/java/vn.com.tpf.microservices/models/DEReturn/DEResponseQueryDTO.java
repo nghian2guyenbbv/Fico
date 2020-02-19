@@ -13,13 +13,13 @@ import java.util.List;
 
 @Data
 @Builder
-@Document(collection="automation_autoassign")
+@Document(collection="response_query")
 public class DEResponseQueryDTO {
     @Id
     private String id;
 
-    private String appid;
-    private String username;
+    private String appId;
+    private String userName;
     private String userauto;
     private int status=0;
     @CreatedDate
@@ -27,5 +27,7 @@ public class DEResponseQueryDTO {
     @LastModifiedDate
     private Date lastDate;
 
-    private List<DEResponseQueryDocumentDTO> document;
+    private List<DEResponseQueryDocumentDTO> documents;
+
+    private String reference_id;
 }
