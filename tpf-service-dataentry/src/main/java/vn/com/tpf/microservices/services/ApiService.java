@@ -28,7 +28,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import vn.com.tpf.microservices.models.*;
-import vn.com.tpf.microservices.shared.ThirdPartyType;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
