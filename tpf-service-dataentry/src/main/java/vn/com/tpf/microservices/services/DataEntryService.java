@@ -2599,7 +2599,7 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> quickLeadV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("partnerId").isTextual()){
+		if(!request.path("body").path("data").path("partnerId").isTextual()){
 			return Map.of("status", 200, "data", "partnerId not found");
 		}
 		ResponseModel responseModel = new ResponseModel();
