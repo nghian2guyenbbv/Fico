@@ -20,11 +20,11 @@ public class ConvertService {
 	public ObjectNode toAppDisplay(Fpt fpt) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "fpt");
-		//app.put("uuid", fpt.getId());
-		//app.put("appId", fpt.getAppId());
+		app.put("uuid", fpt.getId());
+		app.put("appId", fpt.getAppId());
 		app.put("partnerId", fpt.getCustId());
-		//app.put("status", fpt.getStatus());
-		//app.put("automationResult", fpt.getAutomationResult());
+		app.put("status", fpt.getStatus());
+		app.put("automationResult", fpt.getAutomationResult());
 		app.put("fullName",
 				(fpt.getFirstName() + " " + fpt.getMiddleName() + " " + fpt.getLastName()).replaceAll("\\s+", " "));
 		ArrayNode documents = mapper.createArrayNode();
@@ -33,7 +33,7 @@ public class ConvertService {
 			doc.put("documentType", e.getDocumentType());
 			doc.put("viewUrl", e.getLink());
 			doc.put("downloadUrl", e.getLink());
-		//	doc.set("updatedAt", mapper.convertValue(e.getUpdatedAt(), JsonNode.class));
+			doc.set("updatedAt", mapper.convertValue(e.getUpdatedAt(), JsonNode.class));
 			documents.add(doc);
 		});
 		app.set("documents", documents);

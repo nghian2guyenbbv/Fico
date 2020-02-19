@@ -82,7 +82,7 @@ public class RabbitMQService {
 		} catch (DataIntegrityViolationException e) {
 			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
+			return response(message, payload, Map.of("status", 501, "data", Map.of("message", e.toString())));
 		}
 	}
 }

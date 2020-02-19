@@ -19,8 +19,8 @@ import lombok.Data;
 @JsonInclude(Include.NON_NULL)
 public class Fpt {
 
-	// @Id
-	// private String id;
+	@Id
+	private String id;
 	@Indexed(unique = true, sparse = true)
 	private String appId;
 	@Indexed(unique = true, sparse = true)
@@ -43,7 +43,7 @@ public class Fpt {
 	private String companyName;
 	private String taxCode;
 	private String status;
-	// private String automationResult;
+	private String automationResult;
 	private long salary;
 	private long durationYear;
 	private long durationMonth;

@@ -13,6 +13,6 @@ public class Photo {
 
 	private String documentType;
 	private String link;
-	//private Date updatedAt;
+	private Date updatedAt;
 
 }
