@@ -53,8 +53,8 @@ public class Fpt {
 	private Set<ProductDetail> productDetails;
 	private Set<Reference> references;
 	private Set<DocPostApproved> docPostApproved;
-	private Set<Comment> comments;
-//	private Set<Supplement> supplement;
+	//private Set<Comment> comments;
+	private Set<Supplement> supplement;
 
 	@CreatedDate
 	private Date createdAt;
