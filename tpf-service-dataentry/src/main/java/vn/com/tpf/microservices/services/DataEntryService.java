@@ -2491,9 +2491,9 @@ public class DataEntryService {
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
 					System.out.println("feedbackApi line 2491: " + feedbackApi);
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					if(partnerId.equals("1")){
 						apiService.callApiDigitexx(feedbackApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
@@ -2562,9 +2562,9 @@ public class DataEntryService {
 					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
 					System.out.println("feedbackApi line 2559: " + feedbackApi);
 
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					if(partnerId.equals("1")){
 						apiService.callApiDigitexx(feedbackApi,dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
@@ -3008,9 +3008,9 @@ public class DataEntryService {
 						System.out.println("resubmitCommentApi line 3002 " + resubmitCommentApi);
 						JsonNode responseDG = mapper.createObjectNode();
 
-						if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+						if(partnerId.equals("1")){
 							responseDG = apiService.callApiDigitexx(resubmitCommentApi, dataSend);
-						} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+						} else if(partnerId.equals("2")){
 							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
@@ -3257,9 +3257,9 @@ public class DataEntryService {
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
 					System.out.println("feedbackApi line 3251: " + feedbackApi);
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					if(partnerId.equals("1")){
 						apiService.callApiDigitexx(feedbackApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
@@ -3329,9 +3329,9 @@ public class DataEntryService {
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
 					System.out.println("feedbackApi line 3320: " + feedbackApi);
 
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					if(partnerId.equals("1")){
 						apiService.callApiDigitexx(feedbackApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
