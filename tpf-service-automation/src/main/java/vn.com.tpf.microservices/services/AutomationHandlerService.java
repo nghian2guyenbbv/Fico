@@ -225,6 +225,7 @@ public class AutomationHandlerService {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
             application = (Application) mapValue.get("ApplicationDTO");
+            application.setAutomationAcc(accountDTO.getUserName());
             QuickLead quickLead=application.getQuickLead();
             mongoTemplate.save(application);
 
@@ -416,6 +417,7 @@ public class AutomationHandlerService {
         String stage= "";
         Instant start = Instant.now();
         Application application= Application.builder().build();
+        application.setAutomationAcc(accountDTO.getUserName());
         try {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
@@ -694,6 +696,7 @@ public class AutomationHandlerService {
         String stage= "";
         String stageError="";
         Application application= Application.builder().build();
+        application.setAutomationAcc(accountDTO.getUserName());
         String leadAppID="";
         try {
             stage="INIT DATA";
@@ -991,6 +994,7 @@ public class AutomationHandlerService {
 
     private void updateAppError_EndLeadDetail(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
         Application application= Application.builder().build();
+        application.setAutomationAcc(accountDTO.getUserName());
         try {
             application = (Application) mapValue.get("ApplicationDTO");
             ApplicationInfoDTO applicationInfoDTO = (ApplicationInfoDTO) mapValue.get("ApplicationInfoDTO");
@@ -1209,6 +1213,7 @@ public class AutomationHandlerService {
 
     private void updateAppError_EndLeadDetailV1(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
         Application application= Application.builder().build();
+        application.setAutomationAcc(accountDTO.getUserName());
         try {
             application = (Application) mapValue.get("ApplicationDTO");
             ApplicationInfoDTO applicationInfoDTO = (ApplicationInfoDTO) mapValue.get("ApplicationInfoDTO");
@@ -1369,6 +1374,7 @@ public class AutomationHandlerService {
 
     private void updateAppError_PersonalInformation(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
         Application application= Application.builder().build();
+        application.setAutomationAcc(accountDTO.getUserName());
         try {
             application = (Application) mapValue.get("ApplicationDTO");
             ApplicationInfoDTO applicationInfoDTO = (ApplicationInfoDTO) mapValue.get("ApplicationInfoDTO");
@@ -1644,6 +1650,7 @@ public class AutomationHandlerService {
 
     private void updateAppError_EndLeadDetailWithAddress(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
         Application application= Application.builder().build();
+        application.setAutomationAcc(accountDTO.getUserName());
         try {
             application = (Application) mapValue.get("ApplicationDTO");
             ApplicationInfoDTO applicationInfoDTO = (ApplicationInfoDTO) mapValue.get("ApplicationInfoDTO");
@@ -1905,6 +1912,7 @@ public class AutomationHandlerService {
 
     private void updateAppError_Full(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
         Application application= Application.builder().build();
+        application.setAutomationAcc(accountDTO.getUserName());
         try {
             application = (Application) mapValue.get("ApplicationDTO");
             ApplicationInfoDTO applicationInfoDTO = (ApplicationInfoDTO) mapValue.get("ApplicationInfoDTO");
