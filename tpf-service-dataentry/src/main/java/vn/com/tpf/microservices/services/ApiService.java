@@ -796,8 +796,8 @@ public class ApiService {
 
 					Object url = mapper.convertValue(partner, Map.class).get("url");
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					String partnerId = (String) mapper.convertValue(partner.get("data"), Map.class).get("partnerId");
+					if(partnerId.equals("1")){
 						headers_DT.set("authkey", partner.get("token").toString());
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
@@ -814,13 +814,17 @@ public class ApiService {
 						jNode = mergeFile(array, outputDT);
 
 
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
 						if(StringUtils.isEmpty(tokenPartner)){
 							return mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
 						}
 						headers_DT.set("authkey", tokenPartner);
+						headers_DT.setBearerAuth(tokenPartner);
+						parts_02.remove("description");
+						parts_02.add("Description", Map.of("files", documents));
+						parts_02.set("access_token", tokenPartner);
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
@@ -1021,8 +1025,8 @@ public class ApiService {
 
 					Object url = mapper.convertValue(partner, Map.class).get("url");
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					String partnerId = (String) mapper.convertValue(partner.get("data"), Map.class).get("partnerId");
+					if(partnerId.equals("1")){
 						headers_DT.set("authkey", partner.get("token").toString());
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
@@ -1036,7 +1040,7 @@ public class ApiService {
 						JsonNode outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 						ArrayNode array = mapper.valueToTree(dataUpload);
 						jNode = mergeFile(array, outputDT);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
 						if(StringUtils.isEmpty(tokenPartner)){
@@ -1044,6 +1048,10 @@ public class ApiService {
 						}
 						headers_DT.set("authkey", tokenPartner);
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+						headers_DT.setBearerAuth(tokenPartner);
+						parts_02.remove("description");
+						parts_02.add("Description", Map.of("files", documents));
+						parts_02.set("access_token", tokenPartner);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 						String resubmitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
@@ -1427,17 +1435,16 @@ public class ApiService {
 	public String getTokenSaigonBpo(String url, Map account){
 		String tokenPartner = "";
 		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			headers.setBasicAuth(account.get("userAuthorization").toString(), account.get("passwordAuthorization").toString());
-			Map bodyRequest = new HashMap();
-			bodyRequest.put("username", account.get("userName").toString());
-			bodyRequest.put("password", account.get("passWord").toString());
-			bodyRequest.put("grant_type", "password");
-
-			HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(bodyRequest), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, String.class);
-			JsonNode body = mapper.convertValue(res.getBody(), JsonNode.class);
+			HttpHeaders headersAuth = new HttpHeaders();
+			headersAuth.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			headersAuth.setBasicAuth(account.get("userAuthorization").toString(),  account.get("passwordAuthorization").toString());
+			MultiValueMap<String, String> mapToken= new LinkedMultiValueMap<String, String>();
+			mapToken.add("username", account.get("userName").toString());
+			mapToken.add("password", account.get("passWord").toString());
+			mapToken.add("grant_type", "password");
+			HttpEntity<MultiValueMap<String, String>> requestToken = new HttpEntity<MultiValueMap<String, String>>(mapToken, headersAuth);
+			ResponseEntity<?> responseGetToken = restTemplate.postForEntity(url, requestToken , Object.class );
+			JsonNode body = mapper.convertValue(responseGetToken.getBody(), JsonNode.class);
 			tokenPartner = body.path("access_token").asText();
 		}catch (Exception e){
 			log.error("Error in ApiService.getTokenSaigonBpo: " + e.getMessage());

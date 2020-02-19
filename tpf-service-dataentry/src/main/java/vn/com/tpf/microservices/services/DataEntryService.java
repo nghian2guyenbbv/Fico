@@ -2665,7 +2665,7 @@ public class DataEntryService {
 					update.set("status", "NEW");
 					update.set("lastModifiedDate", new Date());
 
-					update.set("quickLead.partnerId", data.getPartnerId());
+					update.set("partnerId", data.getPartnerId());
 					System.out.println("data.getPartnerId() line 2663: " + data.getPartnerId());
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
@@ -3136,9 +3136,9 @@ public class DataEntryService {
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
 					System.out.println("cmInfoApi line 3132: " + cmInfoApi);
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					if(partnerId.equals("1")){
 						apiService.callApiDigitexx(cmInfoApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
