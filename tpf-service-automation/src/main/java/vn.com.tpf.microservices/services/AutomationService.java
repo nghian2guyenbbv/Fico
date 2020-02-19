@@ -56,22 +56,22 @@ public class AutomationService {
 	);
 	final static Queue<LoginDTO> loginDTOQueue = new LinkedBlockingQueue<>(accounts);
 
-//	final static List<LoginDTO> momoAccounts= Arrays.asList(
-//			LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build(),
-//            LoginDTO.builder().userName("momo_auto12").password("Hcm@12345").build()
-////            LoginDTO.builder().userName("momo_auto2").password("Hcm@12345").build(),
-////            LoginDTO.builder().userName("momo_auto3").password("Hcm@12345").build(),
-////            LoginDTO.builder().userName("momo_auto4").password("Hcm@12345").build(),
-//
-//	);
-//	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccounts);
+	final static List<LoginDTO> momoAccounts= Arrays.asList(
+			LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build(),
+            LoginDTO.builder().userName("momo_auto12").password("Hcm@12345").build()
+//            LoginDTO.builder().userName("momo_auto2").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto3").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto4").password("Hcm@12345").build(),
 
-	final static List<LoginDTO> momoAccountsPro= Arrays.asList(
-			LoginDTO.builder().userName("momo_auto1").password("Tpf@12345").build(),
-			LoginDTO.builder().userName("momo_auto2").password("Tpf@12345").build(),
-			LoginDTO.builder().userName("momo_auto3").password("Tpf@12345").build()
 	);
-	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccountsPro);
+	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccounts);
+
+//	final static List<LoginDTO> momoAccountsPro= Arrays.asList(
+//			LoginDTO.builder().userName("momo_auto1").password("Tpf@12345").build(),
+//			LoginDTO.builder().userName("momo_auto2").password("Tpf@12345").build(),
+//			LoginDTO.builder().userName("momo_auto3").password("Tpf@12345").build()
+//	);
+//	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccountsPro);
 
 
 	final static List<LoginDTO> fptAccounts= Arrays.asList(
@@ -332,7 +332,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","DE");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -360,7 +360,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","DE");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
