@@ -3421,7 +3421,7 @@ public class DataEntryService {
 			}else{
 				String partnerId = "";
 				Query query = new Query();
-				query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
+				query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("data").path("applicationId").textValue()));
 				List<Application> checkExist = mongoTemplate.find(query, Application.class);
 				if(checkExist.size() > 0){
 					partnerId = checkExist.get(0).getPartnerId();
@@ -3459,7 +3459,7 @@ public class DataEntryService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("2");
 					responseModel.setData(responseUI);
-					responseModel.setMessage("uploadFile DigiTex fail!");
+					responseModel.setMessage("uploadFile Partner fail!");
 				}
 			}
 		}
