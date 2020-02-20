@@ -144,6 +144,14 @@ public class AppService {
 			}
 		}
 
+        if (request.path("param").path("fullName").textValue() != null & !request.path("param").path("fullName").asText().equals("")){
+            query.addCriteria(Criteria.where("fullName").is(StringUtils.trimWhitespace(request.path("param").path("fullName").textValue())));
+        }
+
+        if (request.path("param").path("identificationNumber").textValue() != null & !request.path("param").path("identificationNumber").asText().equals("")){
+            query.addCriteria(Criteria.where("optional.identificationNumber").is(request.path("param").path("identificationNumber").textValue()));
+        }
+
 		long total = mongoTemplate.count(query, App.class);
 
 		List<Sort.Order> orders = new ArrayList<>();
@@ -228,7 +236,7 @@ public class AppService {
 			update.set("appId", entity.getAppId());
 		}
 		if (entity.getFullName() != null) {
-			update.set("fullName", entity.getFullName());
+			update.set("fullName", StringUtils.trimWhitespace(entity.getFullName()));
 		}
 		if (entity.getPartnerId() != null) {
 			update.set("partnerId", entity.getPartnerId());
@@ -280,6 +288,8 @@ public class AppService {
 				update.unset("assigned");
 			}
 		}
+
+        update.set("updatedAt", new Date());
 
 		App nEntity = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), App.class);
 
