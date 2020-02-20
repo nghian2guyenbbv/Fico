@@ -1239,13 +1239,23 @@ public class DataEntryService {
 				if (request.path("body").path("data").path("retry").textValue() != null && request.path("body").path("data").path("retry").equals("") != true &&
 						request.path("body").path("data").path("retry").textValue().equals("") != true) {
 					Query queryGetApp = new Query();
-					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null));
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
 					Update update = new Update();
 					update.set("status", "NEW");
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdate = mongoTemplate.findAndModify(queryGetApp, update, Application.class);
+
+					if (resultUpdate == null){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is exist!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
 
 					List<Application> appDataFull = mongoTemplate.find(queryGetApp, Application.class);
 					rabbitMQService.send("tpf-service-app",
@@ -1258,7 +1268,7 @@ public class DataEntryService {
 
 				}else {
 					Query queryUpdate = new Query();
-					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null));
 
 					Update update = new Update();
 					update.set("quickLead.quickLeadId", data.getQuickLeadId());
@@ -1284,6 +1294,15 @@ public class DataEntryService {
 					update.set("lastModifiedDate", new Date());
 
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+					if (resultUpdate == null){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is exist!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
 
 //				--automation QuickLead--
 					Query queryGetApp = new Query();
