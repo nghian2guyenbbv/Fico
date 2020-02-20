@@ -122,6 +122,7 @@ public class AutomationHandlerService {
         return accountDTO;
     }
 
+
     private void pushAccountToQueue_OLD(Queue<LoginDTO> accounts,LoginDTO accountDTO) {
         synchronized (accounts) {
             if (!Objects.isNull(accountDTO)) {
@@ -422,6 +423,7 @@ public class AutomationHandlerService {
         Instant start = Instant.now();
         Application application= Application.builder().build();
         application.setAutomationAcc(accountDTO.getUserName());
+
         try {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
