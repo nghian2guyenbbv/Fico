@@ -136,7 +136,11 @@ public class AutomationHandlerService {
             if (!Objects.isNull(accountDTO)) {
 //                System.out.println("push to queue... : " + accountDTO.toString());
 //                accounts.add(accountDTO);
-
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 Query queryUpdate = new Query();
                 queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()));
                 Update update = new Update();
