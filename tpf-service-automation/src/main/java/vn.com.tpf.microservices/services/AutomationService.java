@@ -309,13 +309,12 @@ public class AutomationService {
 	}
 	//------------------------ END AUTO ASSIGN - FUNCTION -------------------------------------
 
-	//------------------------ AUTO ASSIGN - DE_ResponseQuery -------------------------------------
+	//------------------------ DE_RESPONSE_QUERY - FUNCTION -------------------------------------
 	public Map<String, Object> DE_ResponseQuery(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-//		DEResponseQueryDTO deResponseQueryDTOList = mapper.treeToValue(request.path("body").path("data"), DEResponseQueryDTO.class);
-		List<DEResponseQueryDTO> deResponseQueryDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<DEResponseQueryDTO>>(){});
+		DEResponseQueryDTO deResponseQueryDTOList = mapper.treeToValue(request.path("body").path("data"), DEResponseQueryDTO.class);
 
 		new Thread(() -> {
 			try {
@@ -328,22 +327,22 @@ public class AutomationService {
 		return response(0, body, deResponseQueryDTOList);
 	}
 
-	private void runAutomationDE_ResponseQuery(List<DEResponseQueryDTO> deResponseQueryDTOList) throws Exception {
+	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","DE");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
-	//------------------------ END AUTO ASSIGN - DE_ResponseQuery -------------------------------------
+	//------------------------ END - DE_RESPONSE_QUERY - FUNCTION -------------------------------------
 
-	//------------------------ AUTO ASSIGN - DE_SaleQueue -------------------------------------
+	//------------------------ DE_SALE_QUEUE - FUNCTION -------------------------------------
 	public Map<String, Object> DE_SaleQueue(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-		List<DESaleQueueDTO> deSaleQueueDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<DESaleQueueDTO>>(){});
+		DESaleQueueDTO deSaleQueueDTOList = mapper.treeToValue(request.path("body").path("data"), DESaleQueueDTO.class);
 
 		new Thread(() -> {
 			try {
@@ -356,14 +355,14 @@ public class AutomationService {
 		return response(0, body, deSaleQueueDTOList);
 	}
 
-	private void runAutomationDE_SaleQueue(List<DESaleQueueDTO> deSaleQueueDTOList) throws Exception {
+	private void runAutomationDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","DE");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
-	//------------------------ END AUTO ASSIGN - DE_Sale_Queue -------------------------------------
+	//------------------------ END - DE_SALE_QUEUE - FUNCTION -------------------------------------
 
 }

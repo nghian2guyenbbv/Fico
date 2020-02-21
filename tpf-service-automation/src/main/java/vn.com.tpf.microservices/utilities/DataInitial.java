@@ -683,13 +683,13 @@ public class DataInitial {
         return map;
     }
 
-    public static Map<String, Object> getDataFromDE_ResponseQuery(List<DEResponseQueryDTO> deResponseQueryDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFromDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("DEResponseQueryList", deResponseQueryDTOList);
         return map;
     }
 
-    public static Map<String, Object> getDataFromDE_SaleQueue(List<DESaleQueueDTO> deSaleQueueDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFromDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("DESaleQueueList", deSaleQueueDTOList);
         return map;

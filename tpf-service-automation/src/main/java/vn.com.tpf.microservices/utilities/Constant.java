@@ -13,6 +13,7 @@ public class Constant {
     public static String SCREENSHOT_PRE_PATH = "C:/selenium/";
     public static String SCREENSHOT_PRE_PATH_DOC = "/doc/";
     public static String SCREENSHOT_PRE_PATH_DOCKER = "/images/";
+    public static String SCREENSHOT_PRE_PATH_DOCKER_LOCAL = "/images/";
     public static String SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD = "/images/download/";
     public static String SCREENSHOT_EXTENSION = ".png";
     public static String SAMPLE_IMG_FILE_PATH = "C:\\finnone.png";

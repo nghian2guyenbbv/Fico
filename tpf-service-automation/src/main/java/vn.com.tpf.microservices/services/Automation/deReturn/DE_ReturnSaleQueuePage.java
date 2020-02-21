@@ -1,18 +1,19 @@
 package vn.com.tpf.microservices.services.Automation.deReturn;
 
 import lombok.Getter;
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.Before;
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.*;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
-import java.lang.reflect.InvocationTargetException;
+import java.io.File;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -22,7 +23,8 @@ import static org.hamcrest.Matchers.is;
 public class DE_ReturnSaleQueuePage {
     private WebDriver _driver;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//span[contains(text(),'Applications')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
+
     @CacheLookup
     private WebElement applicationElement;
 
@@ -105,7 +107,7 @@ public class DE_ReturnSaleQueuePage {
     private WebElement documentBtnUploadElement;
 
     @FindBys(
-        @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Saves')]")
+            @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Saves')]")
     )
     @CacheLookup
     private WebElement documentBtnSaveElement;
@@ -148,8 +150,8 @@ public class DE_ReturnSaleQueuePage {
         _driver = driver;
     }
 
-    public void setData(String appId, List<DESaleQueueDocumentDTO> lstDocument, String commnetText) {
-
+    public void setData(DESaleQueueDTO deSaleQueueDTO, String downLoadFileURL) {
+        try{
             await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> applicationDivAssignedElement.isDisplayed());
 
@@ -160,12 +162,12 @@ public class DE_ReturnSaleQueuePage {
 
             applicationPoolNumberElement.clear();
 
-            applicationPoolNumberElement.sendKeys(appId);
+            applicationPoolNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
             await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> tbApplicationPoolElement.size() > 2);
 
-            WebElement applicationPoolAssignToMeNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'"+ appId +"')]//img[contains(@id, 'AssignToMe')]"));
+            WebElement applicationPoolAssignToMeNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'"+ deSaleQueueDTO.getAppId() +"')]//img[contains(@id, 'AssignToMe')]"));
 
             applicationPoolAssignToMeNumberElement.click();
 
@@ -175,12 +177,12 @@ public class DE_ReturnSaleQueuePage {
 
             applicationAssignedNumberElement.clear();
 
-            applicationAssignedNumberElement.sendKeys(appId);
+            applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
             await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> tbApplicationAssignedElement.size() > 2);
 
-            WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + appId +"')]"));
+            WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() +"')]"));
 
             applicationIdAssignedNumberElement.click();
 
@@ -193,9 +195,7 @@ public class DE_ReturnSaleQueuePage {
                     .until(() -> documentElement.isDisplayed());
 
             btnGetDocumentElement.click();
-
-            lstDocument.forEach(documentList -> {
-
+            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocument()) {
                 await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentTableElement.size() > 2);
 
@@ -206,14 +206,33 @@ public class DE_ReturnSaleQueuePage {
                 await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentTableElement.size() > 2);
 
-                documentStatusElement.sendKeys(documentList.getStatusDocument());
+                documentStatusElement.sendKeys("received");
 
                 await("application_upload visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentUploadElement.isDisplayed());
 
-                documentBtnUploadElement.sendKeys(documentList.getUrlFile());
+                String fromFile = downLoadFileURL;
+                System.out.println("URLdownload: " + fromFile);
+                String docName = documentList.getFileName();
+                String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+                toFile += UUID.randomUUID().toString() + "_" + docName;
 
-            });
+                try {
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    File file = new File(toFile);
+                    if (file.exists()) {
+                        String docUrl = file.getAbsolutePath();
+                        System.out.println("paht;" + docUrl);
+                        Thread.sleep(2000);
+
+                        documentBtnUploadElement.sendKeys(docUrl);
+
+                        Utilities.captureScreenShot(_driver);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
 
             documentNameElement.clear();
 
@@ -237,17 +256,20 @@ public class DE_ReturnSaleQueuePage {
             await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTextCommentElement.isDisplayed());
 
-            documentTextCommentElement.sendKeys(commnetText);
+            documentTextCommentElement.sendKeys(deSaleQueueDTO.getCommentText());
 
-            documentBtnAddCommnetElement.click();
+//            documentBtnAddCommnetElement.click();
 
-            JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
-            jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+            Utilities.captureScreenShot(_driver);
+
+//            JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
+//            jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(_driver::getTitle, is("Application Grid"));
 
-            Utilities.captureScreenShot(_driver);
-
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

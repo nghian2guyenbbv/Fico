@@ -2824,20 +2824,18 @@ public class AutomationHandlerService {
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 
-    //------------------------ AUTO ASSIGN DE RESPONSE QUERY-----------------------------------------------------
+    //------------------------ RESPONSE_QUERY-----------------------------------------------------
     public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Timestamp date_time = new Timestamp(new Date().getTime());
         Instant start = Instant.now();
-        String appId = "";
         String stage= "";
         DEResponseQueryDTO deResponseQueryDTO = DEResponseQueryDTO.builder().build();
         log.info("{}", deResponseQueryDTO);
         try {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
-            List<DEResponseQueryDTO> deResponseQueryDTOList = (List<DEResponseQueryDTO>) mapValue.get("DEResponseQueryList");
-            mongoTemplate.insert(deResponseQueryDTOList, DEResponseQueryDTO.class);
+            deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
             //*************************** END GET DATA *********************//
             Actions actions=new Actions(driver);
             System.out.println(stage + ": DONE" );
@@ -2854,59 +2852,36 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
-            do {
-                Query query = new Query();
-                query.addCriteria(Criteria.where("status").is(0));
-                deResponseQueryDTO = mongoTemplate.findOne(query, DEResponseQueryDTO.class);
 
-                if (!Objects.isNull(deResponseQueryDTO)) {
+            System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-                    //update app
-                    Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(deResponseQueryDTO.getAppId()).and("userName").is(deResponseQueryDTO.getUserName()));
-                    Update update = new Update();
-                    update.set("userauto", accountDTO.getUserName());
-                    update.set("status", 2);
-                    DEResponseQueryDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, DEResponseQueryDTO.class);
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+            //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
+            // ========== APPLICATIONS =================
+            homePage.getMenuApplicationElement().click();
+            stage = "RESPONSE QUERY";
 
-                    if(resultUpdate==null)
-                    {
-                        continue;
-                    }
+            // ========== RESPONSE QUERY =================
+            DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
+            de_ReturnRaiseQueryPage.getResponseQueryElement().click();
+            de_ReturnRaiseQueryPage.setData(deResponseQueryDTO, downdloadFileURL);
+            System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-                    System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            // ========= UPDATE DB ============================
+            Query queryUpdate1 = new Query();
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()).and("userName").is(deResponseQueryDTO.getUserName()));
+            Update update1 = new Update();
+            update1.set("userauto", accountDTO.getUserName());
+            update1.set("status", 1);
+            System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-                    stage = "HOME PAGE";
-                    HomePage homePage = new HomePage(driver);
-                    //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
-                    // ========== APPLICATIONS =================
-                    appId = deResponseQueryDTO.getAppId();
-                    homePage.getMenuApplicationElement().click();
-
-                    stage = "APPLICATION MANAGER";
-                    // ========== APPLICATION MANAGER =================
-                    DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
-                    de_ReturnRaiseQueryPage.getResponseQueryElement().click();
-
-                    List<DEResponseQueryDocumentDTO> lstDocument = deResponseQueryDTO.getDocuments();
-                    de_ReturnRaiseQueryPage.setData(appId, lstDocument);
-
-                    System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-
-                    // ========= UPDATE DB ============================
-                    Query queryUpdate1 = new Query();
-                    queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()).and("userName").is(deResponseQueryDTO.getUserName()));
-                    Update update1 = new Update();
-                    update1.set("userauto", accountDTO.getUserName());
-                    update1.set("status", 1);
-                    System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-                }
-            } while (!Objects.isNull(deResponseQueryDTO));
             responseModel.setRequest_id(deResponseQueryDTO.getReference_id());
             responseModel.setReference_id(UUID.randomUUID().toString());
             responseModel.setDate_time(date_time);
             responseModel.setResult_code(0);
             responseModel.setData(deResponseQueryDTO);
+
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
@@ -2928,22 +2903,20 @@ public class AutomationHandlerService {
             logout(driver);
         }
     }
-    //------------------------ END AUTO ASSIGN -----------------------------------------------------
+    //------------------------ END RESPONSE_QUERY -----------------------------------------------------
 
-    //------------------------ AUTO ASSIGN DE SALE QUERY-----------------------------------------------------
+    //------------------------ SALE_QUEUE-----------------------------------------------------
     public void runAutomationDE_saleQueue(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Timestamp date_time = new Timestamp(new Date().getTime());
         Instant start = Instant.now();
-        String appId = "";
         String stage= "";
         DESaleQueueDTO deSaleQueueDTO = DESaleQueueDTO.builder().build();
         log.info("{}", deSaleQueueDTO);
         try {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
-            List<DESaleQueueDTO> deSaleQueueDTOList = (List<DESaleQueueDTO>) mapValue.get("DESaleQueueList");
-            mongoTemplate.insert(deSaleQueueDTOList, DESaleQueueDTO.class);
+            deSaleQueueDTO = (DESaleQueueDTO) mapValue.get("DESaleQueueList");
             //*************************** END GET DATA *********************//
             Actions actions=new Actions(driver);
             System.out.println(stage + ": DONE" );
@@ -2959,68 +2932,46 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
-            do {
-                Query query = new Query();
-                query.addCriteria(Criteria.where("status").is(0));
-                deSaleQueueDTO = mongoTemplate.findOne(query, DESaleQueueDTO.class);
 
-                if (!Objects.isNull(deSaleQueueDTO)) {
+            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-                    //update app
-                    Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(deSaleQueueDTO.getAppId()).and("userName").is(deSaleQueueDTO.getUserName()));
-                    Update update = new Update();
-                    update.set("userauto", accountDTO.getUserName());
-                    update.set("status", 2);
-                    DESaleQueueDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, DESaleQueueDTO.class);
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+            //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
+            // ========== APPLICATIONS =================
+            String lastUpdate = deSaleQueueDTO.getLastUpdate();
+            homePage.getMenuApplicationElement().click();
 
-                    if(resultUpdate==null)
-                    {
-                        continue;
-                    }
+            stage = "SALE QUEUE";
+            // ========== SALE QUEUE =================
+            DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
+            de_ReturnSaleQueuePage.getApplicationElement().click();
+            de_ReturnSaleQueuePage.setData(deSaleQueueDTO, downdloadFileURL);
 
-                    System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-
-                    stage = "HOME PAGE";
-                    HomePage homePage = new HomePage(driver);
-                    //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
-                    // ========== APPLICATIONS =================
-                    appId = deSaleQueueDTO.getAppId();
-                    String lastUpdate = deSaleQueueDTO.getLastupdate();
-                    String commnetText = deSaleQueueDTO.getCommentText();
-                    homePage.getMenuApplicationElement().click();
-
-                    stage = "APPLICATION MANAGER";
-                    // ========== APPLICATION MANAGER =================
-                    DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
-                    de_ReturnSaleQueuePage.getApplicationElement().click();
-                    List<DESaleQueueDocumentDTO> lstDocument = deSaleQueueDTO.getDatadocument();
-                    de_ReturnSaleQueuePage.setData(appId, lstDocument, commnetText);
-
-                    DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
-                    for (DESaleQueueDocumentDTO documentList : lstDocument) {
-                        if (documentList.getDocumentName().contains("(ACCA)")) {
-                            de_ReturnApplicationManagerPage.setData(appId, lastUpdate);
-                        }
-                        break;
-                    }
-
-                    System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-
-                    // ========= UPDATE DB ============================
-                    Query queryUpdate1 = new Query();
-                    queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()).and("userName").is(deSaleQueueDTO.getUserName()));
-                    Update update1 = new Update();
-                    update1.set("userauto", accountDTO.getUserName());
-                    update1.set("status", 1);
-                    System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
+            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocument()) {
+                if (documentList.getDocumentName().contains("(ACCA)")) {
+                    de_ReturnApplicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
                 }
-            } while (!Objects.isNull(deSaleQueueDTO));
+                break;
+            }
+
+            System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+            // ========= UPDATE DB ============================
+            Query queryUpdate1 = new Query();
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()).and("userName").is(deSaleQueueDTO.getUserName()));
+            Update update1 = new Update();
+            update1.set("userauto", accountDTO.getUserName());
+            update1.set("status", 1);
+            System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
             responseModel.setRequest_id(deSaleQueueDTO.getReference_id());
             responseModel.setReference_id(UUID.randomUUID().toString());
             responseModel.setDate_time(date_time);
             responseModel.setResult_code(0);
             responseModel.setData(deSaleQueueDTO);
+
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
@@ -3041,7 +2992,7 @@ public class AutomationHandlerService {
             logout(driver);
         }
     }
-    //------------------------ END AUTO ASSIGN -----------------------------------------------------
+    //------------------------ END DE_SALE_QUEUE -----------------------------------------------------
 
     //------------------------ START UPDATE RABBITMQ -----------------------------------------------------
     private void DEReturn_updateStatusRabbit(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
