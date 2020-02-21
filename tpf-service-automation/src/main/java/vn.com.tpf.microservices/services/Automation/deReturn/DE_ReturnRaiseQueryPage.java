@@ -134,7 +134,8 @@ public class DE_ReturnRaiseQueryPage {
             }
 
             Utilities.captureScreenShot(_driver);
-//            btnSubmitResponseElement.click();
+
+            btnSubmitResponseElement.click();
 
         } catch (Exception e) {
             e.printStackTrace();

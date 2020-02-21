@@ -89,8 +89,8 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private List<WebElement> documentTableElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id='document']//div//div[2]//div//input[contains(@id, 'executeDocumentIntegrationSet')]")
-//    @FindBy(how = How.ID, using = "executeDocumentIntegrationSet")
+//    @FindBy(how = How.XPATH, using = "//div[@id='document']//div//div[2]//div//input[contains(@id, 'executeDocumentIntegrationSet')]")
+    @FindBy(how = How.ID, using = "executeDocumentIntegrationSet")
     @CacheLookup
     private WebElement btnGetDocumentElement;
 
@@ -152,19 +152,19 @@ public class DE_ReturnSaleQueuePage {
 
     public void setData(DESaleQueueDTO deSaleQueueDTO, String downLoadFileURL) {
         try{
-            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("applicationDivAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> applicationDivAssignedElement.isDisplayed());
 
             poolElement.click();
 
-            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("applicationDivPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> applicationDivPoolElement.isDisplayed());
 
             applicationPoolNumberElement.clear();
 
             applicationPoolNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("tbApplicationPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> tbApplicationPoolElement.size() > 2);
 
             WebElement applicationPoolAssignToMeNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'"+ deSaleQueueDTO.getAppId() +"')]//img[contains(@id, 'AssignToMe')]"));
@@ -172,27 +172,30 @@ public class DE_ReturnSaleQueuePage {
             applicationPoolAssignToMeNumberElement.click();
 
             //Assigned
-            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("applicationFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> applicationFormElement.isDisplayed());
 
             applicationAssignedNumberElement.clear();
 
             applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> tbApplicationAssignedElement.size() > 2);
 
             WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() +"')]"));
 
             applicationIdAssignedNumberElement.click();
 
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("appChildTabsElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appChildTabsElement.isDisplayed());
 
             applicationBtnDocumentElement.click();
 
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentElement.isDisplayed());
+
+            await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> btnGetDocumentElement.isDisplayed());
 
             btnGetDocumentElement.click();
             for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocument()) {
@@ -258,12 +261,12 @@ public class DE_ReturnSaleQueuePage {
 
             documentTextCommentElement.sendKeys(deSaleQueueDTO.getCommentText());
 
-//            documentBtnAddCommnetElement.click();
+            documentBtnAddCommnetElement.click();
 
             Utilities.captureScreenShot(_driver);
 
-//            JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
-//            jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+            JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
+            jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(_driver::getTitle, is("Application Grid"));
