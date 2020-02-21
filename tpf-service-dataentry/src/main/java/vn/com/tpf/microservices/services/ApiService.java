@@ -793,11 +793,11 @@ public class ApiService {
 				try{
 					HttpHeaders headers_DT = new HttpHeaders();
 
-					Object url = mapper.convertValue(partner, Map.class).get("url");
+					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 					String partnerId = (String) mapper.convertValue(partner.get("data"), Map.class).get("partnerId");
 					if(partnerId.equals("1")){
-						headers_DT.set("authkey", partner.get("token").toString());
+						headers_DT.set("authkey", (String) (mapper.convertValue(partner.get("data"), Map.class).get("token")));
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
@@ -1022,11 +1022,11 @@ public class ApiService {
 				try{
 					HttpHeaders headers_DT = new HttpHeaders();
 
-					Object url = mapper.convertValue(partner, Map.class).get("url");
+					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 					String partnerId = (String) mapper.convertValue(partner.get("data"), Map.class).get("partnerId");
 					if(partnerId.equals("1")){
-						headers_DT.set("authkey", partner.get("token").toString());
+						headers_DT.set("authkey", (String) (mapper.convertValue(partner.get("data"), Map.class).get("token")));
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
@@ -1358,50 +1358,96 @@ public class ApiService {
 
 	public JsonNode callApiPartner(String url, JsonNode data, String token, String partnerId) {
 		String referenceId = UUID.randomUUID().toString();
+		JsonNode result = null;
 		try {
-//			ObjectNode dataLogReq = mapper.createObjectNode();
-//			dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
-//			dataLogReq.put("referenceId", referenceId);
-//			dataLogReq.put("method", "POST");
-//			dataLogReq.put("url", url);
-//			dataLogReq.put("request_data", data);
-//			log.info("{}", dataLogReq);
-//
-//			String dataString = mapper.writeValueAsString(data);
-//
-//
-//			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-//
-//			ObjectNode dataLogReq2 = mapper.createObjectNode();
-//			dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
-//			dataLogReq2.put("referenceId", referenceId);
-//			dataLogReq2.put("request_encrypt", encrypt);
-//			log.info("{}", dataLogReq2);
-//
-//			HttpHeaders headers = new HttpHeaders();
-//
-//			headers.set("authkey", token);
-//
-//			headers.set("Accept", "application/pgp-encrypted");
-//			headers.set("Content-Type", "application/pgp-encrypted");
-//			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
-//
-//			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-//
-//			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
-//
-//			ObjectNode dataLogRes = mapper.createObjectNode();
-//			dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
-//			dataLogRes.put("referenceId", referenceId);
-//			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-//			dataLogRes.put("response", res.getBody());
-//			dataLogRes.put("response_decrypt", decrypt);
-//			log.info("{}", dataLogRes);
-//			return decrypt.path("data");
+			if(partnerId.equals("1")){
+				ObjectNode dataLogReq = mapper.createObjectNode();
+				dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
+				dataLogReq.put("referenceId", referenceId);
+				dataLogReq.put("method", "POST");
+				dataLogReq.put("url", url);
+				dataLogReq.put("request_data", data);
+				log.info("{}", dataLogReq);
 
-			ObjectNode dataLogReq = mapper.createObjectNode();
+				String dataString = mapper.writeValueAsString(data);
+
+
+				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+						Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+
+				ObjectNode dataLogReq2 = mapper.createObjectNode();
+				dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
+				dataLogReq2.put("referenceId", referenceId);
+				dataLogReq2.put("request_encrypt", encrypt);
+				log.info("{}", dataLogReq2);
+
+				HttpHeaders headers = new HttpHeaders();
+
+				headers.set("authkey", token);
+
+				headers.set("Accept", "application/pgp-encrypted");
+				headers.set("Content-Type", "application/pgp-encrypted");
+				HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+
+				ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+
+				JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+						Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
+
+				ObjectNode dataLogRes = mapper.createObjectNode();
+				dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
+				dataLogRes.put("referenceId", referenceId);
+				dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+				dataLogRes.put("response", res.getBody());
+				dataLogRes.put("response_decrypt", decrypt);
+				log.info("{}", dataLogRes);
+				result = decrypt.path("data");
+			} else if(partnerId.equals("2")){
+				ObjectNode dataLogReq = mapper.createObjectNode();
+				dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
+				dataLogReq.put("referenceId", referenceId);
+				dataLogReq.put("method", "POST");
+				dataLogReq.put("url", url);
+				dataLogReq.put("request_data", data);
+				log.info("{}", dataLogReq);
+
+				String dataString = mapper.writeValueAsString(data);
+
+
+				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+						Map.of("func", "pgpEncrypt", "body", Map.of("project", "sgbpo", "data", data)));
+
+				ObjectNode dataLogReq2 = mapper.createObjectNode();
+				dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
+				dataLogReq2.put("referenceId", referenceId);
+				dataLogReq2.put("request_encrypt", encrypt);
+				log.info("{}", dataLogReq2);
+
+				HttpHeaders headers = new HttpHeaders();
+
+				headers.set("authkey", token);
+
+				headers.set("Accept", "application/pgp-encrypted");
+				headers.set("Content-Type", "application/pgp-encrypted");
+				HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+
+				ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+
+				JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+						Map.of("func", "pgpDecrypt", "body", Map.of("project", "sgbpo", "data", res.getBody().toString())));
+
+				ObjectNode dataLogRes = mapper.createObjectNode();
+				dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
+				dataLogRes.put("referenceId", referenceId);
+				dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+				dataLogRes.put("response", res.getBody());
+				dataLogRes.put("response_decrypt", decrypt);
+				log.info("{}", dataLogRes);
+				result = decrypt.path("data");
+			}
+			return result;
+			//KHONG PGP
+			/*ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==NOT==PGP]");
 			dataLogReq.put("referenceId", referenceId);
 			dataLogReq.put("method", "POST");
@@ -1418,7 +1464,7 @@ public class ApiService {
 			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
 			log.info("{}", res.toString());
 			JsonNode body = mapper.valueToTree(res.getBody());
-			return body;
+			return body;*/
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
 			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");

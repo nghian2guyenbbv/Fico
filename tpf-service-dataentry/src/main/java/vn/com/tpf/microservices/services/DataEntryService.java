@@ -2492,7 +2492,8 @@ public class DataEntryService {
 					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
 					System.out.println("feedbackApi line 2491: " + feedbackApi);
 					if(partnerId.equals("1")){
-						apiService.callApiDigitexx(feedbackApi, dataSend);
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -2563,7 +2564,8 @@ public class DataEntryService {
 					System.out.println("feedbackApi line 2559: " + feedbackApi);
 
 					if(partnerId.equals("1")){
-						apiService.callApiDigitexx(feedbackApi,dataSend);
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3009,7 +3011,8 @@ public class DataEntryService {
 						JsonNode responseDG = mapper.createObjectNode();
 
 						if(partnerId.equals("1")){
-							responseDG = apiService.callApiDigitexx(resubmitCommentApi, dataSend);
+							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
 						} else if(partnerId.equals("2")){
 							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3137,7 +3140,8 @@ public class DataEntryService {
 					String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
 					System.out.println("cmInfoApi line 3132: " + cmInfoApi);
 					if(partnerId.equals("1")){
-						apiService.callApiDigitexx(cmInfoApi, dataSend);
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3258,7 +3262,8 @@ public class DataEntryService {
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
 					System.out.println("feedbackApi line 3251: " + feedbackApi);
 					if(partnerId.equals("1")){
-						apiService.callApiDigitexx(feedbackApi, dataSend);
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3330,7 +3335,8 @@ public class DataEntryService {
 					System.out.println("feedbackApi line 3320: " + feedbackApi);
 
 					if(partnerId.equals("1")){
-						apiService.callApiDigitexx(feedbackApi, dataSend);
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
