@@ -1626,8 +1626,11 @@ public class DataEntryController {
 
 							} else if(partner.get("partnerId").equals("2")){
 								Map<String, Object> tokenMap = new HashMap<>();
-								tokenMap.put("token", token);
+                                Map<String, Object> tokenBodyMap = new HashMap<>();
+                                tokenBodyMap.put("partnerId", partner.get("partnerId"));
+                                tokenMap.put("token", token);
 								tokenMap.put("func", "getTokenSaigonBpo");
+                                tokenMap.put("body", tokenBodyMap);
 								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
 								String tokenPartner = tokenResponse.path("data").asText();
 								if(StringUtils.isEmpty(tokenPartner)){
