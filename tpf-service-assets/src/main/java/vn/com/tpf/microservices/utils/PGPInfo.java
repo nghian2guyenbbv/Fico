@@ -405,6 +405,37 @@ public class PGPInfo {
 					"nMc+dM2RR/1xoNqtcivDBRw6p7350MJSXPlVKe/yXnTF\n" +
 					"=lBb4\n" +
 					"Version: BCPG C# v1.8.5.0\n" +"",
+			"sgbpo",
+			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" +
+					"Version: BCPG v1.64\n" +
+					"\n" +
+					"mQENBF5PXsQDCACXg6XxFHeog0SVHAkWOt2uq8TOAubRLkcG18KYr2uxWSC+IPD3\n" +
+					"OJ2ZmFVAMqOUst3bRo3YcN1v6A1MI/s/QB0fkg98+5NoiG3tYfLDGQvKIo+leut1\n" +
+					"/O86sONpLXmL3nVtbKNhxmFLDO5GjkVfndW4CtvyrZo2RPjd0efMcmdE1GB1XcSV\n" +
+					"4HNLldDi4XWNnvkJTvTHK0QsTJ/2stX3gKZxKbPScvaNUsRiTsnXXFCjHW0ee/b0\n" +
+					"W9Kv0uzvBfY2jXCnCQb78X2O0F2OSRLaT2cHgNfi9K4bM8L/D8vf4RKzQIIiFlZr\n" +
+					"ccsXU8FnzU2HvLH6ucCkq/Cb5tbEpWlPuKonABEBAAG0H25vcmVwbHkgPG5vcmVw\n" +
+					"bHlAc2FpZ29uYnBvLmNvbT6JASgEEwMCABIFAl5PXsUCGwMCCwkCFQoCHgEACgkQ\n" +
+					"0QnHNfbbp5lW8Af/TK3A7bWiBqXUzyfiOp3juQ6SRQUmeeES52LtbbKk6ywJtotu\n" +
+					"fLfgHIEBCXrwjY0/rmmhz7uZPmccn3ZRRhEnYRLQ8rPqIn+1x20nOb5dzhpu+KZ2\n" +
+					"vQ6KTylMWVcsONr6u8sjVF0rkwi1QPupwW44Kzf0mWp82HIeKYgc9B6zgf8GwIWw\n" +
+					"p//c8s8RGgmJO3mdQCPLv1J2FBR4UBg3DA7oGrSwGbQ29YGcWt7YN5PKJ4VAoajM\n" +
+					"NrkfHMctYhyHigM1fQqgwqcPWDReMbflfhzC0fhbKFVP298hLRPAk8UznB9WaX6h\n" +
+					"KWVV/8mPD5cs12Kcl8BJef8FpE8F/Vwac1WYOLkBDQReT17EAQgA0ApDGEeuaXOv\n" +
+					"uES1+9JnPg2x9U2BQJNWJeKO/S4z3sZV6QCKyldKWVM6WVOMaJXtEjNnzCH/cKIt\n" +
+					"yePwKSg0aueh8oiNCDKW8bbLGREgxBIdkNs0sloOBBF0zC/29X8JbuofSC089Z9d\n" +
+					"A0vFdMWhr16gaqrk1igBpWR9X/HgI+FmmFzunoEWQmzYOCTrQcP8HqXa7+izSxjg\n" +
+					"H1y/QnAZ7pLSowxZepoNwDfHssz2eM6/s1mGpKDJi51KLHabRUcb9APCTq6yJk5f\n" +
+					"nWPy1g23j1xNc46imlXaldJqZHxZGz0F0CfMEwFvxcM7RpaQegKZQHfg5sUSNlO9\n" +
+					"Yk7gR8uIdwARAQABiQEfBBgDAgAJBQJeT17FAhsMAAoJENEJxzX226eZWWwH/A5j\n" +
+					"S/BqebamWy3gvj8HJEtGCvvCdmX3Bry+3NURMbrsyBStRorVrNOYMZFDCb+S9a6g\n" +
+					"lGwG8aA/jasWNFkfWw45ZRLBblZGakCHWNDedpjsYZ/F4yNy7S8mOdmlzhgzsmhi\n" +
+					"EVh08p3tPkNKcuFD+kuduzHtBUWpzYo98CpygAgQhSHFhOHHYtLZJI5J+bquAZXA\n" +
+					"bZ2T7grqXAW4M2EvpsKxjOC0FiyXzsM6SiRh5oLTzKb/50hkDZgnqG7xqzVHE3Jv\n" +
+					"ITEX5Rv2fWR3233Fcnn5cO6U66Afg6/LV8vktKPkQeUu0YCqXPO5yVj+3n3Dj+KD\n" +
+					"BEtu0Z7hQgBMRnBTpKY=\n" +
+					"=tluh\n" +
+					"-----END PGP PUBLIC KEY BLOCK-----\n" +"",
 			"test",
 			"-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n" + "Version: Keybase OpenPGP v1.0.0\r\n"
 					+ "Comment: https://keybase.io/crypto\r\n" + "\r\n"
