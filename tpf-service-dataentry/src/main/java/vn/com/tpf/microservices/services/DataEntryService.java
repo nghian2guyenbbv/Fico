@@ -794,6 +794,19 @@ public class DataEntryService {
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
 			}else{
+				try{
+					if (checkExist.get(0).getStatus().equals("COMPLETED")){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(referenceId);
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is completed!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
+				}
+				catch (Exception ex){}
+
 				for (CommentModel item : data.getComment()) {
 //					documentCommnet = item.getResponse().getDocuments();
 					commentId = item.getCommentId();
