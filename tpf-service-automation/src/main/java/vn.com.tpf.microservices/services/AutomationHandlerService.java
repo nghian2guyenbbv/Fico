@@ -138,7 +138,7 @@ public class AutomationHandlerService {
 //                System.out.println("push to queue... : " + accountDTO.toString());
 //                accounts.add(accountDTO);
                 try {
-                    Thread.sleep(30000);
+                    Thread.sleep(60000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -645,6 +645,10 @@ public class AutomationHandlerService {
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
             Utilities.captureScreenShot(driver);
+
+            //tam thoi cho sleep de an notification moi click dc button movetonextstage
+            Thread.sleep(15000);
+
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
             Utilities.captureScreenShot(driver);
             System.out.println("MISC FRM APP DTL: DONE");
@@ -1169,6 +1173,9 @@ public class AutomationHandlerService {
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
+            //tam thoi cho sleep de an notification moi click dc button movetonextstage
+            Thread.sleep(15000);
+
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
             System.out.println("MISC FRM APP DTL: DONE");
 
@@ -1329,6 +1336,9 @@ public class AutomationHandlerService {
 
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+            //tam thoi cho sleep de an notification moi click dc button movetonextstage
+            Thread.sleep(15000);
 
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
             System.out.println("MISC FRM APP DTL: DONE");
@@ -1604,6 +1614,10 @@ public class AutomationHandlerService {
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
             Utilities.captureScreenShot(driver);
+
+            //tam thoi cho sleep de an notification moi click dc button movetonextstage
+            Thread.sleep(15000);
+
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
             Utilities.captureScreenShot(driver);
             System.out.println("MISC FRM APP DTL: DONE");
@@ -1867,6 +1881,9 @@ public class AutomationHandlerService {
 
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+            //tam thoi cho sleep de an notification moi click dc button movetonextstage
+            Thread.sleep(15000);
 
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
             System.out.println("MISC FRM APP DTL: DONE");
@@ -2196,6 +2213,9 @@ public class AutomationHandlerService {
 
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+            //tam thoi cho sleep de an notification moi click dc button movetonextstage
+            Thread.sleep(15000);
 
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
             System.out.println("MISC FRM APP DTL: DONE");
