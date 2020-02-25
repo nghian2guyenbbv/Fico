@@ -532,6 +532,14 @@ public class DE_ApplicationInfoPersonalTab {
         Actions actions = new Actions(_driver);
         Utilities.captureScreenShot(_driver);
         for (AddressDTO data : datas) {
+
+            if(index!=0) {
+                await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> btnCreateAnotherElement.isEnabled());
+                actions.moveToElement(btnCreateAnotherElement).click().build().perform();
+            }
+
+
 //            await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(() -> btnCreateAnotherElement.isEnabled());
 //            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
