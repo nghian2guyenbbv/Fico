@@ -671,6 +671,10 @@ public class DataEntryService {
                         report.setStatus("PROCESSING");
                         report.setCreatedBy(token.path("user_name").textValue());
                         report.setCreatedDate(new Date());
+                        if(dataFullApp != null){
+							report.setPartnerId(dataFullApp.getPartnerId());
+							report.setPartnerName(dataFullApp.getPartnerName());
+						}
                         mongoTemplate.save(report);
 
 						responseModel.setRequest_id(requestId);
@@ -1201,6 +1205,10 @@ public class DataEntryService {
 				report.setStatus(data.getStatus().toUpperCase());
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				if(dataFullApp != null){
+					report.setPartnerId(dataFullApp.getPartnerId());
+					report.setPartnerName(dataFullApp.getPartnerName());
+				}
 				mongoTemplate.save(report);
 
 				responseModel.setRequest_id(requestId);
@@ -1358,6 +1366,7 @@ public class DataEntryService {
 				app.setUserName(token.path("user_name").textValue());
 				app.setCreatedDate(new Date());
 				app.setPartnerId(request.get("partnerId").asText());
+				app.setPartnerName(request.get("partnerName").asText());
 				mongoTemplate.save(app);
 
 				Map<String, Object> responseUI = new HashMap<>();
@@ -1390,6 +1399,7 @@ public class DataEntryService {
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
 				report.setPartnerId(request.get("partnerId").asText());
+				report.setPartnerName(request.get("partnerName").asText());
 				mongoTemplate.save(report);
 			}else {
 				Query query = new Query();
@@ -2458,7 +2468,9 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
 				String partnerId = "";
+				String partnerName = "";
 				partnerId = checkExist.get(0).getPartnerId();
+				partnerName = checkExist.get(0).getPartnerName();
 				System.out.println("partnerId line 2460: " + partnerId);
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
@@ -2478,6 +2490,7 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -2493,7 +2506,8 @@ public class DataEntryService {
 					System.out.println("feedbackApi line 2491: " + feedbackApi);
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiDigitexx(feedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -2545,6 +2559,7 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
 					System.out.println("partnerId line 2543: " + partnerId);
 					mongoTemplate.save(report);
 
@@ -2565,7 +2580,8 @@ public class DataEntryService {
 
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiDigitexx(feedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -2687,6 +2703,7 @@ public class DataEntryService {
 					report.setCreatedBy(token.path("user_name").textValue());
 					report.setCreatedDate(new Date());
 					report.setPartnerId(resultUpdate.getPartnerId());
+					report.setPartnerName(resultUpdate.getPartnerName());
 					System.out.println("partnerId line 2682: " + resultUpdate.getPartnerId());
 					mongoTemplate.save(report);
 
@@ -2745,6 +2762,7 @@ public class DataEntryService {
 			query.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			String partnerId = "";
+			String partnerName = "";
 			if (checkExist.size() <= 0){
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -2752,6 +2770,12 @@ public class DataEntryService {
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
 			}else{
+				partnerId = checkExist.get(0).getPartnerId();
+				partnerName = checkExist.get(0).getPartnerName();
+				if(StringUtils.isEmpty(partnerId)){
+					return Map.of("status", 200, "data", "partnerId null");
+				}
+
 				for (CommentModel item : data.getComment()) {
 
 					commentId = item.getCommentId();
@@ -2903,6 +2927,10 @@ public class DataEntryService {
 				report.setStatus("RETURNED");
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				if(dataFullApp != null){
+					report.setPartnerId(dataFullApp.getPartnerId());
+					report.setPartnerName(dataFullApp.getPartnerName());
+				}
 				mongoTemplate.save(report);
 			}
 
@@ -2996,13 +3024,6 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
 							"comment", comment, "documents", documents)), JsonNode.class);
 
-
-					if(checkExist.size() > 0){
-						partnerId = checkExist.get(0).getPartnerId();
-					}
-					if(StringUtils.isEmpty(partnerId)){
-						return Map.of("status", 200, "data", "partnerId null");
-					}
 					Map partner = getPartner(partnerId);
 					try {
 						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
@@ -3012,7 +3033,8 @@ public class DataEntryService {
 
 						if(partnerId.equals("1")){
 							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-							apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+//							apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+							apiService.callApiDigitexx(resubmitCommentApi, dataSend);
 						} else if(partnerId.equals("2")){
 							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3022,7 +3044,7 @@ public class DataEntryService {
 							}
 							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
 						}
-
+						System.out.println("responseDG.error-code line 3049: " + responseDG.path("error-code").asText());
 						if (!responseDG.path("error-code").textValue().equals("")) {
 							if (!responseDG.path("error-code").textValue().equals("null")) {
 								log.info("ReferenceId : " + referenceId);
@@ -3057,7 +3079,8 @@ public class DataEntryService {
 					report.setCreatedBy(token.path("user_name").textValue());
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
-					System.out.println("partnerId line 3049: " + partner.get("partnerId").toString());
+					report.setPartnerName(partnerName);
+					System.out.println("partnerId line 3049: " + partnerId);
 					mongoTemplate.save(report);
 				}else{
 					responseModel.setRequest_id(requestId);
@@ -3078,6 +3101,7 @@ public class DataEntryService {
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
 				report.setPartnerId(partnerId);
+				report.setPartnerName(partnerName);
 				System.out.println("partnerId line 3070: " + partnerId);
 				mongoTemplate.save(report);
 			}
@@ -3104,8 +3128,9 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
 				String partnerId = "";
+				String partnerName = "";
 				partnerId = checkExist.get(0).getPartnerId();
-				System.out.println("partnerId line 3099: " + partnerId);
+				partnerName = checkExist.get(0).getPartnerName();
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
 				}
@@ -3141,7 +3166,8 @@ public class DataEntryService {
 					System.out.println("cmInfoApi line 3132: " + cmInfoApi);
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+//						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiDigitexx(cmInfoApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3160,6 +3186,7 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
 					System.out.println("partnerId line 3151" + partnerId);
 					mongoTemplate.save(report);
 
@@ -3175,6 +3202,7 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
 					System.out.println("partnerId line 3166: " + partnerId);
 					mongoTemplate.save(report);
 
@@ -3227,8 +3255,9 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
 				String partnerId = "";
+				String partnerName = "";
 				partnerId = checkExist.get(0).getPartnerId();
-				System.out.println("partnerId line 3219: " + partnerId);
+				partnerName = checkExist.get(0).getPartnerName();
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
 				}
@@ -3247,6 +3276,7 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
 					System.out.println("partnerId line 3238: " + partnerId);
 					mongoTemplate.save(report);
 
@@ -3263,7 +3293,8 @@ public class DataEntryService {
 					System.out.println("feedbackApi line 3251: " + feedbackApi);
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiDigitexx(feedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3316,6 +3347,7 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
 					System.out.println("partnerId line 3304: " + partnerId);
 					mongoTemplate.save(report);
 
@@ -3336,7 +3368,8 @@ public class DataEntryService {
 
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiDigitexx(feedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
