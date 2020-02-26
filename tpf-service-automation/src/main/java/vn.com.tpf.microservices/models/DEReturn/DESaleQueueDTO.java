@@ -26,4 +26,6 @@ public class DESaleQueueDTO {
 
     private String commentText;
     private String reference_id;
+    private String project;
+    private String transaction_id;
 }

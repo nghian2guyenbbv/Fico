@@ -94,4 +94,18 @@ public class ResponseAutomationModel<T> implements Serializable {
             this.message = format;
         }
     }
+
+    private String project;
+    private String app_id;
+    private String transaction_id;
+    private String automation_result;
+
+    public String getProject() { return project; }
+    public void setProject(String project) { this.project = project; }
+    public String getApp_id() { return app_id; }
+    public void setApp_id(String app_id) { this.app_id = app_id; }
+    public String getTransaction_id() { return transaction_id; }
+    public void setTransaction_id(String transaction_id) { this.transaction_id = transaction_id; }
+    public String getAutomation_result() { return automation_result; }
+    public void setAutomation_result(String automation_result) { this.automation_result = automation_result; }
 }

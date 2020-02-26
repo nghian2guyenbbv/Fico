@@ -2827,7 +2827,6 @@ public class AutomationHandlerService {
     //------------------------ RESPONSE_QUERY-----------------------------------------------------
     public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
-        Timestamp date_time = new Timestamp(new Date().getTime());
         Instant start = Instant.now();
         String stage= "";
         DEResponseQueryDTO deResponseQueryDTO = DEResponseQueryDTO.builder().build();
@@ -2837,10 +2836,8 @@ public class AutomationHandlerService {
             //*************************** GET DATA *********************//
             deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
             //*************************** END GET DATA *********************//
-            Actions actions=new Actions(driver);
             System.out.println(stage + ": DONE" );
             stage="LOGIN FINONE";
-            HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
@@ -2853,11 +2850,10 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
 
-            System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
-            //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
             stage = "RESPONSE QUERY";
@@ -2866,40 +2862,40 @@ public class AutomationHandlerService {
             DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
             de_ReturnRaiseQueryPage.getResponseQueryElement().click();
             de_ReturnRaiseQueryPage.setData(deResponseQueryDTO, downdloadFileURL);
-            System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========= UPDATE DB ============================
             Query queryUpdate1 = new Query();
-            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()).and("userName").is(deResponseQueryDTO.getUserName()));
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
             Update update1 = new Update();
             update1.set("userauto", accountDTO.getUserName());
             update1.set("status", 1);
-            System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - User: " + deResponseQueryDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-            responseModel.setRequest_id(deResponseQueryDTO.getReference_id());
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(date_time);
-            responseModel.setResult_code(0);
+            responseModel.setProject(deResponseQueryDTO.getProject());
+            responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+            responseModel.setApp_id(deResponseQueryDTO.getAppId());
+            responseModel.setAutomation_result("PASS");
             responseModel.setData(deResponseQueryDTO);
 
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
-            System.out.println("User Auto:" + accountDTO.getUserName() +" - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
-            e.printStackTrace();
-
-            responseModel.setRequest_id(deResponseQueryDTO.getReference_id());
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(date_time);
-            responseModel.setResult_code(500);
+            responseModel.setProject(deResponseQueryDTO.getProject());
+            responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+            responseModel.setApp_id(deResponseQueryDTO.getAppId());
+            responseModel.setAutomation_result("FAILED_RESUBMIT_QUERY_");
             responseModel.setMessage(e.getMessage());
             responseModel.setData(deResponseQueryDTO);
+
+            System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            DEReturn_updateStatusRabbit(responseModel,"updateAutomation");
+            autoUpdateStatusRabbit(responseModel,"updateAutomation");
             logout(driver);
         }
     }
@@ -2908,7 +2904,6 @@ public class AutomationHandlerService {
     //------------------------ SALE_QUEUE-----------------------------------------------------
     public void runAutomationDE_saleQueue(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
-        Timestamp date_time = new Timestamp(new Date().getTime());
         Instant start = Instant.now();
         String stage= "";
         DESaleQueueDTO deSaleQueueDTO = DESaleQueueDTO.builder().build();
@@ -2918,10 +2913,8 @@ public class AutomationHandlerService {
             //*************************** GET DATA *********************//
             deSaleQueueDTO = (DESaleQueueDTO) mapValue.get("DESaleQueueList");
             //*************************** END GET DATA *********************//
-            Actions actions=new Actions(driver);
             System.out.println(stage + ": DONE" );
             stage="LOGIN FINONE";
-            HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
@@ -2933,11 +2926,10 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE" );
             Utilities.captureScreenShot(driver);
 
-            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
-            //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
             // ========== APPLICATIONS =================
             String lastUpdate = deSaleQueueDTO.getLastUpdate();
             homePage.getMenuApplicationElement().click();
@@ -2956,48 +2948,49 @@ public class AutomationHandlerService {
                 break;
             }
 
-            System.out.println("Auto: " + accountDTO.getUserName()+ " - FINISH " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========= UPDATE DB ============================
             Query queryUpdate1 = new Query();
-            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()).and("userName").is(deSaleQueueDTO.getUserName()));
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()));
             Update update1 = new Update();
             update1.set("userauto", accountDTO.getUserName());
             update1.set("status", 1);
-            System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - User: " + deSaleQueueDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto: " + accountDTO.getUserName()+ " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-            responseModel.setRequest_id(deSaleQueueDTO.getReference_id());
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(date_time);
-            responseModel.setResult_code(0);
+            responseModel.setProject(deSaleQueueDTO.getProject());
+            responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
+            responseModel.setApp_id(deSaleQueueDTO.getAppId());
+            responseModel.setAutomation_result("PASS");
             responseModel.setData(deSaleQueueDTO);
 
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
-            responseModel.setRequest_id(deSaleQueueDTO.getReference_id());
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(date_time);
-            responseModel.setResult_code(500);
+            responseModel.setProject(deSaleQueueDTO.getProject());
+            responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
+            responseModel.setApp_id(deSaleQueueDTO.getAppId());
+            responseModel.setAutomation_result("FAILED_RESUBMIT_QUERY_");
             responseModel.setMessage(e.getMessage());
             responseModel.setData(deSaleQueueDTO);
 
-            System.out.println("User Auto:" + accountDTO.getUserName() +" - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
+
             Utilities.captureScreenShot(driver);
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            DEReturn_updateStatusRabbit(responseModel,"updateAutomation");
+            autoUpdateStatusRabbit(responseModel,"updateAutomation");
             logout(driver);
         }
     }
     //------------------------ END DE_SALE_QUEUE -----------------------------------------------------
 
     //------------------------ START UPDATE RABBITMQ -----------------------------------------------------
-    private void DEReturn_updateStatusRabbit(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
+    private void autoUpdateStatusRabbit(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
         JsonNode jsonNode= rabbitMQService.sendAndReceive("tpf-service-dataentry",
-                Map.of("func", func,"body", responseAutomationModel.getData()));
+                Map.of("func", func,"body", responseAutomationModel));
         System.out.println("rabit:=>" + jsonNode.toString());
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------

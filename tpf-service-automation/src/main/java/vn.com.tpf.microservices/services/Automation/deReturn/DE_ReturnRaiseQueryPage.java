@@ -112,12 +112,12 @@ public class DE_ReturnRaiseQueryPage {
                     .until(() -> tbDivResponseQueryElement.size() > 0);
 
             textResponseElement.clear();
-            textResponseElement.sendKeys(deResponseQueryDTO.getDocument().getComments());
+            textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
 
             String fromFile = downLoadFileURL;
             System.out.println("URLdownload: " + fromFile);
 
-            String docName = deResponseQueryDTO.getDocument().getFileName();
+            String docName = deResponseQueryDTO.getDataDocument().getFileName();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
 
             toFile+= UUID.randomUUID().toString()+"_"+ docName;
@@ -125,7 +125,7 @@ public class DE_ReturnRaiseQueryPage {
             File file = new File(toFile);
             if(file.exists()) {
                 String docUrl = file.getAbsolutePath();
-                System.out.println("paht;" + docUrl);
+                System.out.println("Path;" + docUrl);
                 Thread.sleep(2000);
 
                 btnUploadFileElement.sendKeys(docUrl);

@@ -18,6 +18,9 @@ public class DEResponseQueryDTO {
     private Date createDate;
     @LastModifiedDate
     private Date lastDate;
-    private DEResponseQueryDocumentDTO document;
+    private DEResponseQueryDocumentDTO dataDocument;
+    private String commentText;
     private String reference_id;
+    private String project;
+    private String transaction_id;
 }
