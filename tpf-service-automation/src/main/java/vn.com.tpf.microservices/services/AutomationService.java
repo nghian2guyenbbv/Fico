@@ -365,4 +365,36 @@ public class AutomationService {
 	}
 	//------------------------ END - DE_SALE_QUEUE - FUNCTION -------------------------------------
 
+
+	//------------------------ SMARTNET - FUNCTION -----------------------------------------
+	public Map<String, Object> SN_quickLeadApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				SN_runAutomation_QL(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application.getQuickLead());
+	}
+
+	private void SN_runAutomation_QL(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"SN_quickLead","DATAENTRY");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+
+		//awaitTerminationAfterShutdown(workerThreadPool);
+	}
+
+	//------------------------ END - SMARTNET - FUNCTION -------------------------------------
 }
