@@ -539,6 +539,12 @@ public class DE_ApplicationInfoPersonalTab {
                 actions.moveToElement(btnCreateAnotherElement).click().build().perform();
             }
 
+
+//            await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> btnCreateAnotherElement.isEnabled());
+//            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
+
+
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
             mobilePhoneNumberElement.click();

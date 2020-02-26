@@ -36,4 +36,7 @@ public class Report {
     private String identificationNumber;
     private long duration;
 
+    private String partnerId;
+    private String partnerName;
+
 }
