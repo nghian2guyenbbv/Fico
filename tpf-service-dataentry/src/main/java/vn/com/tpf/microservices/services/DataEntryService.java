@@ -2617,9 +2617,6 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> quickLeadV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("data").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2657,6 +2654,9 @@ public class DataEntryService {
 									appData.get(0)));
 
 				}else {
+					if(!request.path("body").path("data").path("partnerId").isTextual()){
+						return Map.of("status", 200, "data", "partnerId not found");
+					}
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 
@@ -3424,7 +3424,7 @@ public class DataEntryService {
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
 				}
-				Map partner = getPartner(partnerId);
+				Map partner = this.getPartner(partnerId);
 
 				JsonNode resultUpload = apiService.retryUploadPartner(request, partner);
 				if (resultUpload.path("uploadDigiTex").textValue() == null) {

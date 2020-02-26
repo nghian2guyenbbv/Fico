@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.models.Application;
 
 @Service
@@ -81,6 +82,12 @@ public class ConvertService {
 		}
 		if (application.getUserName_DE() != null) {
 			optional.put("userName_DE", application.getUserName_DE());
+		}
+		if (!StringUtils.isEmpty(application.getPartnerId())) {
+			optional.put("partnerId", application.getPartnerId());
+		}
+		if (!StringUtils.isEmpty(application.getPartnerName())) {
+			optional.put("partnerName", application.getPartnerName());
 		}
 		app.set("optional", optional);
 		return app;
