@@ -1425,10 +1425,8 @@ public class ApiService {
 
 				HttpHeaders headers = new HttpHeaders();
 
-				headers.set("authkey", token);
-
-				headers.set("Accept", "application/pgp-encrypted");
-				headers.set("Content-Type", "application/pgp-encrypted");
+				headers.setBearerAuth(token);
+				headers.set("Content-Type", "text/plain");
 				HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
 
 				ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
