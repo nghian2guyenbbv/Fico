@@ -1158,7 +1158,6 @@ public class DataEntryController {
 		request.put("func", "uploadFile");
 		request.put("token", token);
 		request.put("appId", appId);
-		request.put("partnerId", partnerId);
 
 		boolean validateIdCard = false;
 		boolean validateHousehold = false;
@@ -1166,8 +1165,10 @@ public class DataEntryController {
 		boolean validateACCA = false;
 		boolean validateComment = false;
 
+		Map partner = new HashMap();
+		String partnerIdToGetPartner;
 		if (appId.equals("new")) {
-
+			partnerIdToGetPartner = partnerId;
 			for (MultipartFile item : files) {
 				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 					validateIdCard = true;
@@ -1219,14 +1220,35 @@ public class DataEntryController {
 									"result_code", 3, "message", "Sai Document!"));
 				}
 			}
-		}
 
+			Map<String, Object> requestGetApp = new HashMap<>();
+			requestGetApp.put("func", "getByAppId");
+			requestGetApp.put("token", token);
+			Map<String, Object> bodyGetApp = new HashMap<>();
+			Map<String, Object> appForBodyGetApp= new HashMap<>();
+			appForBodyGetApp.put("applicationId", appId);
+			bodyGetApp.put("data", appForBodyGetApp);
+			requestGetApp.put("body", bodyGetApp);
+			JsonNode responseGetApp = rabbitMQService.sendAndReceive("tpf-service-dataentry", requestGetApp);
+			if(responseGetApp != null
+					&& responseGetApp.path("data") != null
+					&& responseGetApp.path("data").path("data") != null
+					&& responseGetApp.path("data").path("data").get(0) != null
+					&& responseGetApp.path("data").path("data").get(0).path("partnerId").isTextual()){
+				partnerIdToGetPartner = responseGetApp.get("data").get("data").get(0).get("partnerId").asText();
+			}else{
+				return ResponseEntity.status(200)
+						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+								"result_code", 3, "message", "Partner not found!"));
+			}
+		}
+		request.put("partnerId", partnerIdToGetPartner);
 		try {
 			Map<String, Object> partnerMap = new HashMap<>();
-			partnerMap.put("partnerId", partnerId);
+			partnerMap.put("partnerId", partnerIdToGetPartner);
 			JsonNode partnerResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry",
 					Map.of("func", "getPartner","body", partnerMap));
-			Map partner = new HashMap();
+
 			if(partnerResponse == null || partnerResponse.get("data").isNull()){
 				return ResponseEntity.status(200)
 						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
@@ -1702,5 +1724,32 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
+	@PostMapping("/v1/dataentry/deResponseQuery")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> deResponseQuery(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "deResponseQuery");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/deSaleQueue")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> deSaleQueue(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "deSaleQueue");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
 }
 

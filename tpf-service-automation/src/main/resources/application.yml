@@ -1,10 +1,12 @@
-#spring:
-#  rabbitmq:
-#    host: 192.168.0.203
-#  data:
-#    mongodb:
-#      uri: mongodb://192.168.0.203:27017/tpfdb
-#eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone:  http://192.168.0.203:8761/eureka
+spring:
+  rabbitmq:
+    host: localhost
+  data:
+    mongodb:
+      uri: mongodb://10.131.23.30:27017/tpfdb
+  url:
+    downloadFile: abc
+eureka:
+  client:
+    serviceUrl:
+      defaultZone:  http://10.131.23.30:8761/eureka
