@@ -239,7 +239,7 @@ public class DataEntryController {
 
 
 	@PostMapping("/v1/dataentry/sendapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
 	public ResponseEntity<?> sendapp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -281,7 +281,7 @@ public class DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/updatestatus")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
 	public ResponseEntity<?> cancel(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -1087,7 +1087,7 @@ public class DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/commentapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
 	public ResponseEntity<?> commentV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
