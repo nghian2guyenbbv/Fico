@@ -1486,7 +1486,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("3");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
