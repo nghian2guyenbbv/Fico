@@ -1257,7 +1257,8 @@ public class DataEntryController {
 				partner = mapper.convertValue(partnerResponse.get("data").get(0), Map.class);
 			}
 			Object url = mapper.convertValue(partner, Map.class).get("url");
-
+			request.put("partnerName", partner.get("partnerName").toString());
+			
 			ResponseEntity<?> res = new ResponseEntity<Authenticator.Success>(HttpStatus.CREATED);
 
 			MultiValueMap<String, Object> parts =
