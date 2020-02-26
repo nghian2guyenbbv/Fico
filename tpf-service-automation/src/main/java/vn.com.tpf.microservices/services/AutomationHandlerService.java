@@ -3620,11 +3620,10 @@ public class AutomationHandlerService {
             application.setApplicationId(leadAppID);
 
             //UPDATE STATUS
-            application.setStatus("OK");
+            application.setStatus("Pass Quicklead");
             application.setDescription("Thanh cong");
 
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationElement().click();
+
             Utilities.captureScreenShot(driver);
             //logout(driver);
 
@@ -3654,15 +3653,21 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
-            if(application.getApplicationId()== null || application.getApplicationId().isEmpty())
+            if(application.getApplicationId()== null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0 )
             {
                 application.setApplicationId("UNKNOW");
             }
 
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            try {
+                SN_updateStatusRabbit(application,"updateAutomation","smartnet");
+            }catch (Exception e)
+            {
+                System.out.println(e.toString());
+            }
             logout(driver);
-            SN_updateStatusRabbit(application,"updateAutomation","smartnet");
+
         }
     }
 
@@ -3673,7 +3678,7 @@ public class AutomationHandlerService {
                         "project",project,
                         "automation_result",application.getStatus(),
                         "description",application.getDescription()!=null?application.getDescription():"",
-                        "transaction_id", application.getLoanDetails().getSourcingDetails().getChassisApplicationNum())));
+                        "transaction_id", application.getQuickLeadId())));
         System.out.println("rabit:=>" + jsonNode.toString());
 
     }

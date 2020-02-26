@@ -141,11 +141,11 @@ public class RabbitMQService {
 			case "quickLeadApp":
 				project=request.path("body").path("project").asText();
 				if(project.equals("smartnet")) {
-					return response(message, payload, automationService.quickLeadApp(request));
+					return response(message, payload, automationService.SN_quickLeadApp(request));
 				}
 				else
 				{
-					return response(message, payload, automationService.SN_quickLeadApp(request));
+					return response(message, payload, automationService.quickLeadApp(request));
 				}
 			case "fullInfoApp":
 					return response(message, payload, automationService.fullInfoApp(request));
