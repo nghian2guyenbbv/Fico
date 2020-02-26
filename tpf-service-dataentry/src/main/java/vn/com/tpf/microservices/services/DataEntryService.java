@@ -1252,7 +1252,7 @@ public class DataEntryService {
 				if (request.path("body").path("data").path("retry").textValue() != null && request.path("body").path("data").path("retry").equals("") != true &&
 						request.path("body").path("data").path("retry").textValue().equals("") != true) {
 					Query queryGetApp = new Query();
-					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null));
+					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null).and("status").is("AUTO_QL_FAIL"));
 					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
 					Update update = new Update();
@@ -1281,7 +1281,7 @@ public class DataEntryService {
 
 				}else {
 					Query queryUpdate = new Query();
-					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null));
+					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null).and("status").is("UPLOADFILE"));
 
 					Update update = new Update();
 					update.set("quickLead.quickLeadId", data.getQuickLeadId());
@@ -1384,7 +1384,7 @@ public class DataEntryService {
 				Application app = new Application();
 				app.setQuickLeadId(quickLeadId.toString());
 				app.setQuickLead(quickLead);
-				app.setStatus("NEW");
+				app.setStatus("UPLOADFILE");
 				app.setUserName(token.path("user_name").textValue());
 				app.setCreatedDate(new Date());
 				mongoTemplate.save(app);
@@ -1413,7 +1413,7 @@ public class DataEntryService {
 				Report report = new Report();
 				report.setQuickLeadId(quickLeadId.toString());
 				report.setFunction("UPLOADFILE");
-				report.setStatus("NEW");
+				report.setStatus("UPLOADFILE");
 				report.setDescription(description);
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
@@ -1486,7 +1486,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("3");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
