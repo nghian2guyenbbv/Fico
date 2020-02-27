@@ -79,10 +79,16 @@ public class RabbitMQService {
 			switch (request.path("func").asText()) {
 			case "createApp":
 				return response(message, payload, appService.createApp(request));
+			case "createQuickLeadApp":
+				return response(message, payload, appService.createQuickLeadApp(request));
 			case "updateApp":
 				return response(message, payload, appService.updateApp(request));
 			case "updateAutomation":
 				return response(message, payload, appService.updateAutomation(request));
+			case "deResponseQuery":
+				return response(message, payload, appService.deResponseQuery(request));
+			case "deSaleQueue":
+				return response(message, payload, appService.deSaleQueue(request));
 			case "getReason":
 				return response(message, payload, appService.getReason(request));
 			case "getLoan":

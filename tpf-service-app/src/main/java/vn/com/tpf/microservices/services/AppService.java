@@ -1,8 +1,15 @@
 package vn.com.tpf.microservices.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,12 +25,13 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import vn.com.tpf.microservices.models.App;
 import vn.com.tpf.microservices.models.ReportStatus;
-
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.*;
 
 @Service
 public class AppService {
@@ -61,7 +69,7 @@ public class AppService {
 		return response;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public JsonNode getListApp(JsonNode request, JsonNode info) {
 		int page = request.path("param").path("page").asInt(1);
 		int limit = request.path("param").path("limit").asInt(10);
@@ -345,7 +353,7 @@ public class AppService {
 
 
 	public JsonNode getCountStatus(JsonNode request) {
-		String referenceId = UUID.randomUUID().toString();
+//		String referenceId = UUID.randomUUID().toString();
 		try{
 			AggregationOperation match1 = Aggregation.match(Criteria.where("project").in(request.path("param").path("project").textValue()));
 

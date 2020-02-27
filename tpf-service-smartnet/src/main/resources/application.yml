@@ -4,11 +4,6 @@ spring:
  data:
   mongodb:
     uri: mongodb://10.131.23.30:27017/tpfdb
-
-security:
-  oauth2:
-    resource:
-      token-info-uri: http://10.131.23.30:1100/oauth/check_token
 eureka:
  client:
    serviceUrl:

@@ -31,19 +31,41 @@ public class AppService {
 				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), App.class)));
 		return response(res.path("status").asInt(), res.path("data"));
 	}
+	
+	public JsonNode createQuickLeadApp(JsonNode request) throws Exception {
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "quickLeadApp", "reference_id",
+				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), Object.class)));
+		return response(res.path("status").asInt(), res.path("data"));
+	}
+
 
 	public JsonNode updateApp(JsonNode request) throws Exception {
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "updateApp", "reference_id",
 				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), App.class)));
 		return response(res.path("status").asInt(), res.path("data"));
 	}
+	
+	public JsonNode deResponseQuery(JsonNode request) throws Exception {
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "deResponseQuery", "reference_id",
+				request.path("reference_id"), "body", request.path("body")));
+		return response(res.path("status").asInt(), res.path("data"));
+	}
+	public JsonNode deSaleQueue(JsonNode request) throws Exception {
+		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "deSaleQueue", "reference_id",
+				request.path("reference_id"), "body", request.path("body")));
+		return response(res.path("status").asInt(), res.path("data"));
+	}
+	
+	
 
 	public JsonNode updateAutomation(JsonNode request) throws Exception {
 		JsonNode auto = rabbitMQService.sendAndReceive("tpf-service-" + request.path("body").path("project").asText(),
 				Map.of("func", "updateAutomation", "reference_id", request.path("reference_id"), "body", request.path("body")));
 		return response(auto.path("status").asInt(), auto.path("data"));
 	}
-
+	
+	
+	
 	public JsonNode getReason(JsonNode request) throws Exception {
 		JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-finnone",
 				Map.of("func", "getReason", "reference_id", request.path("reference_id"), "param", Map.of("appId",

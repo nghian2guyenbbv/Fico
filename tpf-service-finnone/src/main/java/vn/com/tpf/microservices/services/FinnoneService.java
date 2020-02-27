@@ -72,6 +72,26 @@ public class FinnoneService {
 		}
 	}
 	
+	
+	public JsonNode getPreCheckList(JsonNode request) {
+		ObjectNode data = mapper.createObjectNode();
+		try {
+			String query = String.format("SELECT  FN_PRECHECK_LIST  ('%s','%s','%s','%s') RESULT FROM DUAL", request.path("body").path("bankCardNumber").asText(),request.path("body").path("dsaCode").asText(),request.path("body").path("areaCode").asText(),request.path("body").path("nationalId").asText());
+			String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
+					(rs, rowNum) ->
+				rs.getString(("RESULT")
+	        ));
+			JsonNode rows =  mapper.readTree(row_string);
+			data.put("result", rows.path("result").asInt());    // 0 -> pass . 1 -> fail
+			data.put("description", rows.path("description").asText());
+			return response(200, data);
+
+		}catch (Exception e) {
+			data.put("result", 0);
+			data.put("description", e.getMessage());
+			return response(200, data);
+		}
+	}
 
 	public JsonNode getLoan(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();

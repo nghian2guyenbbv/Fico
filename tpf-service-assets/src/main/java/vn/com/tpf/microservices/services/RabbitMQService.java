@@ -31,6 +31,12 @@ public class RabbitMQService {
 
 	@Autowired
 	private AddressService addressService;
+	
+	@Autowired
+	private DocumentFinnOneService documentFinnOneService;
+	
+	@Autowired
+	private AddressFinnOneService addressFinnOneService;
 
 	@Autowired
 	private PGPService pgpService;
@@ -89,6 +95,10 @@ public class RabbitMQService {
 				return response(message, payload, pgpService.pgpDecrypt(request));
 			case "getAddress":
 				return response(message, payload, addressService.getAddress(request));
+			case "getAddressFinnOne":
+				return response(message, payload, addressFinnOneService.getAddress(request));
+			case "getListDocuments":
+				return response(message, payload, documentFinnOneService.getListDocuments(request));
 			case "getPartner":
 				return response(message, payload, partnerService.getPartner(request));
 			case "updateStatus1Partner":

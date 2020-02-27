@@ -1,7 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -13,12 +11,13 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import vn.com.tpf.microservices.utils.Utils;
 
 @Service
 public class RabbitMQService {
@@ -31,7 +30,11 @@ public class RabbitMQService {
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
 
+	@Autowired
+	private SmartnetService smartnetService;
 
+	@Autowired
+	private Utils utils;
 
 	@PostConstruct
 	private void init() {
@@ -71,18 +74,38 @@ public class RabbitMQService {
 
 		return null;
 	}
-
+	
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 
-		return null;
-		
-	}
-	
-	private Object ExceptionRespone( byte[] payload,int result_code ,String message) throws UnsupportedEncodingException, IOException {
-		JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-		log.info("{}",request);
-		return  Map.of("result_code", result_code,"request_id", request.path("body").path("request_id").asText(), "reference_id", request.path("body").path("reference_id").asText(),"message", message);
+		try {
+			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
+			switch (request.path("func").asText()) {
+				case "preCheck1":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.getPreCheck1(request)));
+				case "preCheck2":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.getPreCheck2(request)));
+				case "getAppInfo":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.getAppInfo(request)));	
+				case "returnQuery":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.returnQuery(request)));
+				case "addDocuments":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.addDocuments((request))));		
+				case "updateAutomation":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.updateAutomation((request))));	
+				case "returnQueue":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.getAppInfo(request)));
+				default:
+					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
+							mapper.createObjectNode().put("message", "function not found"))));
+			}				
+
+		} catch (Exception e) {
+			return response(message, payload,
+					Map.of("status", 200, "data",
+							utils.getJsonNodeResponse(500, mapper.readTree(new String(payload, "UTF-8")),
+									mapper.createObjectNode().put("message", e.toString()))));
+		}
 
 	}
 
