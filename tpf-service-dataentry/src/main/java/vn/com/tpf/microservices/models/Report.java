@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -20,5 +21,22 @@ public class Report {
     private String createdBy;
     private String processBy;
     private Date createdDate;
+
+    private List<Application> applications;
+
+    private QuickLead quickLead;
+    private ApplicationInformation applicationInformation;
+    private LoanDetails loanDetails;
+    private List<Reference> references;
+    private List<DynamicForm> dynamicForm;
+    private List<CommentModel> comment;
+    private List<QLDocument> documents;
+
+    private String fullName;
+    private String identificationNumber;
+    private long duration;
+
+    private String partnerId;
+    private String partnerName;
 
 }

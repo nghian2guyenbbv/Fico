@@ -173,11 +173,11 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.updateStatus(request, token));
 				case "uploadFile":
 					return response(message, payload, dataEntryService.uploadFile(request, token));
-				case "updateAutomation":
+				case "old_updateAutomation":
 					return response(message, payload, dataEntryService.updateAutomation(request, token));
-				case "updateFullApp":
+				case "old_updateFullApp":
 					return response(message, payload, dataEntryService.updateFullApp(request, token));
-				case "updateAppError":
+				case "old_updateAppError":
 					return response(message, payload, dataEntryService.updateAppError(request, token));
 				case "uploadDigiTex":
 					return response(message, payload, dataEntryService.uploadDigiTex(request, token));
@@ -191,6 +191,22 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getListStatus(request));
 				case "getSearchReport":
 					return response(message, payload, dataEntryService.getSearchReport(request,token));
+				case "getPartner":
+					return response(message, payload, dataEntryService.getPartner(request,token));
+				case "quickLeadV2":
+					return response(message, payload, dataEntryService.quickLeadV2(request, token));
+				case "commentAppV2":
+					return response(message, payload, dataEntryService.commentAppV2(request, token));
+				case "updateAutomation":
+					return response(message, payload, dataEntryService.updateAutomationV2(request, token));
+				case "updateAppError":
+					return response(message, payload, dataEntryService.updateAppErrorV2(request, token));
+				case "updateFullApp":
+					return response(message, payload, dataEntryService.updateFullAppV2(request, token));
+				case "uploadPartner":
+					return response(message, payload, dataEntryService.uploadPartner(request, token));
+				case "getTokenSaigonBpo":
+					return response(message, payload, dataEntryService.getTokenSaigonBpo(request, token));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

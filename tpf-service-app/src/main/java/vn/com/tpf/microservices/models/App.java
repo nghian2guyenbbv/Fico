@@ -41,5 +41,5 @@ public class App {
 	private Date createdAt;
 	@LastModifiedDate
 	private Date updatedAt;
-
+	private String partnerName;
 }
