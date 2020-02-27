@@ -3885,8 +3885,9 @@ public class AutomationHandlerService {
             stage="INIT DATA";
             //*************************** GET DATA *********************//
             application = (Application) mapValue.get("ApplicationDTO");
+            application.setAutomationAcc(accountDTO.getUserName());
             QuickLead quickLead=application.getQuickLead();
-            mongoTemplate.save(application);
+            //mongoTemplate.save(application);
 
 
             //*************************** END GET DATA *********************//
@@ -4009,7 +4010,7 @@ public class AutomationHandlerService {
             application.setApplicationId(leadAppID);
 
             //UPDATE STATUS
-            application.setStatus("Pass Quicklead");
+            application.setStatus("QUICKLEAD PASS");
             application.setDescription("Thanh cong");
 
 
@@ -4018,7 +4019,7 @@ public class AutomationHandlerService {
 
         } catch (Exception e) {
             //UPDATE STATUS
-            application.setStatus("ERROR");
+            application.setStatus("QUICKLEAD FAIL");
             application.setStage(stage);
             application.setDescription(e.getMessage());
 
@@ -4055,8 +4056,8 @@ public class AutomationHandlerService {
             {
                 System.out.println(e.toString());
             }
+            SN_updateDB(application);
             logout(driver);
-
 
         }
     }
@@ -4068,19 +4069,20 @@ public class AutomationHandlerService {
                         "project",project,
                         "automation_result",application.getStatus(),
                         "description",application.getDescription()!=null?application.getDescription():"",
-                        "transaction_id", application.getQuickLeadId())));
+                        "transaction_id", application.getQuickLeadId(),
+                        "automation_account",application.getAutomationAcc())));
         System.out.println("rabit:=>" + jsonNode.toString());
 
     }
 
     private void SN_updateDB(Application application) throws Exception {
 
-        Query queryUpdate = new Query();
-        queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
-        Update update = new Update();
-        update.set("active", 1);
-        update.set("lastModifiedDate", new Date());
-        AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+//        Query queryUpdate = new Query();
+//        queryUpdate.addCriteria(Criteria.where("quickLeadId").is(application.getQuickLeadId()));
+//        Update update = new Update();
+//        update.set("lastModifiedDate", new Date());
+//        AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+        mongoTemplate.save(application);
 
     }
     //------------------------ END SMARTNET-----------------------------------------------------
