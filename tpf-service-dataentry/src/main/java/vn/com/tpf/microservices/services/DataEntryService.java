@@ -1755,6 +1755,26 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
+					if (errors.equals("LOGIN FINONE")){
+						try {
+							Query queryLogin = new Query();
+							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
+							Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+							rabbitMQService.send("tpf-service-automation",
+									Map.of("func", "fullInfoApp", "body", dataFullApp));
+
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(UUID.randomUUID().toString());
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("LOGIN FINONE");
+							return Map.of("status", 200, "data", responseModel);
+						}
+						catch (Exception e) {
+							log.info("ReferenceId : "+ referenceId + "Error LOGIN FINONE: " + e);
+						}
+					}
+
 					if (errors.toUpperCase().equals("END OF LEAD DETAIL") ||
 							errors.toUpperCase().equals("PERSONAL INFORMATION") ||
 							errors.toUpperCase().equals("EMPLOYMENT DETAILS")){
@@ -1805,6 +1825,7 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
 
@@ -1888,6 +1909,38 @@ public class DataEntryService {
 
 				}else{
 					errors = request.path("body").path("stage").textValue();
+
+					if (errors.equals("LOGIN FINONE")){
+						try{
+							Query queryLogin = new Query();
+							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
+							Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+
+							List<CommentModel> dataUpdate = dataFullApp.getComment();
+							dataUpdate.sort(Comparator.comparing(CommentModel::getCreatedDate).reversed());
+
+							Application dataUpdateSendAuto = new Application();
+							for (CommentModel item : dataUpdate) {
+								if (item.getResponse() != null){
+									dataUpdateSendAuto = item.getResponse().getData();
+									dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+									break;
+								}
+							}
+							rabbitMQService.send("tpf-service-automation",
+									Map.of("func", "updateAppError","body", dataUpdateSendAuto));
+
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(UUID.randomUUID().toString());
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("LOGIN FINONE");
+							return Map.of("status", 200, "data", responseModel);
+						}
+						catch (Exception e) {
+							log.info("ReferenceId : "+ referenceId + "Error LOGIN FINONE: " + e);
+						}
+					}
 
 					if (errors.toUpperCase().equals("END OF LEAD DETAIL") ||
 							errors.toUpperCase().equals("PERSONAL INFORMATION") ||
