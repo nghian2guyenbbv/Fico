@@ -37,5 +37,6 @@ public class Report {
     private long duration;
 
     private String partnerId;
+    private String partnerName;
 
 }

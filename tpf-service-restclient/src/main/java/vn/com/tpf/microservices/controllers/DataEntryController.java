@@ -239,7 +239,7 @@ public class DataEntryController {
 
 
 	@PostMapping("/v1/dataentry/sendapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
 	public ResponseEntity<?> sendapp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -281,7 +281,7 @@ public class DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/updatestatus")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
 	public ResponseEntity<?> cancel(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -1087,7 +1087,7 @@ public class DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/commentapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
 	public ResponseEntity<?> commentV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -1158,7 +1158,6 @@ public class DataEntryController {
 		request.put("func", "uploadFile");
 		request.put("token", token);
 		request.put("appId", appId);
-		request.put("partnerId", partnerId);
 
 		boolean validateIdCard = false;
 		boolean validateHousehold = false;
@@ -1166,8 +1165,10 @@ public class DataEntryController {
 		boolean validateACCA = false;
 		boolean validateComment = false;
 
+		Map partner = new HashMap();
+		String partnerIdToGetPartner;
 		if (appId.equals("new")) {
-
+			partnerIdToGetPartner = partnerId;
 			for (MultipartFile item : files) {
 				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 					validateIdCard = true;
@@ -1219,14 +1220,35 @@ public class DataEntryController {
 									"result_code", 3, "message", "Sai Document!"));
 				}
 			}
-		}
 
+			Map<String, Object> requestGetApp = new HashMap<>();
+			requestGetApp.put("func", "getByAppId");
+			requestGetApp.put("token", token);
+			Map<String, Object> bodyGetApp = new HashMap<>();
+			Map<String, Object> appForBodyGetApp= new HashMap<>();
+			appForBodyGetApp.put("applicationId", appId);
+			bodyGetApp.put("data", appForBodyGetApp);
+			requestGetApp.put("body", bodyGetApp);
+			JsonNode responseGetApp = rabbitMQService.sendAndReceive("tpf-service-dataentry", requestGetApp);
+			if(responseGetApp != null
+					&& responseGetApp.path("data") != null
+					&& responseGetApp.path("data").path("data") != null
+					&& responseGetApp.path("data").path("data").get(0) != null
+					&& responseGetApp.path("data").path("data").get(0).path("partnerId").isTextual()){
+				partnerIdToGetPartner = responseGetApp.get("data").get("data").get(0).get("partnerId").asText();
+			}else{
+				return ResponseEntity.status(200)
+						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+								"result_code", 3, "message", "Partner not found!"));
+			}
+		}
+		request.put("partnerId", partnerIdToGetPartner);
 		try {
 			Map<String, Object> partnerMap = new HashMap<>();
-			partnerMap.put("partnerId", partnerId);
+			partnerMap.put("partnerId", partnerIdToGetPartner);
 			JsonNode partnerResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry",
 					Map.of("func", "getPartner","body", partnerMap));
-			Map partner = new HashMap();
+
 			if(partnerResponse == null || partnerResponse.get("data").isNull()){
 				return ResponseEntity.status(200)
 						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
@@ -1235,7 +1257,8 @@ public class DataEntryController {
 				partner = mapper.convertValue(partnerResponse.get("data").get(0), Map.class);
 			}
 			Object url = mapper.convertValue(partner, Map.class).get("url");
-
+			request.put("partnerName", partner.get("partnerName").toString());
+			
 			ResponseEntity<?> res = new ResponseEntity<Authenticator.Success>(HttpStatus.CREATED);
 
 			MultiValueMap<String, Object> parts =
@@ -1379,47 +1402,71 @@ public class DataEntryController {
 					try {
 						if (parts_02.size() > 0) {
 							String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
-							try{
-								ObjectNode dataLogReq = mapper.createObjectNode();
-								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==]");
-								dataLogReq.put("method", "POST");
-								dataLogReq.put("url", documentApi);
-								dataLogReq.put("data", parts_02.toString());
-								log.info("{}", dataLogReq);
-							}
-							catch (Exception ex){}
 
 							HttpHeaders headers_DT = new HttpHeaders();
 							if(partner.get("partnerId").equals("1")){
 								headers_DT.set("authkey", partner.get("token").toString());
+
+								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+								ObjectNode dataLogReq = mapper.createObjectNode();
+								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==" + partner.get("partnerName") + "==]");
+								dataLogReq.put("method", "POST");
+								dataLogReq.put("url", documentApi);
+								dataLogReq.put("data", entity_DT.toString());
+								log.info("{}", dataLogReq);
+
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
+
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+
+								ObjectNode dataLog = mapper.createObjectNode();
+								dataLog.put("type", "[==HTTP-LOG-RESPONSE==" + partner.get("partnerName") + "==]");
+								dataLog.put("url", documentApi);
+								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+								log.info("{}", dataLog);
 							} else if(partner.get("partnerId").equals("2")){
 								Map<String, Object> tokenMap = new HashMap<>();
 								Map<String, Object> tokenBodyMap = new HashMap<>();
 								tokenBodyMap.put("partnerId", partner.get("partnerId"));
 								tokenMap.put("body", tokenBodyMap);
 								tokenMap.put("func", "getTokenSaigonBpo");
-
 								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
-
-								if(!StringUtils.isEmpty(tokenResponse.path("data").asText())){
-									String tokenPartner = tokenResponse.path("data").asText();
-									headers_DT.set("authkey", tokenPartner);
-								} else {
-									log.info("Not get token saigonbpo");
+								String tokenPartner = tokenResponse.path("data").asText();
+								if(StringUtils.isEmpty(tokenPartner)){
+									return ResponseEntity.status(200)
+											.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+													"result_code", 3, "message", "Not get token saigon-bpo"));
 								}
+
+								headers_DT.setBearerAuth(tokenPartner);
+								headers_DT.set("authkey", tokenPartner);
+								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								parts_02.remove("description");
+								parts_02.add("Description", Map.of("files", documents));
+								parts_02.set("access_token", tokenPartner);
+								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+								ObjectNode dataLogReq = mapper.createObjectNode();
+								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==" + partner.get("partnerName") + "==]");
+								dataLogReq.put("method", "POST");
+								dataLogReq.put("url", documentApi);
+								dataLogReq.put("data", entity_DT.toString());
+								log.info("{}", dataLogReq);
+
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
+
+								ObjectNode dataLog = mapper.createObjectNode();
+								dataLog.put("type", "[==HTTP-LOG-RESPONSE==" + partner.get("partnerName") + "==]");
+								dataLog.put("url", documentApi);
+								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+								log.info("{}", dataLog);
+
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 							}
-							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-							ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
-
-							Object map = mapper.valueToTree(res_DT.getBody());
-							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-
-							ObjectNode dataLog = mapper.createObjectNode();
-							dataLog.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");
-							dataLog.put("url", documentApi);
-							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
-							log.info("{}", dataLog);
 						}
 					}
 					catch (Exception e) {
@@ -1428,7 +1475,6 @@ public class DataEntryController {
 						dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
 						log.error("{}", dataLog);
 					}
-
 				} else{
 					Map<String, Object> request_docId = new HashMap<>();
 					request_docId.put("func", "getDocumentId");
@@ -1575,46 +1621,73 @@ public class DataEntryController {
 					try {
 						if (parts_02.size() > 0) {
 							String resumitDocumentApi = (String) mapper.convertValue(url, Map.class).get("resumitDocumentApi");
-							try{
-								ObjectNode dataLogReq = mapper.createObjectNode();
-								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==]");
-								dataLogReq.put("method", "POST");
-								dataLogReq.put("appId", appId);
-								dataLogReq.put("url", resumitDocumentApi);
-								dataLogReq.put("data", parts_02.toString());
-								log.info("{}", dataLogReq);
-							}
-							catch (Exception ex){}
-
 							HttpHeaders headers_DT = new HttpHeaders();
 
 							if(partner.get("partnerId").equals("1")){
 								headers_DT.set("authkey", partner.get("token").toString());
+								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+								ObjectNode dataLogReq = mapper.createObjectNode();
+								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==" + partner.get("partnerName") + "==]");
+								dataLogReq.put("method", "POST");
+								dataLogReq.put("appId", appId);
+								dataLogReq.put("url", resumitDocumentApi);
+								dataLogReq.put("data", entity_DT.toString());
+								log.info("{}", dataLogReq);
+
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(resumitDocumentApi, entity_DT, Object.class);
+
+								ObjectNode dataLog = mapper.createObjectNode();
+								dataLog.put("type", "[==HTTP-LOG-RESPONSE==" + partner.get("partnerName") + "==]");
+								dataLog.put("url", resumitDocumentApi);
+								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+								log.info("{}", dataLog);
+
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
+
 							} else if(partner.get("partnerId").equals("2")){
 								Map<String, Object> tokenMap = new HashMap<>();
-								tokenMap.put("token", token);
+                                Map<String, Object> tokenBodyMap = new HashMap<>();
+                                tokenBodyMap.put("partnerId", partner.get("partnerId"));
+                                tokenMap.put("token", token);
 								tokenMap.put("func", "getTokenSaigonBpo");
+                                tokenMap.put("body", tokenBodyMap);
 								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
-
-								if(!StringUtils.isEmpty(tokenResponse.path("data").asText())){
-									String tokenPartner = tokenResponse.path("data").asText();
-									headers_DT.set("authkey", tokenPartner);
-								} else {
-									log.info("Not get token saigonbpo");
+								String tokenPartner = tokenResponse.path("data").asText();
+								if(StringUtils.isEmpty(tokenPartner)){
+									return ResponseEntity.status(200)
+											.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+													"result_code", 3, "message", "Not get token saigon-bpo"));
 								}
+								headers_DT.setBearerAuth(tokenPartner);
+								headers_DT.set("authkey", tokenPartner);
+								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
+								parts_02.remove("description");
+								parts_02.add("Description", Map.of("files", documents));
+								parts_02.set("access_token", tokenPartner);
+								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
+
+								ObjectNode dataLogReq = mapper.createObjectNode();
+								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==" + partner.get("partnerName") + "==]");
+								dataLogReq.put("method", "POST");
+								dataLogReq.put("appId", appId);
+								dataLogReq.put("url", resumitDocumentApi);
+								dataLogReq.put("data", entity_DT.toString());
+								log.info("{}", dataLogReq);
+
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(resumitDocumentApi, entity_DT, Object.class);
+
+								ObjectNode dataLog = mapper.createObjectNode();
+								dataLog.put("type", "[==HTTP-LOG-RESPONSE==" + partner.get("partnerName") + "==]");
+								dataLog.put("url", resumitDocumentApi);
+								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
+								log.info("{}", dataLog);
+
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 							}
-							headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
-							HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
-							ResponseEntity<?> res_DT = restTemplate.postForEntity(resumitDocumentApi, entity_DT, Object.class);
-
-							Object map = mapper.valueToTree(res_DT.getBody());
-							outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-
-							ObjectNode dataLog = mapper.createObjectNode();
-							dataLog.put("type", "[==HTTP-LOG-RESPONSE==PARTNER==]");
-							dataLog.put("url", resumitDocumentApi);
-							dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
-							log.info("{}", dataLog);
 						}
 					}
 					catch (Exception e) {
@@ -1622,7 +1695,6 @@ public class DataEntryController {
 						dataLog.put("type", "[==HTTP-LOG==]");
 						dataLog.set("result", mapper.convertValue(e.toString(), JsonNode.class));
 						log.error("{}", dataLog);
-
 					}
 				}
 				if (outputDT == null){
@@ -1653,5 +1725,32 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
+	@PostMapping("/v1/dataentry/deResponseQuery")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> deResponseQuery(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "deResponseQuery");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/deSaleQueue")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> deSaleQueue(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "deSaleQueue");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
 }
 

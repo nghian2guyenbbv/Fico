@@ -405,6 +405,40 @@ public class PGPInfo {
 					"nMc+dM2RR/1xoNqtcivDBRw6p7350MJSXPlVKe/yXnTF\n" +
 					"=lBb4\n" +
 					"Version: BCPG C# v1.8.5.0\n" +"",
+			"sgbpo",
+			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" +
+					"Version: OpenPGP.js v2.6.2\n" +
+					"Comment: https://openpgpjs.org\n" +
+					"\n" +
+					"xsBNBF5U7IQBCADD+V3a1q5FYow3gy645yQFdrd3lqn08EGfcXxLjDWbr8sG\n" +
+					"SzoiIVFP8PnN3so/lKpiouq1YRmqfrzOa43M+Y6Sl6Gp4jXzTXm5ohVmuDGb\n" +
+					"WGuHzX7LpzpSt6nZrfnyakDcL9S72vsZpFlXEmXcHyXuCFv6LiBY8VEwkZVY\n" +
+					"XnG2EPrnu/Gpdb571i+Dev5rsenvQXg6xiPN7/rjZoACljn0jR6ralL6KtDh\n" +
+					"0WprILPnMv6MOiQ/OGHgEWZ7ndMV8eTKhagDfBXoLOJoHxK9TawScmC8M/Ig\n" +
+					"22/MTGi+LV9kTjaMQODj2uQ9fJk0gB8ciCIKTVEm2bBr2YL3jXjg5KshABEB\n" +
+					"AAHNInNhaWdvbiBicG8gPG5vcmVwbHlAc2FpZ29uYnBvLmNvbT7CwHsEEAEI\n" +
+					"AC8FAl5U7IUFCbv4HgAGCwkHCAMCCRC4bV3G5WryWAQVCAoCAxYCAQIZAQIb\n" +
+					"AwIeAQAA6JcIAJjx2hzvW2bMAeS+ivHu5kkTReJtltnsP04VYMbNKdBbIFKR\n" +
+					"Z4w7SGibqFMMwFElLJt3hW/tgWKMHwE+G61Hz5sF1kN9DC0iNfGOdGdFJmrw\n" +
+					"B6Nc36nSaYizQCrWQ517R5dB9c+99o++MqU8q9hIzG+JLlW816rj9HTjBJIw\n" +
+					"wgn9W/W7DrPJFchEohrZV0zhOzzAUU+Dz/+JilGefTRDOsYjhH43heCKJP4w\n" +
+					"lippS1rwpvCz5SQELGNV9at4hrHlAi8FZzbP7P1i9Hr3Ewezp6HI3qC/285H\n" +
+					"BXJZLeVK5YpqvW7W+zvjwIN1Jefcl4lIU/PX9xDIkrl1SaS57fmNCq/OwE0E\n" +
+					"XlTshAEIANZ/H2xd15FPc5RDzpsOHGsN/q+eQU3Y887il4T+Ukd3PKUqSHgb\n" +
+					"/67J027DTkc9FvXWJ5CSaZyht8DmSGvMh7EYri/nCDklV0Y+5ox9mECt4XVh\n" +
+					"VXI34sm7OCCncbJlaMm6VlT1dT2C78Jx8C9mBd4mBM1+z6m+E/8v4XSF8xzd\n" +
+					"7Kl+uFyc0cIYWhO8sd1QyAXg3QAGXpFZC3HmOy+kfvoExFESqeHTKvviqF4A\n" +
+					"eD+rm0PI7Ds0sUVrSaPef6skQ2PNLpcgAP7d/vkKAnDqg0mUtpwgIS3oRafo\n" +
+					"dEw8soWgUwWXazqvimHoQxpyErtmgsmZW3NeYQz3qzKfCMMejdkAEQEAAcLA\n" +
+					"ZQQYAQgAGQUCXlTshQUJu/geAAkQuG1dxuVq8lgCGwwAAByhB/0c7N405+d2\n" +
+					"NuUgocsXcDCRb0zOYHpQI39XPYOqiS1Mnu2nPeV3e6KLWnYNZiq2aE3EciIe\n" +
+					"QTqc+B8fuMAdl9w1wMnIPU8MojKu6AXXSZqMgDO0wetrYKW/aqydfIu34tBJ\n" +
+					"eqRPygat26fdZDwH6NOI6zI39E20warotNevyu9hYMJjR1pXF8NGPm0xOgOs\n" +
+					"dXDARrf2TCMBmdboGJLko5an8R08n6I2iqKVkx4vRUN3Itdcea6dJhzezwnx\n" +
+					"ZTDOnN+od+PkAx/ZQPc8+x/Ry3WKhyA0tyG6ZNoaSc7p9TNs1p5k7Z7bTYAb\n" +
+					"WyUHk5iHzIpjiFRv7q4GuqQ0L2uQahz1\n" +
+					"=avso\n" +
+					"-----END PGP PUBLIC KEY BLOCK-----\n" +"",
 			"test",
 			"-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n" + "Version: Keybase OpenPGP v1.0.0\r\n"
 					+ "Comment: https://keybase.io/crypto\r\n" + "\r\n"

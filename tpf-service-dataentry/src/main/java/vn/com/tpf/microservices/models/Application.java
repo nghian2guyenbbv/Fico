@@ -45,4 +45,5 @@ public class Application {
     private Date lastModifiedDate;
 
     private String partnerId;
+    private String partnerName;
 }

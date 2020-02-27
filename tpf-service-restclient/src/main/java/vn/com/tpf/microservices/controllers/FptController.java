@@ -33,5 +33,19 @@ public class FptController {
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-fpt", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
+	
+	@PostMapping("/fpt/docPostApproved/{cus_id}")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-fpt','3p-service-fpt')")
+	public ResponseEntity<?> docPostApproved(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "docPostApproved");
+		request.put("body", body);
+		
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-fpt", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
 
 }

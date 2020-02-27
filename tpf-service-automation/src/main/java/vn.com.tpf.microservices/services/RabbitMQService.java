@@ -125,7 +125,7 @@ public class RabbitMQService {
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-
+			String project="";
 
 
 
@@ -139,15 +139,20 @@ public class RabbitMQService {
 
 			switch (request.path("func").asText()) {
 			case "quickLeadApp":
-				//if (scopes.matches(".*(\"tpf-service-automation\"|\"tpf-service-esb\"|\"tpf-service-app\").*")) {
+				project=request.path("body").path("project").asText();
+				if(project.equals("smartnet")) {
 					return response(message, payload, automationService.quickLeadApp(request));
-				//}
+				}
+				else
+				{
+					return response(message, payload, automationService.SN_quickLeadApp(request));
+				}
 			case "fullInfoApp":
 					return response(message, payload, automationService.fullInfoApp(request));
 			case "updateAppError":
 					return response(message, payload, automationService.updateAppError(request));
 			case "createApp":
-				String project=request.path("body").path("project").asText();
+				project=request.path("body").path("project").asText();
 				if(project.equals("momo")) {
 					return response(message, payload, automationService.momoCreateApp(request));
 				}
@@ -157,6 +162,10 @@ public class RabbitMQService {
 				}
 			case "autoAssign":
 					return response(message, payload, automationService.DE_AutoAssign(request));
+			case "deResponseQuery":
+				return response(message, payload, automationService.DE_ResponseQuery(request));
+			case "deSaleQueue":
+				return response(message, payload, automationService.DE_SaleQueue(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

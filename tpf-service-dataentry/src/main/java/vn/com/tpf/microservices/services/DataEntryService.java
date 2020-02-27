@@ -671,6 +671,10 @@ public class DataEntryService {
                         report.setStatus("PROCESSING");
                         report.setCreatedBy(token.path("user_name").textValue());
                         report.setCreatedDate(new Date());
+                        if(dataFullApp != null){
+							report.setPartnerId(dataFullApp.getPartnerId());
+							report.setPartnerName(dataFullApp.getPartnerName());
+						}
                         mongoTemplate.save(report);
 
 						responseModel.setRequest_id(requestId);
@@ -1201,6 +1205,10 @@ public class DataEntryService {
 				report.setStatus(data.getStatus().toUpperCase());
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				if(dataFullApp != null){
+					report.setPartnerId(dataFullApp.getPartnerId());
+					report.setPartnerName(dataFullApp.getPartnerName());
+				}
 				mongoTemplate.save(report);
 
 				responseModel.setRequest_id(requestId);
@@ -1332,6 +1340,7 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> uploadFile(JsonNode request, JsonNode token) throws Exception {
+		System.out.println("request line 1335: " + request);
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -1356,6 +1365,8 @@ public class DataEntryService {
 				app.setStatus("NEW");
 				app.setUserName(token.path("user_name").textValue());
 				app.setCreatedDate(new Date());
+				app.setPartnerId(request.get("partnerId").asText());
+				app.setPartnerName(request.get("partnerName").asText());
 				mongoTemplate.save(app);
 
 				Map<String, Object> responseUI = new HashMap<>();
@@ -1363,6 +1374,7 @@ public class DataEntryService {
 				responseUI.put("documents", dataUpload);
 
 //				responseModel.setRequest_id(requestId);
+				System.out.println("request.path uploadDigitex line 1367: " + request.path("uploadDigiTex").textValue());
 				if (request.path("uploadDigiTex").textValue() == null) {
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -1386,6 +1398,8 @@ public class DataEntryService {
 				report.setDescription(description);
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				report.setPartnerId(request.get("partnerId").asText());
+				report.setPartnerName(request.get("partnerName").asText());
 				mongoTemplate.save(report);
 			}else {
 				Query query = new Query();
@@ -1416,7 +1430,7 @@ public class DataEntryService {
 
 					Map<String, Object> responseUI = new HashMap<>();
 					responseUI.put("quickLeadId", quickLeadId);
-					responseUI.put("applicationd", request.get("appId").asText());
+					responseUI.put("applicationId", request.get("appId").asText());
 					responseUI.put("documents", dataUpload);
 
 					if (request.path("uploadDigiTex").textValue() == null) {
@@ -2454,7 +2468,10 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
 				String partnerId = "";
+				String partnerName = "";
 				partnerId = checkExist.get(0).getPartnerId();
+				partnerName = checkExist.get(0).getPartnerName();
+				System.out.println("partnerId line 2460: " + partnerId);
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
 				}
@@ -2473,6 +2490,7 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -2485,14 +2503,19 @@ public class DataEntryService {
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
-
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					System.out.println("feedbackApi line 2491: " + feedbackApi);
+					if(partnerId.equals("1")){
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 						apiService.callApiDigitexx(feedbackApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 				}else{
 					errors = request.path("body").path("stage").textValue();
@@ -2536,6 +2559,8 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
+					System.out.println("partnerId line 2543: " + partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -2551,14 +2576,20 @@ public class DataEntryService {
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+					System.out.println("feedbackApi line 2559: " + feedbackApi);
 
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
-						apiService.callApiDigitexx(feedbackApi,dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					if(partnerId.equals("1")){
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiDigitexx(feedbackApi, dataSend);
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 				}
 
@@ -2586,9 +2617,6 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> quickLeadV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2626,6 +2654,9 @@ public class DataEntryService {
 									appData.get(0)));
 
 				}else {
+					if(!request.path("body").path("data").path("partnerId").isTextual()){
+						return Map.of("status", 200, "data", "partnerId not found");
+					}
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 
@@ -2652,8 +2683,8 @@ public class DataEntryService {
 					update.set("status", "NEW");
 					update.set("lastModifiedDate", new Date());
 
-					update.set("quickLead.partnerId", data.getPartnerId());
-
+					update.set("partnerId", data.getPartnerId());
+					System.out.println("data.getPartnerId() line 2663: " + data.getPartnerId());
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 //				--automation QuickLead--
@@ -2671,6 +2702,9 @@ public class DataEntryService {
 					report.setStatus("NEW");
 					report.setCreatedBy(token.path("user_name").textValue());
 					report.setCreatedDate(new Date());
+					report.setPartnerId(resultUpdate.getPartnerId());
+					report.setPartnerName(resultUpdate.getPartnerName());
+					System.out.println("partnerId line 2682: " + resultUpdate.getPartnerId());
 					mongoTemplate.save(report);
 
 					rabbitMQService.send("tpf-service-automation",
@@ -2727,7 +2761,8 @@ public class DataEntryService {
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
-
+			String partnerId = "";
+			String partnerName = "";
 			if (checkExist.size() <= 0){
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -2735,6 +2770,12 @@ public class DataEntryService {
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
 			}else{
+				partnerId = checkExist.get(0).getPartnerId();
+				partnerName = checkExist.get(0).getPartnerName();
+				if(StringUtils.isEmpty(partnerId)){
+					return Map.of("status", 200, "data", "partnerId null");
+				}
+
 				for (CommentModel item : data.getComment()) {
 
 					commentId = item.getCommentId();
@@ -2886,6 +2927,10 @@ public class DataEntryService {
 				report.setStatus("RETURNED");
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				if(dataFullApp != null){
+					report.setPartnerId(dataFullApp.getPartnerId());
+					report.setPartnerName(dataFullApp.getPartnerName());
+				}
 				mongoTemplate.save(report);
 			}
 
@@ -2979,29 +3024,27 @@ public class DataEntryService {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
 							"comment", comment, "documents", documents)), JsonNode.class);
 
+					Map partner = getPartner(partnerId);
 					try {
-						String partnerId = "";
-						if(checkExist.size() > 0){
-							partnerId = checkExist.get(0).getPartnerId();
-						}
-						if(StringUtils.isEmpty(partnerId)){
-							return Map.of("status", 200, "data", "partnerId null");
-						}
-						Map partner = getPartner(partnerId);
 						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 						String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
-
+						System.out.println("resubmitCommentApi line 3002 " + resubmitCommentApi);
 						JsonNode responseDG = mapper.createObjectNode();
 
-						if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
-							responseDG = apiService.callApiDigitexx(resubmitCommentApi, dataSend);
-						} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+						if(partnerId.equals("1")){
+							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//							apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+							apiService.callApiDigitexx(resubmitCommentApi, dataSend);
+						} else if(partnerId.equals("2")){
 							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner);
+							if(StringUtils.isEmpty(tokenPartner)){
+								return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+							}
+							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
 						}
-
+						System.out.println("responseDG.error-code line 3049: " + responseDG.path("error-code").asText());
 						if (!responseDG.path("error-code").textValue().equals("")) {
 							if (!responseDG.path("error-code").textValue().equals("null")) {
 								log.info("ReferenceId : " + referenceId);
@@ -3035,6 +3078,9 @@ public class DataEntryService {
 					report.setStatus("PROCESSING");
 					report.setCreatedBy(token.path("user_name").textValue());
 					report.setCreatedDate(new Date());
+					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
+					System.out.println("partnerId line 3049: " + partnerId);
 					mongoTemplate.save(report);
 				}else{
 					responseModel.setRequest_id(requestId);
@@ -3054,6 +3100,9 @@ public class DataEntryService {
 				report.setStatus("FULL_APP_FAIL");
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				report.setPartnerId(partnerId);
+				report.setPartnerName(partnerName);
+				System.out.println("partnerId line 3070: " + partnerId);
 				mongoTemplate.save(report);
 			}
 		}
@@ -3069,9 +3118,7 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> updateAutomationV2(JsonNode request, JsonNode token) {
-		if(!request.path("body").path("partnerId").isTextual()){
-			return Map.of("status", 200, "data", "partnerId not found");
-		}
+		System.out.println("request line 3094" + request.toString());
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -3081,7 +3128,9 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
 				String partnerId = "";
+				String partnerName = "";
 				partnerId = checkExist.get(0).getPartnerId();
+				partnerName = checkExist.get(0).getPartnerName();
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
 				}
@@ -3114,14 +3163,19 @@ public class DataEntryService {
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
-
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					System.out.println("cmInfoApi line 3132: " + cmInfoApi);
+					if(partnerId.equals("1")){
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
 						apiService.callApiDigitexx(cmInfoApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
+						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
 					}
 
 					Report report = new Report();
@@ -3132,6 +3186,8 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
+					System.out.println("partnerId line 3151" + partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -3146,6 +3202,8 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
+					System.out.println("partnerId line 3166: " + partnerId);
 					mongoTemplate.save(report);
 
 					Update update = new Update();
@@ -3197,7 +3255,9 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			if (checkExist.size() > 0){
 				String partnerId = "";
+				String partnerName = "";
 				partnerId = checkExist.get(0).getPartnerId();
+				partnerName = checkExist.get(0).getPartnerName();
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
 				}
@@ -3216,6 +3276,8 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
+					System.out.println("partnerId line 3238: " + partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -3228,14 +3290,19 @@ public class DataEntryService {
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
-
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					System.out.println("feedbackApi line 3251: " + feedbackApi);
+					if(partnerId.equals("1")){
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 						apiService.callApiDigitexx(feedbackApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 
 				}else{
@@ -3280,6 +3347,8 @@ public class DataEntryService {
 					report.setCreatedBy("AUTOMATION");
 					report.setCreatedDate(new Date());
 					report.setPartnerId(partnerId);
+					report.setPartnerName(partnerName);
+					System.out.println("partnerId line 3304: " + partnerId);
 					mongoTemplate.save(report);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -3295,14 +3364,20 @@ public class DataEntryService {
 					Map partner = this.getPartner(partnerId);
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
+					System.out.println("feedbackApi line 3320: " + feedbackApi);
 
-					if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.DIGITEXX)){
+					if(partnerId.equals("1")){
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 						apiService.callApiDigitexx(feedbackApi, dataSend);
-					} else if(ThirdPartyType.fromName((String) partner.get("partnerName")).equals(ThirdPartyType.SGBPO)){
+					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner);
+						if(StringUtils.isEmpty(tokenPartner)){
+							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						}
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
 				}
 
@@ -3349,7 +3424,7 @@ public class DataEntryService {
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
 				}
-				Map partner = getPartner(partnerId);
+				Map partner = this.getPartner(partnerId);
 
 				JsonNode resultUpload = apiService.retryUploadPartner(request, partner);
 				if (resultUpload.path("uploadDigiTex").textValue() == null) {
@@ -3385,7 +3460,7 @@ public class DataEntryService {
 			}else{
 				String partnerId = "";
 				Query query = new Query();
-				query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
+				query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("data").path("applicationId").textValue()));
 				List<Application> checkExist = mongoTemplate.find(query, Application.class);
 				if(checkExist.size() > 0){
 					partnerId = checkExist.get(0).getPartnerId();
@@ -3423,7 +3498,7 @@ public class DataEntryService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("2");
 					responseModel.setData(responseUI);
-					responseModel.setMessage("uploadFile DigiTex fail!");
+					responseModel.setMessage("uploadFile Partner fail!");
 				}
 			}
 		}
