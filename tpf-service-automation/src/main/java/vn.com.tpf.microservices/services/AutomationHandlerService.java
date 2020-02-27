@@ -3668,6 +3668,7 @@ public class AutomationHandlerService {
             }
             logout(driver);
 
+
         }
     }
 
@@ -3680,6 +3681,17 @@ public class AutomationHandlerService {
                         "description",application.getDescription()!=null?application.getDescription():"",
                         "transaction_id", application.getQuickLeadId())));
         System.out.println("rabit:=>" + jsonNode.toString());
+
+    }
+
+    private void SN_updateDB(Application application) throws Exception {
+
+        Query queryUpdate = new Query();
+        queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+        Update update = new Update();
+        update.set("active", 1);
+        update.set("lastModifiedDate", new Date());
+        AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
 
     }
     //------------------------ END SMARTNET-----------------------------------------------------
