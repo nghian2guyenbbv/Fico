@@ -1270,7 +1270,9 @@ public class DataEntryService {
 						return Map.of("status", 200, "data", responseModel);
 					}
 
-					List<Application> appDataFull = mongoTemplate.find(queryGetApp, Application.class);
+					Query queryGetApp2 = new Query();
+					queryGetApp2.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+					List<Application> appDataFull = mongoTemplate.find(queryGetApp2, Application.class);
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", appDataFull.get(0).getId()), "body", convertService.toAppDisplay(appDataFull.get(0))));
