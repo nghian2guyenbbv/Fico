@@ -314,7 +314,7 @@ public class AutomationService {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-		DEResponseQueryDTO deResponseQueryDTOList = mapper.treeToValue(request.path("body").path("data"), DEResponseQueryDTO.class);
+		DEResponseQueryDTO deResponseQueryDTOList = mapper.treeToValue(request.path("body"), DEResponseQueryDTO.class);
 
 		new Thread(() -> {
 			try {
@@ -330,6 +330,10 @@ public class AutomationService {
 	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
+		List<LoginDTO> returnAccounts= Arrays.asList(
+				LoginDTO.builder().userName("anhdlh").password("Tpf@1234").build()
+		);
+		Queue<LoginDTO> loginDTOQueue = new LinkedBlockingQueue<>();
 
 		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
@@ -342,7 +346,7 @@ public class AutomationService {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-		DESaleQueueDTO deSaleQueueDTOList = mapper.treeToValue(request.path("body").path("data"), DESaleQueueDTO.class);
+		DESaleQueueDTO deSaleQueueDTOList = mapper.treeToValue(request.path("body"), DESaleQueueDTO.class);
 
 		new Thread(() -> {
 			try {
