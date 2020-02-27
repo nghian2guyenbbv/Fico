@@ -169,7 +169,7 @@ public class AutomationHandlerService {
         }
     }
 
-    private void pushAccountToQueue(LoginDTO accountDTO) {
+    private void pushAccountToQueue(LoginDTO accountDTO,String project) {
         //synchronized (accounts) {
         if (!Objects.isNull(accountDTO)) {
 //                System.out.println("push to queue... : " + accountDTO.toString());
@@ -180,7 +180,7 @@ public class AutomationHandlerService {
                     e.printStackTrace();
                 }
                 Query queryUpdate = new Query();
-                queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()));
+                queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()).and("project").is(project));
                 Update update = new Update();
                 update.set("active", 0);
                 AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
@@ -234,7 +234,7 @@ public class AutomationHandlerService {
                     runAutomationDE_autoAssign(driver, mapValue, project, browser);
                     break;
                 case "runAutomationDE_ResponseQuery":
-                    accountDTO = pollAccountFromQueue(accounts, project);
+                    accountDTO = return_pollAccountFromQueue(accounts, project);
                     runAutomationDE_responseQuery(driver, mapValue, accountDTO);
                     break;
                 case "runAutomationDE_SaleQueue":
@@ -255,7 +255,7 @@ public class AutomationHandlerService {
             if (project.equals("MOMO")) {
                 pushAccountToQueue_OLD(accounts, accountDTO);
             } else {
-                pushAccountToQueue(accountDTO);
+                pushAccountToQueue(accountDTO, project);
             }
 
             if (driver != null) {
@@ -2926,7 +2926,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver);
             updateStatusRabbit(application, "updateFullApp");
-            pushAccountToQueue(accountDTO);
+            pushAccountToQueue(accountDTO, "DATAENTRY");
             if (driver != null) {
                 driver.close();
                 driver.quit();
@@ -3559,8 +3559,8 @@ public class AutomationHandlerService {
                     workerThreadPoolDE.execute(new Runnable() {
                         @Override
                         public void run() {
-                            runAutomationDE_autoAssign_run(loginDTO, browser);
-//                            runAutomationDE_autoAssign_run2(driver,loginDTO,browser);
+//                            runAutomationDE_autoAssign_run(loginDTO, browser);
+                            runAutomationDE_autoAssign_run(loginDTO, browser, project);
                         }
                     });
                 }
@@ -3573,7 +3573,7 @@ public class AutomationHandlerService {
         }
     }
 
-    private void runAutomationDE_autoAssign_run(LoginDTO accountDTO, String browser) {
+    private void runAutomationDE_autoAssign_run(LoginDTO accountDTO, String browser, String project) {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
@@ -3678,12 +3678,44 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver);
-            pushAccountToQueue(accountDTO);
+            pushAccountToQueue(accountDTO, project);
         }
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 
     //------------------------ RESPONSE_QUERY-----------------------------------------------------
+    private LoginDTO return_pollAccountFromQueue(Queue<LoginDTO> accounts, String project) throws Exception {
+        LoginDTO accountDTO = accounts.poll();
+
+        while (!Objects.isNull(accountDTO.getUserName()) && Objects.isNull(accountDTO.getPassword())) {
+            System.out.println("Wait to get account...");
+
+            Query query = new Query();
+            query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(accountDTO.getUserName()));
+            AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+            if (!Objects.isNull(accountFinOneDTO)) {
+                accountDTO = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                Update update = new Update();
+                update.set("active", 1);
+                AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                if (resultUpdate == null) {
+                    Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                    accountDTO = null;
+                } else {
+                    System.out.println("Get it:" + accountDTO.toString());
+                    System.out.println("Exist:" + accounts.size());
+                }
+            } else
+                Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
+        }
+
+        return accountDTO;
+    }
+
     public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
@@ -3751,7 +3783,7 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-//            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
             logout(driver);
         }
     }
