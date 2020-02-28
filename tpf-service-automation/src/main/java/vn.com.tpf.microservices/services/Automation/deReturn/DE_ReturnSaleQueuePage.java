@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.services.Automation.deReturn;
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
+import org.openqa.selenium.remote.LocalFileDetector;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.*;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
@@ -151,6 +153,7 @@ public class DE_ReturnSaleQueuePage {
     }
 
     public void setData(DESaleQueueDTO deSaleQueueDTO, String downLoadFileURL) {
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         try{
             await("applicationDivAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> applicationDivAssignedElement.isDisplayed());
@@ -219,13 +222,13 @@ public class DE_ReturnSaleQueuePage {
                 String docName = documentList.getFileName();
                 String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                 toFile += UUID.randomUUID().toString() + "_" + docName;
-
+//                toFile += docName;
                 try {
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if (file.exists()) {
                         String docUrl = file.getAbsolutePath();
-                        System.out.println("paht;" + docUrl);
+                        System.out.println("path;" + docUrl);
                         Thread.sleep(2000);
 
                         documentBtnUploadElement.sendKeys(docUrl);

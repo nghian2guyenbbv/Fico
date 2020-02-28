@@ -4,6 +4,8 @@ import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.LocalFileDetector;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
@@ -89,6 +91,7 @@ public class DE_ReturnRaiseQueryPage {
     }
 
     public void setData(DEResponseQueryDTO deResponseQueryDTO, String downLoadFileURL) {
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         try{
             await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> responseQueryFormElement.isDisplayed());
@@ -119,8 +122,8 @@ public class DE_ReturnRaiseQueryPage {
 
             String docName = deResponseQueryDTO.getDataDocument().getFileName();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-
             toFile+= UUID.randomUUID().toString()+"_"+ docName;
+
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
             File file = new File(toFile);
             if(file.exists()) {

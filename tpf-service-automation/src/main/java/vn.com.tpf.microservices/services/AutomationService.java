@@ -318,30 +318,22 @@ public class AutomationService {
 		Assert.notNull(request.get("body"), "no body");
 		DEResponseQueryDTO deResponseQueryDTOList = mapper.treeToValue(request.path("body"), DEResponseQueryDTO.class);
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where("applicationId").is(deResponseQueryDTOList.getAppId()));
-        Application applicationDTO = mongoTemplate.findOne(query, Application.class);
-        List<LoginDTO> returnAccounts= Arrays.asList(
-                LoginDTO.builder().userName(applicationDTO.getAutomationAcc()).build()
-        );
-
 		new Thread(() -> {
 			try {
-				runAutomationDE_ResponseQuery(deResponseQueryDTOList, returnAccounts);
+				runAutomationDE_ResponseQuery(deResponseQueryDTOList);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}).start();
-
+		
 		return response(0, body, deResponseQueryDTOList);
 	}
 
-	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList, List<LoginDTO> returnAccounts) throws Exception {
+	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
-		Queue<LoginDTO> return_loginDTOQueue = new LinkedBlockingQueue<>(returnAccounts);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(return_loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
