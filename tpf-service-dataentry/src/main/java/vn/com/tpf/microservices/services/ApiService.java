@@ -1478,7 +1478,7 @@ public class ApiService {
 			dataLogRes.set("payload", data);
 			log.info("{}", dataLogRes);
 
-			return mapper.createObjectNode().put("resultCode", 500).put("message", e.getMessage());
+			return mapper.createObjectNode().put("resultCode", 500).put("message", e.getMessage()).put("error-code", "exception");
 		}
 	}
 
