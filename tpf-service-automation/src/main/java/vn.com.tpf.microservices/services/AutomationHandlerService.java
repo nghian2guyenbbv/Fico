@@ -3765,6 +3765,7 @@ public class AutomationHandlerService {
             System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             responseModel.setProject(deResponseQueryDTO.getProject());
+            responseModel.setReference_id(deResponseQueryDTO.getReference_id());
             responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
             responseModel.setApp_id(deResponseQueryDTO.getAppId());
             responseModel.setAutomation_result("RESPONSEQUERY PASS");
@@ -3773,6 +3774,7 @@ public class AutomationHandlerService {
 
         } catch (Exception e) {
             responseModel.setProject(deResponseQueryDTO.getProject());
+            responseModel.setReference_id(deResponseQueryDTO.getReference_id());
             responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
             responseModel.setApp_id(deResponseQueryDTO.getAppId());
             responseModel.setAutomation_result("RESPONSEQUERY FAILED" + " - " + e.getMessage());
@@ -3849,6 +3851,7 @@ public class AutomationHandlerService {
             System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             responseModel.setProject(deSaleQueueDTO.getProject());
+            responseModel.setReference_id(deSaleQueueDTO.getReference_id());
             responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
             responseModel.setApp_id(deSaleQueueDTO.getAppId());
             responseModel.setAutomation_result("SALEQUEUE PASS");
@@ -3857,6 +3860,7 @@ public class AutomationHandlerService {
 
         } catch (Exception e) {
             responseModel.setProject(deSaleQueueDTO.getProject());
+            responseModel.setReference_id(deSaleQueueDTO.getReference_id());
             responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
             responseModel.setApp_id(deSaleQueueDTO.getAppId());
             responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + e.getMessage());
@@ -3868,6 +3872,7 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             logout(driver);
         }

@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.deReturn;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.remote.LocalFileDetector;
@@ -91,7 +92,7 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private List<WebElement> documentTableElement;
 
-//    @FindBy(how = How.XPATH, using = "//div[@id='document']//div//div[2]//div//input[contains(@id, 'executeDocumentIntegrationSet')]")
+    //    @FindBy(how = How.XPATH, using = "//div[@id='document']//div//div[2]//div//input[contains(@id, 'executeDocumentIntegrationSet')]")
     @FindBy(how = How.ID, using = "executeDocumentIntegrationSet")
     @CacheLookup
     private WebElement btnGetDocumentElement;
@@ -152,130 +153,122 @@ public class DE_ReturnSaleQueuePage {
         _driver = driver;
     }
 
+    @SneakyThrows
     public void setData(DESaleQueueDTO deSaleQueueDTO, String downLoadFileURL) {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-        try{
-            await("applicationDivAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> applicationDivAssignedElement.isDisplayed());
+        await("applicationDivAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationDivAssignedElement.isDisplayed());
 
-            poolElement.click();
+        poolElement.click();
 
-            await("applicationDivPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> applicationDivPoolElement.isDisplayed());
+        await("applicationDivPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationDivPoolElement.isDisplayed());
 
-            applicationPoolNumberElement.clear();
+        applicationPoolNumberElement.clear();
 
-            applicationPoolNumberElement.sendKeys(deSaleQueueDTO.getAppId());
+        applicationPoolNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
-            await("tbApplicationPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tbApplicationPoolElement.size() > 2);
+        await("tbApplicationPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbApplicationPoolElement.size() > 2);
 
-            WebElement applicationPoolAssignToMeNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'"+ deSaleQueueDTO.getAppId() +"')]//img[contains(@id, 'AssignToMe')]"));
+        WebElement applicationPoolAssignToMeNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'" + deSaleQueueDTO.getAppId() + "')]//img[contains(@id, 'AssignToMe')]"));
 
-            applicationPoolAssignToMeNumberElement.click();
+        applicationPoolAssignToMeNumberElement.click();
 
-            //Assigned
-            await("applicationFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> applicationFormElement.isDisplayed());
+        //Assigned
+        await("applicationFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationFormElement.isDisplayed());
 
-            applicationAssignedNumberElement.clear();
+        applicationAssignedNumberElement.clear();
 
-            applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
+        applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
-            await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tbApplicationAssignedElement.size() > 2);
+        await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbApplicationAssignedElement.size() > 2);
 
-            WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() +"')]"));
+        WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
 
-            applicationIdAssignedNumberElement.click();
+        applicationIdAssignedNumberElement.click();
 
-            await("appChildTabsElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> appChildTabsElement.isDisplayed());
+        await("appChildTabsElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> appChildTabsElement.isDisplayed());
 
-            applicationBtnDocumentElement.click();
+        applicationBtnDocumentElement.click();
 
-            await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentElement.isDisplayed());
+        await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> documentElement.isDisplayed());
 
-            await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> btnGetDocumentElement.isDisplayed());
+        await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnGetDocumentElement.isDisplayed());
 
-            btnGetDocumentElement.click();
-            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocument()) {
-                await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentTableElement.size() > 2);
-
-                documentNameElement.clear();
-
-                documentNameElement.sendKeys(documentList.getDocumentName());
-
-                await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentTableElement.size() > 2);
-
-                documentStatusElement.sendKeys("received");
-
-                await("application_upload visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentUploadElement.isDisplayed());
-
-                String fromFile = downLoadFileURL;
-                System.out.println("URLdownload: " + fromFile);
-                String docName = documentList.getFileName();
-                String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-                toFile += UUID.randomUUID().toString() + "_" + docName;
-//                toFile += docName;
-                try {
-                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-                    File file = new File(toFile);
-                    if (file.exists()) {
-                        String docUrl = file.getAbsolutePath();
-                        System.out.println("path;" + docUrl);
-                        Thread.sleep(2000);
-
-                        documentBtnUploadElement.sendKeys(docUrl);
-
-                        Utilities.captureScreenShot(_driver);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+        btnGetDocumentElement.click();
+        for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocument()) {
+            await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentTableElement.size() > 2);
 
             documentNameElement.clear();
 
-            documentNameElement.sendKeys(" ");
+            documentNameElement.sendKeys(documentList.getDocumentName());
 
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentTableElement.size() > 3);
-
-            documentBtnSaveElement.click();
-
-            await("document_table_body visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
 
-            documentLoadActivityElement.click();
+            documentStatusElement.sendKeys("received");
 
-            await("document_activity visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentActivityElement.isDisplayed());
+            await("application_upload visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentUploadElement.isDisplayed());
 
-            documentBtnCommentElement.click();
+            String fromFile = downLoadFileURL;
+            System.out.println("URLdownload: " + fromFile);
+            String docName = documentList.getFileName();
+            String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+            toFile += UUID.randomUUID().toString() + "_" + docName;
+            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+            File file = new File(toFile);
+            if (file.exists()) {
+                String docUrl = file.getAbsolutePath();
+                System.out.println("path;" + docUrl);
+                Thread.sleep(2000);
 
-            await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentTextCommentElement.isDisplayed());
+                documentBtnUploadElement.sendKeys(docUrl);
 
-            documentTextCommentElement.sendKeys(deSaleQueueDTO.getCommentText());
-
-            documentBtnAddCommnetElement.click();
-
-            Utilities.captureScreenShot(_driver);
-
-            JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
-            jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
-
-            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(_driver::getTitle, is("Application Grid"));
-
-        }catch (Exception e){
-            e.printStackTrace();
+                Utilities.captureScreenShot(_driver);
+            }
         }
+
+        documentNameElement.clear();
+
+        documentNameElement.sendKeys(" ");
+
+        await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> documentTableElement.size() > 3);
+
+        documentBtnSaveElement.click();
+
+        await("document_table_body visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> documentTableElement.size() > 2);
+
+        documentLoadActivityElement.click();
+
+        await("document_activity visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> documentActivityElement.isDisplayed());
+
+        documentBtnCommentElement.click();
+
+        await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> documentTextCommentElement.isDisplayed());
+
+        documentTextCommentElement.sendKeys(deSaleQueueDTO.getCommentText());
+
+        documentBtnAddCommnetElement.click();
+
+        Utilities.captureScreenShot(_driver);
+
+        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
+        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+
+        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("Application Grid"));
+
     }
 }

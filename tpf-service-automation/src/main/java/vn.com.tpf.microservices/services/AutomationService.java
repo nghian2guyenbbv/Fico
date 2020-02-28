@@ -325,7 +325,7 @@ public class AutomationService {
 				e.printStackTrace();
 			}
 		}).start();
-		
+
 		return response(0, body, deResponseQueryDTOList);
 	}
 

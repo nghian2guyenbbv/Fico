@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.deReturn;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -90,59 +91,55 @@ public class DE_ReturnRaiseQueryPage {
         _driver = driver;
     }
 
+    @SneakyThrows
     public void setData(DEResponseQueryDTO deResponseQueryDTO, String downLoadFileURL) {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-        try{
-            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> responseQueryFormElement.isDisplayed());
+        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> responseQueryFormElement.isDisplayed());
 
-            applicationNumberElement.clear();
-            applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
+        applicationNumberElement.clear();
+        applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
 
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tdResponseQueryElement.size() > 0);
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tdResponseQueryElement.size() > 0);
 
-            idRowResponseQueryElement.click();
+        idRowResponseQueryElement.click();
 
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tbDivResponseQueryElement.size() > 0);
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 0);
 
 
-            textSeachResponseQueryElement.clear();
-            textSeachResponseQueryElement.sendKeys("T_RETURN");
-            idRowCalculationElement.click();
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tbDivResponseQueryElement.size() > 0);
+        textSeachResponseQueryElement.clear();
+        textSeachResponseQueryElement.sendKeys("T_RETURN");
+        idRowCalculationElement.click();
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 0);
 
-            textResponseElement.clear();
-            textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
+        textResponseElement.clear();
+        textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
 
-            String fromFile = downLoadFileURL;
-            System.out.println("URLdownload: " + fromFile);
+        String fromFile = downLoadFileURL;
+        System.out.println("URLdownload: " + fromFile);
 
-            String docName = deResponseQueryDTO.getDataDocument().getFileName();
-            String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-            toFile+= UUID.randomUUID().toString()+"_"+ docName;
+        String docName = deResponseQueryDTO.getDataDocument().getFileName();
+        String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+        toFile += UUID.randomUUID().toString() + "_" + docName;
 
-            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-            File file = new File(toFile);
-            if(file.exists()) {
-                String docUrl = file.getAbsolutePath();
-                System.out.println("Path;" + docUrl);
-                Thread.sleep(2000);
+        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+        File file = new File(toFile);
+        if (file.exists()) {
+            String docUrl = file.getAbsolutePath();
+            System.out.println("Path;" + docUrl);
+            Thread.sleep(2000);
 
-                btnUploadFileElement.sendKeys(docUrl);
-
-                Utilities.captureScreenShot(_driver);
-            }
+            btnUploadFileElement.sendKeys(docUrl);
 
             Utilities.captureScreenShot(_driver);
-
-            btnSubmitResponseElement.click();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
+        Utilities.captureScreenShot(_driver);
+
+        btnSubmitResponseElement.click();
 
     }
 }
