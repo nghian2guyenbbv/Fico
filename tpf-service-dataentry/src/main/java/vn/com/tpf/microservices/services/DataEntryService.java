@@ -1422,9 +1422,9 @@ public class DataEntryService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("2");
 					responseModel.setData(responseUI);
-					responseModel.setMessage("uploadFile DigiTex fail!");
+					responseModel.setMessage("uploadFile Partner fail!");
 
-					description = "uploadFile DigiTex fail!";
+					description = "uploadFile Partner fail!";
 				}
 				Report report = new Report();
 				report.setQuickLeadId(quickLeadId.toString());
@@ -1480,7 +1480,7 @@ public class DataEntryService {
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code("2");
 						responseModel.setData(responseUI);
-						responseModel.setMessage("uploadFile DigiTex fail!");
+						responseModel.setMessage("uploadFile Partner fail!");
 					}
 				}else{
 					responseModel.setReference_id(UUID.randomUUID().toString());
