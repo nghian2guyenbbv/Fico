@@ -815,10 +815,13 @@ public class ApiService {
 
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
+
 						if(StringUtils.isEmpty(tokenPartner)){
 							return mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
 						}
+
 						headers_DT.set("authkey", tokenPartner);
 						headers_DT.setBearerAuth(tokenPartner);
 						parts_02.remove("description");
@@ -1413,12 +1416,11 @@ public class ApiService {
 
 				String dataString = mapper.writeValueAsString(data);
 
-
 				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 						Map.of("func", "pgpEncrypt", "body", Map.of("project", "sgbpo", "data", data)));
 
 				ObjectNode dataLogReq2 = mapper.createObjectNode();
-				dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
+				dataLogReq2.put("type", "[==DATAENTRY-PARTNER-REQUEST-ENCRYPTED-PGP==]");
 				dataLogReq2.put("referenceId", referenceId);
 				dataLogReq2.put("request_encrypt", encrypt);
 				log.info("{}", dataLogReq2);
@@ -1431,16 +1433,21 @@ public class ApiService {
 
 				ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
-				JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-						Map.of("func", "pgpDecrypt", "body", Map.of("project", "sgbpo", "data", res.getBody().toString())));
-
 				ObjectNode dataLogRes = mapper.createObjectNode();
 				dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
 				dataLogRes.put("referenceId", referenceId);
-				dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+				dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
 				dataLogRes.put("response", res.getBody());
-				dataLogRes.put("response_decrypt", decrypt);
 				log.info("{}", dataLogRes);
+
+				JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+						Map.of("func", "pgpDecrypt", "body", Map.of("project", "sgbpo", "data", res.getBody().toString())));
+
+				ObjectNode dataLogRes2 = mapper.createObjectNode();
+				dataLogRes2.put("type", "[==DATAENTRY-PARTNER-RESPONSE-DECRYPTED-PGP==]");
+				dataLogRes2.put("referenceId", referenceId);
+				dataLogRes2.set("response_decrypted", decrypt);
+				log.info("{}", dataLogRes2);
 				result = decrypt.path("data");
 			}
 			return result;
@@ -1476,7 +1483,6 @@ public class ApiService {
 	}
 
 	public String getTokenSaigonBpo(String url, Map account){
-		String tokenPartner = "";
 		try {
 			HttpHeaders headersAuth = new HttpHeaders();
 			headersAuth.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -1488,11 +1494,12 @@ public class ApiService {
 			HttpEntity<MultiValueMap<String, String>> requestToken = new HttpEntity<MultiValueMap<String, String>>(mapToken, headersAuth);
 			ResponseEntity<?> responseGetToken = restTemplate.postForEntity(url, requestToken , Object.class );
 			JsonNode body = mapper.convertValue(responseGetToken.getBody(), JsonNode.class);
-			tokenPartner = body.path("access_token").asText();
+			String tokenPartner = body.path("access_token").asText();
+			return tokenPartner;
 		}catch (Exception e){
 			log.error("Error in ApiService.getTokenSaigonBpo: " + e.getMessage());
+			return "";
 		}
-		return tokenPartner;
 	}
 
 
