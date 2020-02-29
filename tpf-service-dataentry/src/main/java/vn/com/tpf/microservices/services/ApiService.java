@@ -1363,23 +1363,22 @@ public class ApiService {
 		String referenceId = UUID.randomUUID().toString();
 		JsonNode result = null;
 		try {
+			ObjectNode dataLogReq = mapper.createObjectNode();
+			dataLogReq.put("type", "[==DATAENTRY-PARTNER-REQUEST==]");
+			dataLogReq.put("referenceId", referenceId);
+			dataLogReq.put("method", "POST");
+			dataLogReq.put("url", url);
+			dataLogReq.put("partnerId", partnerId);
+			dataLogReq.set("request_data", data);
+			log.info("{}", dataLogReq);
 			if(partnerId.equals("1")){
-				ObjectNode dataLogReq = mapper.createObjectNode();
-				dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
-				dataLogReq.put("referenceId", referenceId);
-				dataLogReq.put("method", "POST");
-				dataLogReq.put("url", url);
-				dataLogReq.put("request_data", data);
-				log.info("{}", dataLogReq);
-
 				String dataString = mapper.writeValueAsString(data);
-
 
 				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 						Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
 
 				ObjectNode dataLogReq2 = mapper.createObjectNode();
-				dataLogReq2.put("type", "[==DATAENTRY-PARTNER==REQUEST=PGP=]");
+				dataLogReq2.put("type", "[==DATAENTRY-DIGITEX-REQUEST-ENCRYPTED-PGP==]");
 				dataLogReq2.put("referenceId", referenceId);
 				dataLogReq2.put("request_encrypt", encrypt);
 				log.info("{}", dataLogReq2);
@@ -1394,33 +1393,30 @@ public class ApiService {
 
 				ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
+				ObjectNode dataLogRes = mapper.createObjectNode();
+				dataLogRes.put("type", "[==DATAENTRY-DIGITEX-RESPONSE==]");
+				dataLogRes.put("referenceId", referenceId);
+				dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+				dataLogRes.put("response", res.getBody());
+				log.info("{}", dataLogRes);
+
 				JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 						Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
 
-				ObjectNode dataLogRes = mapper.createObjectNode();
-				dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
-				dataLogRes.put("referenceId", referenceId);
-				dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-				dataLogRes.put("response", res.getBody());
-				dataLogRes.put("response_decrypt", decrypt);
-				log.info("{}", dataLogRes);
+				ObjectNode dataLogRes2 = mapper.createObjectNode();
+				dataLogRes2.put("type", "[==DATAENTRY-DIGITEX-RESPONSE-DECRYPTED-PGP==]");
+				dataLogRes2.put("referenceId", referenceId);
+				dataLogRes2.set("response_decrypted", decrypt);
+				log.info("{}", dataLogRes2);
 				result = decrypt.path("data");
 			} else if(partnerId.equals("2")){
-				ObjectNode dataLogReq = mapper.createObjectNode();
-				dataLogReq.put("type", "[==DATAENTRY-PARTNER==REQUEST==]");
-				dataLogReq.put("referenceId", referenceId);
-				dataLogReq.put("method", "POST");
-				dataLogReq.put("url", url);
-				dataLogReq.put("request_data", data);
-				log.info("{}", dataLogReq);
-
 				String dataString = mapper.writeValueAsString(data);
 
 				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
 						Map.of("func", "pgpEncrypt", "body", Map.of("project", "sgbpo", "data", data)));
 
 				ObjectNode dataLogReq2 = mapper.createObjectNode();
-				dataLogReq2.put("type", "[==DATAENTRY-PARTNER-REQUEST-ENCRYPTED-PGP==]");
+				dataLogReq2.put("type", "[==DATAENTRY-SGBPO-REQUEST-ENCRYPTED-PGP==]");
 				dataLogReq2.put("referenceId", referenceId);
 				dataLogReq2.put("request_encrypt", encrypt);
 				log.info("{}", dataLogReq2);
@@ -1434,7 +1430,7 @@ public class ApiService {
 				ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
 
 				ObjectNode dataLogRes = mapper.createObjectNode();
-				dataLogRes.put("type", "[==DATAENTRY-PARTNER==RESPONSE==]");
+				dataLogRes.put("type", "[==DATAENTRY-SGBPO-RESPONSE==]");
 				dataLogRes.put("referenceId", referenceId);
 				dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
 				dataLogRes.put("response", res.getBody());
@@ -1444,13 +1440,15 @@ public class ApiService {
 						Map.of("func", "pgpDecrypt", "body", Map.of("project", "sgbpo", "data", res.getBody().toString())));
 
 				ObjectNode dataLogRes2 = mapper.createObjectNode();
-				dataLogRes2.put("type", "[==DATAENTRY-PARTNER-RESPONSE-DECRYPTED-PGP==]");
+				dataLogRes2.put("type", "[==DATAENTRY-SGBPO-RESPONSE-DECRYPTED-PGP==]");
 				dataLogRes2.put("referenceId", referenceId);
 				dataLogRes2.set("response_decrypted", decrypt);
 				log.info("{}", dataLogRes2);
 				result = decrypt.path("data");
 			}
+
 			return result;
+
 			//KHONG PGP
 			/*ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==PARTNER==NOT==PGP]");
