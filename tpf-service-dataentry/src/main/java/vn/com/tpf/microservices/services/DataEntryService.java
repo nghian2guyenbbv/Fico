@@ -3677,7 +3677,7 @@ public class DataEntryService {
 			if (request.path("body").path("data").path("applicationId").textValue() == null){
 				String partnerId = "";
 				Query query = new Query();
-				query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").textValue()));
+				query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("data").path("quickLeadId").textValue()));
 				List<Application> checkExist = mongoTemplate.find(query, Application.class);
 				if(checkExist.size() > 0){
 					partnerId = checkExist.get(0).getPartnerId();
