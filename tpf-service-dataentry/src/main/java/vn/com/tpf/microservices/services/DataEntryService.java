@@ -1086,7 +1086,7 @@ public class DataEntryService {
 								responseModel.setReference_id(referenceId);
 								responseModel.setDate_time(new Timestamp(new Date().getTime()));
 								responseModel.setResult_code("1");
-								responseModel.setMessage(responseDG.path("error-description").textValue());
+								responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
 
 								return Map.of("status", 200, "data", responseModel);
 							}
@@ -1336,6 +1336,10 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp", "body",
+									appData.get(0)));
+
 					Report report = new Report();
 					report.setQuickLeadId(data.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
@@ -1368,7 +1372,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1667,6 +1671,11 @@ public class DataEntryService {
 //					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexCmInfoApi, entity, Object.class);
 //					JsonNode body = mapper.valueToTree(res.getBody());
 
+						Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+						rabbitMQService.send("tpf-service-app",
+								Map.of("func", "updateApp", "reference_id", referenceId,
+										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+
 						Report report = new Report();
 						report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 						report.setApplicationId(request.path("body").path("applicationId").textValue());
@@ -1675,11 +1684,6 @@ public class DataEntryService {
 						report.setCreatedBy("AUTOMATION");
 						report.setCreatedDate(new Date());
 						mongoTemplate.save(report);
-
-						Application dataFullApp = mongoTemplate.findOne(query, Application.class);
-						rabbitMQService.send("tpf-service-app",
-								Map.of("func", "updateApp", "reference_id", referenceId,
-										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 					}
 				}else{
 					Report report = new Report();
@@ -1720,7 +1724,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -2847,6 +2851,10 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "quickLeadApp", "body",
+									appData.get(0)));
+
 					Report report = new Report();
 					report.setQuickLeadId(data.getQuickLeadId());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
@@ -2859,10 +2867,6 @@ public class DataEntryService {
 					report.setPartnerName(resultUpdate.getPartnerName());
 
 					mongoTemplate.save(report);
-
-					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "quickLeadApp", "body",
-									appData.get(0)));
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -2883,7 +2887,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -3241,7 +3245,7 @@ public class DataEntryService {
 								responseModel.setReference_id(referenceId);
 								responseModel.setDate_time(new Timestamp(new Date().getTime()));
 								responseModel.setResult_code("1");
-								responseModel.setMessage(responseDG.path("error-description").textValue());
+								responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
 
 								return Map.of("status", 200, "data", responseModel);
 							}
@@ -3395,6 +3399,11 @@ public class DataEntryService {
 						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
 					}
 
+					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
 					Report report = new Report();
 					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
@@ -3407,13 +3416,7 @@ public class DataEntryService {
 					report.setPartnerName(partnerName);
 
 					mongoTemplate.save(report);
-
-					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
-					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp","reference_id", referenceId,
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 				}
-
 				else{
 					Report report = new Report();
 					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
@@ -3457,7 +3460,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
