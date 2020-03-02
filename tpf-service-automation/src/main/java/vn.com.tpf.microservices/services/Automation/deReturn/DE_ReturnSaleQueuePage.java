@@ -109,9 +109,7 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private WebElement documentBtnUploadElement;
 
-    @FindBys(
-            @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Saves')]")
-    )
+    @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")
     @CacheLookup
     private WebElement documentBtnSaveElement;
 
@@ -126,10 +124,6 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'activityDiv')]//a[contains(@id, 'loadApplicantInfo')]")
     @CacheLookup
     private WebElement documentLoadActivityElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'activityDiv')]//div[contains(@id, 'collapse-uact')]")
-    @CacheLookup
-    private WebElement documentActivityElement;
 
     @FindBy(how = How.ID, using = "comment_button")
     @CacheLookup
@@ -227,7 +221,7 @@ public class DE_ReturnSaleQueuePage {
             File file = new File(toFile);
             if (file.exists()) {
                 String docUrl = file.getAbsolutePath();
-                System.out.println("path;" + docUrl);
+                System.out.println("PATH:" + docUrl);
                 Thread.sleep(2000);
 
                 documentBtnUploadElement.sendKeys(docUrl);
@@ -250,8 +244,8 @@ public class DE_ReturnSaleQueuePage {
 
         documentLoadActivityElement.click();
 
-        await("document_activity visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentActivityElement.isDisplayed());
+        await("documentBtnCommentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> documentBtnCommentElement.isDisplayed());
 
         documentBtnCommentElement.click();
 
