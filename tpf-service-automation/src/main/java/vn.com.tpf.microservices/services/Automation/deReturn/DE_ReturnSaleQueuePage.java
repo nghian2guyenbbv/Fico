@@ -150,24 +150,6 @@ public class DE_ReturnSaleQueuePage {
     @SneakyThrows
     public void setData(DESaleQueueDTO deSaleQueueDTO, String downLoadFileURL) {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-        await("applicationDivAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationDivAssignedElement.isDisplayed());
-
-        poolElement.click();
-
-        await("applicationDivPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationDivPoolElement.isDisplayed());
-
-        applicationPoolNumberElement.clear();
-
-        applicationPoolNumberElement.sendKeys(deSaleQueueDTO.getAppId());
-
-        await("tbApplicationPoolElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationPoolElement.size() > 2);
-
-        WebElement applicationPoolAssignToMeNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'" + deSaleQueueDTO.getAppId() + "')]//img[contains(@id, 'AssignToMe')]"));
-
-        applicationPoolAssignToMeNumberElement.click();
 
         //Assigned
         await("applicationFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
