@@ -92,8 +92,8 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private List<WebElement> documentTableElement;
 
-    //    @FindBy(how = How.XPATH, using = "//div[@id='document']//div//div[2]//div//input[contains(@id, 'executeDocumentIntegrationSet')]")
-    @FindBy(how = How.ID, using = "executeDocumentIntegrationSet")
+    @FindBy(how = How.XPATH, using = "//input[@id='executeDocumentIntegrationSet']")
+//    @FindBy(how = How.ID, using = "executeDocumentIntegrationSet")
     @CacheLookup
     private WebElement btnGetDocumentElement;
 
@@ -150,7 +150,6 @@ public class DE_ReturnSaleQueuePage {
     @SneakyThrows
     public void setData(DESaleQueueDTO deSaleQueueDTO, String downLoadFileURL) {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-
         //Assigned
         await("applicationFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationFormElement.isDisplayed());
@@ -178,7 +177,9 @@ public class DE_ReturnSaleQueuePage {
                 .until(() -> btnGetDocumentElement.isDisplayed());
 
         btnGetDocumentElement.click();
-        for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocument()) {
+
+        for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
+
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
 

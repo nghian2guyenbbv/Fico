@@ -3837,24 +3837,22 @@ public class AutomationHandlerService {
                     .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
             de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
 
-            stage = "HOME PAGE";
             homePage = new HomePage(driver);
-            // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
-
             stage = "SALE QUEUE";
+
             // ========== SALE QUEUE =================
             DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
             de_ReturnSaleQueuePage.getApplicationElement().click();
             de_ReturnSaleQueuePage.setData(deSaleQueueDTO, downdloadFileURL);
 
-            DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
-            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocument()) {
-                if (documentList.getDocumentName().contains("(ACCA)")) {
-                    de_ReturnApplicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
-                }
-                break;
-            }
+//            DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
+//            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
+//                if (documentList.getDocumentName().contains("(ACCA)")) {
+//                    de_ReturnApplicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
+//                }
+//                break;
+//            }
 
             System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 

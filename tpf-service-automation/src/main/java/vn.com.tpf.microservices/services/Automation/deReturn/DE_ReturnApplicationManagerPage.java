@@ -78,7 +78,7 @@ public class DE_ReturnApplicationManagerPage {
         _driver = driver;
     }
 
-    public void setData(String appId,String user) {
+    public void setData(String appId, String user) {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 

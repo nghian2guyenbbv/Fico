@@ -22,7 +22,7 @@ public class DESaleQueueDTO {
     private String lastUpdate;
     private int checkACCA = 0;
 
-    private List<DESaleQueueDocumentDTO> dataDocument;
+    private List<DESaleQueueDocumentDTO> dataDocuments;
 
     private String commentText;
     private String reference_id;
