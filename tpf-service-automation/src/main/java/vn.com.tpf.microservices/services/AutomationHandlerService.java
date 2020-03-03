@@ -20,6 +20,7 @@ import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.models.ResponseAutomationModel;
@@ -3784,8 +3785,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
-            autoUpdateStatusRabbit(responseModel, "updateAutomation");
             logout(driver);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
     //------------------------ END RESPONSE_QUERY -----------------------------------------------------
@@ -3833,6 +3834,7 @@ public class AutomationHandlerService {
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
             de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
+            System.out.println(stage + ": DONE");
 
             homePage = new HomePage(driver);
             homePage.getMenuApplicationElement().click();
@@ -3843,15 +3845,15 @@ public class AutomationHandlerService {
             de_ReturnSaleQueuePage.getApplicationElement().click();
             de_ReturnSaleQueuePage.setData(deSaleQueueDTO, downdloadFileURL);
 
-            /*DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
+            System.out.println(stage + ": DONE");
+            System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
             for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
                 if (documentList.getDocumentName().contains("(ACCA)")) {
-                    de_ReturnApplicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
                 }
                 break;
-            }*/
-
-            System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            }
 
             // ========= UPDATE DB ============================
             Query queryUpdate1 = new Query();
@@ -3884,10 +3886,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
-            try {
-                autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            }catch (Exception e){};
             logout(driver);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
     //------------------------ END DE_SALE_QUEUE -----------------------------------------------------
@@ -3899,7 +3899,9 @@ public class AutomationHandlerService {
                         "body", Map.of("project", responseAutomationModel.getProject(),
                                 "transaction_id", responseAutomationModel.getTransaction_id(),
                                 "app_id", responseAutomationModel.getApp_id(),
-                                "automation_result", responseAutomationModel.getAutomation_result())));
+                                "automation_result", responseAutomationModel.getAutomation_result(),
+                                "reference_id", responseAutomationModel.getReference_id()
+                        )));
         System.out.println("rabit:=>" + jsonNode.toString());
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
