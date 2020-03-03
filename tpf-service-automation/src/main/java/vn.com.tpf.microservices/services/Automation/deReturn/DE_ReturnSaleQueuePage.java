@@ -183,9 +183,8 @@ public class DE_ReturnSaleQueuePage {
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
 
-            documentNameElement.clear();
-
-            documentNameElement.sendKeys(documentList.getDocumentName());
+//            documentNameElement.clear();
+//            documentNameElement.sendKeys(documentList.getDocumentName());
 
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
@@ -201,7 +200,7 @@ public class DE_ReturnSaleQueuePage {
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             toFile += UUID.randomUUID().toString() + "_" + docName;
 
-            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'" + deSaleQueueDTO.getAppId() + "')]//img[contains(@id, 'AssignToMe')]"));
+            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//table[@id='lendingDocumentsTable']//tbody//td[contains(*,'" + documentList.getDocumentName() + "')][2]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
 
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
             File file = new File(toFile);
@@ -210,14 +209,13 @@ public class DE_ReturnSaleQueuePage {
                 System.out.println("PATH:" + docUrl);
                 Thread.sleep(2000);
 
-                documentBtnUploadElement.sendKeys(docUrl);
+                documentBtnUploadElement2.sendKeys(docUrl);
                 Utilities.captureScreenShot(_driver);
             }
         }
 
-        documentNameElement.clear();
-
-        documentNameElement.sendKeys(" ");
+//        documentNameElement.clear();
+//        documentNameElement.sendKeys(" ");
 
         await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 3);
