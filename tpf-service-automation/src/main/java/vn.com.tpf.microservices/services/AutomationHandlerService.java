@@ -184,14 +184,15 @@ public class AutomationHandlerService {
        // }
     }
 
-    public void logout(WebDriver driver) {
+    public void logout(WebDriver driver,String accountAuto) {
         try {
 
             System.out.println("Logout");
             LogoutPage logoutPage = new LogoutPage(driver);
             logoutPage.logout();
+            log.info("Logout: Done => " + accountAuto);
         } catch (Exception e) {
-            System.out.println("LOGOUT:" + e.toString());
+            System.out.println("LOGOUT: =>" + accountAuto +" - " + e.toString());
         }
     }
 
@@ -273,8 +274,10 @@ public class AutomationHandlerService {
             stage="LOGIN FINONE";
             HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
+            Utilities.captureScreenShot(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
             //actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
             
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -446,7 +449,7 @@ public class AutomationHandlerService {
             {
                 System.out.println(e.toString());
             }
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -476,9 +479,10 @@ public class AutomationHandlerService {
             stage="LOGIN FINONE";
             HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
+            Utilities.captureScreenShot(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
+            Utilities.captureScreenShot(driver);
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
 
@@ -729,22 +733,9 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
 
-            logout(driver);
-//
-//            if(application.getStage().equals("LOGIN FINONE") && application.getDescription().contains("Login timeout"))
-//            {
-//                new Thread(() -> {
-//                    try {
-//                        Thread.sleep(300000);
-//                        retry_runAutomation_UpdateInfo(mapValue);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }).start();
-//            }
-//            else {
-                updateStatusRabbit(application, "updateFullApp");
-            //}
+            logout(driver,accountDTO.getUserName());
+
+            updateStatusRabbit(application, "updateFullApp");
         }
     }
 
@@ -1036,7 +1027,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(stage);
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -1271,7 +1262,7 @@ public class AutomationHandlerService {
         } finally {
             updateStatusRabbit(application, "updateAppError");
             System.out.println(stage);
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -1437,7 +1428,7 @@ public class AutomationHandlerService {
         } finally {
             updateStatusRabbit(application, "updateAppError");
             System.out.println(stage);
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -1719,7 +1710,7 @@ public class AutomationHandlerService {
         } finally {
             updateStatusRabbit(application, "updateAppError");
             System.out.println(stage);
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -1986,7 +1977,7 @@ public class AutomationHandlerService {
         } finally {
             updateStatusRabbit(application, "updateAppError");
             System.out.println(stage);
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -2322,7 +2313,7 @@ public class AutomationHandlerService {
         } finally {
             updateStatusRabbit(application, "updateAppError");
             System.out.println(stage);
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -2624,7 +2615,7 @@ public class AutomationHandlerService {
         } finally {
             updateStatusRabbit(application, "updateAppError");
             System.out.println(stage);
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
         }
     }
 
@@ -2914,7 +2905,7 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
             updateStatusRabbit(application, "updateFullApp");
             pushAccountToQueue(accountDTO);
             if (driver != null) {
@@ -3194,7 +3185,7 @@ public class AutomationHandlerService {
             {
                 application.setApplicationId("UNKNOW");
             }
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
             LD_updateStatusRabbit(application,"updateAutomation","momo");
         }
     }
@@ -3498,7 +3489,7 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
             LD_updateStatusRabbit(application,"updateAutomation","fpt");
         }
     }
@@ -3672,7 +3663,7 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            logout(driver);
+            logout(driver,accountDTO.getUserName());
             pushAccountToQueue(accountDTO);
         }
     }
