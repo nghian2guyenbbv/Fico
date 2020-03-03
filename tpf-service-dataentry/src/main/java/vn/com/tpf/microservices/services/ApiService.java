@@ -884,7 +884,6 @@ public class ApiService {
 
 			//------------- test khong pgp -------
 
-
 //			HttpHeaders headers = new HttpHeaders();
 //			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 //			headers.set("authkey", digitexToken);
@@ -910,7 +909,8 @@ public class ApiService {
 			dataLogRes.set("payload", data);
 			log.info("{}", dataLogRes);
 
-			return mapper.createObjectNode().put("resultCode", 500).put("message", e.getMessage());
+			return mapper.createObjectNode().put("resultCode", 500).put("message", e.getMessage())
+					.put("error-code", "api error: ").put("error-description", e.toString());
 		}
 	}
 
