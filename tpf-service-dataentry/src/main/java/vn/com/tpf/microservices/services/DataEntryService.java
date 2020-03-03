@@ -1938,6 +1938,9 @@ public class DataEntryService {
 									dataUpdateSendAuto = item.getResponse().getData();
 									dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
 									dataUpdateSendAuto.setStage(item.getStage());
+									if (dataFullApp.getError() != null){
+                                        dataUpdateSendAuto.setError(dataFullApp.getError());
+                                    }
 									break;
 								}
 							}
