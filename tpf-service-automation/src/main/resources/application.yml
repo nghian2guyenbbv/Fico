@@ -15,7 +15,6 @@ spring:
     seleHost: localhost
     selePort: 4444
     downloadFile: http://10.131.23.30:3001/v1/file/
-
 eureka:
   client:
     serviceUrl:
