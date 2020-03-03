@@ -20,19 +20,16 @@ import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
-import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.models.ResponseAutomationModel;
 import vn.com.tpf.microservices.services.Automation.*;
-import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnApplicationManagerPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -3887,7 +3884,9 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
-            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            try {
+                autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            }catch (Exception e){};
             logout(driver);
         }
     }

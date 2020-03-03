@@ -85,7 +85,7 @@ public class DE_ReturnSaleQueuePage {
     private WebElement documentElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//input[contains(@type, 'text')]")
-    @CacheLookup
+//    @CacheLookup
     private WebElement documentNameElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody//tr")
@@ -98,11 +98,11 @@ public class DE_ReturnSaleQueuePage {
     private WebElement btnGetDocumentElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody//tr//td[4]//select")
-    @CacheLookup
+//    @CacheLookup
     private WebElement documentStatusElement;
 
     @FindBy(how = How.XPATH, using = "//table[@class='table table-bordered no-border']")
-    @CacheLookup
+//    @CacheLookup
     private WebElement documentUploadElement;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]")
@@ -231,6 +231,8 @@ public class DE_ReturnSaleQueuePage {
                 .until(() -> documentBtnCommentElement.isDisplayed());
 
         documentBtnCommentElement.click();
+
+        Utilities.captureScreenShot(_driver);
 
         await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTextCommentElement.isDisplayed());

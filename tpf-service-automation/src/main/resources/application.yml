@@ -1,11 +1,11 @@
 spring:
   rabbitmq:
-    host: localhost
+    host: 10.131.23.30
   data:
     mongodb:
       uri: mongodb://10.131.23.30:27017/tpfdb
   url:
-    downloadFile: abc
+    downloadFile: http://10.131.23.30:3001/v1/file/
 eureka:
   client:
     serviceUrl:
