@@ -201,6 +201,8 @@ public class DE_ReturnSaleQueuePage {
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             toFile += UUID.randomUUID().toString() + "_" + docName;
 
+            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'" + deSaleQueueDTO.getAppId() + "')]//img[contains(@id, 'AssignToMe')]"));
+
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
             File file = new File(toFile);
             if (file.exists()) {

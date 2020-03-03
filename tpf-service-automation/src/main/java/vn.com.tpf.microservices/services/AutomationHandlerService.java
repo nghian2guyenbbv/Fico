@@ -25,14 +25,12 @@ import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.models.ResponseAutomationModel;
 import vn.com.tpf.microservices.services.Automation.*;
-import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnApplicationManagerPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -3787,8 +3785,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
-            autoUpdateStatusRabbit(responseModel, "updateAutomation");
             logout(driver);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
     //------------------------ END RESPONSE_QUERY -----------------------------------------------------
@@ -3846,13 +3844,12 @@ public class AutomationHandlerService {
             de_ReturnSaleQueuePage.getApplicationElement().click();
             de_ReturnSaleQueuePage.setData(deSaleQueueDTO, downdloadFileURL);
 
-            /*DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
             for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
                 if (documentList.getDocumentName().contains("(ACCA)")) {
-                    de_ReturnApplicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
                 }
                 break;
-            }*/
+            }
 
             System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
@@ -3887,8 +3884,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
-            autoUpdateStatusRabbit(responseModel, "updateAutomation");
             logout(driver);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
     //------------------------ END DE_SALE_QUEUE -----------------------------------------------------
