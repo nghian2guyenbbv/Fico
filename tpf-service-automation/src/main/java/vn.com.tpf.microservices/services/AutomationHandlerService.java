@@ -3846,13 +3846,13 @@ public class AutomationHandlerService {
             de_ReturnSaleQueuePage.getApplicationElement().click();
             de_ReturnSaleQueuePage.setData(deSaleQueueDTO, downdloadFileURL);
 
-//            DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
-//            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
-//                if (documentList.getDocumentName().contains("(ACCA)")) {
-//                    de_ReturnApplicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
-//                }
-//                break;
-//            }
+            /*DE_ReturnApplicationManagerPage de_ReturnApplicationManagerPage = new DE_ReturnApplicationManagerPage(driver);
+            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
+                if (documentList.getDocumentName().contains("(ACCA)")) {
+                    de_ReturnApplicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
+                }
+                break;
+            }*/
 
             System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 

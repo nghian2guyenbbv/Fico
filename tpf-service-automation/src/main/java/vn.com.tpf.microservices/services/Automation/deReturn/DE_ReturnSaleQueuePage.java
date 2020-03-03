@@ -106,7 +106,7 @@ public class DE_ReturnSaleQueuePage {
     private WebElement documentUploadElement;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]")
-    @CacheLookup
+//    @CacheLookup
     private WebElement documentBtnUploadElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")
@@ -200,6 +200,7 @@ public class DE_ReturnSaleQueuePage {
             String docName = documentList.getFileName();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             toFile += UUID.randomUUID().toString() + "_" + docName;
+
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
             File file = new File(toFile);
             if (file.exists()) {
@@ -208,7 +209,6 @@ public class DE_ReturnSaleQueuePage {
                 Thread.sleep(2000);
 
                 documentBtnUploadElement.sendKeys(docUrl);
-
                 Utilities.captureScreenShot(_driver);
             }
         }
