@@ -89,7 +89,7 @@ public class DE_ReturnSaleQueuePage {
     private WebElement documentNameElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody//tr")
-    @CacheLookup
+//    @CacheLookup
     private List<WebElement> documentTableElement;
 
     @FindBy(how = How.XPATH, using = "//input[@id='executeDocumentIntegrationSet']")
@@ -214,21 +214,36 @@ public class DE_ReturnSaleQueuePage {
             }
         }
 
-//        documentNameElement.clear();
-//        documentNameElement.sendKeys(" ");
+        Utilities.captureScreenShot(_driver);
+        System.out.println("UPLOAD: DONE");
+
+        documentNameElement.clear();
+
+        documentNameElement.sendKeys(" ");
+
+        Utilities.captureScreenShot(_driver);
+
 
         await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 3);
 
         documentBtnSaveElement.click();
 
+        System.out.println("SAVE DOC : DONE");
+
+        Utilities.captureScreenShot(_driver);
+
         await("document_table_body visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 2);
+
+        Utilities.captureScreenShot(_driver);
 
         documentLoadActivityElement.click();
 
         await("documentBtnCommentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentBtnCommentElement.isDisplayed());
+
+        Utilities.captureScreenShot(_driver);
 
         documentBtnCommentElement.click();
 
@@ -243,8 +258,12 @@ public class DE_ReturnSaleQueuePage {
 
         Utilities.captureScreenShot(_driver);
 
-        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
-        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isDisplayed());
+
+        btnMoveToNextStageElement.click();
+
+        Utilities.captureScreenShot(_driver);
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
