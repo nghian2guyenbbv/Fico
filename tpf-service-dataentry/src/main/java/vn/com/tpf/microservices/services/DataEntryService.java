@@ -1188,6 +1188,19 @@ public class DataEntryService {
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
 			}else{
+                try{
+                    if (checkExist.get(0).getStatus().equals("COMPLETED")){
+                        responseModel.setRequest_id(requestId);
+                        responseModel.setReference_id(referenceId);
+                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                        responseModel.setResult_code("1");
+                        responseModel.setMessage("applicationId is completed!");
+
+                        return Map.of("status", 200, "data", responseModel);
+                    }
+                }
+                catch (Exception ex){}
+
 				Query queryUpdate = new Query();
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 
@@ -1924,6 +1937,7 @@ public class DataEntryService {
 								if (item.getResponse() != null){
 									dataUpdateSendAuto = item.getResponse().getData();
 									dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+									dataUpdateSendAuto.setStage(item.getStage());
 									break;
 								}
 							}
