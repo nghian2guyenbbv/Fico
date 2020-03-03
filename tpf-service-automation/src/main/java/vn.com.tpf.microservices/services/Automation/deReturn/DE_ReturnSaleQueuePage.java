@@ -159,7 +159,7 @@ public class DE_ReturnSaleQueuePage {
         applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
         await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 2);
+                .until(() -> tbApplicationAssignedElement.size() > 0);
 
         WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
 
@@ -182,9 +182,6 @@ public class DE_ReturnSaleQueuePage {
 
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
-
-//            documentNameElement.clear();
-//            documentNameElement.sendKeys(documentList.getDocumentName());
 
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
@@ -216,13 +213,6 @@ public class DE_ReturnSaleQueuePage {
 
         Utilities.captureScreenShot(_driver);
         System.out.println("UPLOAD: DONE");
-
-        documentNameElement.clear();
-
-        documentNameElement.sendKeys(" ");
-
-        Utilities.captureScreenShot(_driver);
-
 
         await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 3);
@@ -261,7 +251,10 @@ public class DE_ReturnSaleQueuePage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        btnMoveToNextStageElement.click();
+        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
+        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+
+//        btnMoveToNextStageElement.click();
 
         Utilities.captureScreenShot(_driver);
 
