@@ -271,7 +271,7 @@ public class DataEntryController {
 	public ResponseEntity<?> comment(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "commentApp");
+		request.put("func", "old_commentApp");
 		request.put("token", token);
 		request.put("body", body);
 
@@ -299,7 +299,7 @@ public class DataEntryController {
 	public ResponseEntity<?> quicklead(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "quickLead");
+		request.put("func", "old_quickLead");
 		request.put("token", token);
 		request.put("body", body);
 
@@ -1091,7 +1091,7 @@ public class DataEntryController {
 	public ResponseEntity<?> commentV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "commentAppV2");
+		request.put("func", "commentApp");
 		request.put("token", token);
 		request.put("body", body);
 
@@ -1105,7 +1105,7 @@ public class DataEntryController {
 	public ResponseEntity<?> quickleadV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "quickLeadV2");
+		request.put("func", "quickLead");
 		request.put("token", token);
 		request.put("body", body);
 

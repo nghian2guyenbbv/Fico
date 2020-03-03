@@ -765,7 +765,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> commentApp(JsonNode request, JsonNode token) {
+	public Map<String, Object> oldCommentApp(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -1241,7 +1241,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> quickLead(JsonNode request, JsonNode token) {
+	public Map<String, Object> oldQuickLead(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -1601,7 +1601,7 @@ public class DataEntryService {
 
 	}
 
-	public Map<String, Object> updateAutomation(JsonNode request, JsonNode token) {
+	public Map<String, Object> oldUpdateAutomation(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -1729,7 +1729,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> updateFullApp(JsonNode request, JsonNode token) {
+	public Map<String, Object> oldUpdateFullApp(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -1883,7 +1883,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> updateAppError(JsonNode request, JsonNode token) {
+	public Map<String, Object> oldUpdateAppError(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String applicationId = "";
@@ -2563,7 +2563,7 @@ public class DataEntryService {
 		return result;
 	}
 
-	public Map<String, Object> updateFullAppV2(JsonNode request, JsonNode token) {
+	public Map<String, Object> updateFullApp(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2752,7 +2752,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> quickLeadV2(JsonNode request, JsonNode token) {
+	public Map<String, Object> quickLead(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -2892,7 +2892,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> commentAppV2(JsonNode request, JsonNode token) {
+	public Map<String, Object> commentApp(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
@@ -3311,7 +3311,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> updateAutomationV2(JsonNode request, JsonNode token) {
+	public Map<String, Object> updateAutomation(JsonNode request, JsonNode token) {
 
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
@@ -3465,7 +3465,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> updateAppErrorV2(JsonNode request, JsonNode token) {
+	public Map<String, Object> updateAppError(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String applicationId = "";
