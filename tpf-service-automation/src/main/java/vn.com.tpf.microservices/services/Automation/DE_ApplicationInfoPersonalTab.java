@@ -168,6 +168,9 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "address3ToBeAdded_country")
     private WebElement address3Element;
 
+    @FindBy(how = How.ID, using = "address_landmark")
+    private WebElement addressLandmark;
+
     @FindBy(how = How.ID, using = "address_noOfYearsAtCurrentAdress")
     private WebElement currentAddrYearsElement;
 
@@ -189,6 +192,9 @@ public class DE_ApplicationInfoPersonalTab {
 
     @FindBy(how = How.XPATH, using = "//*[@id='phoneNumber_phoneNumberList_new1']")
     private WebElement primaryNumberElement;
+
+    @FindBy(how = How.XPATH, using = "//*[@id='extension_phoneNumberList_new1']")
+    private WebElement primaryEXTNElement;
 
     @FindBy(how = How.ID, using = "create_another_Address")
     private WebElement cbCreateAnotherElement;
@@ -319,6 +325,8 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'NUMBER')]")
     private WebElement updatePrimaryNumberElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'EXTN')]")
+    private WebElement updatePrimaryExtElement;
 
     public DE_ApplicationInfoPersonalTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -653,6 +661,10 @@ public class DE_ApplicationInfoPersonalTab {
             address3Element.sendKeys(data.getWard());
 
 
+            //update them landmard
+            addressLandmark.clear();
+            addressLandmark.sendKeys(data.getAddressLandmark());
+
             currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
             currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
 //            currentCityYearsElement.sendKeys(data.getCityDurationYear());
@@ -664,6 +676,8 @@ public class DE_ApplicationInfoPersonalTab {
             primaryStdElement.sendKeys(data.getPriStd());
             primaryNumberElement.clear();
             primaryNumberElement.sendKeys(data.getPriNumber());
+            primaryEXTNElement.clear();
+            primaryEXTNElement.sendKeys(data.getPriExt());
 
             mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             Utilities.captureScreenShot(_driver);
@@ -810,6 +824,10 @@ public class DE_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
 
+                //update them landmard
+                addressLandmark.clear();
+                addressLandmark.sendKeys(data.getAddressLandmark());
+
                 currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
@@ -819,6 +837,8 @@ public class DE_ApplicationInfoPersonalTab {
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
                 updatePrimaryNumberElement.clear();
                 updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+                updatePrimaryExtElement.clear();
+                updatePrimaryExtElement.sendKeys(data.getPriExt());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
@@ -908,6 +928,10 @@ public class DE_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
 
+                //update them landmard
+                addressLandmark.clear();
+                addressLandmark.sendKeys(data.getAddressLandmark());
+
                 currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
@@ -917,6 +941,8 @@ public class DE_ApplicationInfoPersonalTab {
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
                 updatePrimaryNumberElement.clear();
                 updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+                updatePrimaryExtElement.clear();
+                updatePrimaryExtElement.sendKeys(data.getPriExt());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
