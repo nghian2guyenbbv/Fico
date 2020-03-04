@@ -118,6 +118,29 @@ public class ConvertService {
 		
 		return app;
 	}
+	
+	public ObjectNode toSaleQueueFinnone(Smartnet smartnet ) {
+		
+		ObjectNode app = mapper.createObjectNode();
+		app.put("project", "smartnet");
+		app.put("transaction_id", smartnet.getId());
+		app.put("appId", smartnet.getAppId());
+	
+		JsonNode lastReturnQueue = mapper.convertValue( smartnet.getReturns().get("returnQueues"), ArrayNode.class).get(0);
+		app.put("commentText", lastReturnQueue.path("comment").asText());
+		ArrayNode dataDocuments = mapper.createArrayNode();
+		
+		ArrayNode lastReturnQueueDatas  =  mapper.convertValue( lastReturnQueue.path("data"), ArrayNode.class);
+		for (JsonNode data : lastReturnQueueDatas) {
+			ObjectNode dataDocument = mapper.createObjectNode();
+			dataDocument.put("fileName", data.path("filename").asText());
+			dataDocument.put("documentName", data.path("type").asText());
+			dataDocuments.add(dataDocument);
+		}	
+		app.set("dataDocuments", dataDocuments);
+		
+		return app;
+	}
 
 
 }

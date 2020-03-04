@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +20,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -47,43 +44,44 @@ public class ApiService {
 	@Value("${spring.smartnet-password}")
 	private String smartnetPassword;
 	
+	
+	@Value("${spring.url.webview-smartnet}")
+	private String urlWebViewSmartnet;
+	
+	@Value("${spring.url.webview-smartnet-replace}")
+	private String urlWebViewSmartnetReplace;
+	
 	@Value("${spring.url.uploadfile}")
 	private String urlUploadfile;
 
 	@Autowired
 	private ObjectMapper mapper;
+	
+	
 
 	@Autowired
 	private RestTemplate restTemplate;
 	
-	@PostConstruct
-	public void init() throws JsonProcessingException {
-		 	
-	}
-	
-	
-	
 	
 	public JsonNode uploadDocumentInternal(JsonNode document , JsonNode  documentDbInfo ) {
-		return uploadDocument(urlUploadfile, document ,documentDbInfo);
+		return uploadDocument(urlUploadfile, (ObjectNode)document ,documentDbInfo);
 	}
 
 	
-	private JsonNode uploadDocument(String url, JsonNode data , JsonNode documentDbInfo ) {
-		try {		
+	private JsonNode uploadDocument(String url, ObjectNode data , JsonNode documentDbInfo ) {
+		try {
+			data.put("documentUrlDownload", data.path("documentUrlDownload").asText().replace(urlWebViewSmartnet, urlWebViewSmartnetReplace));
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
 			dataLogReq.put("method", "POST");
 			dataLogReq.put("url", url);
 			dataLogReq.set("payload",data);
-			log.info("{}", dataLogReq);
-			
+				
 			final String documentCode = data.path("documentCode").asText();
 			final String documentFileExtension = data.path("documentFileExtension").asText();
 			final String documentUrlDownload = data.path("documentUrlDownload").asText();	
-			final String fileName = documentCode.concat(".").concat(documentFileExtension);
-						
-			
+			final String fileName = documentCode.concat(".").concat(documentFileExtension);		
+			log.info("{}", dataLogReq);
 			HttpHeaders headers = new HttpHeaders();
 	           headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 	           HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -151,7 +149,6 @@ public class ApiService {
 		if(authenInfo.path("resultCode").asInt() != 200) 
 			return authenInfo;
 		
-			
 		HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
         requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));

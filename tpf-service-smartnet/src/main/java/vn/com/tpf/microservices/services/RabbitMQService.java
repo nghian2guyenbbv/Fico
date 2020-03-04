@@ -89,12 +89,13 @@ public class RabbitMQService {
 					return response(message, payload, Map.of("status", 200, "data", smartnetService.getAppInfo(request)));	
 				case "returnQuery":
 					return response(message, payload, Map.of("status", 200, "data", smartnetService.returnQuery(request)));
+				case "returnQueue":
+					return response(message, payload, Map.of("status", 200, "data", smartnetService.returnQueue(request)));
 				case "addDocuments":
 					return response(message, payload, Map.of("status", 200, "data", smartnetService.addDocuments((request))));		
 				case "updateAutomation":
 					return response(message, payload, Map.of("status", 200, "data", smartnetService.updateAutomation((request))));	
-				case "returnQueue":
-					return response(message, payload, Map.of("status", 200, "data", smartnetService.getAppInfo(request)));
+			
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
 							mapper.createObjectNode().put("message", "function not found"))));
