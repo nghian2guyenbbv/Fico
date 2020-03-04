@@ -18,4 +18,5 @@ public class MiscFrmAppDtlDTO {
     private String totalMonthlyPayable;
     private String remark;
     private String loanOfWork;
+    private String courierCode;
 }

@@ -195,6 +195,7 @@ public class DataInitial {
                         .newBankCardNumber(dynamicForm.getNewBankCardNumber())
                         .salesAgentCode(dynamicForm.getSaleAgentCode())
                         .maxRequestRate(dynamicForm.getMaximumInterestedRate())
+                        .courierCode(dynamicForm.getCourierCode())
                         .totalMonthlyPayable(dynamicForm.getTotalMonthlyPayable())
                         .loanOfWork(dynamicForm.getLoanAtWork())
                         .remark(dynamicForm.getRemark()).build();
