@@ -159,7 +159,7 @@ public class DE_ReturnSaleQueuePage {
         applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
         await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 2);
+                .until(() -> tbApplicationAssignedElement.size() > 0);
 
         WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
 
@@ -183,10 +183,6 @@ public class DE_ReturnSaleQueuePage {
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
 
-            documentNameElement.clear();
-
-            documentNameElement.sendKeys(documentList.getDocumentName());
-
             await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentTableElement.size() > 2);
 
@@ -201,7 +197,7 @@ public class DE_ReturnSaleQueuePage {
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             toFile += UUID.randomUUID().toString() + "_" + docName;
 
-            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Pool']//tbody//tr[1]//td[contains(/,'" + deSaleQueueDTO.getAppId() + "')]//img[contains(@id, 'AssignToMe')]"));
+            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//table[@id='lendingDocumentsTable']//tbody//td[contains(*,'" + documentList.getDocumentName() + "')][2]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
 
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
             File file = new File(toFile);
@@ -210,20 +206,13 @@ public class DE_ReturnSaleQueuePage {
                 System.out.println("PATH:" + docUrl);
                 Thread.sleep(2000);
 
-                documentBtnUploadElement.sendKeys(docUrl);
+                documentBtnUploadElement2.sendKeys(docUrl);
                 Utilities.captureScreenShot(_driver);
             }
         }
 
         Utilities.captureScreenShot(_driver);
         System.out.println("UPLOAD: DONE");
-
-        documentNameElement.clear();
-
-        documentNameElement.sendKeys(" ");
-
-        Utilities.captureScreenShot(_driver);
-
 
         await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 3);
@@ -262,10 +251,10 @@ public class DE_ReturnSaleQueuePage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-//        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
-//        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
+        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-        btnMoveToNextStageElement.click();
+//        btnMoveToNextStageElement.click();
 
         Utilities.captureScreenShot(_driver);
 
