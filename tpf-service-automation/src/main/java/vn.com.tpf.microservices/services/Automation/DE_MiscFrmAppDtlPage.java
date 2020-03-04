@@ -119,6 +119,12 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
+    //------------------- UPDATE
+    @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_51")
+    private WebElement loanOfWorkNoElememt;
+
+    @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_52")
+    private WebElement loanOfWorkYesElememt;
 
 
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
@@ -166,6 +172,17 @@ public class DE_MiscFrmAppDtlPage {
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+        Utilities.captureScreenShot(_driver);
+
+        if(data.getLoanOfWork().equals("Yes"))
+        {
+            loanOfWorkYesElememt.click();
+        }
+
+        if(data.getLoanOfWork().equals("No"))
+        {
+            loanOfWorkNoElememt.click();
+        }
         Utilities.captureScreenShot(_driver);
     }
 
@@ -220,6 +237,17 @@ public class DE_MiscFrmAppDtlPage {
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.clear();
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+
+        if(data.getLoanOfWork().equals("Yes"))
+        {
+            loanOfWorkYesElememt.click();
+        }
+
+        if(data.getLoanOfWork().equals("No"))
+        {
+            loanOfWorkNoElememt.click();
+        }
+        Utilities.captureScreenShot(_driver);
     }
 
 

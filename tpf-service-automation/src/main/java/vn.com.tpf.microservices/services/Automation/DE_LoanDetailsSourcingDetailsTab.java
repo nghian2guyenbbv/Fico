@@ -116,6 +116,12 @@ public class DE_LoanDetailsSourcingDetailsTab {
     @FindBy(how = How.XPATH, using = "//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")
     private WebElement btnConfirmDeleteVapNextElement1;
 
+
+    //------------------------- UPDATE 4-3-2020 ---------------------------------
+    @FindBy(how = How.ID, using = "loan_Info_loanPurposeDescription")
+    @CacheLookup
+    private WebElement loanDetailPurposeElement;
+
     public DE_LoanDetailsSourcingDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -190,6 +196,10 @@ public class DE_LoanDetailsSourcingDetailsTab {
 
         Utilities.captureScreenShot(_driver);
 
+        //update nhap leaddeatail
+        loanDetailPurposeElement.clear();
+        loanDetailPurposeElement.sendKeys(data.getLoadPurpose());
+
         salesAgentCodeElement.click();
         await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> salesAgentCodeOptionElement.size() > 0);
@@ -232,6 +242,10 @@ public class DE_LoanDetailsSourcingDetailsTab {
                 .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
 
         Utilities.captureScreenShot(_driver);
+
+        //update nhap leaddeatail
+        loanDetailPurposeElement.clear();
+        loanDetailPurposeElement.sendKeys(data.getLoadPurpose());
 
         salesAgentCodeElement.click();
         await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
