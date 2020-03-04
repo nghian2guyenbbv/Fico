@@ -42,6 +42,8 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregationOptions;
+
 @Service
 public class DataEntryService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -773,6 +775,7 @@ public class DataEntryService {
 		String stageAuto = "";
 		String errorAuto = "";
 		String quickLeadId = "";
+        String commentDescription = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
         boolean responseCommnentFullAPPFromDigiTex = false;
 		try{
@@ -824,7 +827,9 @@ public class DataEntryService {
 							item.setCreatedDate(new Date());
 							update.push("comment", item);
 							Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, Application.class);
-
+							if (item.getRequest() != null) {
+                                commentDescription = item.getRequest();
+                            }
                             requestCommnentFromDigiTex = true;
 						}else{
 							responseModel.setRequest_id(requestId);
@@ -976,6 +981,7 @@ public class DataEntryService {
                 report.setApplicationId(data.getApplicationId());
                 report.setFunction("DIGITEXX_COMMENT");
                 report.setStatus("RETURNED");
+                report.setCommentDescription(commentDescription);
                 report.setCreatedBy(token.path("user_name").textValue());
                 report.setCreatedDate(new Date());
                 mongoTemplate.save(report);
@@ -1125,6 +1131,7 @@ public class DataEntryService {
                     report.setApplicationId(data.getApplicationId());
                     report.setFunction("FICO_RETURN_COMMENT");
                     report.setStatus("PROCESSING");
+                    report.setCommentDescription(comment);
                     report.setCreatedBy(token.path("user_name").textValue());
                     report.setCreatedDate(new Date());
                     mongoTemplate.save(report);
@@ -1197,6 +1204,26 @@ public class DataEntryService {
                         responseModel.setMessage("applicationId is completed!");
 
                         return Map.of("status", 200, "data", responseModel);
+                    }else if (checkExist.get(0).getStatus().equals("CANCEL")){
+                        if (data.getStatus().toUpperCase().equals("CANCEL")){
+                            responseModel.setRequest_id(requestId);
+                            responseModel.setReference_id(referenceId);
+                            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                            responseModel.setResult_code("1");
+                            responseModel.setMessage("applicationId is cancel!");
+
+                            return Map.of("status", 200, "data", responseModel);
+                        }
+                    }else if (checkExist.get(0).getStatus().equals("MANUALLY")){
+                        if (data.getStatus().toUpperCase().equals("MANUALLY")){
+                            responseModel.setRequest_id(requestId);
+                            responseModel.setReference_id(referenceId);
+                            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                            responseModel.setResult_code("1");
+                            responseModel.setMessage("applicationId is manually!");
+
+                            return Map.of("status", 200, "data", responseModel);
+                        }
                     }
                 }
                 catch (Exception ex){}
@@ -1768,6 +1795,32 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
+                    try {
+                        if (request.path("body").path("description").textValue().contains("move_to_next_stage")){
+                            Query queryLogin = new Query();
+                            queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
+                            Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+                            dataFullApp.setStage("END OF LEAD DETAIL");
+                            rabbitMQService.send("tpf-service-automation",
+                                    Map.of("func", "updateAppError", "body", dataFullApp));
+
+                            responseModel.setRequest_id(requestId);
+                            responseModel.setReference_id(UUID.randomUUID().toString());
+                            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                            responseModel.setResult_code("1");
+                            responseModel.setMessage("move_to_next_stage");
+                            return Map.of("status", 200, "data", responseModel);
+                        }
+                    }
+                    catch (Exception e) {
+                        log.info("ReferenceId : "+ referenceId + "Error move_to_next_stage: " + e);
+                        responseModel.setRequest_id(requestId);
+                        responseModel.setReference_id(UUID.randomUUID().toString());
+                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                        responseModel.setResult_code("1");
+                        responseModel.setMessage(e.toString());
+                    }
+
 					if (errors.equals("LOGIN FINONE")){
 						try {
 							Query queryLogin = new Query();
@@ -1923,7 +1976,48 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
-					if (errors.equals("LOGIN FINONE")){
+                    try {
+                        if (request.path("body").path("description").textValue().contains("move_to_next_stage")){
+                            Query queryLogin = new Query();
+                            queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
+                            Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+
+                            List<CommentModel> dataUpdate = dataFullApp.getComment();
+                            dataUpdate.sort(Comparator.comparing(CommentModel::getCreatedDate).reversed());
+
+                            Application dataUpdateSendAuto = new Application();
+                            for (CommentModel item : dataUpdate) {
+                                if (item.getResponse() != null){
+                                    dataUpdateSendAuto = item.getResponse().getData();
+                                    dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+                                    dataUpdateSendAuto.setStage("END OF LEAD DETAIL");
+                                    if (dataFullApp.getError() != null){
+                                        dataUpdateSendAuto.setError(dataFullApp.getError());
+                                    }
+                                    break;
+                                }
+                            }
+                            rabbitMQService.send("tpf-service-automation",
+                                    Map.of("func", "updateAppError","body", dataUpdateSendAuto));
+
+                            responseModel.setRequest_id(requestId);
+                            responseModel.setReference_id(UUID.randomUUID().toString());
+                            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                            responseModel.setResult_code("1");
+                            responseModel.setMessage("move_to_next_stage");
+                            return Map.of("status", 200, "data", responseModel);
+                        }
+                    }
+                    catch (Exception e) {
+                        log.info("ReferenceId : "+ referenceId + "Error move_to_next_stage: " + e);
+                        responseModel.setRequest_id(requestId);
+                        responseModel.setReference_id(UUID.randomUUID().toString());
+                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                        responseModel.setResult_code("1");
+                        responseModel.setMessage("move_to_next_stage");
+                    }
+
+                    if (errors.equals("LOGIN FINONE")){
 						try{
 							Query queryLogin = new Query();
 							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
@@ -2085,12 +2179,28 @@ public class DataEntryService {
 			}
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
-			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy", "applications");
+//			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy", "commentDescription"
+//            );
+
+            AggregationOperation group = Aggregation.group(Fields.from( Fields.field("applicationId", "applicationId")).and("createdDate","createdDate")
+                    .and("status","status").and("quickLeadId","quickLeadId").and("description","description")
+                    .and("function","function").and("createdBy","createdBy")
+                    .and("commentDescription","commentDescription")
+                    .and("branch","applications.quickLead.sourcingBranch")
+                    .and("firstName","applications.quickLead.firstName")
+                    .and("lastName","applications.quickLead.lastName")
+                    .and("fullName","applications.applicationInformation.personalInformation.personalInfo.fullName")
+                    .and("identificationNumber","applications.quickLead.identificationNumber")
+//                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
+            );
+
 			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId", "createdDate");
 //			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId").and(Sort.Direction.DESC, "createdDate");
-			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate");//.andExpression("createdDate").as("createdDate2");
+			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate")
+                    .andExpression("_id.commentDescription").as("commentDescription") .andExpression("_id.applications.quickLead.sourcingBranch").as("branch");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
-			Aggregation aggregation = Aggregation.newAggregation(match1, lookupOperation, group, sort /*,  project/*, limit*/);
+			Aggregation aggregation = Aggregation.newAggregation(match1, lookupOperation, group, sort /*, project/*, limit*/)
+                    .withOptions(newAggregationOptions().allowDiskUse(true).build());
 			AggregationResults<Report> results = mongoTemplate.aggregate(aggregation, Report.class, Report.class);
 
 			List<Report> listData = results.getMappedResults();
@@ -2101,19 +2211,28 @@ public class DataEntryService {
             for (Report item:listData) {
                 try {
                     try{
-                        if (item.getApplications().size() > 0) {
-                            if (item.getApplications().get(0).getApplicationInformation() == null) {
-                                item.setFullName(item.getApplications().get(0).getQuickLead().getFirstName() + " " + item.getApplications().get(0).getQuickLead().getLastName());
-                                item.setIdentificationNumber(item.getApplications().get(0).getQuickLead().getIdentificationNumber());
-                            } else {
-                                if (item.getApplications().get(0).getApplicationInformation().getPersonalInformation() != null) {
-                                    item.setFullName(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
-                                    item.setIdentificationNumber(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
-                                }
-                            }
+//                        if (item.getApplications().size() > 0) {
+//                            if (item.getApplications().get(0).getApplicationInformation() == null) {
+//                                item.setFullName(item.getApplications().get(0).getQuickLead().getFirstName() + " " + item.getApplications().get(0).getQuickLead().getLastName());
+//                                item.setIdentificationNumber(item.getApplications().get(0).getQuickLead().getIdentificationNumber());
+//                            } else {
+//                                if (item.getApplications().get(0).getApplicationInformation().getPersonalInformation() != null) {
+//                                    item.setFullName(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+//                                    item.setIdentificationNumber(item.getApplications().get(0).getApplicationInformation().getPersonalInformation().getIdentifications().get(0).getIdentificationNumber());
+//                                }
+//                            }
+//                        }
+
+                        if (item.getFullName() == null || item.getFullName().equals("")){
+                            item.setFullName(item.getFirstName() + " " + item.getLastName());
+                        }
+                        if (item.getIdentificationNumberFull() == null || item.getIdentificationNumberFull().equals("")){
+                        }else{
+                            item.setIdentificationNumber(item.getIdentificationNumberFull());
                         }
                     }
                     catch (Exception exx) {
+                        String a ="";
                     }
 
                     if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
@@ -2154,7 +2273,9 @@ public class DataEntryService {
             responseModel.setReference_id(referenceId);
             responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code("1");
-            responseModel.setMessage(e.getMessage());
+            responseModel.setMessage(e.toString());
+
+            return Map.of("status", 200, "data", responseModel);
         }
         return Map.of("status", 200, "data", Base64.getEncoder().encodeToString(in.readAllBytes()));
     }
@@ -2191,7 +2312,8 @@ public class DataEntryService {
             AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "count");
             AggregationOperation project = Aggregation.project().andExpression("_id").as("status").andExpression("count").as("appNo");
             //AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
-            Aggregation aggregation = Aggregation.newAggregation(match1, group, sort, project/*, limit*/);
+            Aggregation aggregation = Aggregation.newAggregation(match1, group, sort, project/*, limit*/)
+                    .withOptions(newAggregationOptions().allowDiskUse(true).build());
             AggregationResults<ReportStatus> results = mongoTemplate.aggregate(aggregation, Application.class, ReportStatus.class);
 
             List<ReportStatus> resultData = results.getMappedResults();
@@ -2218,7 +2340,9 @@ public class DataEntryService {
             responseModel.setReference_id(referenceId);
             responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code("1");
-            responseModel.setMessage(e.getMessage());
+            responseModel.setMessage(e.toString());
+
+            return Map.of("status", 200, "data", responseModel);
         }
         return Map.of("status", 200, "data", Base64.getEncoder().encodeToString(in.readAllBytes()));
     }
@@ -2257,7 +2381,7 @@ public class DataEntryService {
 	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
-		String[] COLUMNs = {"Seq", "App no.", "Action", "Create Date", "Create By", "Status", "Full Name", "ID", "Duration(Minutes)"};
+		String[] COLUMNs = {"Seq", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)"};
 		try(
 				Workbook workbook = new XSSFWorkbook();
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -2307,9 +2431,11 @@ public class DataEntryService {
 //				row.createCell(2).setCellValue(item.getCreatedDate());
 				row.createCell(4).setCellValue(item.getCreatedBy());
 				row.createCell(5).setCellValue(item.getStatus());
-				row.createCell(6).setCellValue(item.getFullName());
-				row.createCell(7).setCellValue(item.getIdentificationNumber());
-                row.createCell(8).setCellValue(item.getDuration());
+                row.createCell(6).setCellValue(item.getCommentDescription());
+				row.createCell(7).setCellValue(item.getFullName());
+				row.createCell(8).setCellValue(item.getIdentificationNumber());
+                row.createCell(9).setCellValue(item.getBranch());
+                row.createCell(10).setCellValue(item.getDuration());
 
 			}
 
