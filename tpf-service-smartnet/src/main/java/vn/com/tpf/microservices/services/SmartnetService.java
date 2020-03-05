@@ -56,20 +56,19 @@ public class SmartnetService {
 	private final String STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA = "SALES_QUEUE_UPLOADING_HAS_ACCA";
 	private final String STAGE_SALES_QUEUE_UPLOADING = "SALES_QUEUE_UPLOADING";
 	private final String STAGE_SALES_QUEUE_FAILED = "SALES_QUEUE_FAILED_AUTOMATION";
-	
+
 	private final String STAGE_RAISE_QUERY_UPLOADING = "RAISE_QUERY_UPLOADING";
 	private final String STAGE_RAISE_QUERY_FAILED = "RAISE_QUERY_FAILED_AUTOMATION";
 
 	private final String STATUS_T_RETURN = "T_RETURN";
 	private final String STATUS_INTRODUCED = "INTRODUCED";
 	private final String STATUS_RETURNED = "RETURNED";
-	
+
 	private final String STATUS_RESUBMITING = "RESPONSE_QUERY_UPLOADING";
 	private final String STATUS_RESUBMIT_FAILED = "RESPONSE_QUERY_FAILED_AUTOMATION";
-	
-	@Value("${document-code-acca:tpf_application_cum_credit_contract_(acca)}")
-	private  String DOCUMENT_CODE_ACCA;
 
+	@Value("${document-code-acca:tpf_application_cum_credit_contract_(acca)}")
+	private String DOCUMENT_CODE_ACCA;
 
 	@Autowired
 	private Utils utils;
@@ -103,7 +102,8 @@ public class SmartnetService {
 		final JsonNode data = request.path("body").path("data");
 		final long leadId = data.path("leadId").asLong(0);
 		if (leadId == 0)
-			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data.leadId not null"));
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.leadId not null"));
 		Smartnet smartnet = smartnetTemplate.findOne(Query.query(Criteria.where("leadId").is(leadId)), Smartnet.class);
 		if (smartnet != null)
 			return utils.getJsonNodeResponse(1, body,
@@ -196,8 +196,10 @@ public class SmartnetService {
 		if (precheks.hasNonNull("preCheck2") && (mapper.convertValue(precheks.path("preCheck2"), ArrayNode.class))
 				.get(0).path("data").path("result").asInt() == 0)
 			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.leadId %s preCheck2 passed at %s", leadId, (mapper.convertValue(precheks.path("preCheck2"), ArrayNode.class))
-							.get(0).path("createdAt").asText())));
+					mapper.createObjectNode().put("message",
+							String.format("data.leadId %s preCheck2 passed at %s", leadId,
+									(mapper.convertValue(precheks.path("preCheck2"), ArrayNode.class)).get(0)
+											.path("createdAt").asText())));
 
 		JsonNode preCheckResult = rabbitMQService.sendAndReceive("tpf-service-esb",
 				Map.of("func", "getPrecheckList", "reference_id", body.path("reference_id"), "body",
@@ -248,9 +250,9 @@ public class SmartnetService {
 		if (LIST_STAGE_COMPLETE.contains(smartnet.getStage().toUpperCase().trim()))
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s complete stage", appId)));
-		JsonNode item =  rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body",body));
+		JsonNode item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
 
-		if(item.path("status").asInt() != 200)
+		if (item.path("status").asInt() != 200)
 			return utils.getJsonNodeResponse(0, body, item);
 		Update update = new Update().set("updatedAt", new Date())
 				.set("stage", item.path("data").path("stage").asText().toUpperCase().trim())
@@ -282,13 +284,12 @@ public class SmartnetService {
 		if (!data.hasNonNull("documents") || mapper.convertValue(data.path("documents"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.documents array required"));
-		
+
 		Query query = Query.query(Criteria.where("leadId").is(data.path("leadId").asInt()));
 		Smartnet smartnet = smartnetTemplate.findOne(query, Smartnet.class);
 		if (smartnet == null)
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 					String.format("data.leadId %s not exits", data.path("leadId").asInt())));
-		
 
 		if (smartnet.getStage().equals(STAGE_PRECHECK1_DONE))
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
@@ -297,7 +298,7 @@ public class SmartnetService {
 		if (smartnet.getStage().equals(STAGE_PRECHECK2_CHECIKING)) {
 			JsonNode lastPreCheck2 = mapper.convertValue(smartnet.getPreChecks().get("preCheck2"), ArrayNode.class)
 					.get(0);
-			System.out.println("lastPreCheck2 "+ lastPreCheck2);
+			System.out.println("lastPreCheck2 " + lastPreCheck2);
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message",
 							String.format("data.leadId %s precheck2 %s  %s", data.path("leadId").asInt(),
@@ -315,7 +316,6 @@ public class SmartnetService {
 				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
 						Map.of("productCode", data.path("productCode").asText(), "schemeCode",
 								data.path("schemeCode").asText())));
-		
 
 		if (documentFinnOne.path("status").asInt() != 200)
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
@@ -439,14 +439,14 @@ public class SmartnetService {
 					int sendCount = 0;
 					do {
 						JsonNode result = apiService.pushAppIdOfLeadId(smartnetSender);
-						
+
 						if (result.path("resultCode").asText().equals("200")) {
-							log.info("{}", utils.getJsonNodeResponse(0, body,
-									mapper.createObjectNode().set("data",result)));
+							log.info("{}",
+									utils.getJsonNodeResponse(0, body, mapper.createObjectNode().set("data", result)));
 							return;
-						}else {
+						} else {
 							log.info("{}", utils.getJsonNodeResponse(result.path("resultCode").asInt(), body,
-									mapper.createObjectNode().set("data",result)));
+									mapper.createObjectNode().set("data", result)));
 						}
 						sendCount++;
 						Thread.sleep(5 * 60 * 1000);
@@ -461,63 +461,63 @@ public class SmartnetService {
 		if (automationResult.contains(AUTOMATION_QUICKLEAD_FAILED)) {
 			update.set("stage", STAGE_QUICKLEAD_FAILED_AUTOMATION);
 		}
-		
+
 		if (automationResult.contains(AUTOMATION_RETURNQUERY_PASS)) {
-				JsonNode returns = mapper.convertValue(smartnet.getReturns(), JsonNode.class);
+			JsonNode returns = mapper.convertValue(smartnet.getReturns(), JsonNode.class);
 
-				if (returns.hasNonNull("returnQueries")
-						&& (mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0)
-								.path("isComplete").asBoolean())
-					return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-							String.format("data.appId %s returnQuery is complete", smartnet.getAppId())));
+			if (returns.hasNonNull("returnQueries")
+					&& (mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
+							.asBoolean())
+				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+						String.format("data.appId %s returnQuery is complete", smartnet.getAppId())));
 
-				LinkedList<Map> returnQueriesNew = mapper.convertValue(
-						mapper.convertValue(returns.path("returnQueries"), ArrayNode.class), LinkedList.class);
-				if (returnQueriesNew == null)
-					returnQueriesNew = new LinkedList<Map>();
-				returnQueriesNew.get(0).put("isComplete", true);
-				returnQueriesNew.get(0).put("updatedAt", new Date());
-				update.set("updatedAt", new Date());
-				update.set("returns.returnQueries", returnQueriesNew);
-				update.set("status", STATUS_RETURNED);
+			LinkedList<Map> returnQueriesNew = mapper.convertValue(
+					mapper.convertValue(returns.path("returnQueries"), ArrayNode.class), LinkedList.class);
+			if (returnQueriesNew == null)
+				returnQueriesNew = new LinkedList<Map>();
+			returnQueriesNew.get(0).put("isComplete", true);
+			returnQueriesNew.get(0).put("updatedAt", new Date());
+			update.set("updatedAt", new Date());
+			update.set("returns.returnQueries", returnQueriesNew);
+			update.set("status", STATUS_RETURNED);
+			update.set("stage", STAGE_LEAD_DETAILS);
 		}
 		if (automationResult.contains(AUTOMATION_RETURNQUERY_FAILED)) {
-				update.set("status", STATUS_RESUBMIT_FAILED);
-				update.set("stage", STAGE_RAISE_QUERY_FAILED);
+			update.set("status", STATUS_RESUBMIT_FAILED);
+			update.set("stage", STAGE_RAISE_QUERY_FAILED);
 		}
-		
-		
+
 		if (automationResult.contains(AUTOMATION_SALEQUEUE_PASS)) {
 			JsonNode returns = mapper.convertValue(smartnet.getReturns(), JsonNode.class);
 
 			if (returns.hasNonNull("returnQueues")
-					&& (mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)).get(0)
-							.path("isComplete").asBoolean())
+					&& (mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)).get(0).path("isComplete")
+							.asBoolean())
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 						String.format("data.appId %s returnQueue is complete", smartnet.getAppId())));
 
-			LinkedList<Map> returnQueuesNew = mapper.convertValue(
-					mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
+			LinkedList<Map> returnQueuesNew = mapper
+					.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
 			if (returnQueuesNew == null)
 				returnQueuesNew = new LinkedList<Map>();
 			returnQueuesNew.get(0).put("isComplete", true);
 			returnQueuesNew.get(0).put("updatedAt", new Date());
 			update.set("updatedAt", new Date());
-			update.set("returns.returnQueues",returnQueuesNew);
-			
+			update.set("returns.returnQueues", returnQueuesNew);
+
 			final String currentStage = smartnet.getStage();
-			if(currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA))
+			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA))
 				update.set("stage", STAGE_LEAD_DETAILS);
-			if(currentStage.equals(STAGE_SALES_QUEUE_UPLOADING))
+			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING))
 				update.set("stage", STAGE_LOGIN_ACCEPTANCE);
 		}
-		
-		if (automationResult.contains(AUTOMATION_SALEQUEUE_FAILED)) 
+
+		if (automationResult.contains(AUTOMATION_SALEQUEUE_FAILED))
 			update.set("stage", STAGE_SALES_QUEUE_FAILED);
-		
+
 		smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Smartnet.class);
-		
+				Smartnet.class);
+
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
 						Map.of("project", "smartnet", "id", smartnet.getId()), "body",
@@ -548,9 +548,10 @@ public class SmartnetService {
 				"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\\/.*)?$"))
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.document.documentUrlDownload not valid"));
-		if (!data.path("document").path("documentCode").asText().toLowerCase().trim().replace(" ", "_").equals(DOCUMENT_CODE_ACCA))
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", String.format("data.document.documentCode required %s",DOCUMENT_CODE_ACCA)));
+		if (!data.path("document").path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
+				.equals(DOCUMENT_CODE_ACCA))
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+					String.format("data.document.documentCode required %s", DOCUMENT_CODE_ACCA)));
 
 		Query query = Query.query(Criteria.where("appId").is(appId));
 		Smartnet smartnet = smartnetTemplate.findOne(query, Smartnet.class);
@@ -640,7 +641,7 @@ public class SmartnetService {
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JsonNode returnQueue(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
@@ -655,30 +656,30 @@ public class SmartnetService {
 		if (data.path("comment").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.comment not null"));
-		if (data.hasNonNull("documents")) {
-			ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class); 
-			if(documents != null && documents.size() == 0 )
+		final boolean hasDocuments = data.hasNonNull("documents");
+		if (hasDocuments) {
+			ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+			if (documents != null && documents.size() == 0)
 				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message", "data.documents not empty"));	
-			for(int index = 0 ; index < documents.size() ; index++ ) {
+						mapper.createObjectNode().put("message", "data.documents not empty"));
+			for (int index = 0; index < documents.size(); index++) {
 				JsonNode document = documents.get(index);
-				if(document.path("documentCode").asText().isBlank()
-					|| document.path("documentFileExtension").asText().isBlank()
-					|| document.path("documentMd5").asText().isBlank())
-						return utils.getJsonNodeResponse(499, body,
-								mapper.createObjectNode().put("message", String.format("data.documents[%s]  not valid", index)));
+				if (document.path("documentCode").asText().isBlank()
+						|| document.path("documentFileExtension").asText().isBlank()
+						|| document.path("documentMd5").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s]  not valid", index)));
 				if (!document.path("documentUrlDownload").asText().matches(
 						"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\\/.*)?$"))
-					return utils.getJsonNodeResponse(499, body,
-							mapper.createObjectNode().put("message", String.format("data.documents[%s].documentUrlDownload not valid", index)));
-				System.out.println(document.path("documentCode").asText().toLowerCase().trim().replace(" ", "_") + " - " +DOCUMENT_CODE_ACCA);
-				if(document.path("documentCode").asText().toLowerCase().trim().replace(" ", "_").equals(DOCUMENT_CODE_ACCA))
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s].documentUrlDownload not valid", index)));
+				if (document.path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
+						.equals(DOCUMENT_CODE_ACCA))
 					hasDocumentCodeACCA = true;
 
 			}
 		}
-		
-		
+
 		Query query = Query.query(Criteria.where("appId").is(appId));
 		Smartnet smartnet = smartnetTemplate.findOne(query, Smartnet.class);
 		if (smartnet == null)
@@ -702,29 +703,30 @@ public class SmartnetService {
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
 					String.format("%s %s not found", productCode, schemeCode)));
 
-		
 		JsonNode returns = mapper.convertValue(smartnet.getReturns(), JsonNode.class);
-		if (returns.hasNonNull("returnQueues")
-				&& !(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)).get(0).path("isComplete")
-						.asBoolean())
+		if (returns.hasNonNull("returnQueues") && !(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class))
+				.get(0).path("isComplete").asBoolean())
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 					String.format("data.appId %s returnQueue not complete", smartnet.getAppId())));
 
 		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
-		ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
-		for (int index = 0; index < documents.size(); index++) {
-			if (documents.get(index).path("documentMd5").asText().isBlank()
-					|| documents.get(index).path("documentCode").asText().isBlank()
-					|| documents.get(index).path("documentFileExtension").asText().isBlank()
-					|| documents.get(index).path("documentUrlDownload").asText().isBlank())
-				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
-			if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
-				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
-						String.format("%s not found", documents.get(index).path("documentCode").asText())));
-		}
-		
-		List<HashMap> filesUpload = new ArrayList<HashMap>();
+		HashMap<String, Object> returnQueue = new HashMap<>();
+		if (hasDocuments) {
+			ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+
+			for (int index = 0; index < documents.size(); index++) {
+				if (documents.get(index).path("documentMd5").asText().isBlank()
+						|| documents.get(index).path("documentCode").asText().isBlank()
+						|| documents.get(index).path("documentFileExtension").asText().isBlank()
+						|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+				if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("%s not found", documents.get(index).path("documentCode").asText())));
+			}
+
+			List<HashMap> filesUpload = new ArrayList<HashMap>();
 			for (JsonNode document : documents) {
 				JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
 				JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
@@ -735,7 +737,8 @@ public class SmartnetService {
 						.equals(document.path("documentMd5").asText().toLowerCase()))
 					return utils.getJsonNodeResponse(499, body,
 							mapper.createObjectNode().put("message",
-									String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+									String.format("document %s md5 %s not valid",
+											document.path("documentCode").asText(),
 											uploadResult.path("md5").asText().toLowerCase())));
 				HashMap<String, String> docUpload = new HashMap<>();
 				docUpload.put("documentCode", document.path("documentCode").asText());
@@ -748,35 +751,36 @@ public class SmartnetService {
 				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
 				filesUpload.add(docUpload);
 			}
-			HashMap<String, Object> returnQueue = new HashMap<>();
+
 			returnQueue.put("data", filesUpload);
-			returnQueue.put("createdAt", new Date());
-			returnQueue.put("updatedAt", new Date());
-			returnQueue.put("comment", data.path("comment").asText());
-			returnQueue.put("isComplete", false);
+		}
 
-			LinkedList<Map> returnQueuesNew = mapper
-					.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
-			if (returnQueuesNew == null)
-				returnQueuesNew = new LinkedList<Map>();
-			returnQueuesNew.push(returnQueue);
-			
-			Update update = new Update().set("updatedAt", new Date());
-			update.set("returns.returnQueues", returnQueuesNew);
-	
-			if(hasDocumentCodeACCA)
-				update.set("stage", STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA);
-			else
-				update.set("stage", STAGE_SALES_QUEUE_UPLOADING);
-			
-			smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Smartnet.class);
+		returnQueue.put("createdAt", new Date());
+		returnQueue.put("updatedAt", new Date());
+		returnQueue.put("comment", data.path("comment").asText());
+		returnQueue.put("isComplete", false);
 
-			rabbitMQService.send("tpf-service-esb", Map.of("func", "deSaleQueue", "body",
-					convertService.toSaleQueueFinnone(smartnet).put("reference_id", body.path("reference_id").asText())));
+		LinkedList<Map> returnQueuesNew = mapper
+				.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
+		if (returnQueuesNew == null)
+			returnQueuesNew = new LinkedList<Map>();
+		returnQueuesNew.push(returnQueue);
+
+		Update update = new Update().set("updatedAt", new Date());
+		update.set("returns.returnQueues", returnQueuesNew);
+
+		if (hasDocumentCodeACCA)
+			update.set("stage", STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA);
+		else
+			update.set("stage", STAGE_SALES_QUEUE_UPLOADING);
+
+		smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Smartnet.class);
+
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "deSaleQueue", "body",
+				convertService.toSaleQueueFinnone(smartnet).put("reference_id", body.path("reference_id").asText())));
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
-
 
 }
