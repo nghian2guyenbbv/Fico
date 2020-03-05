@@ -3819,7 +3819,6 @@ public class AutomationHandlerService {
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
             // ========== APPLICATIONS =================
-            String lastUpdate = deSaleQueueDTO.getLastUpdate();
             homePage.getMenuApplicationElement().click();
 
             stage = "APPLICATION MANAGER";
@@ -3846,11 +3845,14 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-            for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
-                if (documentList.getDocumentName().contains("(ACCA)")) {
-                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), lastUpdate);
+            // ========== Last Update User ACCA =================
+            if (!Objects.isNull(deSaleQueueDTO.getLastUpdateUser())){
+                for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
+                    if (documentList.getDocumentName().contains("(ACCA)")) {
+                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getLastUpdateUser());
+                    }
+                    break;
                 }
-                break;
             }
 
             // ========= UPDATE DB ============================

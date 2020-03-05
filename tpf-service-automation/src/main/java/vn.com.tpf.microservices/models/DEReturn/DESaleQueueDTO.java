@@ -16,6 +16,7 @@ import java.util.List;
 public class DESaleQueueDTO {
     private String appId;
     private String userName;
+    private String lastUpdateUser;
     private int status=0;
     @CreatedDate
     private Date createDate;
