@@ -780,7 +780,7 @@ public class DataEntryService {
 		String stageAuto = "";
 		String errorAuto = "";
 		String quickLeadId = "";
-		String commentDescription = "";
+        String commentDescription = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
 		boolean responseCommnentFullAPPFromDigiTex = false;
 		try {
@@ -802,9 +802,9 @@ public class DataEntryService {
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
-			} else {
-				try {
-					if (checkExist.get(0).getStatus().equals("COMPLETED")) {
+			}else{
+				try{
+					if (checkExist.get(0).getStatus().equals("COMPLETED")){
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(referenceId);
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -813,8 +813,7 @@ public class DataEntryService {
 
 						return Map.of("status", 200, "data", responseModel);
 					}
-				} catch (Exception ex) {
-				}
+				} catch (Exception ex) {}
 				partnerId = checkExist.get(0).getPartnerId();
 				partnerName = checkExist.get(0).getPartnerName();
 				if (StringUtils.isEmpty(partnerId)) {
@@ -1166,6 +1165,7 @@ public class DataEntryService {
 				}
 			}
 
+
 			if (responseCommnentFullAPPFromDigiTex) {
 				Report report = new Report();
 				report.setQuickLeadId(quickLeadId);
@@ -1328,6 +1328,7 @@ public class DataEntryService {
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code("1");
 						responseModel.setMessage("applicationId is exist!");
+
 						return Map.of("status", 200, "data", responseModel);
 					}
 
@@ -1348,7 +1349,6 @@ public class DataEntryService {
 					}
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null).and("status").is("UPLOADFILE"));
-
 
 					Update update = new Update();
 					update.set("quickLead.quickLeadId", data.getQuickLeadId());
@@ -1375,6 +1375,15 @@ public class DataEntryService {
 
 					update.set("partnerId", data.getPartnerId());
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+					if (resultUpdate == null){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is exist!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
 
 					if (resultUpdate == null){
 						responseModel.setRequest_id(requestId);
@@ -1407,7 +1416,6 @@ public class DataEntryService {
 
 					report.setPartnerId(resultUpdate.getPartnerId());
 					report.setPartnerName(resultUpdate.getPartnerName());
-
 					mongoTemplate.save(report);
 				}
 
@@ -1567,7 +1575,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("3");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -2331,6 +2339,7 @@ public class DataEntryService {
 //			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy", "commentDescription"
 //            );
 
+
 			AggregationOperation group = Aggregation.group(Fields.from( Fields.field("applicationId", "applicationId")).and("createdDate","createdDate")
 							.and("status","status").and("quickLeadId","quickLeadId").and("description","description")
 							.and("function","function").and("createdBy","createdBy")
@@ -2350,9 +2359,11 @@ public class DataEntryService {
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
 			Aggregation aggregation = Aggregation.newAggregation(match1, lookupOperation, group, sort /*, project/*, limit*/)
 					.withOptions(newAggregationOptions().allowDiskUse(true).build());
+
 			AggregationResults<Report> results = mongoTemplate.aggregate(aggregation, Report.class, Report.class);
 
 			List<Report> listData = results.getMappedResults();
+
 
 			String appId = "";
 			Date startDate = new Date();
@@ -2360,6 +2371,7 @@ public class DataEntryService {
 			for (Report item:listData) {
 				try {
 					try{
+
 //                        if (item.getApplications().size() > 0) {
 //                            if (item.getApplications().get(0).getApplicationInformation() == null) {
 //                                item.setFullName(item.getApplications().get(0).getQuickLead().getFirstName() + " " + item.getApplications().get(0).getQuickLead().getLastName());
@@ -2433,6 +2445,7 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+
 		ByteArrayInputStream in = null;
 		try{
 			Assert.notNull(request.get("body"), "no body");
@@ -2485,6 +2498,7 @@ public class DataEntryService {
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -2495,6 +2509,7 @@ public class DataEntryService {
 		}
 		return Map.of("status", 200, "data", Base64.getEncoder().encodeToString(in.readAllBytes()));
 	}
+
 
 	public Map<String, Object> getDocumentId(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
@@ -2580,11 +2595,13 @@ public class DataEntryService {
 //				row.createCell(2).setCellValue(item.getCreatedDate());
 				row.createCell(4).setCellValue(item.getCreatedBy());
 				row.createCell(5).setCellValue(item.getStatus());
+
 				row.createCell(6).setCellValue(item.getCommentDescription());
 				row.createCell(7).setCellValue(item.getFullName());
 				row.createCell(8).setCellValue(item.getIdentificationNumber());
 				row.createCell(9).setCellValue(item.getBranch());
 				row.createCell(10).setCellValue(item.getDuration());
+
 
 			}
 
