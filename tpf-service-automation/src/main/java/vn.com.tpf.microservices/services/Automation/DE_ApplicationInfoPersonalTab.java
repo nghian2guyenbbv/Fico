@@ -328,6 +328,15 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'EXTN')]")
     private WebElement updatePrimaryExtElement;
 
+
+    //------------------------- update them
+    @FindBy(how = How.XPATH, using = "//a[contains(@title,'Add Alternate Mobile Number')]")
+    private WebElement addAlternateMobileElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'dynamic_addedPNO')]//input[contains(@placeholder,'Mobile Phone')]")
+    private List<WebElement> listMobileAlternateElement;
+
+
     public DE_ApplicationInfoPersonalTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -443,6 +452,19 @@ public class DE_ApplicationInfoPersonalTab {
         await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> primaryEmailElement.isDisplayed());
         getPrimaryEmailElement().sendKeys(applicationInfoDTO.getEmail());
+
+        //check nhap them so dien thoai thu 2, update them
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
+        {
+            addAlternateMobileElement.click();
+
+            await("listMobileAlternateElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listMobileAlternateElement.size() > 0);
+
+            listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
+            Utilities.captureScreenShot(_driver);
+        }
+
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

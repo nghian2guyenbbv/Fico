@@ -58,6 +58,10 @@ public class DataInitial {
             addressDTOs.add(addressDTO);
         }
 
+        //update them communicatedetail
+        CommunicationDetails communicationDetails=application.getApplicationInformation().getPersonalInformation().getCommunicationDetails();
+
+
         //Family
         List<FamilyDTO> familyDTOs = new ArrayList<>();
         for (Family family : application.getApplicationInformation().getPersonalInformation().getFamily()) {
@@ -119,6 +123,7 @@ public class DataInitial {
                 .identification(identificationDTOs)
                 .address(addressDTOs)
                 .email(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
+                .communicationDetails(communicationDetails)
                 .family(familyDTOs)
                 .employmentDetails(employmentDTO)
                 .incomeDetails(incomeDetailDTOList)
