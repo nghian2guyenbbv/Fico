@@ -3735,11 +3735,8 @@ public class AutomationHandlerService {
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
 
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-
-
             System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             stage = "HOME PAGE";
@@ -3755,12 +3752,15 @@ public class AutomationHandlerService {
             System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========= UPDATE DB ============================
-            Query queryUpdate1 = new Query();
-            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
-            Update update1 = new Update();
-            update1.set("userauto", accountDTO.getUserName());
-            update1.set("status", 1);
-            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+//            Query queryUpdate1 = new Query();
+//            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
+//            Update update1 = new Update();
+//            update1.set("userauto", accountDTO.getUserName());
+//            update1.set("status", 1);
+//            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+            deResponseQueryDTO.setStatus("OK");
+            deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
 
             responseModel.setProject(deResponseQueryDTO.getProject());
             responseModel.setReference_id(deResponseQueryDTO.getReference_id());
@@ -3771,6 +3771,9 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
+            deResponseQueryDTO.setStatus("ERROR");
+            deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
+
             responseModel.setProject(deResponseQueryDTO.getProject());
             responseModel.setReference_id(deResponseQueryDTO.getReference_id());
             responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
@@ -3785,6 +3788,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            mongoTemplate.save(deResponseQueryDTO);
             logout(driver);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
@@ -3856,12 +3860,15 @@ public class AutomationHandlerService {
             }
 
             // ========= UPDATE DB ============================
-            Query queryUpdate1 = new Query();
-            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()));
-            Update update1 = new Update();
-            update1.set("userauto", accountDTO.getUserName());
-            update1.set("status", 1);
-            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+//            Query queryUpdate1 = new Query();
+//            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()));
+//            Update update1 = new Update();
+//            update1.set("userauto", accountDTO.getUserName());
+//            update1.set("status", 1);
+//            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+            deSaleQueueDTO.setStatus("OK");
+            deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
 
             responseModel.setProject(deSaleQueueDTO.getProject());
             responseModel.setReference_id(deSaleQueueDTO.getReference_id());
@@ -3872,6 +3879,9 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
+            deSaleQueueDTO.setStatus("ERROR");
+            deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
+
             responseModel.setProject(deSaleQueueDTO.getProject());
             responseModel.setReference_id(deSaleQueueDTO.getReference_id());
             responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
@@ -3886,6 +3896,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            mongoTemplate.save(deSaleQueueDTO);
             logout(driver);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }

@@ -15,6 +15,8 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -27,37 +29,12 @@ public class DE_ReturnSaleQueuePage {
     private WebDriver _driver;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
-
     @CacheLookup
     private WebElement applicationElement;
 
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
     @CacheLookup
     private WebElement applicationFormElement;
-
-    @FindBy(how = How.XPATH, using = "//ul[@id='mainChildTabs']//a[contains(text(),'Pool')]")
-    @CacheLookup
-    private WebElement poolElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Pool_wrapper')]")
-    @CacheLookup
-    private WebElement applicationDivPoolElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Pool_wrapper')]//input[contains(@class,'search-query')]")
-    @CacheLookup
-    private WebElement applicationPoolNumberElement;
-
-    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Pool']//tbody//tr//td")
-    @CacheLookup
-    private List<WebElement> tbApplicationPoolElement;
-
-    @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
-    @CacheLookup
-    private WebElement applicationDivAssignedElement;
-
-    @FindBy(how = How.XPATH, using = "//ul[@id='mainChildTabs']//a[contains(text(),'Assigned')]")
-    @CacheLookup
-    private WebElement assignedElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
     @CacheLookup
@@ -67,59 +44,28 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'casDiv')]")
+    @FindBy(how = How.ID, using = "applicationChildTabs")
     @CacheLookup
-    private WebElement applicationInformtionElement;
+    private WebElement appChildTabsElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'casDiv')]//div[contains(@class,'tabbable application-main-tab multipleTabs')]//div[contains(@class,'sticky-info-class skip-print')]//ul//li[contains(@id,'applicationChildTabs_document')]//a[contains(text(),'Documents')]")
     @CacheLookup
     private WebElement applicationBtnDocumentElement;
 
-    @FindBy(how = How.ID, using = "applicationChildTabs")
-    @CacheLookup
-    private WebElement appChildTabsElement;
-
-
     @FindBy(how = How.ID, using = "document")
     @CacheLookup
     private WebElement documentElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//input[contains(@type, 'text')]")
-//    @CacheLookup
-    private WebElement documentNameElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody//tr")
-//    @CacheLookup
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr")
     private List<WebElement> documentTableElement;
 
     @FindBy(how = How.XPATH, using = "//input[@id='executeDocumentIntegrationSet']")
-//    @FindBy(how = How.ID, using = "executeDocumentIntegrationSet")
     @CacheLookup
     private WebElement btnGetDocumentElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody//tr//td[4]//select")
-//    @CacheLookup
-    private WebElement documentStatusElement;
-
-    @FindBy(how = How.XPATH, using = "//table[@class='table table-bordered no-border']")
-//    @CacheLookup
-    private WebElement documentUploadElement;
-
-    @FindBy(how = How.XPATH, using = "//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]")
-//    @CacheLookup
-    private WebElement documentBtnUploadElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")
     @CacheLookup
     private WebElement documentBtnSaveElement;
-
-    @FindBy(how = How.ID, using = "document_table_body_container")
-    @CacheLookup
-    private WebElement documentTableBodyElement;
-
-    @FindBy(how = How.ID, using = "lendingDocumentsTable_wrapper")
-    @CacheLookup
-    private WebElement documentTbDocumentsElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'activityDiv')]//a[contains(@id, 'loadApplicantInfo')]")
     @CacheLookup
@@ -141,7 +87,6 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
-
     public DE_ReturnSaleQueuePage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -149,8 +94,11 @@ public class DE_ReturnSaleQueuePage {
 
     @SneakyThrows
     public void setData(DESaleQueueDTO deSaleQueueDTO, String downLoadFileURL) {
+        Instant start = Instant.now();
+        String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         //Assigned
+        stage = "ASSIGNED";
         await("applicationFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationFormElement.isDisplayed());
 
@@ -165,6 +113,9 @@ public class DE_ReturnSaleQueuePage {
 
         applicationIdAssignedNumberElement.click();
 
+        System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+
+        stage = "SALE QUEUE";
         await("appChildTabsElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> appChildTabsElement.isDisplayed());
 
@@ -173,31 +124,34 @@ public class DE_ReturnSaleQueuePage {
         await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentElement.isDisplayed());
 
-        await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnGetDocumentElement.isDisplayed());
+        if(documentTableElement.size() == 0){
+            await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> btnGetDocumentElement.isDisplayed());
 
-        btnGetDocumentElement.click();
+            btnGetDocumentElement.click();
+        }
+
+        await("documentTableElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> documentTableElement.size() > 0);
+
+        System.out.println("LOAD TABLE DOCUMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
         for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
 
-            await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentTableElement.size() > 2);
+            WebElement documentStatusElement2 = _driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + documentList.getDocumentName() + "')]//select[starts-with(@id,'applicationDocument_receiveState')]"));
 
-            await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentTableElement.size() > 2);
+            documentStatusElement2.sendKeys("received");
 
-            documentStatusElement.sendKeys("received");
+            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + documentList.getDocumentName() + "')]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
 
-            await("application_upload visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentUploadElement.isDisplayed());
+            /*await("documentBtnUploadElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentBtnUploadElement2.isDisplayed());*/
 
             String fromFile = downLoadFileURL;
             System.out.println("URLdownload: " + fromFile);
             String docName = documentList.getFileName();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             toFile += UUID.randomUUID().toString() + "_" + docName;
-
-            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//table[@id='lendingDocumentsTable']//tbody//td[contains(*,'" + documentList.getDocumentName() + "')][2]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
 
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
             File file = new File(toFile);
@@ -212,19 +166,19 @@ public class DE_ReturnSaleQueuePage {
         }
 
         Utilities.captureScreenShot(_driver);
-        System.out.println("UPLOAD: DONE");
+        System.out.println("UPLOAD FILE" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
         await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 3);
 
         documentBtnSaveElement.click();
 
-        System.out.println("SAVE DOC : DONE");
-
         Utilities.captureScreenShot(_driver);
 
         await("document_table_body visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 2);
+
+        System.out.println("SAVE DOCUMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
         Utilities.captureScreenShot(_driver);
 
@@ -247,6 +201,8 @@ public class DE_ReturnSaleQueuePage {
         documentBtnAddCommnetElement.click();
 
         Utilities.captureScreenShot(_driver);
+
+        System.out.println("ADD COMMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
