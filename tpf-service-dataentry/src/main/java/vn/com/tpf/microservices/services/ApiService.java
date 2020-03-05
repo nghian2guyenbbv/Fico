@@ -647,6 +647,275 @@ public class ApiService {
 		return jNode;
 	}
 
+	public static ByteArrayInputStream statusReportToExcel (List<ReportStatus> report) throws IOException {
+		String[] COLUMNs = {"App no.", "Status"};
+		try(
+				Workbook workbook = new XSSFWorkbook();
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+		){
+			CreationHelper createHelper = workbook.getCreationHelper();
+
+			Sheet sheet = workbook.createSheet("statusreport");
+
+			Font headerFont = workbook.createFont();
+			headerFont.setBold(true);
+			headerFont.setColor(IndexedColors.BLUE.getIndex());
+
+			CellStyle headerCellStyle = workbook.createCellStyle();
+			headerCellStyle.setFont(headerFont);
+
+			// Row for Header
+			Row headerRow = sheet.createRow(0);
+
+			// Header
+			for (int col = 0; col < COLUMNs.length; col++) {
+				Cell cell = headerRow.createCell(col);
+				cell.setCellValue(COLUMNs[col]);
+				cell.setCellStyle(headerCellStyle);
+			}
+
+			// CellStyle for Age
+			CellStyle ageCellStyle = workbook.createCellStyle();
+			ageCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("#"));
+
+			int rowIdx = 1;
+			for (ReportStatus item : report) {
+				Row row = sheet.createRow(rowIdx++);
+
+				row.createCell(0).setCellValue(item.getAppNo());
+				row.createCell(1).setCellValue(item.getStatus());
+			}
+
+			workbook.write(out);
+			return new ByteArrayInputStream(out.toByteArray());
+		}
+	}
+
+	public JsonNode mergeFile(JsonNode mainNode, JsonNode updateNode) {
+		boolean checkIdCard = false;
+		boolean checkHousehold = false;
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode resultNode = mapper.createArrayNode();
+		for (JsonNode item : mainNode) {
+			if (updateNode != null) {
+				for (JsonNode item2 : updateNode) {
+					if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+						if (item2.findPath("document-type").textValue().equals("ID-Card")) {
+							if (!checkIdCard) {
+								ObjectNode doc = mapper.createObjectNode();
+								doc.put("originalname", item.findPath("originalname").textValue());
+								doc.put("filename", item.findPath("filename").textValue());
+								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("urlid", item2.findPath("document-id").asText(null));
+								((ArrayNode) resultNode).add(doc);
+
+								checkIdCard=true;
+							}
+						}
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+						if (item2.findPath("document-type").textValue().equals("Household")) {
+							if (!checkHousehold) {
+								ObjectNode doc = mapper.createObjectNode();
+								doc.put("originalname", item.findPath("originalname").textValue());
+								doc.put("filename", item.findPath("filename").textValue());
+								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("urlid", item2.findPath("document-id").asText(null));
+								((ArrayNode) resultNode).add(doc);
+
+								checkHousehold = true;
+							}
+						}
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
+						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
+						}
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
+						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
+						}
+					} else {
+						ObjectNode doc = mapper.createObjectNode();
+						doc.put("originalname", item.findPath("originalname").textValue());
+						doc.put("filename", item.findPath("filename").textValue());
+						doc.put("md5", item.findPath("md5").textValue());
+						((ArrayNode) resultNode).add(doc);
+
+						break;
+					}
+				}
+			}else{
+				ObjectNode doc = mapper.createObjectNode();
+				doc.put("originalname", item.findPath("originalname").textValue());
+				doc.put("filename", item.findPath("filename").textValue());
+				doc.put("md5", item.findPath("md5").textValue());
+				((ArrayNode) resultNode).add(doc);
+			}
+		}
+		return resultNode;
+	}
+
+
+	public String callApiDigitexx2(String url, JsonNode data) {
+		try {
+			ObjectNode dataLogReq = mapper.createObjectNode();
+			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+			dataLogReq.put("method", "POST");
+			dataLogReq.put("url", url);
+			dataLogReq.set("payload", data);
+			log.info("{}", dataLogReq);
+
+//			String dataString = mapper.writeValueAsString(data);
+//
+//			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+//					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+//
+//			ObjectNode dataLogReq2 = mapper.createObjectNode();
+//			dataLogReq2.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX=PGP=]");
+//			dataLogReq2.set("payload", encrypt);
+//			log.info("{}", dataLogReq2);
+//
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.set("Accept", "application/pgp-encrypted");
+//			headers.set("Content-Type", "application/pgp-encrypted");
+//			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+//			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+//
+//			ObjectNode dataLogReq3 = mapper.createObjectNode();
+//			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
+//			dataLogReq3.set("payload", mapper.readTree(res.getBody().toString()));
+//			log.info("{}", dataLogReq3);
+//
+//			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+//					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
+//
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+//			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+//			dataLogRes.set("payload", data);
+//			dataLogRes.put("result", decrypt.path("body").path("data").asText());
+//
+//			log.info("{}", dataLogRes);
+//			return decrypt.path("data");
+
+			//------------- test khong pgp -------
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			headers.set("authkey", digitexToken);
+			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
+			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
+			JsonNode body = mapper.valueToTree(res.getBody());
+
+			if (body.path("error-code").asText(null) == null || body.path("error-code").textValue() == null){
+				return null;
+			}else{
+				return body.path("error-code").asText(null) +  ": " + body.path("error-description").asText(null);
+			}
+
+		} catch (Exception e) {
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+			dataLogRes.put("status", 500);
+			dataLogRes.put("result", e.toString());
+			dataLogRes.set("payload", data);
+			log.info("{}", dataLogRes);
+
+			return "Call DigiTexx 500!";
+		}
+	}
+
+	public JsonNode callApiDigitexx(String url, JsonNode data) {
+		String referenceId = UUID.randomUUID().toString();
+		try {
+			ObjectNode dataLogReq = mapper.createObjectNode();
+			dataLogReq.put("type", "[==DATAENTRY-DIGITEXX==REQUEST==]");
+			dataLogReq.put("referenceId", referenceId);
+			dataLogReq.put("method", "POST");
+			dataLogReq.put("url", url);
+			dataLogReq.put("request_data", data);
+			log.info("{}", dataLogReq);
+
+			String dataString = mapper.writeValueAsString(data);
+
+			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+
+			ObjectNode dataLogReq2 = mapper.createObjectNode();
+			dataLogReq2.put("type", "[==DATAENTRY-DIGITEXX==REQUEST=PGP=]");
+			dataLogReq2.put("referenceId", referenceId);
+			dataLogReq2.put("request_encrypt", encrypt);
+			log.info("{}", dataLogReq2);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("authkey", digitexToken);
+			headers.set("Accept", "application/pgp-encrypted");
+			headers.set("Content-Type", "application/pgp-encrypted");
+			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
+			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
+
+//			ObjectNode dataLogReq3 = mapper.createObjectNode();
+//			dataLogReq3.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE=PGP=]");
+//			dataLogReq3.put("referenceId", referenceId);
+//			dataLogReq3.set("payload", mapper.readTree(res.getBody()));
+//			log.info("{}", dataLogReq3);
+
+			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
+
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE==]");
+			dataLogRes.put("referenceId", referenceId);
+			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
+			dataLogRes.put("response", res.getBody());
+			dataLogRes.put("response_decrypt", decrypt);
+			log.info("{}", dataLogRes);
+			return decrypt.path("data");
+
+			//------------- test khong pgp -------
+
+
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+//			headers.set("authkey", digitexToken);
+//			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
+//			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
+//
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+//			dataLogRes.put("status", 200);
+//			dataLogRes.put("data", data.textValue());
+//			dataLogRes.put("result", res.getBody().toString());
+//			dataLogRes.set("payload", data);
+//			log.info("{}", dataLogRes);
+//
+//			JsonNode body = mapper.valueToTree(res.getBody());
+//			return body;
+
+		} catch (Exception e) {
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+			dataLogRes.put("status", 500);
+			dataLogRes.put("result", e.toString());
+			dataLogRes.set("payload", data);
+			log.info("{}", dataLogRes);
+
+			return mapper.createObjectNode().put("resultCode", 500).put("message", e.getMessage())
+					.put("error-code", "api error: ").put("error-description", e.toString());
+		}
+	}
+
 	public JsonNode retryUploadPartner(JsonNode request, Map partner) {
 		Map<?, ?> data = Map.of("file", request.path("body"));
 		JsonNode jNode = null;
@@ -1089,275 +1358,6 @@ public class ApiService {
 			return doc;
 		}
 		return jNode;
-	}
-
-	public static ByteArrayInputStream statusReportToExcel (List<ReportStatus> report) throws IOException {
-		String[] COLUMNs = {"App no.", "Status"};
-		try(
-				Workbook workbook = new XSSFWorkbook();
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-		){
-			CreationHelper createHelper = workbook.getCreationHelper();
-
-			Sheet sheet = workbook.createSheet("statusreport");
-
-			Font headerFont = workbook.createFont();
-			headerFont.setBold(true);
-			headerFont.setColor(IndexedColors.BLUE.getIndex());
-
-			CellStyle headerCellStyle = workbook.createCellStyle();
-			headerCellStyle.setFont(headerFont);
-
-			// Row for Header
-			Row headerRow = sheet.createRow(0);
-
-			// Header
-			for (int col = 0; col < COLUMNs.length; col++) {
-				Cell cell = headerRow.createCell(col);
-				cell.setCellValue(COLUMNs[col]);
-				cell.setCellStyle(headerCellStyle);
-			}
-
-			// CellStyle for Age
-			CellStyle ageCellStyle = workbook.createCellStyle();
-			ageCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("#"));
-
-			int rowIdx = 1;
-			for (ReportStatus item : report) {
-				Row row = sheet.createRow(rowIdx++);
-
-				row.createCell(0).setCellValue(item.getAppNo());
-				row.createCell(1).setCellValue(item.getStatus());
-			}
-
-			workbook.write(out);
-			return new ByteArrayInputStream(out.toByteArray());
-		}
-	}
-
-	public JsonNode mergeFile(JsonNode mainNode, JsonNode updateNode) {
-		boolean checkIdCard = false;
-		boolean checkHousehold = false;
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode resultNode = mapper.createArrayNode();
-		for (JsonNode item : mainNode) {
-			if (updateNode != null) {
-				for (JsonNode item2 : updateNode) {
-					if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
-						if (item2.findPath("document-type").textValue().equals("ID-Card")) {
-							if (!checkIdCard) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
-
-								checkIdCard=true;
-							}
-						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
-						if (item2.findPath("document-type").textValue().equals("Household")) {
-							if (!checkHousehold) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
-
-								checkHousehold = true;
-							}
-						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
-						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
-							ObjectNode doc = mapper.createObjectNode();
-							doc.put("originalname", item.findPath("originalname").textValue());
-							doc.put("filename", item.findPath("filename").textValue());
-							doc.put("md5", item.findPath("md5").textValue());
-							doc.put("urlid", item2.findPath("document-id").asText(null));
-							((ArrayNode) resultNode).add(doc);
-						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
-						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
-							ObjectNode doc = mapper.createObjectNode();
-							doc.put("originalname", item.findPath("originalname").textValue());
-							doc.put("filename", item.findPath("filename").textValue());
-							doc.put("md5", item.findPath("md5").textValue());
-							doc.put("urlid", item2.findPath("document-id").asText(null));
-							((ArrayNode) resultNode).add(doc);
-						}
-					} else {
-						ObjectNode doc = mapper.createObjectNode();
-						doc.put("originalname", item.findPath("originalname").textValue());
-						doc.put("filename", item.findPath("filename").textValue());
-						doc.put("md5", item.findPath("md5").textValue());
-						((ArrayNode) resultNode).add(doc);
-
-						break;
-					}
-				}
-			}else{
-				ObjectNode doc = mapper.createObjectNode();
-				doc.put("originalname", item.findPath("originalname").textValue());
-				doc.put("filename", item.findPath("filename").textValue());
-				doc.put("md5", item.findPath("md5").textValue());
-				((ArrayNode) resultNode).add(doc);
-			}
-		}
-		return resultNode;
-	}
-
-
-	public String callApiDigitexx2(String url, JsonNode data) {
-		try {
-			ObjectNode dataLogReq = mapper.createObjectNode();
-			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
-			dataLogReq.put("method", "POST");
-			dataLogReq.put("url", url);
-			dataLogReq.set("payload", data);
-			log.info("{}", dataLogReq);
-
-//			String dataString = mapper.writeValueAsString(data);
-//
-//			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-//
-//			ObjectNode dataLogReq2 = mapper.createObjectNode();
-//			dataLogReq2.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX=PGP=]");
-//			dataLogReq2.set("payload", encrypt);
-//			log.info("{}", dataLogReq2);
-//
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("Accept", "application/pgp-encrypted");
-//			headers.set("Content-Type", "application/pgp-encrypted");
-//			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
-//			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-//
-//			ObjectNode dataLogReq3 = mapper.createObjectNode();
-//			dataLogReq3.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX=PGP=]");
-//			dataLogReq3.set("payload", mapper.readTree(res.getBody().toString()));
-//			log.info("{}", dataLogReq3);
-//
-//			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-//					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
-//
-//			ObjectNode dataLogRes = mapper.createObjectNode();
-//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-//			dataLogRes.set("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-//			dataLogRes.set("payload", data);
-//			dataLogRes.put("result", decrypt.path("body").path("data").asText());
-//
-//			log.info("{}", dataLogRes);
-//			return decrypt.path("data");
-
-			//------------- test khong pgp -------
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			headers.set("authkey", digitexToken);
-			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
-			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
-			JsonNode body = mapper.valueToTree(res.getBody());
-
-			if (body.path("error-code").asText(null) == null || body.path("error-code").textValue() == null){
-				return null;
-			}else{
-				return body.path("error-code").asText(null) +  ": " + body.path("error-description").asText(null);
-			}
-
-		} catch (Exception e) {
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-			dataLogRes.put("status", 500);
-			dataLogRes.put("result", e.toString());
-			dataLogRes.set("payload", data);
-			log.info("{}", dataLogRes);
-
-			return "Call DigiTexx 500!";
-		}
-	}
-
-	public JsonNode callApiDigitexx(String url, JsonNode data) {
-		String referenceId = UUID.randomUUID().toString();
-		try {
-			ObjectNode dataLogReq = mapper.createObjectNode();
-			dataLogReq.put("type", "[==DATAENTRY-DIGITEXX==REQUEST==]");
-			dataLogReq.put("referenceId", referenceId);
-			dataLogReq.put("method", "POST");
-			dataLogReq.put("url", url);
-			dataLogReq.put("request_data", data);
-			log.info("{}", dataLogReq);
-
-			String dataString = mapper.writeValueAsString(data);
-
-			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-
-			ObjectNode dataLogReq2 = mapper.createObjectNode();
-			dataLogReq2.put("type", "[==DATAENTRY-DIGITEXX==REQUEST=PGP=]");
-			dataLogReq2.put("referenceId", referenceId);
-			dataLogReq2.put("request_encrypt", encrypt);
-			log.info("{}", dataLogReq2);
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("authkey", digitexToken);
-			headers.set("Accept", "application/pgp-encrypted");
-			headers.set("Content-Type", "application/pgp-encrypted");
-			HttpEntity<String> entity = new HttpEntity<String>(encrypt.path("data").asText(), headers);
-			ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-
-//			ObjectNode dataLogReq3 = mapper.createObjectNode();
-//			dataLogReq3.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE=PGP=]");
-//			dataLogReq3.put("referenceId", referenceId);
-//			dataLogReq3.set("payload", mapper.readTree(res.getBody()));
-//			log.info("{}", dataLogReq3);
-
-			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpDecrypt", "body", Map.of("project", "digitex", "data", res.getBody().toString())));
-
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==DATAENTRY-DIGITEXX==RESPONSE==]");
-			dataLogRes.put("referenceId", referenceId);
-			dataLogRes.put("status", mapper.convertValue(res.getStatusCode(), JsonNode.class));
-			dataLogRes.put("response", res.getBody());
-			dataLogRes.put("response_decrypt", decrypt);
-			log.info("{}", dataLogRes);
-			return decrypt.path("data");
-
-			//------------- test khong pgp -------
-
-
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//			headers.set("authkey", digitexToken);
-//			HttpEntity<?> entity = new HttpEntity<>(data.textValue(), headers);
-//			ResponseEntity<?> res = restTemplate.postForEntity(url, entity, Object.class);
-//
-//			ObjectNode dataLogRes = mapper.createObjectNode();
-//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-//			dataLogRes.put("status", 200);
-//			dataLogRes.put("data", data.textValue());
-//			dataLogRes.put("result", res.getBody().toString());
-//			dataLogRes.set("payload", data);
-//			log.info("{}", dataLogRes);
-//
-//			JsonNode body = mapper.valueToTree(res.getBody());
-//			return body;
-
-		} catch (Exception e) {
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-			dataLogRes.put("status", 500);
-			dataLogRes.put("result", e.toString());
-			dataLogRes.set("payload", data);
-			log.info("{}", dataLogRes);
-
-			return mapper.createObjectNode().put("resultCode", 500).put("message", e.getMessage())
-					.put("error-code", "api error: ").put("error-description", e.toString());
-		}
 	}
 
 	public JsonNode callApiPartner(String url, JsonNode data, String token, String partnerId) {

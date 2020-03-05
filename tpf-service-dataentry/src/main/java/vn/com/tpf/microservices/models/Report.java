@@ -34,7 +34,14 @@ public class Report {
 
     private String fullName;
     private String identificationNumber;
+    private String identificationNumberFull;
     private long duration;
+
+    private String commentDescription;
+    private String branch;
+    private String lastName;
+    private String firstName;
+    private String sourcingBranch;
 
     private String partnerId;
     private String partnerName;
