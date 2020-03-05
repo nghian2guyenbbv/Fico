@@ -119,6 +119,15 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
+    //------------------- UPDATE
+    @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_51")
+    private WebElement loanOfWorkNoElememt;
+
+    @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_52")
+    private WebElement loanOfWorkYesElememt;
+
+    @FindBy(how = How.ID, using = "T_Courier_Code_frmAppDtl_4")
+    private WebElement courierCodeElement;
 
 
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
@@ -163,9 +172,23 @@ public class DE_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
+
+        courierCodeElement.sendKeys(data.getCourierCode());
+
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+        Utilities.captureScreenShot(_driver);
+
+        if(data.getLoanOfWork().equals("Yes"))
+        {
+            loanOfWorkYesElememt.click();
+        }
+
+        if(data.getLoanOfWork().equals("No"))
+        {
+            loanOfWorkNoElememt.click();
+        }
         Utilities.captureScreenShot(_driver);
     }
 
@@ -214,12 +237,27 @@ public class DE_MiscFrmAppDtlPage {
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
+
+        courierCodeElement.clear();
+        courierCodeElement.sendKeys(data.getCourierCode());
+
         salesAgentCodeElement.clear();
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.clear();
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.clear();
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+
+        if(data.getLoanOfWork().equals("Yes"))
+        {
+            loanOfWorkYesElememt.click();
+        }
+
+        if(data.getLoanOfWork().equals("No"))
+        {
+            loanOfWorkNoElememt.click();
+        }
+        Utilities.captureScreenShot(_driver);
     }
 
 

@@ -48,13 +48,19 @@ public class DataInitial {
                     .building(address.getAddressLine1())
                     .house(address.getAddressLine2())
                     .ward(address.getAddressLine3())
+                    .addressLandmark(address.getLandMark())
                     .residentDurationYear(address.getYearsInCurrentAddress())
                     .residentDurationMonth(address.getMonthsInCurrentAddress())
                     .priStd(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
                     .priNumber(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
+                    .priExt(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getExtension():"")
                     .mobilePhone(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
             addressDTOs.add(addressDTO);
         }
+
+        //update them communicatedetail
+        CommunicationDetails communicationDetails=application.getApplicationInformation().getPersonalInformation().getCommunicationDetails();
+
 
         //Family
         List<FamilyDTO> familyDTOs = new ArrayList<>();
@@ -117,6 +123,7 @@ public class DataInitial {
                 .identification(identificationDTOs)
                 .address(addressDTOs)
                 .email(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
+                .communicationDetails(communicationDetails)
                 .family(familyDTOs)
                 .employmentDetails(employmentDTO)
                 .incomeDetails(incomeDetailDTOList)
@@ -136,6 +143,7 @@ public class DataInitial {
                 .scheme(loanDetails.getSourcingDetails().getSchemeCode())
                 .loanAmount(loanDetails.getSourcingDetails().getLoanAmountRequested())
                 .loanTerm(loanDetails.getSourcingDetails().getRequestedTenure())
+                .loadPurpose(loanDetails.getSourcingDetails().getLoanPurposeDesc())
                 .saleAgentCode(loanDetails.getSourcingDetails().getSaleAgentCode())
                 .build();
         map.put("LoanDetailsDTO", loanDetailsDTO);
@@ -194,7 +202,9 @@ public class DataInitial {
                         .newBankCardNumber(dynamicForm.getNewBankCardNumber())
                         .salesAgentCode(dynamicForm.getSaleAgentCode())
                         .maxRequestRate(dynamicForm.getMaximumInterestedRate())
+                        .courierCode(dynamicForm.getCourierCode())
                         .totalMonthlyPayable(dynamicForm.getTotalMonthlyPayable())
+                        .loanOfWork(dynamicForm.getLoanAtWork())
                         .remark(dynamicForm.getRemark()).build();
                 map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
             }

@@ -29,4 +29,7 @@ public class AddressDTO implements Serializable {
 	//so dien thoai ban
 	private String priStd;
 	private String priNumber;
+	private String priExt;
+
+	private String addressLandmark;
 }

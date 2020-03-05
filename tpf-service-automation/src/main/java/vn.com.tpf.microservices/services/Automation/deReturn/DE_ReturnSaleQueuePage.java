@@ -107,7 +107,7 @@ public class DE_ReturnSaleQueuePage {
         applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
         await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 0);
+                .until(() -> tbApplicationAssignedElement.size() > 2);
 
         WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
 
@@ -144,9 +144,6 @@ public class DE_ReturnSaleQueuePage {
 
             WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + documentList.getDocumentName() + "')]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
 
-            /*await("documentBtnUploadElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentBtnUploadElement2.isDisplayed());*/
-
             String fromFile = downLoadFileURL;
             System.out.println("URLdownload: " + fromFile);
             String docName = documentList.getFileName();
@@ -167,6 +164,9 @@ public class DE_ReturnSaleQueuePage {
 
         Utilities.captureScreenShot(_driver);
         System.out.println("UPLOAD FILE" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+
+        Utilities.captureScreenShot(_driver);
+
 
         await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTableElement.size() > 3);
@@ -207,10 +207,10 @@ public class DE_ReturnSaleQueuePage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
-        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+//        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
+//        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-//        btnMoveToNextStageElement.click();
+        btnMoveToNextStageElement.click();
 
         Utilities.captureScreenShot(_driver);
 

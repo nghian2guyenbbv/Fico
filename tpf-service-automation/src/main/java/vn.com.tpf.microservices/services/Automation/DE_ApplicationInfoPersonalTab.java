@@ -168,6 +168,9 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "address3ToBeAdded_country")
     private WebElement address3Element;
 
+    @FindBy(how = How.ID, using = "address_landmark")
+    private WebElement addressLandmark;
+
     @FindBy(how = How.ID, using = "address_noOfYearsAtCurrentAdress")
     private WebElement currentAddrYearsElement;
 
@@ -189,6 +192,9 @@ public class DE_ApplicationInfoPersonalTab {
 
     @FindBy(how = How.XPATH, using = "//*[@id='phoneNumber_phoneNumberList_new1']")
     private WebElement primaryNumberElement;
+
+    @FindBy(how = How.XPATH, using = "//*[@id='extension_phoneNumberList_new1']")
+    private WebElement primaryEXTNElement;
 
     @FindBy(how = How.ID, using = "create_another_Address")
     private WebElement cbCreateAnotherElement;
@@ -319,6 +325,17 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'NUMBER')]")
     private WebElement updatePrimaryNumberElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'EXTN')]")
+    private WebElement updatePrimaryExtElement;
+
+
+    //------------------------- update them
+    @FindBy(how = How.XPATH, using = "//a[contains(@title,'Add Alternate Mobile Number')]")
+    private WebElement addAlternateMobileElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'dynamic_addedPNO')]//input[contains(@placeholder,'Mobile Phone')]")
+    private List<WebElement> listMobileAlternateElement;
+
 
     public DE_ApplicationInfoPersonalTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -435,6 +452,19 @@ public class DE_ApplicationInfoPersonalTab {
         await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> primaryEmailElement.isDisplayed());
         getPrimaryEmailElement().sendKeys(applicationInfoDTO.getEmail());
+
+        //check nhap them so dien thoai thu 2, update them
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
+        {
+            addAlternateMobileElement.click();
+
+            await("listMobileAlternateElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listMobileAlternateElement.size() > 0);
+
+            listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
+            Utilities.captureScreenShot(_driver);
+        }
+
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -653,6 +683,10 @@ public class DE_ApplicationInfoPersonalTab {
             address3Element.sendKeys(data.getWard());
 
 
+            //update them landmard
+            addressLandmark.clear();
+            addressLandmark.sendKeys(data.getAddressLandmark());
+
             currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
             currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
 //            currentCityYearsElement.sendKeys(data.getCityDurationYear());
@@ -664,6 +698,8 @@ public class DE_ApplicationInfoPersonalTab {
             primaryStdElement.sendKeys(data.getPriStd());
             primaryNumberElement.clear();
             primaryNumberElement.sendKeys(data.getPriNumber());
+            primaryEXTNElement.clear();
+            primaryEXTNElement.sendKeys(data.getPriExt());
 
             mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             Utilities.captureScreenShot(_driver);
@@ -810,6 +846,10 @@ public class DE_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
 
+                //update them landmard
+                addressLandmark.clear();
+                addressLandmark.sendKeys(data.getAddressLandmark());
+
                 currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
@@ -819,6 +859,8 @@ public class DE_ApplicationInfoPersonalTab {
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
                 updatePrimaryNumberElement.clear();
                 updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+                updatePrimaryExtElement.clear();
+                updatePrimaryExtElement.sendKeys(data.getPriExt());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
@@ -908,6 +950,10 @@ public class DE_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
 
+                //update them landmard
+                addressLandmark.clear();
+                addressLandmark.sendKeys(data.getAddressLandmark());
+
                 currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
@@ -917,6 +963,8 @@ public class DE_ApplicationInfoPersonalTab {
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
                 updatePrimaryNumberElement.clear();
                 updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+                updatePrimaryExtElement.clear();
+                updatePrimaryExtElement.sendKeys(data.getPriExt());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());

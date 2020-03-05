@@ -17,6 +17,7 @@ public class DESaleQueueDTO {
     private String appId;
     private String userAuto;
     private String status;
+    private String lastUpdateUser;
     @CreatedDate
     private Date createDate;
     @LastModifiedDate
