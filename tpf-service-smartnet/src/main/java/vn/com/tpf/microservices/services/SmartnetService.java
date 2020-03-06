@@ -56,7 +56,7 @@ public class SmartnetService {
 	private final String STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA = "SALES_QUEUE_UPLOADING_HAS_ACCA";
 	private final String STAGE_SALES_QUEUE_UPLOADING = "SALES_QUEUE_UPLOADING";
 	private final String STAGE_SALES_QUEUE_FAILED = "SALES_QUEUE_FAILED_AUTOMATION";
-
+	private final String STAGE_SALES_QUEUE_HAS_ACCA_FAILED = "SALES_QUEUE_HAS_ACCA_FAILED_AUTOMATION";
 	private final String STAGE_RAISE_QUERY_UPLOADING = "RAISE_QUERY_UPLOADING";
 	private final String STAGE_RAISE_QUERY_FAILED = "RAISE_QUERY_FAILED_AUTOMATION";
 
@@ -174,19 +174,19 @@ public class SmartnetService {
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
 		final JsonNode data = request.path("body").path("data");
 		final long leadId = data.path("leadId").asLong(0);
+		
 		if (leadId == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.leadId not null"));
+		if (!data.path("bankCardNumber").asText().matches("[0-9]{16}"))
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.bankCardNumber not valid"));
+		
 		Query query = Query.query(Criteria.where("leadId").is(leadId));
 		Smartnet smartnet = smartnetTemplate.findOne(query, Smartnet.class);
 		if (smartnet == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.leadId %s not exits", leadId)));
-
-		if (!data.path("bankCardNumber").asText().matches("[0-9]{16}"))
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.bankCardNumber not valid"));
-
 		JsonNode precheks = mapper.convertValue(smartnet.getPreChecks(), JsonNode.class);
 
 		if (!precheks.hasNonNull("preCheck1") || precheks.path("preCheck1").path("data").path("result").asInt() != 0)
@@ -506,15 +506,20 @@ public class SmartnetService {
 			update.set("returns.returnQueues", returnQueuesNew);
 
 			final String currentStage = smartnet.getStage();
-			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA))
+			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA) || currentStage.equals(STAGE_SALES_QUEUE_HAS_ACCA_FAILED))
 				update.set("stage", STAGE_LEAD_DETAILS);
-			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING))
+			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING) || currentStage.equals(STAGE_SALES_QUEUE_FAILED))
 				update.set("stage", STAGE_LOGIN_ACCEPTANCE);
 		}
 
-		if (automationResult.contains(AUTOMATION_SALEQUEUE_FAILED))
-			update.set("stage", STAGE_SALES_QUEUE_FAILED);
-
+		if (automationResult.contains(AUTOMATION_SALEQUEUE_FAILED)) {
+			final String currentStage = smartnet.getStage();
+			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA))
+				update.set("stage", STAGE_SALES_QUEUE_HAS_ACCA_FAILED);
+			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING))
+				update.set("stage", STAGE_SALES_QUEUE_FAILED);
+		}
+			
 		smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Smartnet.class);
 
