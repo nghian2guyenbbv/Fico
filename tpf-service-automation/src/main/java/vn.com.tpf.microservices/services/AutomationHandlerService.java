@@ -3835,6 +3835,10 @@ public class AutomationHandlerService {
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
             de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
+
+            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getTdApplicationElement().size() > 0);
+
             System.out.println(stage + ": DONE");
 
             homePage = new HomePage(driver);
