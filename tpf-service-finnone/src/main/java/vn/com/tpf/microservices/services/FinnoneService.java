@@ -2,10 +2,13 @@ package vn.com.tpf.microservices.services;
 
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -19,12 +22,35 @@ public class FinnoneService {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+	
+	
+	 @Autowired
+     public JdbcTemplate jdbcTemplateFicocen;
+	
+	
 
+	@SuppressWarnings("deprecation")
+	@PostConstruct
+	public void init() throws JsonProcessingException, IllegalArgumentException {
+		ObjectNode  object = mapper.createObjectNode();
+		object.put("body",mapper.convertValue(Map.of("appId","APPL00595599","status","CANCELLED"),JsonNode.class));
+		System.out.println(mapper.writeValueAsString( getReason(mapper.convertValue(object, JsonNode.class))));
+		
+		object = mapper.createObjectNode();
+		object.put("param.data",mapper.convertValue(Map.of("appId","APPL00595599"),JsonNode.class));
+		System.out.println(mapper.writeValueAsString( getAppInfo(mapper.convertValue(object, JsonNode.class))));
+		
+	}
+	
 	private JsonNode response(int status, JsonNode data) {
 		ObjectNode response = mapper.createObjectNode();
 		response.put("status", status).set("data", data);
 		return response;
 	}
+	
+	
+	
+
 
 	public JsonNode getReason(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();
@@ -50,30 +76,49 @@ public class FinnoneService {
 	}
 
 	public JsonNode getAppInfo(JsonNode request) {
-
+		
 		try {
-			String query = String.format("SELECT * FROM TABLE(FN_APP_INFO('%s'))", request.path("body").path("data").path("appId").asText());
-			Object rowObjectNode = jdbcTemplate.queryForObject(query, new Object[] {}, (rs, rowNum) -> {
+			String query = String.format("SELECT * FROM  V_APP_INFO WHERE APPLICATION_NUMBER = '%s'", request.path("body").path("data").path("appId").asText());
+			Object rowObjectNode = jdbcTemplateFicocen.queryForObject(query, new Object[] {}, (rs, rowNum) -> {
 				ObjectNode row = mapper.createObjectNode();
 				row.put("appId", rs.getString("APPLICATION_NUMBER"));
-				row.put("status", rs.getString("STATUS"));
-				row.put("stage", rs.getString("STAGE"));
-				row.put("reasonReturn", rs.getString("REASON_RETURN"));
-				row.put("reasonCancel", rs.getString("REASON_CANCEL"));
+//				System.out.println("APPLICATION_NUMBER");
+				row.put("status", rs.getString("STATUS").toUpperCase().replace(" ", "_"));
+//				System.out.println("STATUS");
+				row.put("stage", rs.getString("STAGE").toUpperCase().replace(" ", "_"));
+//				System.out.println("STAGE");
+				row.put("reasonCode", rs.getString("REASON_CODE"));
+//				System.out.println("REASON_CODE");
+				row.put("reasonDetail", rs.getString("REASON_DETAIL"));
+//				System.out.println("REASON_DETAIL");
 				row.put("taxCode", rs.getString("TAX_CODE"));
+//				System.out.println("TAX_CODE");
 				row.put("finalProduct", rs.getString("FINAL_PRODUCT"));
-				row.put("tenor", rs.getDouble("TENURE"));
+//				System.out.println("FINAL_PRODUCT");
+				row.put("tenor", rs.getDouble("TENOR"));
+//				System.out.println("TENOR");
 				row.put("loanAmount", rs.getLong("LOAN_AMOUNT"));
+//				System.out.println("LOAN_AMOUNT");
 				row.put("interestRate", rs.getDouble("INTEREST_RATE"));
+//				System.out.println("INTEREST_RATE");
 				row.put("loanAccount", rs.getString("LOAN_ACCOUNT"));
+//				System.out.println("LOAN_ACCOUNT");
 				row.put("disbursementDate", rs.getString("DISBURSAL_DATE"));
+//				System.out.println("DISBURSAL_DATE");
 				row.put("loanStatus", rs.getString("LOAN_STATUS"));
+//				System.out.println("LOAN_STATUS");
 				row.put("insurance", rs.getBoolean("INSURANCE"));
+//				System.out.println("INSURANCE");
 				row.put("courierCode", rs.getString("COURIER_CODE"));
+//				System.out.println("COURIER_CODE");
 				row.put("lastSubmitDate", rs.getString("LAST_SUBMIT_DATE"));
+//				System.out.println("LAST_SUBMIT_DATE");
 				row.put("lastUpdateDate", rs.getString("LAST_UPDATE_DATE"));
-				row.put("remark", rs.getString("REMARKS"));
+//				System.out.println("LAST_UPDATE_DATE");
 				row.put("emi", rs.getDouble("EMI"));
+//				System.out.println("EMI");
+				row.put("userName", rs.getString("USER_NAME"));
+			
 				return row;
 			});
 

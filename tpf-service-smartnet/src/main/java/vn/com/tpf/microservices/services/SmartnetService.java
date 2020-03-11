@@ -61,7 +61,7 @@ public class SmartnetService {
 	private final String STAGE_RAISE_QUERY_FAILED = "RAISE_QUERY_FAILED_AUTOMATION";
 
 	private final String STATUS_T_RETURN = "T_RETURN";
-	private final String STATUS_INTRODUCED = "INTRODUCED";
+	private final String STATUS_PRE_APPROVAL = "PRE_APPROVAL";
 	private final String STATUS_RETURNED = "RETURNED";
 
 	private final String STATUS_RESUBMITING = "RESPONSE_QUERY_UPLOADING";
@@ -160,7 +160,7 @@ public class SmartnetService {
 		smartnet.setPreChecks(Map.of("preCheck1",
 				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
 		smartnet.setStage(STAGE_PRECHECK1_DONE);
-		smartnet.setStatus(STATUS_INTRODUCED);
+		smartnet.setStatus(STATUS_PRE_APPROVAL);
 		smartnetTemplate.save(smartnet);
 
 		return utils.getJsonNodeResponse(0, body, preCheckResult.path("data"));
@@ -373,7 +373,7 @@ public class SmartnetService {
 			filesUpload.add(docUpload);
 		}
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
-				.set("status", STATUS_INTRODUCED).set("scheme", data.path("schemeCode").asText())
+				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText())
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
@@ -439,15 +439,8 @@ public class SmartnetService {
 					int sendCount = 0;
 					do {
 						JsonNode result = apiService.pushAppIdOfLeadId(smartnetSender);
-
-						if (result.path("resultCode").asText().equals("200")) {
-							log.info("{}",
-									utils.getJsonNodeResponse(0, body, mapper.createObjectNode().set("data", result)));
-							return;
-						} else {
-							log.info("{}", utils.getJsonNodeResponse(result.path("resultCode").asInt(), body,
-									mapper.createObjectNode().set("data", result)));
-						}
+						if (result.path("resultCode").asText().equals("200")) 
+							return;					
 						sendCount++;
 						Thread.sleep(5 * 60 * 1000);
 					} while (sendCount <= 2);
