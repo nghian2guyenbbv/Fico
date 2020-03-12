@@ -3806,7 +3806,9 @@ public class AutomationHandlerService {
             deSaleQueueDTO = (DESaleQueueDTO) mapValue.get("DESaleQueueList");
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
+
             stage = "LOGIN FINONE";
+
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
@@ -3814,62 +3816,53 @@ public class AutomationHandlerService {
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
 
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-
-            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
 
-            stage = "APPLICATION MANAGER";
-            // ========== APPLICATION MANAGER =================
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-            de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
-
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getTdApplicationElement().size() > 0);
-
-            System.out.println(stage + ": DONE");
-
-            homePage = new HomePage(driver);
-            homePage.getMenuApplicationElement().click();
-            stage = "SALE QUEUE";
-
             // ========== SALE QUEUE =================
+            stage = "SALE QUEUE";
             DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
-            de_ReturnSaleQueuePage.getApplicationElement().click();
-            de_ReturnSaleQueuePage.setData(deSaleQueueDTO, downdloadFileURL);
+            de_ReturnSaleQueuePage.setData(deSaleQueueDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL);
+
+//            // ========== APPLICATION MANAGER =================
+//            stage = "APPLICATION MANAGER";
+//            homePage.getApplicationManagerElement().click();
+//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Manager"));
+//
+//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+//            de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
+//
+//            System.out.println(stage + ": DONE");
+//
+//
+//            // ========== SALE QUEUE =================
+//            stage = "SALE QUEUE";
+//            DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
+//            de_ReturnSaleQueuePage.getMenuApplicationElement().click();
+//            de_ReturnSaleQueuePage.getApplicationElement().click();
+//            de_ReturnSaleQueuePage.saleQueue(deSaleQueueDTO, downdloadFileURL);
 
             System.out.println(stage + ": DONE");
             System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========== Last Update User ACCA =================
-            if (!Objects.isNull(deSaleQueueDTO.getLastUpdateUser())){
+            if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
+                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
                 for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
                     if (documentList.getDocumentName().contains("(ACCA)")) {
-                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getLastUpdateUser());
+                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                     }
                     break;
                 }
             }
-
-            // ========= UPDATE DB ============================
-//            Query queryUpdate1 = new Query();
-//            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()));
-//            Update update1 = new Update();
-//            update1.set("userauto", accountDTO.getUserName());
-//            update1.set("status", 1);
-//            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             deSaleQueueDTO.setStatus("OK");
             deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
