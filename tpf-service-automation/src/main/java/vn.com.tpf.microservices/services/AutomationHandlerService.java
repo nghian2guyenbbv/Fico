@@ -3854,10 +3854,10 @@ public class AutomationHandlerService {
             System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========== Last Update User ACCA =================
-            if (!Objects.isNull(deSaleQueueDTO.getLastUpdateUser())){
+            if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
                 for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
                     if (documentList.getDocumentName().contains("(ACCA)")) {
-                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getLastUpdateUser());
+                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                     }
                     break;
                 }
