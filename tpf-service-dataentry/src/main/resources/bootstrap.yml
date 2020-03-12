@@ -1,6 +1,6 @@
 spring:
   application:
-    name: tpf-service-dataentry
+    name: tpf-service-dataentry-sgbpo
   cloud:
     config:
       uri: http://127.0.0.1:8888
