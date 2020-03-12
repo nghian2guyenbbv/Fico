@@ -44,11 +44,11 @@ spring:
 spring:
   profiles: pro
   rabbitmq:
-    host: tpf-opensource-rabbitmq
+    host: 10.1.64.41
   cloud:
     config:
       server:
         git:
-          uri: http://tpf-opensource-git/tpf-service/tpf-config.git
+          uri: http://10.1.64.41:8088/tpf-service/tpf-config.git
           username: tpf-service
           password: tpf-service

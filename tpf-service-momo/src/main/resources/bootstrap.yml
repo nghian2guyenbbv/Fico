@@ -3,7 +3,7 @@ spring:
     name: tpf-service-momo
   cloud:
     config:
-      uri: http://192.168.0.203:8888
+      uri: http://127.0.0.1:8888
 ---
 spring:
   profiles: dev
@@ -15,7 +15,7 @@ spring:
   profiles: uat
   cloud:
     config:
-      uri: http://tpf-service-config:8888
+      uri: http://10.1.66.27:8888
 ---
 spring:
   profiles: pro

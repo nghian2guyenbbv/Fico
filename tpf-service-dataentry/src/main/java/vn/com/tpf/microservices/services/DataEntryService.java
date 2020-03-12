@@ -521,6 +521,10 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+        Date startDate = new Date();
+        long duration = 0;
+		long durationValidate = 0;
+		long durationInsert = 0;
 		try{
 			Assert.notNull(request.get("body"), "no body");
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
@@ -644,7 +648,7 @@ public class DataEntryService {
 
 							return Map.of("status", 200, "data", responseModel);
 						}
-
+						durationValidate = Duration.between(startDate.toInstant(), new Date().toInstant()).toSeconds();
 
 						Update update = new Update();
 						update.set("applicationInformation", data.getApplicationInformation());
@@ -656,6 +660,9 @@ public class DataEntryService {
 
 //						--automation fullapp--
 						Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+
+						durationInsert = Duration.between(startDate.toInstant(), new Date().toInstant()).toSeconds();
+
 						if (dataFullApp.getQuickLead().getDocumentsComment() != null){
 							dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
 						}
@@ -702,6 +709,8 @@ public class DataEntryService {
 					responseModel.setMessage("applicationId not send again.");
 				}
 			}
+
+            duration = Duration.between(startDate.toInstant(), new Date().toInstant()).toSeconds();
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
@@ -711,7 +720,7 @@ public class DataEntryService {
 			responseModel.setResult_code("1");
 			responseModel.setMessage("Others error");
 		}
-		return Map.of("status", 200, "data", responseModel);
+		return Map.of("status", 200, "data", responseModel, "duration", "validate: " + durationValidate + " insert: " + durationInsert + " duration: " + duration);
 	}
 
 	public Map<String, Object> updateApp(JsonNode request, JsonNode token) {
@@ -802,9 +811,11 @@ public class DataEntryService {
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
+
 			} else {
 				try {
 					if (checkExist.get(0).getStatus().equals("COMPLETED")) {
+
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(referenceId);
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -813,13 +824,14 @@ public class DataEntryService {
 
 						return Map.of("status", 200, "data", responseModel);
 					}
-				} catch (Exception ex) {
-				}
+
+				} catch (Exception ex) {}
 				partnerId = checkExist.get(0).getPartnerId();
 				partnerName = checkExist.get(0).getPartnerName();
 				if (StringUtils.isEmpty(partnerId)) {
 					return Map.of("status", 200, "data", "partnerId null");
 				}
+
 
 				for (CommentModel item : data.getComment()) {
 //					documentCommnet = item.getResponse().getDocuments();
@@ -941,7 +953,7 @@ public class DataEntryService {
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
 									if (item.getResponse() != null) {
-										if (itemComment.getResponse() == null) {
+//										if (itemComment.getResponse() == null) {
 											if (item.getResponse().getDocuments().size() > 0) {
 												for (Document itemCommentFico : item.getResponse().getDocuments()) {
 													Link link = new Link();
@@ -969,11 +981,6 @@ public class DataEntryService {
 					}
 				}
 
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
-			}
 			if (requestCommnentFromDigiTex) {
 				Query queryUpdate = new Query();
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
@@ -986,6 +993,7 @@ public class DataEntryService {
 				rabbitMQService.send("tpf-service-app",
 						Map.of("func", "updateApp", "reference_id", referenceId,
 								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+
 
 				Report report = new Report();
 				report.setQuickLeadId(dataFullApp.getQuickLeadId());
@@ -1001,6 +1009,7 @@ public class DataEntryService {
 				}
 				mongoTemplate.save(report);
 			}
+
 
 			if (responseCommnentToDigiTex) {
 				if (responseCommnentToDigiTexDuplicate) {
@@ -1328,6 +1337,7 @@ public class DataEntryService {
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code("1");
 						responseModel.setMessage("applicationId is exist!");
+
 						return Map.of("status", 200, "data", responseModel);
 					}
 
@@ -1348,7 +1358,6 @@ public class DataEntryService {
 					}
 					Query queryUpdate = new Query();
 					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null).and("status").is("UPLOADFILE"));
-
 
 					Update update = new Update();
 					update.set("quickLead.quickLeadId", data.getQuickLeadId());
@@ -1375,6 +1384,15 @@ public class DataEntryService {
 
 					update.set("partnerId", data.getPartnerId());
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+					if (resultUpdate == null){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is exist!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
 
 					if (resultUpdate == null){
 						responseModel.setRequest_id(requestId);
@@ -1567,7 +1585,7 @@ public class DataEntryService {
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("3");
-			responseModel.setMessage(e.getMessage());
+			responseModel.setMessage(e.toString());
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -1685,6 +1703,7 @@ public class DataEntryService {
 				partnerName = checkExist.get(0).getPartnerName();
 				if(StringUtils.isEmpty(partnerId)){
 					return Map.of("status", 200, "data", "partnerId null");
+
 				}
 				if (request.path("body").path("applicationId").textValue() != null && request.path("body").path("applicationId").equals("") != true &&
 						request.path("body").path("applicationId").textValue().equals("") != true && request.path("body").path("applicationId").textValue().equals("UNKNOWN") != true &&
@@ -1765,6 +1784,7 @@ public class DataEntryService {
 					mongoTemplate.save(report);
 				}
 				else{
+
 					Report report = new Report();
 					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 					report.setFunction("QUICKLEAD");
@@ -1910,6 +1930,7 @@ public class DataEntryService {
 						responseModel.setResult_code("1");
 						responseModel.setMessage(e.toString());
 					}
+
 
 					if (errors.equals("LOGIN FINONE")){
 						try {
@@ -2152,6 +2173,7 @@ public class DataEntryService {
 					}
 
 					if (errors.equals("LOGIN FINONE")){
+
 						try{
 							Query queryLogin = new Query();
 							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
@@ -2343,16 +2365,20 @@ public class DataEntryService {
 //                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
 			);
 
+
 			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId", "createdDate");
 //			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId").and(Sort.Direction.DESC, "createdDate");
 			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate")
+
 					.andExpression("_id.commentDescription").as("commentDescription") .andExpression("_id.applications.quickLead.sourcingBranch").as("branch");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
 			Aggregation aggregation = Aggregation.newAggregation(match1, lookupOperation, group, sort /*, project/*, limit*/)
 					.withOptions(newAggregationOptions().allowDiskUse(true).build());
+
 			AggregationResults<Report> results = mongoTemplate.aggregate(aggregation, Report.class, Report.class);
 
 			List<Report> listData = results.getMappedResults();
+
 
 			String appId = "";
 			Date startDate = new Date();
@@ -2360,6 +2386,7 @@ public class DataEntryService {
 			for (Report item:listData) {
 				try {
 					try{
+
 //                        if (item.getApplications().size() > 0) {
 //                            if (item.getApplications().get(0).getApplicationInformation() == null) {
 //                                item.setFullName(item.getApplications().get(0).getQuickLead().getFirstName() + " " + item.getApplications().get(0).getQuickLead().getLastName());
@@ -2372,6 +2399,7 @@ public class DataEntryService {
 //                            }
 //                        }
 
+
 						if (item.getFullName() == null || item.getFullName().equals("")){
 							item.setFullName(item.getFirstName() + " " + item.getLastName());
 						}
@@ -2383,6 +2411,7 @@ public class DataEntryService {
 					catch (Exception exx) {
 						String a ="";
 					}
+
 
 					if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
 						startDate = item.getCreatedDate();
@@ -2433,6 +2462,7 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+
 		ByteArrayInputStream in = null;
 		try{
 			Assert.notNull(request.get("body"), "no body");
@@ -2457,6 +2487,7 @@ public class DataEntryService {
 			}
 
 //			AggregationOperation match1 = Aggregation.match(Criteria.where("createdDate").gte(fromDate).lte(toDate).and("status").in(inputQuery));
+
 			AggregationOperation group = Aggregation.group("status").count().as("count");
 			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "count");
 			AggregationOperation project = Aggregation.project().andExpression("_id").as("status").andExpression("count").as("appNo");
@@ -2464,6 +2495,7 @@ public class DataEntryService {
 			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort, project/*, limit*/)
 					.withOptions(newAggregationOptions().allowDiskUse(true).build());
 			AggregationResults<ReportStatus> results = mongoTemplate.aggregate(aggregation, Application.class, ReportStatus.class);
+
 
 			List<ReportStatus> resultData = results.getMappedResults();
 
@@ -2485,6 +2517,7 @@ public class DataEntryService {
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -2495,6 +2528,7 @@ public class DataEntryService {
 		}
 		return Map.of("status", 200, "data", Base64.getEncoder().encodeToString(in.readAllBytes()));
 	}
+
 
 	public Map<String, Object> getDocumentId(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
@@ -2580,11 +2614,13 @@ public class DataEntryService {
 //				row.createCell(2).setCellValue(item.getCreatedDate());
 				row.createCell(4).setCellValue(item.getCreatedBy());
 				row.createCell(5).setCellValue(item.getStatus());
+
 				row.createCell(6).setCellValue(item.getCommentDescription());
 				row.createCell(7).setCellValue(item.getFullName());
 				row.createCell(8).setCellValue(item.getIdentificationNumber());
 				row.createCell(9).setCellValue(item.getBranch());
 				row.createCell(10).setCellValue(item.getDuration());
+
 
 			}
 

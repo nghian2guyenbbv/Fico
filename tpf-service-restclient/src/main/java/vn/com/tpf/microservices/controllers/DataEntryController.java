@@ -121,7 +121,7 @@ public class DataEntryController {
 													@RequestPart("description")  String description)
 			throws Exception {
 
-
+		JsonNode body = null;
 		ObjectMapper mapper = new ObjectMapper();
 
 
@@ -329,10 +329,16 @@ public class DataEntryController {
 		boolean validatePersonalImage = false;
 		boolean validateACCA = false;
 		boolean validateComment = false;
+		String checkDuplicateFile = "";
 
         if (appId.equals("new")) {
-
             for (MultipartFile item : files) {
+            	if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
+					return ResponseEntity.status(200)
+							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
+				}
+
                 if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
                     validateIdCard = true;
                 } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
@@ -346,6 +352,8 @@ public class DataEntryController {
                 } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
                     validateACCA = true;
                 }
+
+				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
             }
             if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
             } else {
@@ -355,6 +363,12 @@ public class DataEntryController {
             }
         }else {
 			for (MultipartFile item : files) {
+				if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
+					return ResponseEntity.status(200)
+							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
+				}
+
 				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 					validateIdCard = true;
 				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
@@ -370,6 +384,8 @@ public class DataEntryController {
 				}else {
 					validateComment = true;
 				}
+
+				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
 			}
 			if (!validateComment) {
 			} else {
@@ -950,6 +966,8 @@ public class DataEntryController {
 	public JsonNode mergeFile(JsonNode mainNode, JsonNode updateNode) {
 	    boolean checkIdCard = false;
         boolean checkHousehold = false;
+		boolean checkPersonalImage = false;
+		boolean checkACCAForm = false;
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode resultNode = mapper.createArrayNode();
 		for (JsonNode item : mainNode) {
@@ -985,21 +1003,29 @@ public class DataEntryController {
 						}
 					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
-							ObjectNode doc = mapper.createObjectNode();
-							doc.put("originalname", item.findPath("originalname").textValue());
-							doc.put("filename", item.findPath("filename").textValue());
-							doc.put("md5", item.findPath("md5").textValue());
-							doc.put("urlid", item2.findPath("document-id").asText(null));
-							((ArrayNode) resultNode).add(doc);
+							if (!checkPersonalImage) {
+								ObjectNode doc = mapper.createObjectNode();
+								doc.put("originalname", item.findPath("originalname").textValue());
+								doc.put("filename", item.findPath("filename").textValue());
+								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("urlid", item2.findPath("document-id").asText(null));
+								((ArrayNode) resultNode).add(doc);
+
+								checkPersonalImage = true;
+							}
 						}
 					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
-							ObjectNode doc = mapper.createObjectNode();
-							doc.put("originalname", item.findPath("originalname").textValue());
-							doc.put("filename", item.findPath("filename").textValue());
-							doc.put("md5", item.findPath("md5").textValue());
-							doc.put("urlid", item2.findPath("document-id").asText(null));
-							((ArrayNode) resultNode).add(doc);
+							if (!checkACCAForm) {
+								ObjectNode doc = mapper.createObjectNode();
+								doc.put("originalname", item.findPath("originalname").textValue());
+								doc.put("filename", item.findPath("filename").textValue());
+								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("urlid", item2.findPath("document-id").asText(null));
+								((ArrayNode) resultNode).add(doc);
+
+								checkACCAForm = true;
+							}
 						}
 					} else {
 						ObjectNode doc = mapper.createObjectNode();
