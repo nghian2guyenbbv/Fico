@@ -1832,11 +1832,11 @@ public class DataEntryController {
 		}else if(body.path("data").path("applicationId").isTextual()){
 			String partnerName = this.getPartnerNameByAppId(body.path("data").path("applicationId").asText());
 			return partnerName;
-		}else if(body.path("quickleadId").isTextual()){
-			String partnerName = this.getPartnerNameByQuickLeadId(body.path("quickleadId").asText());
+		}else if(body.path("quickLeadId").isTextual()){
+			String partnerName = this.getPartnerNameByQuickLeadId(body.path("quickLeadId").asText());
 			return partnerName;
-		}else if(body.path("data").path("quickleadId").isTextual()){
-			String partnerName = this.getPartnerNameByQuickLeadId(body.path("data").path("quickleadId").asText());
+		}else if(body.path("data").path("quickLeadId").isTextual()){
+			String partnerName = this.getPartnerNameByQuickLeadId(body.path("data").path("quickLeadId").asText());
 			return partnerName;
 		}else
 			return null;
