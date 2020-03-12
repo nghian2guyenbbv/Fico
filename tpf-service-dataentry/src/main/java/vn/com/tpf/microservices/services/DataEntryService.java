@@ -1435,6 +1435,8 @@ public class DataEntryService {
 				app.setQuickLeadId(quickLeadId.toString());
 				app.setQuickLead(quickLead);
 				app.setStatus("UPLOADFILE");
+				app.setPartnerId("1");
+				app.setPartnerName("DIGI-TEXX");
 				app.setUserName(token.path("user_name").textValue());
 				app.setCreatedDate(new Date());
 				mongoTemplate.save(app);
