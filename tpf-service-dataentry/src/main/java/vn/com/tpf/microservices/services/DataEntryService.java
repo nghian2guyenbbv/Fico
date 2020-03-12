@@ -520,6 +520,10 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String referenceId = UUID.randomUUID().toString();
+        Date startDate = new Date();
+        long duration = 0;
+		long durationValidate = 0;
+		long durationInsert = 0;
 		try{
 			Assert.notNull(request.get("body"), "no body");
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
@@ -643,7 +647,7 @@ public class DataEntryService {
 
 							return Map.of("status", 200, "data", responseModel);
 						}
-
+						durationValidate = Duration.between(startDate.toInstant(), new Date().toInstant()).toSeconds();
 
 						Update update = new Update();
 						update.set("applicationInformation", data.getApplicationInformation());
@@ -655,6 +659,9 @@ public class DataEntryService {
 
 //						--automation fullapp--
 						Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+
+						durationInsert = Duration.between(startDate.toInstant(), new Date().toInstant()).toSeconds();
+
 						if (dataFullApp.getQuickLead().getDocumentsComment() != null){
 							dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
 						}
@@ -697,6 +704,8 @@ public class DataEntryService {
 					responseModel.setMessage("applicationId not send again.");
 				}
 			}
+
+            duration = Duration.between(startDate.toInstant(), new Date().toInstant()).toSeconds();
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
@@ -706,7 +715,7 @@ public class DataEntryService {
 			responseModel.setResult_code("1");
 			responseModel.setMessage("Others error");
 		}
-		return Map.of("status", 200, "data", responseModel);
+		return Map.of("status", 200, "data", responseModel, "duration", "validate: " + durationValidate + " insert: " + durationInsert + " duration: " + duration);
 	}
 
 	public Map<String, Object> updateApp(JsonNode request, JsonNode token) {
@@ -930,7 +939,7 @@ public class DataEntryService {
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
 									if (item.getResponse() != null) {
-										if (itemComment.getResponse() == null) {
+//										if (itemComment.getResponse() == null) {
 											if (item.getResponse().getDocuments().size() > 0) {
 												for (Document itemCommentFico : item.getResponse().getDocuments()) {
 													Link link = new Link();
@@ -947,7 +956,7 @@ public class DataEntryService {
 											comment = item.getResponse().getComment();
 
                                         	responseCommnentToDigiTexDuplicate = true;
-										}
+//										}
 									}
 								}
 							}
@@ -957,11 +966,6 @@ public class DataEntryService {
 						}
 					}
 				}
-
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
 			}
 			if (requestCommnentFromDigiTex){
 				Query queryUpdate = new Query();
@@ -988,7 +992,7 @@ public class DataEntryService {
             }
 
             if (responseCommnentToDigiTex){
-                if (responseCommnentToDigiTexDuplicate) {
+//                if (responseCommnentToDigiTexDuplicate) { // bo check tra comment nhieu lan
                     ArrayNode documents = mapper.createArrayNode();
                     boolean checkIdCard = false;
                     boolean checkHousehold = false;
@@ -1135,14 +1139,14 @@ public class DataEntryService {
                     report.setCreatedBy(token.path("user_name").textValue());
                     report.setCreatedDate(new Date());
                     mongoTemplate.save(report);
-                }else{
-                    responseModel.setRequest_id(requestId);
-                    responseModel.setReference_id(referenceId);
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
-                    responseModel.setResult_code("1");
-                    responseModel.setMessage("Không thể trả thêm comment!");
-                    return Map.of("status", 200, "data", responseModel);
-                }
+//                }else{
+//                    responseModel.setRequest_id(requestId);
+//                    responseModel.setReference_id(referenceId);
+//                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//                    responseModel.setResult_code("1");
+//                    responseModel.setMessage("Không thể trả thêm comment!");
+//                    return Map.of("status", 200, "data", responseModel);
+//                }
             }
 
             if (responseCommnentFullAPPFromDigiTex){
@@ -1161,6 +1165,10 @@ public class DataEntryService {
                 report.setCreatedDate(new Date());
                 mongoTemplate.save(report);
             }
+            responseModel.setRequest_id(requestId);
+            responseModel.setReference_id(UUID.randomUUID().toString());
+            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+            responseModel.setResult_code("0");
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
