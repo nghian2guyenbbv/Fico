@@ -9,6 +9,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 public class ResponseAutomationModel<T> implements Serializable {
+
     private String request_id;
     private String reference_id;
     private Timestamp date_time;

@@ -21,12 +21,19 @@ import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
+import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationDTO;
+import vn.com.tpf.microservices.models.FieldVerification.InitiateVerificationDTO;
+import vn.com.tpf.microservices.models.FieldVerification.WaiveOffAllDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.models.ResponseAutomationModel;
 import vn.com.tpf.microservices.services.Automation.*;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
+import vn.com.tpf.microservices.services.Automation.fieldVerification.FV_FieldInitiationCompletionPage;
+import vn.com.tpf.microservices.services.Automation.fieldVerification.FV_FieldInvestigationPage;
+import vn.com.tpf.microservices.services.Automation.fieldVerification.FV_InitiateVerificationPage;
+import vn.com.tpf.microservices.services.Automation.fieldVerification.FV_WaiveOffAllPage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -242,6 +249,18 @@ public class AutomationHandlerService {
                 case "SN_quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project);
                     SN_runAutomation_QuickLead(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_Initiate_Verification":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    runAutomation_Initiate_Verification(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_Waive_Off_All":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    runAutomation_Waive_Off_All(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_Field_Investigation":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    runAutomation_Field_Investigation(driver, mapValue, accountDTO);
                     break;
             }
 
@@ -3835,10 +3854,6 @@ public class AutomationHandlerService {
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
             de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
-
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getTdApplicationElement().size() > 0);
-
             System.out.println(stage + ": DONE");
 
             homePage = new HomePage(driver);
@@ -4130,4 +4145,301 @@ public class AutomationHandlerService {
 
     }
     //------------------------ END SMARTNET-----------------------------------------------------
+
+    //------------------------ FIELD VERIFICATION -----------------------------------------------------
+    public void runAutomation_Initiate_Verification(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant startIn = Instant.now();
+        String stage = "";
+        InitiateVerificationDTO initiateVerificationDTO = InitiateVerificationDTO.builder().build();
+        log.info("{}", initiateVerificationDTO);
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            initiateVerificationDTO = (InitiateVerificationDTO) mapValue.get("InitiateVerificationList");
+            //*************************** END GET DATA *********************//
+            System.out.println(stage + ": DONE");
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + initiateVerificationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+            // ========== APPLICATIONS =================
+            homePage.getMenuApplicationElement().click();
+            // ========== INITIATE VERIFICATION =================
+            stage = "INITIATE VERIFICATION";
+            FV_InitiateVerificationPage fv_InitiateVerificationPage = new FV_InitiateVerificationPage(driver);
+            fv_InitiateVerificationPage.setData(initiateVerificationDTO, accountDTO.getUserName().toLowerCase());
+
+//            // ========== APPLICATION MANAGER =================
+//            homePage.getMenuApplicationElement().click();
+//            stage = "APPLICATION MANAGER";
+//            homePage.getApplicationManagerElement().click();
+//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Manager"));
+//
+//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+//            de_applicationManagerPage.setData(initiateVerificationDTO.getAppId(), accountDTO.getUserName().toLowerCase());
+//            System.out.println(stage + ": DONE");
+//
+//            // ========== Initiate Verification =================
+//            homePage = new HomePage(driver);
+//            homePage.getMenuApplicationElement().click();
+//            stage = "INITIATE VERIFICATION";
+//            FV_InitiateVerificationPage fv_InitiateVerificationPage = new FV_InitiateVerificationPage(driver);
+//            fv_InitiateVerificationPage.getApplicationElement().click();
+//            fv_InitiateVerificationPage.setData(initiateVerificationDTO, accountDTO.getUserName().toLowerCase());
+
+            System.out.println(stage + ": DONE");
+
+            System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + initiateVerificationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            // ========= UPDATE DB ============================
+            Query queryUpdate1 = new Query();
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appid").is(initiateVerificationDTO.getAppId()));
+            Update update1 = new Update();
+            update1.set("userauto", accountDTO.getUserName());
+            update1.set("status", 1);
+            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + initiateVerificationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            responseModel.setReference_id(initiateVerificationDTO.getReference_id());
+            responseModel.setProject(initiateVerificationDTO.getProject());
+            responseModel.setTransaction_id(initiateVerificationDTO.getTransaction_id());
+            responseModel.setApp_id(initiateVerificationDTO.getAppId());
+            responseModel.setAutomation_result("INITIATEVERIFICATION PASS");
+
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+            responseModel.setReference_id(initiateVerificationDTO.getReference_id());
+            responseModel.setProject(initiateVerificationDTO.getProject());
+            responseModel.setTransaction_id(initiateVerificationDTO.getTransaction_id());
+            responseModel.setApp_id(initiateVerificationDTO.getAppId());
+            responseModel.setAutomation_result("INITIATEVERIFICATION FAILED" + " - " + e.getMessage());
+
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(startIn, finish).toMinutes());
+            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            logout(driver,accountDTO.getUserName());
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+    //------------------------ END FIELD VERIFICATION -----------------------------------------------------
+
+    //------------------------ WAIVE OFF ALL -----------------------------------------------------
+    public void runAutomation_Waive_Off_All(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant startIn = Instant.now();
+        String stage = "";
+        WaiveOffAllDTO waiveOffAllDTO = WaiveOffAllDTO.builder().build();
+        log.info("{}", waiveOffAllDTO);
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            waiveOffAllDTO = (WaiveOffAllDTO) mapValue.get("WaiveOffAllList");
+            //*************************** END GET DATA *********************//
+            System.out.println(stage + ": DONE");
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + waiveOffAllDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+            // ========== APPLICATIONS =================
+            homePage.getMenuApplicationElement().click();
+            // ========== WAIVE OFF ALL =================
+            stage = "WAIVE OFF ALL";
+            FV_WaiveOffAllPage fv_WaiveOffAllPage = new FV_WaiveOffAllPage(driver);
+            fv_WaiveOffAllPage.setData(waiveOffAllDTO, accountDTO.getUserName().toLowerCase());
+
+//            // ========== APPLICATION MANAGER =================
+//            stage = "APPLICATION MANAGER";
+//            homePage.getApplicationManagerElement().click();
+//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Manager"));
+//
+//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+//            de_applicationManagerPage.setData(waiveOffAllDTO.getAppId(), accountDTO.getUserName().toLowerCase());
+//            System.out.println(stage + ": DONE");
+//
+//            homePage = new HomePage(driver);
+//            homePage.getMenuApplicationElement().click();
+//            // ========== Waive Off All =================
+//            stage = "WAIVE OFF ALL";
+//            FV_WaiveOffAllPage fv_WaiveOffAllPage = new FV_WaiveOffAllPage(driver);
+//            fv_WaiveOffAllPage.getApplicationElement().click();
+//            fv_WaiveOffAllPage.setData(waiveOffAllDTO);
+
+            System.out.println(stage + ": DONE");
+            System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + waiveOffAllDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            // ========= UPDATE DB ============================
+            Query queryUpdate1 = new Query();
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(waiveOffAllDTO.getAppId()));
+            Update update1 = new Update();
+            update1.set("userauto", accountDTO.getUserName());
+            update1.set("status", 1);
+            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + waiveOffAllDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            responseModel.setReference_id(waiveOffAllDTO.getReference_id());
+            responseModel.setProject(waiveOffAllDTO.getProject());
+            responseModel.setTransaction_id(waiveOffAllDTO.getTransaction_id());
+            responseModel.setApp_id(waiveOffAllDTO.getAppId());
+            responseModel.setAutomation_result("WAIVEOFFALL PASS");
+
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+            responseModel.setReference_id(waiveOffAllDTO.getReference_id());
+            responseModel.setProject(waiveOffAllDTO.getProject());
+            responseModel.setTransaction_id(waiveOffAllDTO.getTransaction_id());
+            responseModel.setApp_id(waiveOffAllDTO.getAppId());
+            responseModel.setAutomation_result("WAIVEOFFALL FAILED" + " - " + e.getMessage());
+
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(startIn, finish).toMinutes());
+            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            logout(driver,accountDTO.getUserName());
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+    //------------------------ END WAIVE OFF ALL -----------------------------------------------------
+
+    //------------------------ Field Investigation -----------------------------------------------------
+    public void runAutomation_Field_Investigation(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant startIn = Instant.now();
+        String stage = "";
+        FieldInvestigationDTO fieldInvestigationDTO = FieldInvestigationDTO.builder().build();
+        log.info("{}", fieldInvestigationDTO);
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            fieldInvestigationDTO = (FieldInvestigationDTO) mapValue.get("FieldInvestigationList");
+            //*************************** END GET DATA *********************//
+            System.out.println(stage + ": DONE");
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + fieldInvestigationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+            System.out.println(stage + ": DONE");
+
+            // ========== APPLICATIONS =================
+
+            // ========== Field Investigation =================
+            homePage.getMenuApplicationElement().click();
+            stage = "FIELD INVESTIGATION";
+            FV_FieldInvestigationPage fv_FieldInvestigationPage = new FV_FieldInvestigationPage(driver);
+            fv_FieldInvestigationPage.getFieldInvestigationVerificationElement().click();
+            fv_FieldInvestigationPage.setData(fieldInvestigationDTO, downdloadFileURL);
+            System.out.println(stage + ": DONE");
+
+//            // ========== APPLICATION MANAGER =================
+//            homePage = new HomePage(driver);
+//            homePage.getMenuApplicationElement().click();
+//            stage = "APPLICATION MANAGER";
+//            homePage.getApplicationManagerElement().click();
+//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Manager"));
+//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+//            de_applicationManagerPage.setData(fieldInvestigationDTO.getAppId(), accountDTO.getUserName().toLowerCase());
+//            System.out.println(stage + ": DONE");
+
+
+            // ========== FIELD INITIATION COMPLETION =================
+            stage = "FIELD INITIATION COMPLETION";
+            FV_FieldInitiationCompletionPage fv_FieldInitiationCompletionPage = new FV_FieldInitiationCompletionPage(driver);
+            fv_FieldInitiationCompletionPage.setData(fieldInvestigationDTO, accountDTO.getUserName().toLowerCase());
+
+//            // ========== Field Investigation Details =================
+//            homePage = new HomePage(driver);
+//            homePage.getMenuApplicationElement().click();
+//            stage = "FIELD INITIATION COMPLETION";
+//            FV_FieldInitiationCompletionPage fv_FieldInitiationCompletionPage = new FV_FieldInitiationCompletionPage(driver);
+//            fv_FieldInitiationCompletionPage.getApplicationElement().click();
+//            fv_FieldInitiationCompletionPage.setData(fieldInvestigationDTO, accountDTO.getUserName().toLowerCase());
+
+            System.out.println(stage + ": DONE");
+
+            System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + fieldInvestigationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            // ========= UPDATE DB ============================
+            Query queryUpdate1 = new Query();
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(fieldInvestigationDTO.getAppId()));
+            Update update1 = new Update();
+            update1.set("userauto", accountDTO.getUserName());
+            update1.set("status", 1);
+            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + fieldInvestigationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+            responseModel.setReference_id(fieldInvestigationDTO.getReference_id());
+            responseModel.setProject(fieldInvestigationDTO.getProject());
+            responseModel.setTransaction_id(fieldInvestigationDTO.getTransaction_id());
+            responseModel.setApp_id(fieldInvestigationDTO.getAppId());
+            responseModel.setAutomation_result("FIELDINVESTIGATION PASS");
+
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+            responseModel.setReference_id(fieldInvestigationDTO.getReference_id());
+            responseModel.setProject(fieldInvestigationDTO.getProject());
+            responseModel.setTransaction_id(fieldInvestigationDTO.getTransaction_id());
+            responseModel.setApp_id(fieldInvestigationDTO.getAppId());
+            responseModel.setAutomation_result("FIELDINVESTIGATION FAILED" + " - " + e.getMessage());
+
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(startIn, finish).toMinutes());
+            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            logout(driver,accountDTO.getUserName());
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+    //------------------------ END Field Investigation -----------------------------------------------------
 }

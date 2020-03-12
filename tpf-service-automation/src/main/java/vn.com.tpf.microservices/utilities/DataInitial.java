@@ -6,6 +6,9 @@ import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
+import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationDTO;
+import vn.com.tpf.microservices.models.FieldVerification.InitiateVerificationDTO;
+import vn.com.tpf.microservices.models.FieldVerification.WaiveOffAllDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 
 import java.util.ArrayList;
@@ -703,6 +706,24 @@ public class DataInitial {
     public static Map<String, Object> getDataFromDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("DESaleQueueList", deSaleQueueDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_Initiate_Verification(InitiateVerificationDTO initiateVerificationDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("InitiateVerificationList", initiateVerificationDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_Waive_Off_All(WaiveOffAllDTO waiveOffAllDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("WaiveOffAllList", waiveOffAllDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_Field_Investigation(FieldInvestigationDTO fieldInvestigationDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("FieldInvestigationList", fieldInvestigationDTOList);
         return map;
     }
 }
