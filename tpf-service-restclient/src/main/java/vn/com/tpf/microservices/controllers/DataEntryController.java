@@ -1204,7 +1204,7 @@ public class DataEntryController {
 		request.put("token", token);
 		request.put("func", "getTokenSaigonBpo");
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
