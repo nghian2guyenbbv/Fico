@@ -1,7 +1,7 @@
 spring:
   rabbitmq:
 #    host: 192.168.0.203
-    host: 10.131.23.30
+    host: localhost
 security:
   oauth2:
     client:

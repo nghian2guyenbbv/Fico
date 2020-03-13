@@ -1,7 +1,7 @@
 spring:
   rabbitmq:
-      host: localhost
-#      host: 10.131.23.30
+#      host: localhost
+      host: 10.131.23.30
 #      host: 10.131.31.202
       port: 5672
       username: tpf-service-automation
@@ -15,7 +15,7 @@ spring:
     finone: http://10.1.66.20:4141/finnone-webapp/app/auth/login
     seleHost: localhost
     selePort: 4444
-    downloadFile: http://10.131.31.202:3001/v1/file/
+    downloadFile: http://10.131.23.30:3001/v1/file/
 eureka:
   client:
     serviceUrl:
