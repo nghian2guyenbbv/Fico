@@ -1179,15 +1179,17 @@ public class DataEntryController {
 		Map<String, Object> request = new HashMap<>();
 		request.put("token", token);
 		request.put("body", body);
-		request.put("func", "uploadPartner");
 
 		String partnerName = this.getPartnerName(body);
 
 		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
+			request.put("func", "uploadPartner");
 			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
 			return ResponseEntity.status(response.path("status").asInt(500))
 					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 		}
+
+		request.put("func", "uploadDigiTex");
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
