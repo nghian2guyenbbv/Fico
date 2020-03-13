@@ -11,7 +11,7 @@ import java.util.Date;
 
 @Data
 @Builder
-@Document(collection="automation_smartnet")
+@Document(collection="automation_return_smartnet")
 public class DEResponseQueryDTO {
     private String appId;
     private DEResponseQueryDocumentDTO dataDocument;
