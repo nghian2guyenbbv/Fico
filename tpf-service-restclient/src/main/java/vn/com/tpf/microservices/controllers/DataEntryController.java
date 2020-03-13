@@ -1184,7 +1184,7 @@ public class DataEntryController {
 		Map<String, Object> requestDGT = new HashMap<>();
 		requestDGT.put("token", token);
 		requestDGT.put("body", body);
-		requestDGT.put("func", "uploadDigitex");
+		requestDGT.put("func", "uploadDigiTex");
 
 		String partnerName = this.getPartnerName(body);
 
