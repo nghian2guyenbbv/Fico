@@ -408,7 +408,7 @@ public class AutomationService {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-		InitiateVerificationDTO initiateVerificationDTOList = mapper.treeToValue(request.path("body"), InitiateVerificationDTO.class);
+		List<InitiateVerificationDTO> initiateVerificationDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<InitiateVerificationDTO>>(){});
 
 		new Thread(() -> {
 			try {
@@ -421,7 +421,7 @@ public class AutomationService {
 		return response(0, body, initiateVerificationDTOList);
 	}
 
-	private void runAutomation_Initiate_Verification(InitiateVerificationDTO initiateVerificationDTOList) throws Exception {
+	private void runAutomation_Initiate_Verification(List<InitiateVerificationDTO> initiateVerificationDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Initiate_Verification(initiateVerificationDTOList);
 
@@ -434,12 +434,9 @@ public class AutomationService {
 	//------------------------ WAIVE_OFF_ALL - FUNCTION -------------------------------------
 	public Map<String, Object> Waive_Off_All(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		String reference_id = request.path("reference_id").asText();
-
 		System.out.println(request);
-
 		Assert.notNull(request.get("body"), "no body");
-		WaiveOffAllDTO waiveOffAllDTOList = mapper.treeToValue(request.path("body"), WaiveOffAllDTO.class);
+		List<WaiveOffAllDTO> waiveOffAllDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveOffAllDTO>>(){});
 
 		new Thread(() -> {
 			try {
@@ -452,7 +449,7 @@ public class AutomationService {
 		return response(0, body, waiveOffAllDTOList);
 	}
 
-	private void runAutomation_Waive_Off_All(WaiveOffAllDTO waiveOffAllDTOList) throws Exception {
+	private void runAutomation_Waive_Off_All(List<WaiveOffAllDTO> waiveOffAllDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Off_All(waiveOffAllDTOList);
 
@@ -465,10 +462,9 @@ public class AutomationService {
 	//------------------------ FIELD_INVESTIGATION - FUNCTION -------------------------------------
 	public Map<String, Object> Field_Investigation(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-		FieldInvestigationDTO fieldInvestigationDTOList = mapper.treeToValue(request.path("body"), FieldInvestigationDTO.class);
+		List<FieldInvestigationDTO> fieldInvestigationDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<FieldInvestigationDTO>>(){});
 
 		new Thread(() -> {
 			try {
@@ -481,7 +477,7 @@ public class AutomationService {
 		return response(0, body, fieldInvestigationDTOList);
 	}
 
-	private void runAutomation_Field_Investigation(FieldInvestigationDTO fieldInvestigationDTOList) throws Exception {
+	private void runAutomation_Field_Investigation(List<FieldInvestigationDTO> fieldInvestigationDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Field_Investigation(fieldInvestigationDTOList);
 

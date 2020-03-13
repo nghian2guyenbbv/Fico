@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.SneakyThrows;
 import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -251,16 +252,13 @@ public class AutomationHandlerService {
                     SN_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Initiate_Verification":
-                    accountDTO = pollAccountFromQueue(accounts, project);
-                    runAutomation_Initiate_Verification(driver, mapValue, accountDTO);
+                    runAutomation_Initiate_Verification(driver, mapValue, project);
                     break;
                 case "runAutomation_Waive_Off_All":
-                    accountDTO = pollAccountFromQueue(accounts, project);
-                    runAutomation_Waive_Off_All(driver, mapValue, accountDTO);
+                    runAutomation_Waive_Off_All(driver, mapValue, project);
                     break;
                 case "runAutomation_Field_Investigation":
-                    accountDTO = pollAccountFromQueue(accounts, project);
-                    runAutomation_Field_Investigation(driver, mapValue, accountDTO);
+                    runAutomation_Field_Investigation(driver, mapValue, project);
                     break;
             }
 
@@ -4147,7 +4145,7 @@ public class AutomationHandlerService {
     //------------------------ END SMARTNET-----------------------------------------------------
 
     //------------------------ FIELD VERIFICATION -----------------------------------------------------
-    public void runAutomation_Initiate_Verification(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+    public void runAutomation_Initiate_Verification_Old(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant startIn = Instant.now();
         String stage = "";
@@ -4180,27 +4178,6 @@ public class AutomationHandlerService {
             stage = "INITIATE VERIFICATION";
             FV_InitiateVerificationPage fv_InitiateVerificationPage = new FV_InitiateVerificationPage(driver);
             fv_InitiateVerificationPage.setData(initiateVerificationDTO, accountDTO.getUserName().toLowerCase());
-
-//            // ========== APPLICATION MANAGER =================
-//            homePage.getMenuApplicationElement().click();
-//            stage = "APPLICATION MANAGER";
-//            homePage.getApplicationManagerElement().click();
-//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("Application Manager"));
-//
-//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-//            de_applicationManagerPage.setData(initiateVerificationDTO.getAppId(), accountDTO.getUserName().toLowerCase());
-//            System.out.println(stage + ": DONE");
-//
-//            // ========== Initiate Verification =================
-//            homePage = new HomePage(driver);
-//            homePage.getMenuApplicationElement().click();
-//            stage = "INITIATE VERIFICATION";
-//            FV_InitiateVerificationPage fv_InitiateVerificationPage = new FV_InitiateVerificationPage(driver);
-//            fv_InitiateVerificationPage.getApplicationElement().click();
-//            fv_InitiateVerificationPage.setData(initiateVerificationDTO, accountDTO.getUserName().toLowerCase());
 
             System.out.println(stage + ": DONE");
 
@@ -4244,7 +4221,7 @@ public class AutomationHandlerService {
     //------------------------ END FIELD VERIFICATION -----------------------------------------------------
 
     //------------------------ WAIVE OFF ALL -----------------------------------------------------
-    public void runAutomation_Waive_Off_All(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+    public void runAutomation_Waive_Off_All_Old(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant startIn = Instant.now();
         String stage = "";
@@ -4339,7 +4316,7 @@ public class AutomationHandlerService {
     //------------------------ END WAIVE OFF ALL -----------------------------------------------------
 
     //------------------------ Field Investigation -----------------------------------------------------
-    public void runAutomation_Field_Investigation(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+    public void runAutomation_Field_Investigation_Old(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant startIn = Instant.now();
         String stage = "";
@@ -4442,4 +4419,510 @@ public class AutomationHandlerService {
         }
     }
     //------------------------ END Field Investigation -----------------------------------------------------
+
+    //------------------------ Field Mobility -----------------------------------------------------
+    //------------------------ WAIVE OFF ALL -----------------------------------------------------
+    public void runAutomation_Waive_Off_All(WebDriver driver, Map<String, Object> mapValue, String project) throws Exception {
+        String stage = "";
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            List<WaiveOffAllDTO> waiveOffAllDTOList = (List<WaiveOffAllDTO>) mapValue.get("WaiveOffAllList");
+            //*************************** END GET DATA *********************//
+            List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do {
+                //get list account finone available
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if (resultUpdate == null) {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew = null;
+                    } else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew = null;
+            } while (!Objects.isNull(accountDTONew));
+
+            //insert data
+            mongoTemplate.insert(waiveOffAllDTOList, WaiveOffAllDTO.class);
+
+            if (loginDTOList.size() > 0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO : loginDTOList) {
+                    workerThreadPoolDE.execute(new Runnable() {
+                        @SneakyThrows
+                        @Override
+                        public void run() {
+                            runAutomation_Waive_Off_All_run(driver, loginDTO, project);
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        }
+    }
+
+    private void runAutomation_Waive_Off_All_run(WebDriver driver, LoginDTO accountDTO, String project) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant start = Instant.now();
+        String stage = "";
+        WaiveOffAllDTO waiveOffAllDTO = WaiveOffAllDTO.builder().build();
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        try {
+            //get account run
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            Utilities.captureScreenShot(driver);
+
+            do {
+                try {
+                    Instant startIn = Instant.now();
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    waiveOffAllDTO = mongoTemplate.findOne(query, WaiveOffAllDTO.class);
+
+                    if (!Objects.isNull(waiveOffAllDTO)) {
+
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(waiveOffAllDTO.getAppId()).and("userAuto").is(waiveOffAllDTO.getUserAuto()).and("project").is(waiveOffAllDTO.getProject()));
+                        Update update = new Update();
+                        update.set("useraAuto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        InitiateVerificationDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, InitiateVerificationDTO.class);
+
+                        if (resultUpdate == null) {
+                            continue;
+                        }
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + waiveOffAllDTO.getAppId() + " - User: " + waiveOffAllDTO.getUserAuto() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        stage = "HOME PAGE";
+                        HomePage homePage = new HomePage(driver);
+                        // ========== APPLICATIONS =================
+                        homePage.getMenuApplicationElement().click();
+                        // ========== WAIVE OFF ALL =================
+                        stage = "WAIVE OFF ALL";
+                        FV_WaiveOffAllPage fv_WaiveOffAllPage = new FV_WaiveOffAllPage(driver);
+                        fv_WaiveOffAllPage.setData(waiveOffAllDTO, accountDTO.getUserName().toLowerCase());
+
+                        System.out.println(stage + ": DONE");
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + waiveOffAllDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(waiveOffAllDTO.getAppId()).and("userAuto").is(waiveOffAllDTO.getUserAuto()));
+                        Update update1 = new Update();
+                        update1.set("userAuto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        mongoTemplate.findAndModify(queryUpdate1, update1, InitiateVerificationDTO.class);
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + waiveOffAllDTO.getAppId() + " - User: " + waiveOffAllDTO.getUserAuto() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        responseModel.setReference_id(waiveOffAllDTO.getReference_id());
+                        responseModel.setProject(waiveOffAllDTO.getProject());
+                        responseModel.setTransaction_id(waiveOffAllDTO.getTransaction_id());
+                        responseModel.setApp_id(waiveOffAllDTO.getAppId());
+                        responseModel.setAutomation_result("INITIATEVERIFICATION PASS");
+
+                        Utilities.captureScreenShot(driver);
+
+
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(waiveOffAllDTO.getAppId()).and("userAuto").is(waiveOffAllDTO.getUserAuto()));
+                    Update update = new Update();
+                    update.set("userAuto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    mongoTemplate.findAndModify(queryUpdate, update, InitiateVerificationDTO.class);
+                    System.out.println(ex.getMessage());
+                }
+            } while (!Objects.isNull(waiveOffAllDTO));
+        } catch (Exception e) {
+            responseModel.setReference_id(waiveOffAllDTO.getReference_id());
+            responseModel.setProject(waiveOffAllDTO.getProject());
+            responseModel.setTransaction_id(waiveOffAllDTO.getTransaction_id());
+            responseModel.setApp_id(waiveOffAllDTO.getAppId());
+            responseModel.setAutomation_result("INITIATEVERIFICATION FAILED" + " - " + e.getMessage());
+
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver,accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, project);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+    //------------------------ END WAIVE OFF ALL -----------------------------------------------------
+
+    //------------------------ FIELD VERIFICATION --------------------------------------------------------------
+    public void runAutomation_Initiate_Verification(WebDriver driver, Map<String, Object> mapValue, String project) {
+        String stage = "";
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            List<InitiateVerificationDTO> initiateVerificationDTOList = (List<InitiateVerificationDTO>) mapValue.get("InitiateVerificationList");
+            //*************************** END GET DATA *********************//
+            List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do {
+                //get list account finone available
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if (resultUpdate == null) {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew = null;
+                    } else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew = null;
+            } while (!Objects.isNull(accountDTONew));
+
+            //insert data
+            mongoTemplate.insert(initiateVerificationDTOList, InitiateVerificationDTO.class);
+
+            if (loginDTOList.size() > 0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO : loginDTOList) {
+                    workerThreadPoolDE.execute(new Runnable() {
+                        @SneakyThrows
+                        @Override
+                        public void run() {
+                            runAutomation_Initiate_Verification_run(driver, loginDTO, project);
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        }
+    }
+
+    private void runAutomation_Initiate_Verification_run(WebDriver driver, LoginDTO accountDTO, String project) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant start = Instant.now();
+        String stage = "";
+        InitiateVerificationDTO initiateVerificationDTO = InitiateVerificationDTO.builder().build();
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        try {
+            //get account run
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            Utilities.captureScreenShot(driver);
+
+            do {
+                try {
+                    Instant startIn = Instant.now();
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    initiateVerificationDTO = mongoTemplate.findOne(query, InitiateVerificationDTO.class);
+
+                    if (!Objects.isNull(initiateVerificationDTO)) {
+
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(initiateVerificationDTO.getAppId()).and("userAuto").is(initiateVerificationDTO.getUserAuto()).and("project").is(initiateVerificationDTO.getProject()));
+                        Update update = new Update();
+                        update.set("useraAuto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        InitiateVerificationDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, InitiateVerificationDTO.class);
+
+                        if (resultUpdate == null) {
+                            continue;
+                        }
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + initiateVerificationDTO.getAppId() + " - User: " + initiateVerificationDTO.getUserAuto() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        stage = "HOME PAGE";
+                        HomePage homePage = new HomePage(driver);
+                        // ========== APPLICATIONS =================
+                        homePage.getMenuApplicationElement().click();
+                        // ========== INITIATE VERIFICATION =================
+                        stage = "INITIATE VERIFICATION";
+                        FV_InitiateVerificationPage fv_InitiateVerificationPage = new FV_InitiateVerificationPage(driver);
+                        fv_InitiateVerificationPage.setData(initiateVerificationDTO, accountDTO.getUserName().toLowerCase());
+
+                        System.out.println(stage + ": DONE");
+
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + initiateVerificationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(initiateVerificationDTO.getAppId()).and("userAuto").is(initiateVerificationDTO.getUserAuto()));
+                        Update update1 = new Update();
+                        update1.set("userAuto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        mongoTemplate.findAndModify(queryUpdate1, update1, InitiateVerificationDTO.class);
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + initiateVerificationDTO.getAppId() + " - User: " + initiateVerificationDTO.getUserAuto() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        responseModel.setReference_id(initiateVerificationDTO.getReference_id());
+                        responseModel.setProject(initiateVerificationDTO.getProject());
+                        responseModel.setTransaction_id(initiateVerificationDTO.getTransaction_id());
+                        responseModel.setApp_id(initiateVerificationDTO.getAppId());
+                        responseModel.setAutomation_result("INITIATEVERIFICATION PASS");
+
+                        Utilities.captureScreenShot(driver);
+
+
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(initiateVerificationDTO.getAppId()).and("userAuto").is(initiateVerificationDTO.getUserAuto()));
+                    Update update = new Update();
+                    update.set("userAuto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    mongoTemplate.findAndModify(queryUpdate, update, InitiateVerificationDTO.class);
+                    System.out.println(ex.getMessage());
+                }
+            } while (!Objects.isNull(initiateVerificationDTO));
+        } catch (Exception e) {
+            responseModel.setReference_id(initiateVerificationDTO.getReference_id());
+            responseModel.setProject(initiateVerificationDTO.getProject());
+            responseModel.setTransaction_id(initiateVerificationDTO.getTransaction_id());
+            responseModel.setApp_id(initiateVerificationDTO.getAppId());
+            responseModel.setAutomation_result("INITIATEVERIFICATION FAILED" + " - " + e.getMessage());
+
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver,accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, project);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+    //------------------------ END FIELD VERIFICATION -----------------------------------------------------
+
+    //------------------------ Field Investigation -----------------------------------------------------
+    public void runAutomation_Field_Investigation(WebDriver driver, Map<String, Object> mapValue, String project) {
+        String stage = "";
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            List<FieldInvestigationDTO> fieldInvestigationDTOList = (List<FieldInvestigationDTO>) mapValue.get("FieldInvestigationList");
+            //*************************** END GET DATA *********************//
+            List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do {
+                //get list account finone available
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if (resultUpdate == null) {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew = null;
+                    } else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew = null;
+            } while (!Objects.isNull(accountDTONew));
+
+            //insert data
+            mongoTemplate.insert(fieldInvestigationDTOList, FieldInvestigationDTO.class);
+
+            if (loginDTOList.size() > 0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO : loginDTOList) {
+                    workerThreadPoolDE.execute(new Runnable() {
+                        @SneakyThrows
+                        @Override
+                        public void run() {
+                            runAutomation_Field_Investigation_run(driver, loginDTO, project);
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        }
+    }
+
+    private void runAutomation_Field_Investigation_run(WebDriver driver, LoginDTO accountDTO, String project) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant start = Instant.now();
+        String stage = "";
+        FieldInvestigationDTO fieldInvestigationDTO = FieldInvestigationDTO.builder().build();
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        try {
+            //get account run
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            Utilities.captureScreenShot(driver);
+
+            do {
+                try {
+                    Instant startIn = Instant.now();
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    fieldInvestigationDTO = mongoTemplate.findOne(query, FieldInvestigationDTO.class);
+
+                    if (!Objects.isNull(fieldInvestigationDTO)) {
+
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(fieldInvestigationDTO.getAppId()).and("userAuto").is(fieldInvestigationDTO.getUserAuto()).and("project").is(fieldInvestigationDTO.getProject()));
+                        Update update = new Update();
+                        update.set("useraAuto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        InitiateVerificationDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, InitiateVerificationDTO.class);
+
+                        if (resultUpdate == null) {
+                            continue;
+                        }
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + fieldInvestigationDTO.getAppId() + " - User: " + fieldInvestigationDTO.getUserAuto() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        stage = "HOME PAGE";
+                        HomePage homePage = new HomePage(driver);
+                        System.out.println(stage + ": DONE");
+
+                        // ========== APPLICATIONS =================
+
+                        // ========== Field Investigation =================
+                        homePage.getMenuApplicationElement().click();
+                        stage = "FIELD INVESTIGATION";
+                        FV_FieldInvestigationPage fv_FieldInvestigationPage = new FV_FieldInvestigationPage(driver);
+                        fv_FieldInvestigationPage.getFieldInvestigationVerificationElement().click();
+                        fv_FieldInvestigationPage.setData(fieldInvestigationDTO, downdloadFileURL);
+                        System.out.println(stage + ": DONE");
+
+                        // ========== FIELD INITIATION COMPLETION =================
+                        stage = "FIELD INITIATION COMPLETION";
+                        FV_FieldInitiationCompletionPage fv_FieldInitiationCompletionPage = new FV_FieldInitiationCompletionPage(driver);
+                        fv_FieldInitiationCompletionPage.setData(fieldInvestigationDTO, accountDTO.getUserName().toLowerCase());
+
+                        System.out.println(stage + ": DONE");
+
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + fieldInvestigationDTO.getAppId() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(fieldInvestigationDTO.getAppId()).and("userAuto").is(fieldInvestigationDTO.getUserAuto()));
+                        Update update1 = new Update();
+                        update1.set("userAuto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        mongoTemplate.findAndModify(queryUpdate1, update1, InitiateVerificationDTO.class);
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + fieldInvestigationDTO.getAppId() + " - User: " + fieldInvestigationDTO.getUserAuto() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        responseModel.setReference_id(fieldInvestigationDTO.getReference_id());
+                        responseModel.setProject(fieldInvestigationDTO.getProject());
+                        responseModel.setTransaction_id(fieldInvestigationDTO.getTransaction_id());
+                        responseModel.setApp_id(fieldInvestigationDTO.getAppId());
+                        responseModel.setAutomation_result("INITIATEVERIFICATION PASS");
+
+                        Utilities.captureScreenShot(driver);
+
+
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(fieldInvestigationDTO.getAppId()).and("userAuto").is(fieldInvestigationDTO.getUserAuto()));
+                    Update update = new Update();
+                    update.set("userAuto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    mongoTemplate.findAndModify(queryUpdate, update, InitiateVerificationDTO.class);
+                    System.out.println(ex.getMessage());
+                }
+            } while (!Objects.isNull(fieldInvestigationDTO));
+        } catch (Exception e) {
+            responseModel.setReference_id(fieldInvestigationDTO.getReference_id());
+            responseModel.setProject(fieldInvestigationDTO.getProject());
+            responseModel.setTransaction_id(fieldInvestigationDTO.getTransaction_id());
+            responseModel.setApp_id(fieldInvestigationDTO.getAppId());
+            responseModel.setAutomation_result("INITIATEVERIFICATION FAILED" + " - " + e.getMessage());
+
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver,accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, project);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+    //------------------------ END Field Investigation -----------------------------------------------------
+    //------------------------ END Field Mobility -----------------------------------------------------
 }

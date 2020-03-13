@@ -709,19 +709,19 @@ public class DataInitial {
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Initiate_Verification(InitiateVerificationDTO initiateVerificationDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_Initiate_Verification(List<InitiateVerificationDTO> initiateVerificationDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("InitiateVerificationList", initiateVerificationDTOList);
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Waive_Off_All(WaiveOffAllDTO waiveOffAllDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_Waive_Off_All(List<WaiveOffAllDTO> waiveOffAllDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("WaiveOffAllList", waiveOffAllDTOList);
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Field_Investigation(FieldInvestigationDTO fieldInvestigationDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_Field_Investigation(List<FieldInvestigationDTO> fieldInvestigationDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("FieldInvestigationList", fieldInvestigationDTOList);
         return map;
