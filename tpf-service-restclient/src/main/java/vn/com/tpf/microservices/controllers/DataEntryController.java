@@ -1881,7 +1881,7 @@ public class DataEntryController {
 		try{
 			Map<String, Object> requestGetApp = new HashMap<>();
 			requestGetApp.put("func", "getAppByQuickLeadId");
-			requestGetApp.put("body", Map.of("quickleadId", quickleadId));
+			requestGetApp.put("body", Map.of("quickLeadId", quickleadId));
 
 			JsonNode responseGetApp = rabbitMQService.sendAndReceive(queueDESGB, requestGetApp);
 			if(responseGetApp != null
