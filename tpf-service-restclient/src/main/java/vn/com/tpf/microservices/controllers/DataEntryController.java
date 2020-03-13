@@ -250,7 +250,13 @@ public class DataEntryController {
 		request.put("func", "sendApp");
 		request.put("token", token);
 		request.put("body", body);
+		String partnerName = this.getPartnerName(body);
 
+		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
+			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+			return ResponseEntity.status(response.path("status").asInt(500))
+					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
