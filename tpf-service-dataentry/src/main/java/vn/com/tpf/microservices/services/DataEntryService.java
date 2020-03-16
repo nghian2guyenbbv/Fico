@@ -1436,6 +1436,8 @@ public class DataEntryService {
 				app.setQuickLead(quickLead);
 				app.setStatus("UPLOADFILE");
 				app.setUserName(token.path("user_name").textValue());
+				app.setPartnerId("1");
+				app.setPartnerName("DIGI-TEXX");
 				app.setCreatedDate(new Date());
 				mongoTemplate.save(app);
 
@@ -2210,6 +2212,7 @@ public class DataEntryService {
                     .and("lastName","applications.quickLead.lastName")
                     .and("fullName","applications.applicationInformation.personalInformation.personalInfo.fullName")
                     .and("identificationNumber","applications.quickLead.identificationNumber")
+							.and("partnerName","partnerName")
 //                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
             );
 
@@ -2264,6 +2267,10 @@ public class DataEntryService {
                             item.setDuration(Duration.between(startDate.toInstant(), finishDate.toInstant()).toMinutes());
                         }
                     }
+
+                    if (item.getPartnerName() == null || item.getPartnerName().equals("")){
+                    	item.setPartnerName("DIGI-TEXX");
+					}
                 }
                 catch (Exception ex) {
                 }
@@ -2400,7 +2407,7 @@ public class DataEntryService {
 	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
-		String[] COLUMNs = {"Seq", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)"};
+		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)"};
 		try(
 				Workbook workbook = new XSSFWorkbook();
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -2440,21 +2447,22 @@ public class DataEntryService {
 				cellStyle.setDataFormat(dateFormat);
 
 				row.createCell(0).setCellValue(rowIdx - 1);
-				row.createCell(1).setCellValue(item.getApplicationId());
-				row.createCell(2).setCellValue(item.getFunction());
+				row.createCell(1).setCellValue(item.getPartnerName());
+				row.createCell(2).setCellValue(item.getApplicationId());
+				row.createCell(3).setCellValue(item.getFunction());
 
-				Cell cell = row.createCell(3);
+				Cell cell = row.createCell(4);
 				cell.setCellValue(item.getCreatedDate());
 				cell.setCellStyle(cellStyle);
 
 //				row.createCell(2).setCellValue(item.getCreatedDate());
-				row.createCell(4).setCellValue(item.getCreatedBy());
-				row.createCell(5).setCellValue(item.getStatus());
-                row.createCell(6).setCellValue(item.getCommentDescription());
-				row.createCell(7).setCellValue(item.getFullName());
-				row.createCell(8).setCellValue(item.getIdentificationNumber());
-                row.createCell(9).setCellValue(item.getBranch());
-                row.createCell(10).setCellValue(item.getDuration());
+				row.createCell(5).setCellValue(item.getCreatedBy());
+				row.createCell(6).setCellValue(item.getStatus());
+                row.createCell(7).setCellValue(item.getCommentDescription());
+				row.createCell(8).setCellValue(item.getFullName());
+				row.createCell(9).setCellValue(item.getIdentificationNumber());
+                row.createCell(10).setCellValue(item.getBranch());
+                row.createCell(11).setCellValue(item.getDuration());
 
 			}
 
@@ -2636,6 +2644,7 @@ public class DataEntryService {
 				obj.setSaleBranch(temp.getQuickLead().getSourcingBranch());
 				obj.setCreatedBy(temp.getUserName());
 				obj.setUpdateDate(temp.getLastModifiedDate());
+				obj.setPartnerName(temp.getPartnerName());
 				return obj;
 			}).collect(Collectors.toList());
 
