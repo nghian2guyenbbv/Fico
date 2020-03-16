@@ -973,22 +973,17 @@ public class DataEntryService {
 										comment = item.getResponse().getComment();
 
 										responseCommnentToDigiTexDuplicate = true;
+//										}
 									}
 								}
 							}
-						}
 
 						responseCommnentToDigiTex = true;
 
+						}
 					}
 				}
-
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
 			}
-
 			if (requestCommnentFromDigiTex) {
 				Query queryUpdate = new Query();
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
@@ -1020,71 +1015,15 @@ public class DataEntryService {
 
 
 			if (responseCommnentToDigiTex) {
-				if (responseCommnentToDigiTexDuplicate) {
-					ArrayNode documents = mapper.createArrayNode();
-					boolean checkIdCard = false;
-					boolean checkHousehold = false;
-					for (Document item : documentCommnet) {
-						ObjectNode doc = mapper.createObjectNode();
+//                if (responseCommnentToDigiTexDuplicate) { // bo check tra comment nhieu lan
+				ArrayNode documents = mapper.createArrayNode();
+				boolean checkIdCard = false;
+				boolean checkHousehold = false;
+				for (Document item : documentCommnet) {
+					ObjectNode doc = mapper.createObjectNode();
 
-						if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())) {
-							if (!checkIdCard) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								} else {
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkIdCard = true;
-							}
-						} else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())) {
-							if (!checkIdCard) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								} else {
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkIdCard = true;
-							}
-						}
-						if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())) {
-							if (!checkHousehold) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								} else {
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkHousehold = true;
-							}
-						} else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())) {
-							if (!checkHousehold) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								} else {
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkHousehold = true;
-							}
-						} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())) {
+					if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())) {
+						if (!checkIdCard) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
 							} else {
@@ -1094,7 +1033,11 @@ public class DataEntryService {
 								doc.put("documentId", item.getLink().getUrlPartner());
 								documents.add(doc);
 							}
-						} else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+
+							checkIdCard = true;
+						}
+					} else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())) {
+						if (!checkIdCard) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
 							} else {
@@ -1104,83 +1047,135 @@ public class DataEntryService {
 								doc.put("documentId", item.getLink().getUrlPartner());
 								documents.add(doc);
 							}
+
+							checkIdCard = true;
 						}
 					}
+					if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())) {
+						if (!checkHousehold) {
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							} else {
+								doc.put("documentComment", "");
+							}
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
+							}
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-							"comment", comment, "documents", documents)), JsonNode.class);
+							checkHousehold = true;
+						}
+					} else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())) {
+						if (!checkHousehold) {
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							} else {
+								doc.put("documentComment", "");
+							}
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
+							}
 
-					Map partner = getPartner(partnerId);
-					if (StringUtils.isEmpty(partner.get("data"))) {
-						return Map.of("result_code", 3, "message", "Not found partner");
+							checkHousehold = true;
+						}
+					} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())) {
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						} else {
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+						}
+					} else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						} else {
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+						}
 					}
-					try {
-						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-						String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
-
-						JsonNode responseDG = mapper.createObjectNode();
-
-						if (partnerId.equals("1")) {
-							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-//							apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
-							apiService.callApiDigitexx(resubmitCommentApi, dataSend);
-						} else if (partnerId.equals("2")) {
-							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-							if (StringUtils.isEmpty(tokenPartner)) {
-								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
-							}
-							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
-						}
-
-						if (!responseDG.path("error-code").textValue().equals("")) {
-							if (!responseDG.path("error-code").textValue().equals("null")) {
-								log.info("ReferenceId : " + referenceId);
-								responseModel.setRequest_id(requestId);
-								responseModel.setReference_id(referenceId);
-								responseModel.setDate_time(new Timestamp(new Date().getTime()));
-								responseModel.setResult_code("1");
-								responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
-
-								return Map.of("status", 200, "data", responseModel);
-							}
-						}
-					} catch (Exception ex) {}
-
-					Query queryUpdate = new Query();
-					queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
-					Update update = new Update();
-					update.set("status", "PROCESSING");
-					update.set("lastModifiedDate", new Date());
-					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
-
-					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
-					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp", "reference_id", referenceId,
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
-
-					Report report = new Report();
-					report.setQuickLeadId(dataFullApp.getQuickLeadId());
-					report.setApplicationId(data.getApplicationId());
-					report.setFunction("FICO_RETURN_COMMENT");
-					report.setStatus("PROCESSING");
-					report.setCommentDescription(comment);
-					report.setCreatedBy(token.path("user_name").textValue());
-					report.setCreatedDate(new Date());
-
-					report.setPartnerId(partnerId);
-					report.setPartnerName(partnerName);
-
-					mongoTemplate.save(report);
-				} else {
-					responseModel.setRequest_id(requestId);
-					responseModel.setReference_id(referenceId);
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("1");
-					responseModel.setMessage("Không thể trả thêm comment!");
-					return Map.of("status", 200, "data", responseModel);
 				}
+
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+						"comment", comment, "documents", documents)), JsonNode.class);
+
+				Map partner = getPartner(partnerId);
+				if (StringUtils.isEmpty(partner.get("data"))) {
+					return Map.of("result_code", 3, "message", "Not found partner");
+				}
+				try {
+					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+					String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
+
+					JsonNode responseDG = mapper.createObjectNode();
+
+					if (partnerId.equals("1")) {
+						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//							apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+						responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
+					} else if (partnerId.equals("2")) {
+						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+						if (StringUtils.isEmpty(tokenPartner)) {
+							return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+						}
+						responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+					}
+
+					if (!responseDG.path("error-code").textValue().equals("")) {
+						if (!responseDG.path("error-code").textValue().equals("null")) {
+							log.info("ReferenceId : " + referenceId);
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+
+							return Map.of("status", 200, "data", responseModel);
+						}
+					}
+				} catch (Exception ex) {}
+
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+				Update update = new Update();
+				update.set("status", "PROCESSING");
+				update.set("lastModifiedDate", new Date());
+				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp", "reference_id", referenceId,
+								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+
+				Report report = new Report();
+				report.setQuickLeadId(dataFullApp.getQuickLeadId());
+				report.setApplicationId(data.getApplicationId());
+				report.setFunction("FICO_RETURN_COMMENT");
+				report.setStatus("PROCESSING");
+				report.setCommentDescription(comment);
+				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedDate(new Date());
+
+				report.setPartnerId(partnerId);
+				report.setPartnerName(partnerName);
+
+				mongoTemplate.save(report);
+//				} else {
+//					responseModel.setRequest_id(requestId);
+//					responseModel.setReference_id(referenceId);
+//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//					responseModel.setResult_code("1");
+//					responseModel.setMessage("Không thể trả thêm comment!");
+//					return Map.of("status", 200, "data", responseModel);
+//				}
 			}
 
 			if (responseCommnentFullAPPFromDigiTex) {
@@ -1197,6 +1192,10 @@ public class DataEntryService {
 
 				mongoTemplate.save(report);
 			}
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
 		} catch (Exception e) {
 			log.info("ReferenceId : " + referenceId + "Error: " + e);
 			responseModel.setRequest_id(requestId);
@@ -1399,15 +1398,6 @@ public class DataEntryService {
 						responseModel.setResult_code("1");
 						responseModel.setMessage("applicationId is exist!");
 
-						return Map.of("status", 200, "data", responseModel);
-					}
-
-					if (resultUpdate == null){
-						responseModel.setRequest_id(requestId);
-						responseModel.setReference_id(UUID.randomUUID().toString());
-						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-						responseModel.setResult_code("1");
-						responseModel.setMessage("applicationId is exist!");
 						return Map.of("status", 200, "data", responseModel);
 					}
 
@@ -1762,7 +1752,7 @@ public class DataEntryService {
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
 //						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-						apiService.callApiDigitexx(cmInfoApi, dataSend);
+						apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -1898,7 +1888,7 @@ public class DataEntryService {
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
 //						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-						apiService.callApiDigitexx(feedbackApi, dataSend);
+						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -2023,7 +2013,7 @@ public class DataEntryService {
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
 //						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-						apiService.callApiDigitexx(feedbackApi, dataSend);
+						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -2116,7 +2106,7 @@ public class DataEntryService {
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
 //						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-						apiService.callApiDigitexx(feedbackApi, dataSend);
+						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -2281,7 +2271,7 @@ public class DataEntryService {
 					if(partnerId.equals("1")){
 						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
 //						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-						apiService.callApiDigitexx(feedbackApi, dataSend);
+						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -3178,24 +3168,24 @@ public class DataEntryService {
 							for (CommentModel itemComment : listComment) {
 								if (itemComment.getCommentId().equals(item.getCommentId())) {
 									if (item.getResponse() != null) {
-										if (itemComment.getResponse() == null) {
-											if (item.getResponse().getDocuments().size() > 0) {
-												for (Document itemCommentFico : item.getResponse().getDocuments()) {
-													Link link = new Link();
-													link.setUrlFico(itemCommentFico.getFilename());
-													link.setUrlPartner(itemCommentFico.getUrlid());
-													itemCommentFico.setLink(link);
-												}
+//										if (itemComment.getResponse() == null) {
+										if (item.getResponse().getDocuments().size() > 0) {
+											for (Document itemCommentFico : item.getResponse().getDocuments()) {
+												Link link = new Link();
+												link.setUrlFico(itemCommentFico.getFilename());
+												link.setUrlPartner(itemCommentFico.getUrlid());
+												itemCommentFico.setLink(link);
 											}
-
-											Update update = new Update();
-											update.set("comment.$.response", item.getResponse());
-											Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
-
-											comment = item.getResponse().getComment();
-
-											responseCommnentToDigiTexDuplicate = true;
 										}
+
+										Update update = new Update();
+										update.set("comment.$.response", item.getResponse());
+										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+										comment = item.getResponse().getComment();
+
+										responseCommnentToDigiTexDuplicate = true;
+//										}
 									}
 								}
 							}
@@ -3205,11 +3195,6 @@ public class DataEntryService {
 						}
 					}
 				}
-
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
 			}
 			if (requestCommnentFromDigiTex){
 				Query queryUpdate = new Query();
@@ -3229,76 +3214,22 @@ public class DataEntryService {
 				report.setApplicationId(data.getApplicationId());
 				report.setFunction("DIGITEXX_COMMENT");
 				report.setStatus("RETURNED");
+				report.setCommentDescription(commentDescription);
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
 				mongoTemplate.save(report);
 			}
 
 			if (responseCommnentToDigiTex){
-				if (responseCommnentToDigiTexDuplicate) {
-					ArrayNode documents = mapper.createArrayNode();
-					boolean checkIdCard = false;
-					boolean checkHousehold = false;
-					for (Document item: documentCommnet) {
-						ObjectNode doc = mapper.createObjectNode();
+//                if (responseCommnentToDigiTexDuplicate) { // bo check tra comment nhieu lan
+				ArrayNode documents = mapper.createArrayNode();
+				boolean checkIdCard = false;
+				boolean checkHousehold = false;
+				for (Document item: documentCommnet) {
+					ObjectNode doc = mapper.createObjectNode();
 
-						if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())){
-							if (!checkIdCard) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								}else{
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkIdCard = true;
-							}
-						}else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())){
-							if (!checkIdCard) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								}else{
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkIdCard = true;
-							}
-						}if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())){
-							if (!checkHousehold) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								}else{
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkHousehold = true;
-							}
-						}else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())){
-							if (!checkHousehold) {
-								if (item.getComment() != null) {
-									doc.put("documentComment", item.getComment());
-								}else{
-									doc.put("documentComment", "");
-								}
-								if (item.getLink() != null) {
-									doc.put("documentId", item.getLink().getUrlPartner());
-									documents.add(doc);
-								}
-
-								checkHousehold = true;
-							}
-						} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())){
+					if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())){
+						if (!checkIdCard) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
 							}else{
@@ -3308,7 +3239,11 @@ public class DataEntryService {
 								doc.put("documentId", item.getLink().getUrlPartner());
 								documents.add(doc);
 							}
-						}else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+
+							checkIdCard = true;
+						}
+					}else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())){
+						if (!checkIdCard) {
 							if (item.getComment() != null) {
 								doc.put("documentComment", item.getComment());
 							}else{
@@ -3318,78 +3253,129 @@ public class DataEntryService {
 								doc.put("documentId", item.getLink().getUrlPartner());
 								documents.add(doc);
 							}
+
+							checkIdCard = true;
+						}
+					}if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())){
+						if (!checkHousehold) {
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
+							}
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
+							}
+
+							checkHousehold = true;
+						}
+					}else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())){
+						if (!checkHousehold) {
+							if (item.getComment() != null) {
+								doc.put("documentComment", item.getComment());
+							}else{
+								doc.put("documentComment", "");
+							}
+							if (item.getLink() != null) {
+								doc.put("documentId", item.getLink().getUrlPartner());
+								documents.add(doc);
+							}
+
+							checkHousehold = true;
+						}
+					} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())){
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						}else{
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+						}
+					}else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						}else{
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
 						}
 					}
-
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-							"comment", comment, "documents", documents)), JsonNode.class);
-					//				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
-
-					try {
-						JsonNode responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
-						if (!responseDG.path("error-code").textValue().equals("")) {
-							if (!responseDG.path("error-code").textValue().equals("null")) {
-								log.info("ReferenceId : " + referenceId);
-								responseModel.setRequest_id(requestId);
-								responseModel.setReference_id(referenceId);
-								responseModel.setDate_time(new Timestamp(new Date().getTime()));
-								responseModel.setResult_code("1");
-								responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
-
-								return Map.of("status", 200, "data", responseModel);
-							}
-						}
-					}catch (Exception ex){}
-
-					//
-					//				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
-					//				if (resultDG != null){
-					//					responseModel.setRequest_id(requestId);
-					//					responseModel.setReference_id(referenceId);
-					//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					//					responseModel.setResult_code("1");
-					//					responseModel.setMessage(resultDG);
-					//
-					//					return Map.of("status", 200, "data", responseModel);
-					//				}
-
-					//				HttpHeaders headers = new HttpHeaders();
-					//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					//				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-					//				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-					//						"comment", comment, "documents", documents)), headers);
-					//				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
-					//				JsonNode body = mapper.valueToTree(res.getBody());
-
-					Query queryUpdate = new Query();
-					queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
-					Update update = new Update();
-					update.set("status", "PROCESSING");
-					update.set("lastModifiedDate", new Date());
-					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
-
-					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
-					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp","reference_id", referenceId,
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
-
-					Report report = new Report();
-					report.setQuickLeadId(dataFullApp.getQuickLeadId());
-					report.setApplicationId(data.getApplicationId());
-					report.setFunction("FICO_RETURN_COMMENT");
-					report.setStatus("PROCESSING");
-					report.setCommentDescription(comment);
-					report.setCreatedBy(token.path("user_name").textValue());
-					report.setCreatedDate(new Date());
-					mongoTemplate.save(report);
-				}else{
-					responseModel.setRequest_id(requestId);
-					responseModel.setReference_id(referenceId);
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("1");
-					responseModel.setMessage("Không thể trả thêm comment!");
-					return Map.of("status", 200, "data", responseModel);
 				}
+
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+						"comment", comment, "documents", documents)), JsonNode.class);
+				//				apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+
+				try {
+					JsonNode responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
+					if (!responseDG.path("error-code").textValue().equals("")) {
+						if (!responseDG.path("error-code").textValue().equals("null")) {
+							log.info("ReferenceId : " + referenceId);
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+
+							return Map.of("status", 200, "data", responseModel);
+						}
+					}
+				}catch (Exception ex){}
+
+				//
+				//				String resultDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi,dataSend);
+				//				if (resultDG != null){
+				//					responseModel.setRequest_id(requestId);
+				//					responseModel.setReference_id(referenceId);
+				//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				//					responseModel.setResult_code("1");
+				//					responseModel.setMessage(resultDG);
+				//
+				//					return Map.of("status", 200, "data", responseModel);
+				//				}
+
+				//				HttpHeaders headers = new HttpHeaders();
+				//				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				//				headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
+				//				HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+				//						"comment", comment, "documents", documents)), headers);
+				//				ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexResubmitCommentApi, entity, Object.class);
+				//				JsonNode body = mapper.valueToTree(res.getBody());
+
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
+				Update update = new Update();
+				update.set("status", "PROCESSING");
+				update.set("lastModifiedDate", new Date());
+				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp","reference_id", referenceId,
+								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+
+				Report report = new Report();
+				report.setQuickLeadId(dataFullApp.getQuickLeadId());
+				report.setApplicationId(data.getApplicationId());
+				report.setFunction("FICO_RETURN_COMMENT");
+				report.setStatus("PROCESSING");
+				report.setCommentDescription(comment);
+				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedDate(new Date());
+				mongoTemplate.save(report);
+//                }else{
+//                    responseModel.setRequest_id(requestId);
+//                    responseModel.setReference_id(referenceId);
+//                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//                    responseModel.setResult_code("1");
+//                    responseModel.setMessage("Không thể trả thêm comment!");
+//                    return Map.of("status", 200, "data", responseModel);
+//                }
 			}
 
 			if (responseCommnentFullAPPFromDigiTex){
@@ -3408,6 +3394,10 @@ public class DataEntryService {
 				report.setCreatedDate(new Date());
 				mongoTemplate.save(report);
 			}
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
 		}
 		catch (Exception e) {
 			log.info("ReferenceId : "+ referenceId + "Error: " + e);
