@@ -15,4 +15,6 @@ public class ReportModel {
 
     private String createdBy;
     private String saleBranch;
+
+    private String partnerName;
 }

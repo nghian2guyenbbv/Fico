@@ -42,4 +42,7 @@ public class Report {
     private String lastName;
     private String firstName;
     private String sourcingBranch;
+
+    private String partnerId;
+    private String partnerName;
 }
