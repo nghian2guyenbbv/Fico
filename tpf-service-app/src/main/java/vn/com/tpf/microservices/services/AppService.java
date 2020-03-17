@@ -119,6 +119,11 @@ public class AppService {
 			criteria.and("status").in(StringUtils.commaDelimitedListToSet(request.path("param").path("status").asText()));
 		}
 
+		//update filter vendor
+		if (request.path("param").path("vendor").isTextual()) {
+			criteria.and("optional.partnerName").in(StringUtils.commaDelimitedListToSet(request.path("param").path("vendor").asText()));
+		}
+
 		query.addCriteria(criteria);
 
 		if (request.path("param").path("fromDate").textValue() != null & request.path("param").path("toDate").textValue() != null){
