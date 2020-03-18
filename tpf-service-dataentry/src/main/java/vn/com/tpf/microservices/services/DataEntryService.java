@@ -2836,10 +2836,10 @@ public class DataEntryService {
 			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
 				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
 				callableStatement.setString(1, application.getApplicationId());
-				callableStatement.setDate(2, new java.sql.Date(application.getCreatedDate().getTime()));
+				callableStatement.setDate(2, application.getCreatedDate() != null ? new java.sql.Date(application.getCreatedDate().getTime()) : null);
 				callableStatement.setString(3, application.getDynamicForm().get(0).getSaleAgentCode());
-				callableStatement.setString(4, application.getLoanDetails().getSourcingDetails().getLoanAmountRequested());
-				callableStatement.setString(5, application.getLoanDetails().getSourcingDetails().getRequestedTenure());
+				callableStatement.setString(4, application.getQuickLead().getSourcingBranch());
+				callableStatement.setString(5, application.getQuickLead().getSourcingBranch());
 				callableStatement.setString(6, application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc());
 				callableStatement.setString(7, application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
 				callableStatement.setString(8, IDCardLD);
@@ -2847,7 +2847,7 @@ public class DataEntryService {
 				callableStatement.setString(10, insuranceLD);
 				callableStatement.setString(11, application.getQuickLeadId());
 				callableStatement.setString(12, application.getPartnerName());
-				callableStatement.setDate(13, application.getLastModifiedDate() != null ? new java.sql.Date(application.getLastModifiedDate().getTime()) : new java.sql.Date(new Date().getTime()));
+				callableStatement.setDate(13, application.getLastModifiedDate() != null ? new java.sql.Date(application.getLastModifiedDate().getTime()) : null);
 //				callableStatement.registerOutParameter(3, Types.VARCHAR);
 				return callableStatement;
 			}, prmtrsList);
@@ -2875,11 +2875,11 @@ public class DataEntryService {
 				callableStatement.setString(1, applicationId);
 				callableStatement.setString(2, documentId);
 				callableStatement.setString(3, commentType);
-				callableStatement.setString(4, userName != null ? userName : "");
-				callableStatement.setString(5, request != null ? request : "");
-				callableStatement.setString(6, reponse != null ? reponse : "");
-				callableStatement.setDate(7, createDate != null ? new java.sql.Date(createDate.getTime()) : new java.sql.Date(new Date().getTime()));
-				callableStatement.setDate(8, updateDate != null ? new java.sql.Date(updateDate.getTime()) : new java.sql.Date(new Date().getTime()) );
+				callableStatement.setString(4, request != null ? request : "");
+				callableStatement.setString(5, reponse != null ? reponse : "");
+				callableStatement.setString(6, userName != null ? userName : "");
+				callableStatement.setDate(7, createDate != null ? new java.sql.Date(createDate.getTime()) : null);
+				callableStatement.setDate(8, updateDate != null ? new java.sql.Date(updateDate.getTime()) : null );
 				return callableStatement;
 			}, prmtrsList);
 
