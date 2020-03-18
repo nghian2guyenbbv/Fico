@@ -58,7 +58,7 @@ public class ConvertService {
 	
 	public ObjectNode toAppAutomation(Smartnet smartnet) {
 		ObjectNode app = mapper.createObjectNode();
-
+		app.put("appId", smartnet.getAppId());
 		app.put("status", smartnet.getStage());
 		if (smartnet.getAutomationResults().size() != 0)
 			app.put("automationResult", mapper.convertValue(smartnet.getAutomationResults().get(0), JsonNode.class)

@@ -260,15 +260,19 @@ public class SmartnetService {
 		Update update = new Update().set("updatedAt", new Date());
 		if(smartnet.getViewLastUpdated() == null)
 			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase());
-		if (smartnet.getViewLastUpdated() == null || !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase().equals(smartnet.getViewLastUpdated()))
+		final boolean updateStageAndStatus = (smartnet.getViewLastUpdated() == null || !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase().equals(smartnet.getViewLastUpdated()));
+		if (updateStageAndStatus) 
 			update.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim()).set("status", item.path("data").path(KEY_STATUS).asText().toUpperCase().trim());
+		
 		if(!item.path("data").path(KEY_STAGE).asText().toUpperCase().trim().equals(STAGE_SALES_QUEUE))
 			update.set("userCreatedQueue", item.path("data").path(KEY_USER_NAME).asText());
 		smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), Smartnet.class);
-		rabbitMQService.send("tpf-service-app",
-				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-						Map.of("project", "smartnet", "id", smartnet.getId()), "body",
-						convertService.toAppStatus(smartnet)));
+		
+		if (updateStageAndStatus) 
+			rabbitMQService.send("tpf-service-app",
+					Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+							Map.of("project", "smartnet", "id", smartnet.getId()), "body",
+							convertService.toAppStatus(smartnet)));
 		((ObjectNode)item.path("data")).remove(KEY_USER_NAME);
 		return utils.getJsonNodeResponse(0, body, item.path("data"));
 	}
@@ -395,6 +399,7 @@ public class SmartnetService {
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(smartnet).put("reference_id", body.path("reference_id").asText())));
+		
 		return utils.getJsonNodeResponse(0, body, null);
 	}
 
@@ -523,11 +528,12 @@ public class SmartnetService {
 			
 		smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Smartnet.class);
-
+		if(!automationResult.isBlank()) {
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
 						Map.of("project", "smartnet", "id", smartnet.getId()), "body",
 						convertService.toAppAutomation(smartnet)));
+		}
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
