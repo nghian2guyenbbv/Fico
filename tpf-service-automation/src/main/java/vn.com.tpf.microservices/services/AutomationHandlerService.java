@@ -65,6 +65,9 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
+    @Value("${spring.url.rabbitIdRes}")
+    private String rabbitIdRes;
+
     private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts, String project) throws Exception {
         LoginDTO accountDTO = null;
         while (Objects.isNull(accountDTO)) {
@@ -1044,7 +1047,7 @@ public class AutomationHandlerService {
 //                Map.of("func", func, "token",
 //                        String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
 
-        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-dataentry",
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
                 Map.of("func", func, "body", application));
         System.out.println("rabit:=>" + jsonNode.toString());
 
