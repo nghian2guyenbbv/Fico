@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 
 import java.util.ArrayList;
@@ -55,6 +57,10 @@ public class DataInitial {
                     .mobilePhone(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
             addressDTOs.add(addressDTO);
         }
+
+        //update them communicatedetail
+        CommunicationDetails communicationDetails=application.getApplicationInformation().getPersonalInformation().getCommunicationDetails();
+
 
         //Family
         List<FamilyDTO> familyDTOs = new ArrayList<>();
@@ -117,6 +123,7 @@ public class DataInitial {
                 .identification(identificationDTOs)
                 .address(addressDTOs)
                 .email(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
+                .communicationDetails(communicationDetails)
                 .family(familyDTOs)
                 .employmentDetails(employmentDTO)
                 .incomeDetails(incomeDetailDTOList)
@@ -136,7 +143,7 @@ public class DataInitial {
                 .scheme(loanDetails.getSourcingDetails().getSchemeCode())
                 .loanAmount(loanDetails.getSourcingDetails().getLoanAmountRequested())
                 .loanTerm(loanDetails.getSourcingDetails().getRequestedTenure())
-                .loadPurpose(loanDetails.getSourcingDetails().getLoanPurposeDesc())
+                .loadPurpose(loanDetails.getSourcingDetails().getLoanPurposeDesc()!= null ? loanDetails.getSourcingDetails().getLoanPurposeDesc():"")
                 .saleAgentCode(loanDetails.getSourcingDetails().getSaleAgentCode())
                 .build();
         map.put("LoanDetailsDTO", loanDetailsDTO);
@@ -195,8 +202,9 @@ public class DataInitial {
                         .newBankCardNumber(dynamicForm.getNewBankCardNumber())
                         .salesAgentCode(dynamicForm.getSaleAgentCode())
                         .maxRequestRate(dynamicForm.getMaximumInterestedRate())
+                        .courierCode(dynamicForm.getCourierCode()!=null ? dynamicForm.getCourierCode():"")
                         .totalMonthlyPayable(dynamicForm.getTotalMonthlyPayable())
-                        .loanOfWork(dynamicForm.getLoanAtWork())
+                        .loanOfWork(dynamicForm.getLoanAtWork()!=null?dynamicForm.getLoanAtWork():"")
                         .remark(dynamicForm.getRemark()).build();
                 map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
             }
@@ -683,6 +691,18 @@ public class DataInitial {
     public static Map<String, Object> getDataFromDE_AutoAssign(List<AutoAssignDTO> autoAssignDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("AutoAssignList", autoAssignDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFromDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("DEResponseQueryList", deResponseQueryDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFromDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("DESaleQueueList", deSaleQueueDTOList);
         return map;
     }
 }

@@ -9,6 +9,6 @@ public class CommunicationDetails {
 
     public String primaryAddress;
     public String primaryEmailId;
-    public List<Phonenumber> phonenumbers;
+    public List<Phonenumber> phoneNumbers;
 
 }

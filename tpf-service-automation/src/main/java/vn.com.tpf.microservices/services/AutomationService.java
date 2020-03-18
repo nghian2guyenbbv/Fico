@@ -8,10 +8,14 @@ import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.DataInitial;
@@ -54,22 +58,22 @@ public class AutomationService {
 	);
 	final static Queue<LoginDTO> loginDTOQueue = new LinkedBlockingQueue<>(accounts);
 
-//	final static List<LoginDTO> momoAccounts= Arrays.asList(
-//			LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build(),
-//            LoginDTO.builder().userName("momo_auto12").password("Hcm@12345").build()
-////            LoginDTO.builder().userName("momo_auto2").password("Hcm@12345").build(),
-////            LoginDTO.builder().userName("momo_auto3").password("Hcm@12345").build(),
-////            LoginDTO.builder().userName("momo_auto4").password("Hcm@12345").build(),
-//
-//	);
-//	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccounts);
+	final static List<LoginDTO> momoAccounts= Arrays.asList(
+			LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build(),
+            LoginDTO.builder().userName("momo_auto12").password("Hcm@12345").build()
+//            LoginDTO.builder().userName("momo_auto2").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto3").password("Hcm@12345").build(),
+//            LoginDTO.builder().userName("momo_auto4").password("Hcm@12345").build(),
 
-	final static List<LoginDTO> momoAccountsPro= Arrays.asList(
-			LoginDTO.builder().userName("momo_auto1").password("Tpf@12345").build(),
-			LoginDTO.builder().userName("momo_auto2").password("Tpf@12345").build(),
-			LoginDTO.builder().userName("momo_auto3").password("Tpf@12345").build()
 	);
-	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccountsPro);
+	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccounts);
+
+//	final static List<LoginDTO> momoAccountsPro= Arrays.asList(
+//			LoginDTO.builder().userName("momo_auto1").password("Tpf@12345").build(),
+//			LoginDTO.builder().userName("momo_auto2").password("Tpf@12345").build(),
+//			LoginDTO.builder().userName("momo_auto3").password("Tpf@12345").build()
+//	);
+//	final static Queue<LoginDTO> momo_loginDTOQueue = new LinkedBlockingQueue<>(momoAccountsPro);
 
 
 	final static List<LoginDTO> fptAccounts= Arrays.asList(
@@ -306,4 +310,93 @@ public class AutomationService {
 		//awaitTerminationAfterShutdown(workerThreadPool);
 	}
 	//------------------------ END AUTO ASSIGN - FUNCTION -------------------------------------
+
+	//------------------------ DE_RESPONSE_QUERY - FUNCTION -------------------------------------
+	public Map<String, Object> DE_ResponseQuery(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		DEResponseQueryDTO deResponseQueryDTOList = mapper.treeToValue(request.path("body"), DEResponseQueryDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomationDE_ResponseQuery(deResponseQueryDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, deResponseQueryDTOList);
+	}
+
+	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//------------------------ END - DE_RESPONSE_QUERY - FUNCTION -------------------------------------
+
+	//------------------------ DE_SALE_QUEUE - FUNCTION -------------------------------------
+	public Map<String, Object> DE_SaleQueue(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		DESaleQueueDTO deSaleQueueDTOList = mapper.treeToValue(request.path("body"), DESaleQueueDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomationDE_SaleQueue(deSaleQueueDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, deSaleQueueDTOList);
+	}
+
+	private void runAutomationDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//------------------------ END - DE_SALE_QUEUE - FUNCTION -------------------------------------
+
+
+	//------------------------ SMARTNET - FUNCTION -----------------------------------------
+	public Map<String, Object> SN_quickLeadApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				SN_runAutomation_QL(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application.getQuickLead());
+	}
+
+	private void SN_runAutomation_QL(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"SN_quickLead","DATAENTRY");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+
+		//awaitTerminationAfterShutdown(workerThreadPool);
+	}
+
+	//------------------------ END - SMARTNET - FUNCTION -------------------------------------
 }

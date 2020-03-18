@@ -34,7 +34,7 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement tabMiscFrmAppDtlContainerElement;
 
-    ///UAT
+//    //UAT
 //    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
 //    @CacheLookup
 //    private WebElement loanPurposeElement;
@@ -46,8 +46,8 @@ public class DE_MiscFrmAppDtlPage {
 //    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
 //    @CacheLookup
 //    private WebElement loanPurposeInputElement;
-    //Update
-
+//    //Update
+//
 //    //update loanpurpose
 //    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
 //    @CacheLookup
@@ -73,7 +73,7 @@ public class DE_MiscFrmAppDtlPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
     @CacheLookup
     private WebElement loanPurposeInputElement;
-
+//
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
     @CacheLookup
@@ -126,6 +126,9 @@ public class DE_MiscFrmAppDtlPage {
     @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_52")
     private WebElement loanOfWorkYesElememt;
 
+    @FindBy(how = How.ID, using = "T_Courier_Code_frmAppDtl_4")
+    private WebElement courierCodeElement;
+
 
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -169,6 +172,9 @@ public class DE_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
+
+        courierCodeElement.sendKeys(data.getCourierCode());
+
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
@@ -231,6 +237,10 @@ public class DE_MiscFrmAppDtlPage {
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
+
+        courierCodeElement.clear();
+        courierCodeElement.sendKeys(data.getCourierCode());
+
         salesAgentCodeElement.clear();
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.clear();
