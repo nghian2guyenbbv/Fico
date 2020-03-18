@@ -252,13 +252,13 @@ public class AutomationHandlerService {
                     SN_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Initiate_Verification":
-                    runAutomation_Initiate_Verification(driver, mapValue, project);
+                    runAutomation_Initiate_Verification(driver, mapValue, project, browser);
                     break;
                 case "runAutomation_Waive_Off_All":
-                    runAutomation_Waive_Off_All(driver, mapValue, project);
+                    runAutomation_Waive_Off_All(driver, mapValue, project, browser);
                     break;
                 case "runAutomation_Field_Investigation":
-                    runAutomation_Field_Investigation(driver, mapValue, project);
+                    runAutomation_Field_Investigation(driver, mapValue, project, browser);
                     break;
             }
 
@@ -4422,7 +4422,7 @@ public class AutomationHandlerService {
 
     //------------------------ Field Mobility -----------------------------------------------------
     //------------------------ WAIVE OFF ALL -----------------------------------------------------
-    public void runAutomation_Waive_Off_All(WebDriver driver, Map<String, Object> mapValue, String project) throws Exception {
+    public void runAutomation_Waive_Off_All(WebDriver driver, Map<String, Object> mapValue, String project, String browser) throws Exception {
         String stage = "";
         try {
             stage = "INIT DATA";
@@ -4465,10 +4465,9 @@ public class AutomationHandlerService {
 
                 for (LoginDTO loginDTO : loginDTOList) {
                     workerThreadPoolDE.execute(new Runnable() {
-                        @SneakyThrows
                         @Override
                         public void run() {
-                            runAutomation_Waive_Off_All_run(driver, loginDTO, project);
+                            runAutomation_Waive_Off_All_run(loginDTO, project, browser);
                         }
                     });
                 }
@@ -4481,14 +4480,18 @@ public class AutomationHandlerService {
         }
     }
 
-    private void runAutomation_Waive_Off_All_run(WebDriver driver, LoginDTO accountDTO, String project) throws Exception {
+    @SneakyThrows
+    private void runAutomation_Waive_Off_All_run(LoginDTO accountDTO, String project, String browser) {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
+        WebDriver driver = null;
         WaiveOffAllDTO waiveOffAllDTO = WaiveOffAllDTO.builder().build();
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
             //get account run
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
@@ -4586,7 +4589,7 @@ public class AutomationHandlerService {
     //------------------------ END WAIVE OFF ALL -----------------------------------------------------
 
     //------------------------ FIELD VERIFICATION --------------------------------------------------------------
-    public void runAutomation_Initiate_Verification(WebDriver driver, Map<String, Object> mapValue, String project) {
+    public void runAutomation_Initiate_Verification(WebDriver driver, Map<String, Object> mapValue, String project, String browser) {
         String stage = "";
         try {
             stage = "INIT DATA";
@@ -4629,10 +4632,9 @@ public class AutomationHandlerService {
 
                 for (LoginDTO loginDTO : loginDTOList) {
                     workerThreadPoolDE.execute(new Runnable() {
-                        @SneakyThrows
                         @Override
                         public void run() {
-                            runAutomation_Initiate_Verification_run(driver, loginDTO, project);
+                            runAutomation_Initiate_Verification_run(loginDTO, project, browser);
                         }
                     });
                 }
@@ -4645,15 +4647,18 @@ public class AutomationHandlerService {
         }
     }
 
-    private void runAutomation_Initiate_Verification_run(WebDriver driver, LoginDTO accountDTO, String project) throws Exception {
+    @SneakyThrows
+    private void runAutomation_Initiate_Verification_run(LoginDTO accountDTO, String project, String browser) {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
+        WebDriver driver = null;
         InitiateVerificationDTO initiateVerificationDTO = InitiateVerificationDTO.builder().build();
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
             //get account run
-            stage = "LOGIN FINONE";
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();            stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
@@ -4717,7 +4722,6 @@ public class AutomationHandlerService {
 
                         Utilities.captureScreenShot(driver);
 
-
                     }
                 } catch (Exception ex) {
                     Query queryUpdate = new Query();
@@ -4751,7 +4755,7 @@ public class AutomationHandlerService {
     //------------------------ END FIELD VERIFICATION -----------------------------------------------------
 
     //------------------------ Field Investigation -----------------------------------------------------
-    public void runAutomation_Field_Investigation(WebDriver driver, Map<String, Object> mapValue, String project) {
+    public void runAutomation_Field_Investigation(WebDriver driver, Map<String, Object> mapValue, String project, String browser) {
         String stage = "";
         try {
             stage = "INIT DATA";
@@ -4794,10 +4798,9 @@ public class AutomationHandlerService {
 
                 for (LoginDTO loginDTO : loginDTOList) {
                     workerThreadPoolDE.execute(new Runnable() {
-                        @SneakyThrows
                         @Override
                         public void run() {
-                            runAutomation_Field_Investigation_run(driver, loginDTO, project);
+                            runAutomation_Field_Investigation_run(loginDTO, project, browser);
                         }
                     });
                 }
@@ -4810,14 +4813,20 @@ public class AutomationHandlerService {
         }
     }
 
-    private void runAutomation_Field_Investigation_run(WebDriver driver, LoginDTO accountDTO, String project) throws Exception {
+    @SneakyThrows
+    private void runAutomation_Field_Investigation_run(LoginDTO accountDTO, String project, String browser) {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
+        WebDriver driver = null;
         FieldInvestigationDTO fieldInvestigationDTO = FieldInvestigationDTO.builder().build();
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
             //get account run
+
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
+
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
