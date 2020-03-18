@@ -120,8 +120,8 @@ public class AppService {
 		}
 
 		//update filter vendor
-		if (request.path("param").path("vendor").isTextual()) {
-			if(request.path("param").path("vendor").asText().equals("DIGI-TEXX")){
+        if (request.path("param").path("vendor").isTextual()&& !StringUtils.isEmpty(request.path("param").path("vendor").asText())) {
+			if(request.path("param").path("vendor").asText().contains("DIGI-TEXX")){
 				criteria.orOperator(Criteria.where("optional.partnerId").is(null),Criteria.where("optional.partnerName").in(StringUtils.commaDelimitedListToSet(request.path("param").path("vendor").asText())));
 			}else{
 				criteria.and("optional.partnerName").in(StringUtils.commaDelimitedListToSet(request.path("param").path("vendor").asText()));
