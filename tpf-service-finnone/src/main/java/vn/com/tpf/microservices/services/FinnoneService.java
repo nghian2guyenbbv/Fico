@@ -87,7 +87,8 @@ public class FinnoneService {
 //				System.out.println("STATUS");
 				row.put("stage", rs.getString("STAGE").toUpperCase().replace(" ", "_"));
 //				System.out.println("STAGE");
-				row.put("reasonCode", rs.getString("REASON_CODE"));
+				row.put("reasonCode", rs.getString("REASON_CODE"));				
+				row.put("reasonCodeValue", rs.getString("REASON_CODE_VALUE"));
 //				System.out.println("REASON_CODE");
 				row.put("reasonDetail", rs.getString("REASON_DETAIL"));
 //				System.out.println("REASON_DETAIL");

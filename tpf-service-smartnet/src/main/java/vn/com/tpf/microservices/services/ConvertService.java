@@ -54,6 +54,26 @@ public class ConvertService {
 		app.set("optional", optional);
 		return app;
 	}
+	
+	
+	public ObjectNode toAppAutomation(Smartnet smartnet) {
+		ObjectNode app = mapper.createObjectNode();
+
+		app.put("status", smartnet.getStage());
+		if (smartnet.getAutomationResults().size() != 0)
+			app.put("automationResult", mapper.convertValue(smartnet.getAutomationResults().get(0), JsonNode.class)
+					.path("automationResult").asText());
+		return app;
+	}
+	
+	
+	
+	
+	public ObjectNode toAppStatus(Smartnet smartnet) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("status", smartnet.getStage());
+		return app;
+	}
 
 	public ObjectNode toAppFinnone(Smartnet smartnet) {
 
