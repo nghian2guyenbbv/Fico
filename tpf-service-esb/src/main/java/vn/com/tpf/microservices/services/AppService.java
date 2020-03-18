@@ -50,6 +50,7 @@ public class AppService {
 				request.path("reference_id"), "body", request.path("body")));
 		return response(res.path("status").asInt(), res.path("data"));
 	}
+	
 	public JsonNode deSaleQueue(JsonNode request) throws Exception {
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "deSaleQueue", "reference_id",
 				request.path("reference_id"), "body", request.path("body")));
@@ -78,6 +79,14 @@ public class AppService {
 				request.path("reference_id"), "param", Map.of("appId", request.path("param").path("appId").asText())));
 		return response(loan.path("status").asInt(), loan.path("data"));
 	}
+	
+	public JsonNode getAppInfo(JsonNode request) throws Exception {
+		JsonNode data = rabbitMQService.sendAndReceive("tpf-service-finnone", Map.of("func", "getAppInfo", "reference_id",
+				request.path("reference_id"), "body",request.path("body")));
+		return response(data.path("status").asInt(), data.path("data"));
+	}
+	
+	
 	
 	public JsonNode getCheckList(JsonNode request) throws Exception {
 		JsonNode reason = rabbitMQService.sendAndReceive("tpf-service-finnone",

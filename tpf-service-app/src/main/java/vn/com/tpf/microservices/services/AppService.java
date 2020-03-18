@@ -284,7 +284,7 @@ public class AppService {
 		}
 		if (entity.getAutomationResult() != null) {
 			update.set("automationResult", entity.getAutomationResult());
-			if (entity.getStatus() != null && entity.getStatus().split("_")[0].equals("PROCESSING")) {
+			if (entity.getStatus() != null) {
 				update.push("automationHistory").atPosition(0)
 						.value(Map.of("status", entity.getAutomationResult(), "createdAt", new Date()));
 			}

@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.models;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +58,10 @@ public class Smartnet {
 	@Builder.Default
 	private List<Object> automationResults = Arrays.asList();
 	private List<Object> filesUpload;
+	
+	private String viewLastUpdated;
+	private String userCreatedQueue;
+	
 	private Map<String, Object> preChecks;
 	private Map<String, Object> returns;
 

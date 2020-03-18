@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
 @Data
-@Document(collection = "address_finnone")
+@Document
 public class AddressFinnone {
 
 	@Id

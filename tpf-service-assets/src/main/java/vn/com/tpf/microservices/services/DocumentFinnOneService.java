@@ -1,8 +1,6 @@
 package vn.com.tpf.microservices.services;
 
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -24,10 +22,10 @@ public class DocumentFinnOneService {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 	
-	@PostConstruct
-	public void init() {
-		System.out.println("TPF_Application cum Credit Contract (ACCA)".toLowerCase().replace(" ", "_"));
-	}
+//	@PostConstruct
+//	public void init() {
+//		System.out.println("TPF_Application cum Credit Contract (ACCA)".toLowerCase().replace(" ", "_"));
+//	}
 
 	private JsonNode response(int status, JsonNode data) {
 		ObjectNode response = mapper.createObjectNode();
