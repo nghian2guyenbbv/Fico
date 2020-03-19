@@ -162,7 +162,7 @@ public class AppService {
 		}
 
         if (request.path("param").path("fullName").textValue() != null & !request.path("param").path("fullName").asText().equals("")){
-            query.addCriteria(Criteria.where("fullName").is(StringUtils.trimWhitespace(request.path("param").path("fullName").textValue())));
+			query.addCriteria(Criteria.where("fullName").regex(StringUtils.trimWhitespace(request.path("param").path("fullName").textValue()), "i"));
         }
 
         if (request.path("param").path("identificationNumber").textValue() != null & !request.path("param").path("identificationNumber").asText().equals("")){
