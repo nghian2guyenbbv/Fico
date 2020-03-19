@@ -167,7 +167,7 @@ public class DE_ReturnSaleQueuePage {
         applicationNumberElement.sendKeys(deSaleQueueDTO.getAppId());
         searchApplicationElement.click();
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("Application Number Not Found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 0);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
