@@ -19,4 +19,6 @@ public class MiscFrmAppDtlDTO {
     private String remark;
     private String loanOfWork;
     private String courierCode;
+    private String oldContractLoanAmount;
+    private String contractNumber;
 }
