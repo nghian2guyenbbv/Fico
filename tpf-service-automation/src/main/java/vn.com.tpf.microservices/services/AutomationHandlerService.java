@@ -1047,10 +1047,6 @@ public class AutomationHandlerService {
 //                Map.of("func", func, "token",
 //                        String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
 
-//        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
-//                Map.of("func", func, "body", application));
-//        System.out.println("rabit:=>" + jsonNode.toString());
-
         JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
                 Map.of("func", func, "body", application));
         System.out.println("rabit:=>" + jsonNode.toString());
