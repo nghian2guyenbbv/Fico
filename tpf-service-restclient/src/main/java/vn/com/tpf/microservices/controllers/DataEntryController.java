@@ -1822,28 +1822,6 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/v1/dataentry/holdapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
-	public ResponseEntity<?> holdApp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
-			throws Exception {
-		Map<String, Object> request = new HashMap<>();
-		request.put("func", "holdApp");
-		request.put("token", token);
-		request.put("body", body);
-
-		String partnerName = this.getPartnerName(body);
-
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
-		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-	}
-
-
 	/**
 	 * Check if partnerName = DIGI-TEXX => queue is tpf-service-dataentry else tpf-service-dataentry-sgb
 	 * @param body
