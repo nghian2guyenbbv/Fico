@@ -2750,6 +2750,7 @@ public class DataEntryService {
 				obj.setCreatedBy(temp.getUserName());
 				obj.setUpdateDate(temp.getLastModifiedDate());
 				obj.setPartnerName(temp.getPartnerName());
+				obj.setDsaCode(temp.getDynamicForm()!=null?temp.getDynamicForm().get(0).getSaleAgentCode():"");
 				return obj;
 			}).collect(Collectors.toList());
 
