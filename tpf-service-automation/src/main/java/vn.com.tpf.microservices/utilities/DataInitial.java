@@ -183,6 +183,9 @@ public class DataInitial {
             ReferenceDTO referenceDTO = ReferenceDTO.builder()
                     .fullName(reference.getName())
                     .relationShip(reference.getRelationship())
+                    .priStd(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
+                    .priNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
+                    .priExt(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getExtension():"")
                     .mobilePhoneNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
             referenceDTOs.add(referenceDTO);
         }
