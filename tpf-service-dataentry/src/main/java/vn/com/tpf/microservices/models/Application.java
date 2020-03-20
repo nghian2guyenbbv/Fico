@@ -46,4 +46,6 @@ public class Application {
 
     private String partnerId;
     private String partnerName;
+
+    private boolean isHolding = false;
 }

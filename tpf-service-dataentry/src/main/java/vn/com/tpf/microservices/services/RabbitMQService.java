@@ -209,6 +209,8 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getTokenSaigonBpo(request, token));
 				case "getAppByQuickLeadId":
 					return response(message, payload, dataEntryService.getAppByQuickLeadId(request));
+				case "holdApp":
+					return response(message, payload, dataEntryService.holdApp(request, token));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

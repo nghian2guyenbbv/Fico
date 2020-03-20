@@ -546,6 +546,13 @@ public class DataEntryService {
 				query.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 				Application checkExist = mongoTemplate.findOne(query, Application.class);
 
+				if(!request.get("body").hasNonNull("isFeedBack")){
+					if(checkExist != null && checkExist.isHolding()){
+						JsonNode responseToPartner = responseToPartner(checkExist);
+						return Map.of("status", 200, "data", responseToPartner);
+					}
+				}
+
 				if (checkExist == null){
 					responseModel.setRequest_id(requestId);
 					responseModel.setReference_id(UUID.randomUUID().toString());
@@ -800,6 +807,7 @@ public class DataEntryService {
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 			requestId = requestModel.getRequest_id();
 			Application data = requestModel.getData();
+
 			data.setLastModifiedDate(new Timestamp(new Date().getTime()));
 			applicationId = data.getApplicationId();
 
@@ -817,6 +825,22 @@ public class DataEntryService {
 
 			} else {
 				try {
+					if(!request.get("body").hasNonNull("isFeedBack")){
+						if(data.getComment().size() > 0 && checkExist != null && checkExist.get(0).isHolding()) {
+							if (!data.getComment().get(0).equals("FICO")) {
+								JsonNode responseToPartner = responseToPartner(checkExist.get(0));
+								return Map.of("status", 200, "data", responseToPartner);
+							}
+
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Application is holding!");
+
+							return Map.of("status", 200, "data", responseModel);
+						}
+					}
 					if (checkExist.get(0).getStatus().equals("COMPLETED")) {
 
 						responseModel.setRequest_id(requestId);
@@ -1258,7 +1282,20 @@ public class DataEntryService {
 
 							return Map.of("status", 200, "data", responseModel);
 						}
-					}
+					}else if(checkExist.get(0).isHolding()){
+							JsonNode responseToPartner = responseToPartner(checkExist.get(0));
+							if (!responseToPartner.path("data").path("error-code").textValue().equals("")) {
+								return Map.of("status", 200, "data", responseToPartner);
+							}
+
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Application is holding!");
+
+							return Map.of("status", 200, "data", responseModel);
+						}
 				}
 				catch (Exception ex){}
 
@@ -4067,6 +4104,162 @@ public class DataEntryService {
 			responseModel.setMessage(e.getMessage());
 		}
 		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> holdApp(JsonNode request, JsonNode token) {
+		ResponseModel responseModel = new ResponseModel();
+		String requestId = request.path("body").path("request_id").textValue();
+		String referenceId = UUID.randomUUID().toString();
+		try{
+			log.info("{}",request.path("body").toString());
+			if(!request.path("body").path("applicationId").isTextual()
+					|| StringUtils.isEmpty(request.path("body").path("applicationId").asText())
+					|| !request.path("body").hasNonNull("isHold")){
+				return Map.of("status", 200, "data", "param missing");
+			}
+			String appId = request.path("body").path("applicationId").asText();
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(appId));
+			List<Application> checkExist = mongoTemplate.find(query, Application.class);
+
+			if (checkExist.size() <= 0){
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("1");
+				responseModel.setMessage("applicationId not exists.");
+			}else{
+				Application app = checkExist.get(0);
+				List<String> list = Arrays.asList("PROCESSING", "RETURNED", "FULL_APP_FAIL");
+				boolean match = list.stream().anyMatch(s -> app.getStatus().contains(s));
+
+				if(!match){
+					return Map.of("status", 200, "data", "status not valid");
+				}
+
+				boolean isHoldBody = request.path("body").path("isHold").asBoolean();
+				String function;
+				if(isHoldBody){
+					function = "HOLD";
+				}else{
+					function = "ACTIVE";
+				}
+
+				Update update = new Update();
+				update.set("isHolding", isHoldBody);
+
+				Application resultUpdate = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp","reference_id", referenceId,
+								"param", Map.of("project", "dataentry", "id", resultUpdate.getId()), "body", convertService.toAppDisplay(resultUpdate)));
+
+				Report report = new Report();
+				report.setQuickLeadId(resultUpdate.getQuickLeadId());
+				report.setApplicationId(resultUpdate.getApplicationId());
+				report.setFunction(function);
+				report.setStatus(resultUpdate.getStatus());
+				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedDate(new Date());
+				if(resultUpdate != null){
+					report.setPartnerId(resultUpdate.getPartnerId());
+					report.setPartnerName(resultUpdate.getPartnerName());
+				}
+				String reason = request.path("body").path("reason").asText("");
+				report.setCommentDescription(reason);
+				mongoTemplate.save(report);
+
+				Map partner = this.getPartner(app.getPartnerId());
+				if(StringUtils.isEmpty(partner.get("data"))){
+					return Map.of("result_code", 3, "message","Not found partner");
+				}
+
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", app.getApplicationId(), "status", function)), JsonNode.class);
+				JsonNode responseDG = null;
+				if(app.getPartnerId().equals("1")){
+					responseDG = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+				} else if(app.getPartnerId().equals("2")){
+					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+					String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+					if(StringUtils.isEmpty(tokenPartner)){
+						return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+					}
+					responseDG = apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, app.getPartnerId());
+				}
+
+				if (!responseDG.path("error-code").textValue().equals("")) {
+					if (!responseDG.path("error-code").textValue().equals("null")) {
+						log.info("ReferenceId : " + referenceId);
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(referenceId);
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+
+						return Map.of("status", 200, "data", responseModel);
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	private JsonNode responseToPartner(Application checkExist) {
+		ObjectNode response = mapper.createObjectNode();
+		try {
+			String status;
+			if(checkExist.isHolding()){
+				status = "HOLD";
+			}else{
+				status = "ACTIVE";
+			}
+			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", checkExist.getApplicationId(), "status", status)), JsonNode.class);
+
+			Map partner = this.getPartner(checkExist.getPartnerId());
+			if(StringUtils.isEmpty(partner.get("data"))){
+				JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not found partner"), JsonNode.class);
+				response.put("status", 200).set("data", data);
+				return response;
+			}
+
+			JsonNode responseFromPartner = null;
+
+			if(checkExist.getPartnerId().equals("1")){
+				responseFromPartner = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+			} else if(checkExist.getPartnerId().equals("2")){
+				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+				if(StringUtils.isEmpty(tokenPartner)){
+					JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
+					response.put("status", 200).set("data", data);
+					return response;
+				}
+				String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+				responseFromPartner = apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, checkExist.getPartnerId());
+			}
+			if (!responseFromPartner.path("error-code").textValue().equals("")) {
+				if (!responseFromPartner.path("error-code").textValue().equals("null")) {
+					response.put("status", 200).set("data", responseFromPartner);
+					return response;
+				}
+			}
+		} catch(Exception e){
+			log.info("{}", e.getMessage());
+		}
+		return null;
 	}
 
 	public Map<String, Object> getAppByQuickLeadId(JsonNode request){
