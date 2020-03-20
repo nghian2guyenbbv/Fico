@@ -547,7 +547,7 @@ public class DataEntryService {
 				Application checkExist = mongoTemplate.findOne(query, Application.class);
 
 				if(checkExist != null && checkExist.isHolding()){
-					if(!request.get("body").hasNonNull("isFeedBack")){
+					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
 						JsonNode responseToPartner = responseToPartner(checkExist);
 						return Map.of("status", 200, "data", responseToPartner);
 					}
@@ -806,6 +806,7 @@ public class DataEntryService {
 		String stageAuto = "";
 		String errorAuto = "";
 		String quickLeadId = "";
+
 		String commentDescription = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
 		boolean responseCommnentFullAPPFromDigiTex = false;
@@ -823,6 +824,25 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 			String partnerId = "";
 			String partnerName = "";
+
+			if(data.getComment().size() > 0 && checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()) {
+				if (!StringUtils.isEmpty(data.getComment().get(0).getType()) && !data.getComment().get(0).getType().equals("FICO")) {
+					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
+						JsonNode responseToPartner = responseToPartner(checkExist.get(0));
+						return Map.of("status", 200, "data", responseToPartner);
+					}
+					return Map.of("status", 200, "data", "Sent to partner");
+				}
+
+				responseModel.setRequest_id(requestId);
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("1");
+				responseModel.setMessage("Application is holding!");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+
 			if (checkExist.size() <= 0) {
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -842,23 +862,7 @@ public class DataEntryService {
 
 						return Map.of("status", 200, "data", responseModel);
 					}
-					if(data.getComment().size() > 0 && checkExist != null && checkExist.get(0).isHolding()) {
-						if (!StringUtils.isEmpty(data.getComment().get(0).getType()) && !data.getComment().get(0).getType().equals("FICO")) {
-							if(!request.get("body").path("data").hasNonNull("isFeedBack")){
-								JsonNode responseToPartner = responseToPartner(checkExist.get(0));
-								return Map.of("status", 200, "data", responseToPartner);
-							}
-							return Map.of("status", 200, "data", "Sent to partner");
-						}
 
-						responseModel.setRequest_id(requestId);
-						responseModel.setReference_id(referenceId);
-						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-						responseModel.setResult_code("1");
-						responseModel.setMessage("Application is holding!");
-
-						return Map.of("status", 200, "data", responseModel);
-					}
 				} catch (Exception ex) {}
 				partnerId = checkExist.get(0).getPartnerId();
 				partnerName = checkExist.get(0).getPartnerName();
@@ -1009,7 +1013,7 @@ public class DataEntryService {
 								}
 							}
 
-						responseCommnentToDigiTex = true;
+							responseCommnentToDigiTex = true;
 
 						}
 					}
@@ -1209,6 +1213,7 @@ public class DataEntryService {
 //				}
 			}
 
+
 			if (responseCommnentFullAPPFromDigiTex) {
 				Report report = new Report();
 				report.setQuickLeadId(quickLeadId);
@@ -1291,31 +1296,39 @@ public class DataEntryService {
 						}
 					}else if(!StringUtils.isEmpty(data.getStatus()) && (data.getStatus().toUpperCase().equals("HOLD")
 							|| data.getStatus().toUpperCase().equals("ACTIVE"))){
-						if(checkExist.get(0).isHolding()){
+						if(data.getStatus().toUpperCase().equals("HOLD") && checkExist.get(0).isHolding()){
 							responseModel.setRequest_id(requestId);
 							responseModel.setReference_id(referenceId);
 							responseModel.setDate_time(new Timestamp(new Date().getTime()));
 							responseModel.setResult_code("1");
-							responseModel.setMessage("Application is holding!");
+							responseModel.setMessage("Application is hold!");
+							return Map.of("status", 200, "data", responseModel);
+
+						}else if(data.getStatus().toUpperCase().equals("ACTIVE") && !checkExist.get(0).isHolding()){
+							responseModel.setRequest_id(requestId);
+							responseModel.setReference_id(referenceId);
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code("1");
+							responseModel.setMessage("Application is active!");
 							return Map.of("status", 200, "data", responseModel);
 						}
 
 						return holdApp(checkExist.get(0), request, token);
 
 					}else if(checkExist.get(0).isHolding()){
-							JsonNode responseToPartner = responseToPartner(checkExist.get(0));
-							if (!responseToPartner.path("data").path("error-code").textValue().equals("")) {
-								return Map.of("status", 200, "data", responseToPartner);
-							}
-
-							responseModel.setRequest_id(requestId);
-							responseModel.setReference_id(referenceId);
-							responseModel.setDate_time(new Timestamp(new Date().getTime()));
-							responseModel.setResult_code("1");
-							responseModel.setMessage("Application is holding!");
-
-							return Map.of("status", 200, "data", responseModel);
+						JsonNode responseToPartner = responseToPartner(checkExist.get(0));
+						if (!responseToPartner.path("data").path("error-code").textValue().equals("")) {
+							return Map.of("status", 200, "data", responseToPartner);
 						}
+
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(referenceId);
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("Application is holding!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
 				}
 				catch (Exception ex){}
 
@@ -1465,6 +1478,7 @@ public class DataEntryService {
 
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
+
 
 					rabbitMQService.send(queueAutoSGB,
 							Map.of("func", "quickLeadApp", "body",
@@ -2408,6 +2422,7 @@ public class DataEntryService {
 //			AggregationOperation group = Aggregation.group("applicationId", "createdDate", "status", "quickLeadId", "description", "function", "createdBy", "commentDescription"
 //            );
 
+
 			AggregationOperation group = Aggregation.group(Fields.from( Fields.field("applicationId", "applicationId")).and("createdDate","createdDate")
 							.and("status","status").and("quickLeadId","quickLeadId").and("description","description")
 							.and("function","function").and("createdBy","createdBy")
@@ -2420,11 +2435,9 @@ public class DataEntryService {
 //                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
 			);
 
-
 			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId", "createdDate");
 //			AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "applicationId").and(Sort.Direction.DESC, "createdDate");
 			AggregationOperation project = Aggregation.project().andExpression("_id.applicationId").as("applicationId").andExpression("_id.createdDate").as("createdDate")
-
 					.andExpression("_id.commentDescription").as("commentDescription") .andExpression("_id.applications.quickLead.sourcingBranch").as("branch");
 			//AggregationOperation limit = Aggregation.limit(Constants.BOARD_TOP_LIMIT);
 			Aggregation aggregation = Aggregation.newAggregation(match1, lookupOperation, group, sort /*, project/*, limit*/)
@@ -2454,7 +2467,6 @@ public class DataEntryService {
 //                            }
 //                        }
 
-
 						if (item.getFullName() == null || item.getFullName().equals("")){
 							item.setFullName(item.getFirstName() + " " + item.getLastName());
 						}
@@ -2466,7 +2478,6 @@ public class DataEntryService {
 					catch (Exception exx) {
 						String a ="";
 					}
-
 
 					if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
 						startDate = item.getCreatedDate();
@@ -2550,7 +2561,6 @@ public class DataEntryService {
 			Aggregation aggregation = Aggregation.newAggregation(match1, group, sort, project/*, limit*/)
 					.withOptions(newAggregationOptions().allowDiskUse(true).build());
 			AggregationResults<ReportStatus> results = mongoTemplate.aggregate(aggregation, Application.class, ReportStatus.class);
-
 
 			List<ReportStatus> resultData = results.getMappedResults();
 
