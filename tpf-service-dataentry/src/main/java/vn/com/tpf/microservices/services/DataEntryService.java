@@ -548,14 +548,13 @@ public class DataEntryService {
 
 				if(checkExist != null && checkExist.isHolding()){
 					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
-						JsonNode responseToPartner = responseToPartner(checkExist);
-						return Map.of("status", 200, "data", responseToPartner);
+						this.responseToPartner(checkExist);
 					}
 					responseModel.setRequest_id(requestId);
 					responseModel.setReference_id(referenceId);
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code("1");
-					responseModel.setMessage("Application is holding!");
+					responseModel.setMessage("Application is hold");
 
 					return Map.of("status", 200, "data", responseModel);
 				}
@@ -828,17 +827,14 @@ public class DataEntryService {
 			if(data.getComment().size() > 0 && checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()) {
 				if (!StringUtils.isEmpty(data.getComment().get(0).getType()) && !data.getComment().get(0).getType().equals("FICO")) {
 					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
-						JsonNode responseToPartner = responseToPartner(checkExist.get(0));
-						return Map.of("status", 200, "data", responseToPartner);
+						this.responseToPartner(checkExist.get(0));
 					}
-					return Map.of("status", 200, "data", "Sent to partner");
 				}
-
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(referenceId);
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code("1");
-				responseModel.setMessage("Application is holding!");
+				responseModel.setMessage("Application is hold");
 
 				return Map.of("status", 200, "data", responseModel);
 			}
@@ -849,11 +845,9 @@ public class DataEntryService {
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
-
 			} else {
 				try {
 					if (checkExist.get(0).getStatus().equals("COMPLETED")) {
-
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(referenceId);
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -1301,7 +1295,7 @@ public class DataEntryService {
 							responseModel.setReference_id(referenceId);
 							responseModel.setDate_time(new Timestamp(new Date().getTime()));
 							responseModel.setResult_code("1");
-							responseModel.setMessage("Application is hold!");
+							responseModel.setMessage("Application is hold");
 							return Map.of("status", 200, "data", responseModel);
 
 						}else if(data.getStatus().toUpperCase().equals("ACTIVE") && !checkExist.get(0).isHolding()){
@@ -1309,23 +1303,21 @@ public class DataEntryService {
 							responseModel.setReference_id(referenceId);
 							responseModel.setDate_time(new Timestamp(new Date().getTime()));
 							responseModel.setResult_code("1");
-							responseModel.setMessage("Application is active!");
+							responseModel.setMessage("Application is active");
 							return Map.of("status", 200, "data", responseModel);
 						}
 
 						return holdApp(checkExist.get(0), request, token);
 
 					}else if(checkExist.get(0).isHolding()){
-						JsonNode responseToPartner = responseToPartner(checkExist.get(0));
-						if (!responseToPartner.path("data").path("error-code").textValue().equals("")) {
-							return Map.of("status", 200, "data", responseToPartner);
+						if(!request.get("body").path("data").hasNonNull("isFeedBack")){
+							this.responseToPartner(checkExist.get(0));
 						}
-
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(referenceId);
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code("1");
-						responseModel.setMessage("Application is holding!");
+						responseModel.setMessage("Application is hold");
 
 						return Map.of("status", 200, "data", responseModel);
 					}
@@ -1590,6 +1582,20 @@ public class DataEntryService {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
 				List<Application> checkExist = mongoTemplate.find(query, Application.class);
+
+				if(checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()){
+					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
+						this.responseToPartner(checkExist.get(0));
+					}
+					responseModel.setRequest_id(requestId);
+					responseModel.setReference_id(referenceId);
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("1");
+					responseModel.setMessage("Application is hold");
+
+					return Map.of("status", 200, "data", responseModel);
+				}
+
 				if (checkExist.size() > 0){
 					dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
 					for (QLDocument item : dataUpload) {
@@ -4136,7 +4142,7 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> holdApp(Application app, JsonNode request, JsonNode token) {
+	private Map<String, Object> holdApp(Application app, JsonNode request, JsonNode token) {
 		log.info("{}",request.path("body").toString());
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
@@ -4232,7 +4238,6 @@ public class DataEntryService {
 	}
 
 	private JsonNode responseToPartner(Application checkExist) {
-		ObjectNode response = mapper.createObjectNode();
 		try {
 			String status;
 			if(checkExist.isHolding()){
@@ -4240,16 +4245,15 @@ public class DataEntryService {
 			}else{
 				status = "ACTIVE";
 			}
-			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", checkExist.getApplicationId(), "status", status)), JsonNode.class);
 
 			Map partner = this.getPartner(checkExist.getPartnerId());
 			if(StringUtils.isEmpty(partner.get("data"))){
 				JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not found partner"), JsonNode.class);
-				response.put("status", 200).set("data", data);
-				return response;
+				return data;
 			}
 
 			JsonNode responseFromPartner = null;
+			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", checkExist.getApplicationId(), "status", status)), JsonNode.class);
 
 			if(checkExist.getPartnerId().equals("1")){
 				responseFromPartner = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
@@ -4260,18 +4264,29 @@ public class DataEntryService {
 				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
 				if(StringUtils.isEmpty(tokenPartner)){
 					JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
-					response.put("status", 200).set("data", data);
-					return response;
+					return data;
 				}
 				String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
 				responseFromPartner = apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, checkExist.getPartnerId());
 			}
+
 			if (!responseFromPartner.path("error-code").textValue().equals("")) {
 				if (!responseFromPartner.path("error-code").textValue().equals("null")) {
-					response.put("status", 200).set("data", responseFromPartner);
-					return response;
+					ResponseModel responseModel = new ResponseModel();
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code("1");
+					responseModel.setMessage(responseFromPartner.path("error-code").textValue() + responseFromPartner.path("error-description").textValue());
+					JsonNode data = mapper.convertValue(responseModel, JsonNode.class);
+					return data;
 				}
 			}
+
+			ResponseModel responseModel = new ResponseModel();
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			JsonNode data = mapper.convertValue(responseModel, JsonNode.class);
+			return data;
+
 		} catch(Exception e){
 			log.info("{}", e.getMessage());
 		}
