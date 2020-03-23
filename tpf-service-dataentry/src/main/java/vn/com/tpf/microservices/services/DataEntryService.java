@@ -824,7 +824,7 @@ public class DataEntryService {
 			String partnerId = "";
 			String partnerName = "";
 
-			if(data.getComment().size() > 0 && checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()) {
+			if(data.getComment() != null && data.getComment().size() > 0 && checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()) {
 				if (!StringUtils.isEmpty(data.getComment().get(0).getType()) && !data.getComment().get(0).getType().equals("FICO")) {
 					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
 						this.responseToPartner(checkExist.get(0));
@@ -1582,19 +1582,6 @@ public class DataEntryService {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
 				List<Application> checkExist = mongoTemplate.find(query, Application.class);
-
-				if(checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()){
-					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
-						this.responseToPartner(checkExist.get(0));
-					}
-					responseModel.setRequest_id(requestId);
-					responseModel.setReference_id(referenceId);
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("1");
-					responseModel.setMessage("Application is hold");
-
-					return Map.of("status", 200, "data", responseModel);
-				}
 
 				if (checkExist.size() > 0){
 					dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
