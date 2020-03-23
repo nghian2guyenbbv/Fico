@@ -65,8 +65,8 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
-    @Value("${spring.url.rabbitIdRes}")
-    private String rabbitIdRes;
+//    @Value("${spring.url.rabbitIdRes}")
+//    private String rabbitIdRes;
 
     private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts, String project) throws Exception {
         LoginDTO accountDTO = null;
@@ -1047,7 +1047,7 @@ public class AutomationHandlerService {
 //                Map.of("func", func, "token",
 //                        String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
 
-        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-dataentry",
                 Map.of("func", func, "body", application));
         System.out.println("rabit:=>" + jsonNode.toString());
 
@@ -3859,12 +3859,19 @@ public class AutomationHandlerService {
 
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
-                for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
-                    if (documentList.getDocumentName().contains("(ACCA)")) {
-                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
-                    }
-                    break;
+
+                //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
+                if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent())
+                {
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                 }
+
+//                for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
+//                    if (documentList.getDocumentName().contains("(ACCA)")) {
+//                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
+//                    }
+//                    break;
+//                }
             }
 
             // ========= UPDATE DB ============================
