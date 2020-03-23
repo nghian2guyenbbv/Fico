@@ -82,6 +82,8 @@ public class ConvertService {
 		if (application.getUserName_DE() != null) {
 			optional.put("userName_DE", application.getUserName_DE());
 		}
+
+		optional.put("isHolding", application.isHolding());
 		app.set("optional", optional);
 		return app;
 	}
