@@ -40,7 +40,7 @@ public class SmartnetService {
 	private final String STAGE_UPLOADED = "UPLOADED";
 	private final String STAGE_LEAD_DETAILS = "LEAD_DETAILS";
 	private final String STAGE_LOGIN_ACCEPTANCE = "LOGIN_ACCEPTANCE";
-	private final List<String> LIST_STAGE_COMPLETE = Arrays.asList("SEND_TO_OPTS", "REJECTION", "CANCELLATION");
+	private final List<String> LIST_STATUS_COMPLETE = Arrays.asList("Cancellation".toUpperCase().trim(), "Rejection".toUpperCase().trim());
 	private final String STAGE_QUICKLEAD_FAILED_AUTOMATION = "QUICKLEAD_FAILED_AUTOMATION";
 
 	private final String AUTOMATION_QUICKLEAD_PASS = "QUICKLEAD_PASS";
@@ -57,7 +57,6 @@ public class SmartnetService {
 	private final String STAGE_SALES_QUEUE_UPLOADING = "SALES_QUEUE_UPLOADING";
 	private final String STAGE_SALES_QUEUE_FAILED = "SALES_QUEUE_FAILED_AUTOMATION";
 	private final String STAGE_SALES_QUEUE_HAS_ACCA_FAILED = "SALES_QUEUE_HAS_ACCA_FAILED_AUTOMATION";
-	private final String STAGE_RAISE_QUERY_UPLOADING = "RAISE_QUERY_UPLOADING";
 	private final String STAGE_RAISE_QUERY_FAILED = "RAISE_QUERY_FAILED_AUTOMATION";
 
 	private final String STATUS_T_RETURN = "T_RETURN";
@@ -94,7 +93,6 @@ public class SmartnetService {
 	@Autowired
 	private ConvertService convertService;
 	
-
 
 	public JsonNode getPreCheck1(JsonNode request) throws Exception {
 
@@ -206,7 +204,7 @@ public class SmartnetService {
 		JsonNode preCheckResult = rabbitMQService.sendAndReceive("tpf-service-esb",
 				Map.of("func", "getPrecheckList", "reference_id", body.path("reference_id"), "body",
 						Map.of("bankCardNumber", data.path("bankCardNumber").asText(), "dsaCode", "", "areaCode", "",
-								"nationalId", "")));
+								"nationalId", smartnet.getNationalId())));
 		if (preCheckResult.path("status").asInt(0) != 200)
 			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
 
@@ -249,37 +247,38 @@ public class SmartnetService {
 		if (smartnet == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
-		if (LIST_STAGE_COMPLETE.contains(smartnet.getStage().toUpperCase().trim()))
+		
+		if (LIST_STATUS_COMPLETE.contains(smartnet.getStatus().toUpperCase().trim()))
 			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s complete stage", appId)));
+					mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s", appId,smartnet.getStatus().toUpperCase().trim())));
 		JsonNode item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
 
 		if (item.path("status").asInt() != 200)
-			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message", String.format("data.appId waiting sync data", appId)));
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message", String.format("data.appId %s waiting sync data", appId)));
 		
 		Update update = new Update().set("updatedAt", new Date());
-		if(smartnet.getViewLastUpdated() == null)
-			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase());
-		final boolean updateStageAndStatus = (smartnet.getViewLastUpdated() == null || !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase().equals(smartnet.getViewLastUpdated()));
+		final boolean updateStageAndStatus = (smartnet.getViewLastUpdated() == null || !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase().equals(smartnet.getViewLastUpdated().trim().toUpperCase()));
 		if (updateStageAndStatus) 
-			update.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim()).set("status", item.path("data").path(KEY_STATUS).asText().toUpperCase().trim());
+			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()).set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim()).set("status", item.path("data").path(KEY_STATUS).asText().toUpperCase().trim());
 		
 		if(!item.path("data").path(KEY_STAGE).asText().toUpperCase().trim().equals(STAGE_SALES_QUEUE))
 			update.set("userCreatedQueue", item.path("data").path(KEY_USER_NAME).asText());
-		smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), Smartnet.class);
 		
-		if (updateStageAndStatus) 
+		
+		if (updateStageAndStatus)  {
+			smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), Smartnet.class);
 			rabbitMQService.send("tpf-service-app",
 					Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
 							Map.of("project", "smartnet", "id", smartnet.getId()), "body",
 							convertService.toAppStatus(smartnet)));
+		}
 		((ObjectNode)item.path("data")).remove(KEY_USER_NAME);
 		return utils.getJsonNodeResponse(0, body, item.path("data"));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public JsonNode addDocuments(JsonNode request) throws Exception {
-
+		
 		JsonNode body = request.path("body");
 		if (body.path("data").isNull())
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
@@ -420,6 +419,7 @@ public class SmartnetService {
 					mapper.createObjectNode().put("message", "body.automation_result not null"));
 
 		String automationResult = body.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
+		boolean updateStatus = false;
 
 		Query query = Query.query(Criteria.where("_id").is(body.path("transaction_id").asText()));
 		Smartnet smartnet = smartnetTemplate.findOne(query, Smartnet.class);
@@ -487,11 +487,11 @@ public class SmartnetService {
 			update.set("returns.returnQueries", returnQueriesNew);
 			update.set("status", STATUS_RETURNED);
 			update.set("stage", STAGE_LEAD_DETAILS);
+			updateStatus = true;
 		}
-		if (automationResult.contains(AUTOMATION_RETURNQUERY_FAILED)) {
-			update.set("status", STATUS_RESUBMIT_FAILED);
+		if (automationResult.contains(AUTOMATION_RETURNQUERY_FAILED)) 
 			update.set("stage", STAGE_RAISE_QUERY_FAILED);
-		}
+		
 
 		if (automationResult.contains(AUTOMATION_SALEQUEUE_PASS)) {
 			JsonNode returns = mapper.convertValue(smartnet.getReturns(), JsonNode.class);
@@ -528,13 +528,11 @@ public class SmartnetService {
 			
 		smartnet = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Smartnet.class);
-		if(!automationResult.isBlank()) {
-		rabbitMQService.send("tpf-service-app",
+		if(!automationResult.isBlank()) 
+			rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
 						Map.of("project", "smartnet", "id", smartnet.getId()), "body",
-						convertService.toAppAutomation(smartnet)));
-		}
-
+						convertService.toAppAutomation(smartnet,updateStatus)));
 		return utils.getJsonNodeResponse(0, body, null);
 	}
 
@@ -801,7 +799,7 @@ public class SmartnetService {
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
 						Map.of("project", "smartnet", "id", smartnet.getId()), "body",
-						convertService.toAppStatus(smartnet)));
+						convertService.toAppStage(smartnet)));
 		
 		return utils.getJsonNodeResponse(0, body, null);
 	}

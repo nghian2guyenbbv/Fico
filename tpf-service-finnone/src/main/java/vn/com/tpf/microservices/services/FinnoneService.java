@@ -1,5 +1,7 @@
 package vn.com.tpf.microservices.services;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -27,20 +29,6 @@ public class FinnoneService {
 	 @Autowired
      public JdbcTemplate jdbcTemplateFicocen;
 	
-	
-
-	@SuppressWarnings("deprecation")
-	@PostConstruct
-	public void init() throws JsonProcessingException, IllegalArgumentException {
-		ObjectNode  object = mapper.createObjectNode();
-		object.put("body",mapper.convertValue(Map.of("appId","APPL00595599","status","CANCELLED"),JsonNode.class));
-		System.out.println(mapper.writeValueAsString( getReason(mapper.convertValue(object, JsonNode.class))));
-		
-		object = mapper.createObjectNode();
-		object.put("param.data",mapper.convertValue(Map.of("appId","APPL00595599"),JsonNode.class));
-		System.out.println(mapper.writeValueAsString( getAppInfo(mapper.convertValue(object, JsonNode.class))));
-		
-	}
 	
 	private JsonNode response(int status, JsonNode data) {
 		ObjectNode response = mapper.createObjectNode();
