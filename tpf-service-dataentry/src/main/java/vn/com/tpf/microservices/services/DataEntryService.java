@@ -2428,7 +2428,8 @@ public class DataEntryService {
                     .and("lastName","applications.quickLead.lastName")
                     .and("fullName","applications.applicationInformation.personalInformation.personalInfo.fullName")
                     .and("identificationNumber","applications.quickLead.identificationNumber")
-							.and("partnerName","partnerName")
+                            .and("partnerName","partnerName")
+                            .and("isHolding","applications.isHolding")
 //                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
             );
 
@@ -2487,6 +2488,10 @@ public class DataEntryService {
                     if (item.getPartnerName() == null || item.getPartnerName().equals("")){
                     	item.setPartnerName("DIGI-TEXX");
 					}
+
+                    if (item.getIsHolding().equals("true")){
+                        item.setHold("YES");
+                    }
                 }
                 catch (Exception ex) {
                 }
@@ -2623,7 +2628,7 @@ public class DataEntryService {
 	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
-		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)"};
+		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)", "Hold"};
 		try(
 				Workbook workbook = new XSSFWorkbook();
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -2679,6 +2684,7 @@ public class DataEntryService {
 				row.createCell(9).setCellValue(item.getIdentificationNumber());
                 row.createCell(10).setCellValue(item.getBranch());
                 row.createCell(11).setCellValue(item.getDuration());
+                row.createCell(12).setCellValue(item.getHold());
 
 			}
 
@@ -2862,6 +2868,7 @@ public class DataEntryService {
 				obj.setUpdateDate(temp.getLastModifiedDate());
 				obj.setPartnerName(temp.getPartnerName());
 				obj.setDsaCode(temp.getDynamicForm()!=null?temp.getDynamicForm().get(0).getSaleAgentCode():"");
+				obj.setHolding(temp.isHolding());
 				return obj;
 			}).collect(Collectors.toList());
 
