@@ -32,5 +32,6 @@ public class QuickLead {
     private Date lastModifiedDate;
     private List<QLDocument> documents;
     private List<QLDocument> documentsComment;
+    private List<QLDocument> documentsAfterSubmit;
 
 }

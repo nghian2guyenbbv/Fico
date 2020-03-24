@@ -982,7 +982,9 @@ public class DataEntryService {
 							// update automation
 							if (item.getResponse().getData() != null){
 								Application dataUpdate = item.getResponse().getData();
-                                if (checkCommentExist.get(0).getQuickLead().getDocumentsComment() != null){
+								if (checkCommentExist.get(0).getQuickLead().getDocumentsAfterSubmit() != null) {
+									dataUpdate.setDocuments(checkCommentExist.get(0).getQuickLead().getDocumentsAfterSubmit());
+								}else if (checkCommentExist.get(0).getQuickLead().getDocumentsComment() != null){
                                     dataUpdate.setDocuments(checkCommentExist.get(0).getQuickLead().getDocumentsComment());
                                 }
 								dataUpdate.setStage(stageAuto);
@@ -1613,25 +1615,53 @@ public class DataEntryService {
 				query.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
 				List<Application> checkExist = mongoTemplate.find(query, Application.class);
 				if (checkExist.size() > 0){
-					dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {});
-					for (QLDocument item : dataUpload) {
-						Query queryUpdate = new Query();
-						queryUpdate.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()).and("quickLead.documentsComment.originalname").is(item.getOriginalname()));
-						List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
+					if (checkExist.get(0).getApplicationInformation() != null){
+						dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {
+						});
+						for (QLDocument item : dataUpload) {
+							Query queryUpdate = new Query();
+							queryUpdate.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()).and("quickLead.documentsAfterSubmit.originalname").is(item.getOriginalname()));
+							List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
 
-						if (checkCommentExist.size() <= 0){
-							Query queryAddComment = new Query();
-							queryAddComment.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
+							if (checkCommentExist.size() <= 0) {
+								Query queryAddComment = new Query();
+								queryAddComment.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
 
-							Update update = new Update();
-							update.addToSet("quickLead.documentsComment", item);
-							Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, FindAndModifyOptions.options().upsert(true), Application.class);
-						}else {
-							Update update = new Update();
-							update.set("quickLead.documentsComment.$.filename", item.getFilename());
-							update.set("quickLead.documentsComment.$.urlid", item.getUrlid());
-							update.set("quickLead.documentsComment.$.md5", item.getMd5());
-							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+								Update update = new Update();
+								update.addToSet("quickLead.documentsAfterSubmit", item);
+								Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, FindAndModifyOptions.options().upsert(true), Application.class);
+							} else {
+								Update update = new Update();
+								update.set("quickLead.documentsAfterSubmit.$.filename", item.getFilename());
+								update.set("quickLead.documentsAfterSubmit.$.urlid", item.getUrlid());
+								update.set("quickLead.documentsAfterSubmit.$.md5", item.getMd5());
+								update.set("quickLead.documentsAfterSubmit.$.contentType", item.getContentType());
+								Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+							}
+						}
+					}else {
+						dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {
+						});
+						for (QLDocument item : dataUpload) {
+							Query queryUpdate = new Query();
+							queryUpdate.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()).and("quickLead.documentsComment.originalname").is(item.getOriginalname()));
+							List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
+
+							if (checkCommentExist.size() <= 0) {
+								Query queryAddComment = new Query();
+								queryAddComment.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
+
+								Update update = new Update();
+								update.addToSet("quickLead.documentsComment", item);
+								Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, FindAndModifyOptions.options().upsert(true), Application.class);
+							} else {
+								Update update = new Update();
+								update.set("quickLead.documentsComment.$.filename", item.getFilename());
+								update.set("quickLead.documentsComment.$.urlid", item.getUrlid());
+								update.set("quickLead.documentsComment.$.md5", item.getMd5());
+								update.set("quickLead.documentsComment.$.contentType", item.getContentType());
+								Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+							}
 						}
 					}
 
@@ -1951,6 +1981,9 @@ public class DataEntryService {
                                 Query queryLogin = new Query();
                                 queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
                                 Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+								if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+									dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+								}
                                 dataFullApp.setStage("END OF LEAD DETAIL");
                                 rabbitMQService.send("tpf-service-automation",
                                         Map.of("func", "updateAppError", "body", dataFullApp));
@@ -1978,6 +2011,9 @@ public class DataEntryService {
 							Query queryLogin = new Query();
 							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
 							Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+							if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+								dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+							}
 							rabbitMQService.send("tpf-service-automation",
 									Map.of("func", "fullInfoApp", "body", dataFullApp));
 
@@ -2160,7 +2196,11 @@ public class DataEntryService {
                                 for (CommentModel item : dataUpdate) {
                                     if (item.getResponse() != null) {
                                         dataUpdateSendAuto = item.getResponse().getData();
-                                        dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+										if (dataFullApp.getQuickLead().getDocumentsAfterSubmit() != null) {
+											dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsAfterSubmit());
+										}else if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+											dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+										}
                                         dataUpdateSendAuto.setStage("END OF LEAD DETAIL");
                                         if (dataFullApp.getError() != null) {
                                             dataUpdateSendAuto.setError(dataFullApp.getError());
@@ -2208,7 +2248,11 @@ public class DataEntryService {
 							for (CommentModel item : dataUpdate) {
 								if (item.getResponse() != null){
 									dataUpdateSendAuto = item.getResponse().getData();
-									dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+									if (dataFullApp.getQuickLead().getDocumentsAfterSubmit() != null) {
+										dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsAfterSubmit());
+									}else if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+										dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+									}
 									dataUpdateSendAuto.setStage(item.getStage());
 									if (dataFullApp.getError() != null){
                                         dataUpdateSendAuto.setError(dataFullApp.getError());
