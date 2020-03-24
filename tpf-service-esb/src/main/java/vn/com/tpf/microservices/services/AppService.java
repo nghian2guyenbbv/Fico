@@ -33,7 +33,9 @@ public class AppService {
 	}
 	
 	public JsonNode createQuickLeadApp(JsonNode request) throws Exception {
-		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "quickLeadApp", "reference_id",
+		final String project = request.path("body").path("project").asText();
+		final String queue_automation = "tpf-service-automation".concat(project.isBlank()?"":project.toLowerCase().trim());
+		JsonNode res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "quickLeadApp", "reference_id",
 				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), Object.class)));
 		return response(res.path("status").asInt(), res.path("data"));
 	}
