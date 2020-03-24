@@ -89,6 +89,9 @@ public class ConvertService {
 		if (!StringUtils.isEmpty(application.getPartnerName())) {
 			optional.put("partnerName", application.getPartnerName());
 		}
+
+		optional.put("isHolding", application.isHolding());
+
 		app.set("optional", optional);
 		return app;
 	}
