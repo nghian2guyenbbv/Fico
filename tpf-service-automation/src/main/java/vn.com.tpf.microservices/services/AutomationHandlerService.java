@@ -1047,10 +1047,6 @@ public class AutomationHandlerService {
 //                Map.of("func", func, "token",
 //                        String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
 
-//        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
-//                Map.of("func", func, "body", application));
-//        System.out.println("rabit:=>" + jsonNode.toString());
-
         JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-dataentry",
                 Map.of("func", func, "body", application));
         System.out.println("rabit:=>" + jsonNode.toString());
@@ -3864,11 +3860,10 @@ public class AutomationHandlerService {
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
                 DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-                for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
-                    if (documentList.getDocumentName().contains("(ACCA)")) {
-                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
-                    }
-                    break;
+                //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
+                if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent())
+                {
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                 }
             }
 

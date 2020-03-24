@@ -183,6 +183,9 @@ public class DataInitial {
             ReferenceDTO referenceDTO = ReferenceDTO.builder()
                     .fullName(reference.getName())
                     .relationShip(reference.getRelationship())
+                    .priStd(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
+                    .priNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
+                    .priExt(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getExtension():"")
                     .mobilePhoneNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
             referenceDTOs.add(referenceDTO);
         }
@@ -205,6 +208,8 @@ public class DataInitial {
                         .courierCode(dynamicForm.getCourierCode())
                         .totalMonthlyPayable(dynamicForm.getTotalMonthlyPayable())
                         .loanOfWork(dynamicForm.getLoanAtWork())
+                        .contractNumber(dynamicForm.getContractNumber()!=null?dynamicForm.getContractNumber():"")
+                        .oldContractLoanAmount(dynamicForm.getOldContractLoanAmount()!=null?dynamicForm.getOldContractLoanAmount():"")
                         .remark(dynamicForm.getRemark()).build();
                 map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
             }
