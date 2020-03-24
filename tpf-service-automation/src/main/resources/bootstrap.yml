@@ -1,10 +1,6 @@
 spring:
   application:
-<<<<<<< HEAD
-    name: tpf-service-automation-return
-=======
     name: tpf-service-automation-smartnet
->>>>>>> UAT_Automation
   cloud:
     config:
       #uri: http://localhost:8888
