@@ -81,7 +81,7 @@ public class DataInitial {
                 .employeeNumber(employmentDetails.getEmployeeNumber())
                 .taxCode(employmentDetails.getEmployerCode())
                 .natureOfBussiness(employmentDetails.getNatureOfBusiness())
-                .natureOfOccupation("Unemployed")
+                .natureOfOccupation(employmentDetails.getNatureOfOccupation()!=null?employmentDetails.getNatureOfOccupation():"Unemployed")
                 .industry(employmentDetails.getIndustry())
                 .department(employmentDetails.getDepartmentName())
                 .level(employmentDetails.getDesignation())
