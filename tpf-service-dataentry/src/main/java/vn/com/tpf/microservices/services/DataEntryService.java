@@ -4423,7 +4423,8 @@ public class DataEntryService {
 					return Map.of("result_code", 3, "message","Not found partner");
 				}
 
-				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", app.getApplicationId(), "status", event)), JsonNode.class);
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", app.getApplicationId(),
+						"status", event, "description", reason)), JsonNode.class);
 				JsonNode responseDG = null;
 				if(app.getPartnerId().equals("1")){
 					responseDG = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
