@@ -45,4 +45,7 @@ public class Report {
 
     private String partnerId;
     private String partnerName;
+
+    private String isHolding;
+    private String hold;
 }

@@ -24,9 +24,9 @@ public class ConvertService {
 		app.put("appId", application.getApplicationId());
 //		app.put("status", application.getStatus());
 		if (application.getApplicationInformation() != null){
-			app.put("fullName", application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+			app.put("fullName", StringUtils.trimWhitespace(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName()));
 		}else {
-			app.put("fullName", (application.getQuickLead().getFirstName() + " " + application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
+			app.put("fullName", (StringUtils.trimWhitespace(application.getQuickLead().getFirstName())+ " " + StringUtils.trimWhitespace(application.getQuickLead().getLastName())));
 		}
 //		app.put("automationResult", application.getDescription());
 //		app.put("assigned", application.getUserName());
