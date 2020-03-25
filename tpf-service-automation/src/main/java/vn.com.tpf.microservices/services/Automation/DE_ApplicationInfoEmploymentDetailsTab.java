@@ -284,6 +284,26 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
             return;
         }
 
+
+        if (data.getOccupationType().equals("Others")) {
+
+            WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+            we.click();
+
+            await("natureOfOccupationElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> natureOfOccupationElement.isDisplayed() && natureOfOccupationElement.isEnabled());
+            natureOfOccupationElement.click();
+            await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> natureOfOccupationOptionElement.size() > 0);
+            for (WebElement element : natureOfOccupationOptionElement) {
+                if (element.getText().equals(data.getNatureOfOccupation())) {
+                    element.click();
+                    break;
+                }
+            }
+            return;
+        }
+
         WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
         we.click();
 
