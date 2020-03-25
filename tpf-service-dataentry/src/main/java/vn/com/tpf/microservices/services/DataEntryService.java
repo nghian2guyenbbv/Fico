@@ -1005,7 +1005,7 @@ public class DataEntryService {
                                 }
 								dataUpdate.setStage(stageAuto);
 								dataUpdate.setError(errorAuto);
-								rabbitMQService.send("queueAutoSGB",
+								rabbitMQService.send(queueAutoSGB,
 										Map.of("func", "updateAppError","body", dataUpdate));
 
 								commentDGTLD = commentDGT;
