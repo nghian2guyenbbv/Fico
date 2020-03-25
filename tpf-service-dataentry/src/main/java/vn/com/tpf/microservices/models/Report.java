@@ -45,5 +45,4 @@ public class Report {
 
     private String partnerId;
     private String partnerName;
-
 }

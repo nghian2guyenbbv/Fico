@@ -10,4 +10,5 @@ public class QLDocument {
     private String filename;
     private String md5;
     private String urlid;
+    private String contentType;
 }
