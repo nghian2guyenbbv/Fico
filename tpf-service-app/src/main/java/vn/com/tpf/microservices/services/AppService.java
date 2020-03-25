@@ -201,6 +201,11 @@ public class AppService {
 					new HashSet<>(Arrays.asList(Map.of("status", entity.getStatus(), "createdAt", new Date()))));
 		}
 
+		try {
+			entity.setFullName(StringUtils.trimWhitespace(entity.getFullName()));
+		} catch (Exception e) {
+		}
+
 		mongoTemplate.save(entity);
 
 		String dTo = getDepartment(entity);
