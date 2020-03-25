@@ -192,6 +192,13 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                     break;
                 }
             }
+
+            employerName.clear();
+            employerName.sendKeys(data.getRemarks());
+
+            employerAddressCheckElement.click();
+
+            Utilities.captureScreenShot(_driver);
         } else {
             //companyTaxCodeElement.sendKeys("%%%");
             companyTaxCodeElement.sendKeys(data.getEmployeeNumber());
@@ -301,6 +308,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                     break;
                 }
             }
+
+            employerName.clear();
+            employerName.sendKeys(data.getRemarks());
+
             return;
         }
 
