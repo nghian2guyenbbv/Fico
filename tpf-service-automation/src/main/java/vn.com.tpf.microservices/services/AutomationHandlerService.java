@@ -3854,8 +3854,7 @@ public class AutomationHandlerService {
 //            de_ReturnSaleQueuePage.getApplicationElement().click();
 //            de_ReturnSaleQueuePage.saleQueue(deSaleQueueDTO, downdloadFileURL);
 
-            System.out.println(stage + ": DONE");
-            System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto - FINISH: " + stage + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){

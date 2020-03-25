@@ -205,7 +205,7 @@ public class DE_ReturnSaleQueuePage {
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
-        System.out.println(stage + ": DONE");
+        System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
 
         // ========== APPLICATION - SALE QUEUE =================
@@ -334,5 +334,7 @@ public class DE_ReturnSaleQueuePage {
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
+
+        System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
     }
 }
