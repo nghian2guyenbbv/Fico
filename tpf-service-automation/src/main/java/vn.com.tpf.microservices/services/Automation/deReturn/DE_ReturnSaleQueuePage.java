@@ -215,8 +215,8 @@ public class DE_ReturnSaleQueuePage {
 
         stage = "ASSIGNED";
 
-        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Applications"));
+        await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("Application Grid"));
 
         applicationAssignedNumberElement.clear();
 
@@ -323,6 +323,8 @@ public class DE_ReturnSaleQueuePage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
+
+        // ==== Open headless ==== //
 //        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
 //        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
