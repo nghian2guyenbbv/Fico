@@ -83,4 +83,5 @@ public class EmploymentDetails {
     @NotEmpty(message = "totalMonthsInOccupation not null")
     private String totalMonthsInOccupation;
 
+    private String natureOfOccupation = "";
 }
