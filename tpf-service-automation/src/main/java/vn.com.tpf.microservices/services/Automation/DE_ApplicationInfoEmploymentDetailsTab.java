@@ -181,6 +181,9 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 //		occupationTypeSelect.selectByVisibleText(data.getOccupationType());
 
         if (data.getOccupationType().equals("Others")) {
+            WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+            we.click();
+
             await("natureOfOccupationElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> natureOfOccupationElement.isDisplayed() && natureOfOccupationElement.isEnabled());
             natureOfOccupationElement.click();
@@ -196,7 +199,9 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
             employerName.clear();
             employerName.sendKeys(data.getRemarks());
 
-            employerAddressCheckElement.click();
+            //upddate lai cho nay, moi checkbox theoname cua occupation
+            WebElement eaCheckElement =_driver.findElement(By.id("employment_detail_" + data.getOccupationType().toLowerCase() +"_address_check"));
+            eaCheckElement.click();
 
             Utilities.captureScreenShot(_driver);
         } else {
@@ -394,7 +399,7 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     }
 
     public void setMajorOccupation(EmploymentDTO data) {
-        if(!data.getIsMajorEmployment().isEmpty())
+        if(!data.getIsMajorEmployment().isEmpty()&&!data.getIsMajorEmployment().equals("Others"))
         {
             if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
             {
