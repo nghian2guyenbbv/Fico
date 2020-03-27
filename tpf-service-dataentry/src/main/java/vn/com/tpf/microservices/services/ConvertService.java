@@ -84,7 +84,15 @@ public class ConvertService {
 			optional.put("userName_DE", application.getUserName_DE());
 		}
 
+		if (!StringUtils.isEmpty(application.getPartnerId())) {
+			optional.put("partnerId", application.getPartnerId());
+		}
+		if (!StringUtils.isEmpty(application.getPartnerName())) {
+			optional.put("partnerName", application.getPartnerName());
+		}
+
 		optional.put("isHolding", application.isHolding());
+
 		app.set("optional", optional);
 		return app;
 	}
