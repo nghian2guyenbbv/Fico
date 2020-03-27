@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.utilities;
 public class Constant {
     public static String AUDIT_QUEUE = "qAudit";
     public static int TIME_OUT_S = 30;
+    public static int TIME_OUT_2_M = 120;
+    public static int TIME_OUT_5_M = 300;
     public static int ACCOUNT_AVAILABLE_TIMEOUT = 120; //600
     public static int TOTAL_TIME_OUT_S = 1200;
     public static int THREAD_NUM = 10;
