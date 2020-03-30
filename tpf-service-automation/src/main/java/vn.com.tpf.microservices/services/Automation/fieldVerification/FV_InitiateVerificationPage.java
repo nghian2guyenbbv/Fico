@@ -96,8 +96,11 @@ public class FV_InitiateVerificationPage {
     private WebElement inputAgencyElement;
 
     @FindBy(how = How.ID, using = "holder")
-    @CacheLookup
     private WebElement textSelectUserContainerElement;
+
+    @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO0')]")
+    @CacheLookup
+    private List<WebElement> liAgencyElement;
 
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_field_investigation_entry_verification_agency')]")
     @CacheLookup
@@ -183,13 +186,13 @@ public class FV_InitiateVerificationPage {
         applicationElement.click();
 
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Applications"));
+                .until(_driver::getTitle, is("Application Grid"));
 
         applicationAssignedNumberElement.clear();
 
         applicationAssignedNumberElement.sendKeys(initiateVerificationDTO.getAppId());
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
         WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + initiateVerificationDTO.getAppId() +"')]"));
@@ -209,16 +212,16 @@ public class FV_InitiateVerificationPage {
         await("inputAgencyElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> inputAgencyElement.isDisplayed());
 
-        inputAgencyElement.sendKeys(initiateVerificationDTO.getAgencyCode());
+        inputAgencyElement.sendKeys("TPF Agency");
 
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textInputAgencyElement.size() > 0);
+        await("liAgencyElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> liAgencyElement.size() > 0);
 
-        for (WebElement e : textInputAgencyElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(initiateVerificationDTO.getAgencyCode())) {
+        for (WebElement e : liAgencyElement) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals("TPF Agency")) {
                 e.click();
                 break;
             }

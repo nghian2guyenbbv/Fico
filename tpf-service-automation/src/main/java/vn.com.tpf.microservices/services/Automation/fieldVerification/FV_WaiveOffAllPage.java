@@ -181,13 +181,13 @@ public class FV_WaiveOffAllPage {
         applicationElement.click();
 
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Applications"));
+                .until(_driver::getTitle, is("Application Grid"));
 
         applicationAssignedNumberElement.clear();
 
         applicationAssignedNumberElement.sendKeys(waiveOffAllDTO.getAppId());
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
         WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + waiveOffAllDTO.getAppId() +"')]"));
