@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.LocalFileDetector;
@@ -139,9 +140,11 @@ public class DE_DocumentsPage {
 
         List<String> updateField=new ArrayList<>();
         for(DocumentDTO documentDTO:documentDTOS){
-            updateField.add(documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
+            //updateField.add(documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
+            updateField.add(FilenameUtils.removeExtension(documentDTO.originalname));
 
-            System.out.println("name;" + documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
+            //System.out.println("name;" + documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
+            System.out.println("name;" + FilenameUtils.removeExtension(documentDTO.originalname));
         }
 
 //        List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book",
@@ -157,7 +160,11 @@ public class DE_DocumentsPage {
                 //do type truyen sang null
                 DocumentDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalname.contains(docName)).findAny().orElse(null);
                 if(documentDTO!=null){
-                    toFile+= UUID.randomUUID().toString()+"_"+ docName +".pdf";
+
+                    //bo sung get ext file
+                    String ext= FilenameUtils.getExtension(documentDTO.getFilename());
+
+                    toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
                     //File file = new File(toFile + documentDTO.getFilename());
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
