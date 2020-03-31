@@ -146,7 +146,7 @@ public class DE_ReturnSaleQueuePage {
     }
 
     @SneakyThrows
-    public void setData(DESaleQueueDTO deSaleQueueDTO, String user,String downLoadFileURL) {
+    public void setData(DESaleQueueDTO deSaleQueueDTO, String user, String downLoadFileURL) {
         Instant start = Instant.now();
         String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
@@ -283,16 +283,15 @@ public class DE_ReturnSaleQueuePage {
 
         Utilities.captureScreenShot(_driver);
 
-
-        await("document_table visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentTableElement.size() > 3);
-
         documentBtnSaveElement.click();
 
         Utilities.captureScreenShot(_driver);
 
-        await("document_table_body visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentTableElement.size() > 2);
+        await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
+                .until(() -> documentElement.isDisplayed());
+
+//        await("document_table_body visibale Timeout!").atMost(Constant.ACCOUNT_AVAILABLE_TIMEOUT, TimeUnit.SECONDS)
+//                .until(() -> documentTableElement.size() > 2);
 
         System.out.println("SAVE DOCUMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
