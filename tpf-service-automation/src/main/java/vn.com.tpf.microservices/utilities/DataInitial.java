@@ -207,7 +207,7 @@ public class DataInitial {
                         .maxRequestRate(dynamicForm.getMaximumInterestedRate())
                         .courierCode(dynamicForm.getCourierCode())
                         .totalMonthlyPayable(dynamicForm.getTotalMonthlyPayable())
-                        .loanOfWork(dynamicForm.getLoanAtWork())
+                        .loanOfWork(dynamicForm.getLoanAtWork()!=null?dynamicForm.getLoanAtWork():"")
                         .contractNumber(dynamicForm.getContractNumber()!=null?dynamicForm.getContractNumber():"")
                         .oldContractLoanAmount(dynamicForm.getOldContractLoanAmount()!=null?dynamicForm.getOldContractLoanAmount():"")
                         .remark(dynamicForm.getRemark()).build();
