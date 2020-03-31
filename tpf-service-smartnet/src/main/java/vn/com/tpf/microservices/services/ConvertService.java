@@ -80,6 +80,16 @@ public class ConvertService {
 		return app;
 	}
 	
+	public ObjectNode toAppStageAndStatus(Smartnet smartnet) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("status", smartnet.getStatus());
+		ObjectNode optional = mapper.createObjectNode();
+		optional.put("stage", smartnet.getStage());
+
+		app.set("optional", optional);
+		return app;
+	}
+	
 	
 	public ObjectNode toAppStage(Smartnet smartnet) {
 		ObjectNode app = mapper.createObjectNode();

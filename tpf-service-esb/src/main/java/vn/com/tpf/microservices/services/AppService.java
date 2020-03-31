@@ -34,7 +34,7 @@ public class AppService {
 	
 	public JsonNode createQuickLeadApp(JsonNode request) throws Exception {
 		final String project = request.path("body").path("project").asText();
-		final String queue_automation = "tpf-service-automation".concat(project.isBlank()?"":project.toLowerCase().trim());
+		final String queue_automation = "tpf-service-automation".concat(project.isBlank()?"":"-"+project.toLowerCase().trim());
 		JsonNode res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "quickLeadApp", "reference_id",
 				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), Object.class)));
 		return response(res.path("status").asInt(), res.path("data"));
@@ -48,13 +48,17 @@ public class AppService {
 	}
 	
 	public JsonNode deResponseQuery(JsonNode request) throws Exception {
-		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "deResponseQuery", "reference_id",
+		final String project = request.path("body").path("project").asText();
+		final String queue_automation = "tpf-service-automation".concat(project.isBlank()?"":"-"+project.toLowerCase().trim());
+		JsonNode res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "deResponseQuery", "reference_id",
 				request.path("reference_id"), "body", request.path("body")));
 		return response(res.path("status").asInt(), res.path("data"));
 	}
 	
 	public JsonNode deSaleQueue(JsonNode request) throws Exception {
-		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "deSaleQueue", "reference_id",
+		final String project = request.path("body").path("project").asText();
+		final String queue_automation = "tpf-service-automation".concat(project.isBlank()?"":"-"+project.toLowerCase().trim());
+		JsonNode res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "deSaleQueue", "reference_id",
 				request.path("reference_id"), "body", request.path("body")));
 		return response(res.path("status").asInt(), res.path("data"));
 	}
