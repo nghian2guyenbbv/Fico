@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -289,13 +290,15 @@ public class LeadDetailPage {
                 //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
                 String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                 if (requiredFiled.contains(docName)) {
-                    toFile+=UUID.randomUUID().toString()+"_"+ docName +".pdf";
 
                     Document doc=quickLead.documents.stream().filter(q->q.getType().equals(docName)).findAny().orElse(null);
 
                     if(doc!=null)
                     {
+                        //bo sung get ext file
+                        String ext=FilenameUtils.getExtension(doc.getFilename());
 
+                        toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
                         FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                         File file = new File(toFile);

@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @JsonInclude(Include.NON_NULL)
-public class Reference {
+public class  Reference {
 
 	private String fullName;
 	private String phoneNumber;

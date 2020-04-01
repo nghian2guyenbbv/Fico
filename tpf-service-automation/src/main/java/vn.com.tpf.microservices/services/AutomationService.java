@@ -391,7 +391,8 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"SN_quickLead","DATAENTRY");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"SN_quickLead","RETURN");
+
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 

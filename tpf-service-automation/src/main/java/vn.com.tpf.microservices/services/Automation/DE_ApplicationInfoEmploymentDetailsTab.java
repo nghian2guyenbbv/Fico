@@ -181,6 +181,9 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 //		occupationTypeSelect.selectByVisibleText(data.getOccupationType());
 
         if (data.getOccupationType().equals("Others")) {
+            WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+            we.click();
+
             await("natureOfOccupationElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> natureOfOccupationElement.isDisplayed() && natureOfOccupationElement.isEnabled());
             natureOfOccupationElement.click();
@@ -192,6 +195,15 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                     break;
                 }
             }
+
+            employerName.clear();
+            employerName.sendKeys(data.getRemarks());
+
+            //upddate lai cho nay, moi checkbox theoname cua occupation
+            WebElement eaCheckElement =_driver.findElement(By.id("employment_detail_" + data.getOccupationType().toLowerCase() +"_address_check"));
+            eaCheckElement.click();
+
+            Utilities.captureScreenShot(_driver);
         } else {
             //companyTaxCodeElement.sendKeys("%%%");
             companyTaxCodeElement.sendKeys(data.getEmployeeNumber());
@@ -284,6 +296,30 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
             return;
         }
 
+
+        if (data.getOccupationType().equals("Others")) {
+
+            WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+            we.click();
+
+            await("natureOfOccupationElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> natureOfOccupationElement.isDisplayed() && natureOfOccupationElement.isEnabled());
+            natureOfOccupationElement.click();
+            await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> natureOfOccupationOptionElement.size() > 0);
+            for (WebElement element : natureOfOccupationOptionElement) {
+                if (element.getText().equals(data.getNatureOfOccupation())) {
+                    element.click();
+                    break;
+                }
+            }
+
+            employerName.clear();
+            employerName.sendKeys(data.getRemarks());
+
+            return;
+        }
+
         WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
         we.click();
 
@@ -363,7 +399,7 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
     }
 
     public void setMajorOccupation(EmploymentDTO data) {
-        if(!data.getIsMajorEmployment().isEmpty())
+        if(!data.getIsMajorEmployment().isEmpty()&&!data.getIsMajorEmployment().equals("Others"))
         {
             if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
             {
