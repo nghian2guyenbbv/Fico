@@ -437,7 +437,7 @@ public class RepaymentService {
 				@Override
 				public void execute(Connection connection) throws SQLException {
 					//connection, finally!
-					String storeProc = String.format("CALL payoo.sp_ora_data_net_amount();");
+					String storeProc = String.format("CALL payoo.sp_ora_data_net_amount_by_user();");
 					try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
 						int resuk=stmt.executeUpdate();
 						log.info("Found : " + resuk + "result");
