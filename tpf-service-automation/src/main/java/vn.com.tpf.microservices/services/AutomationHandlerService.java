@@ -222,7 +222,7 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "momoCreateApp":
-                    accountDTO = pollAccountFromQueue_OLD(accounts, project);
+                    accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_momoCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "fptCreateApp":
@@ -253,7 +253,8 @@ public class AutomationHandlerService {
         } finally {
             //logout(driver);
             if (project.equals("MOMO")) {
-                pushAccountToQueue_OLD(accounts, accountDTO);
+//                pushAccountToQueue_OLD(accounts, accountDTO);
+                pushAccountToQueue(accountDTO, project);
             } else {
                 pushAccountToQueue(accountDTO, project);
             }

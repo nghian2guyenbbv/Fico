@@ -19,9 +19,7 @@ public class MiscFrmAppDtlDTO {
     private String remark;
     private String loanOfWork;
     private String courierCode;
-<<<<<<< HEAD
-=======
     private String oldContractLoanAmount;
     private String contractNumber;
->>>>>>> UAT_Automation
+
 }
