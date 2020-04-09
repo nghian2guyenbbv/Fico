@@ -18,4 +18,6 @@ public class ReportModel {
 
     private String partnerName;
     private String dsaCode;
+
+    private boolean isHolding;
 }

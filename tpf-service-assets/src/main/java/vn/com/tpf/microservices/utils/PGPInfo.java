@@ -376,19 +376,23 @@ public class PGPInfo {
 					+ "ffHF/qBvxW/iavB4DK3skyae0ZjnrU94ILwHU9nPPDbzJtqkOA==\n" + "=o+JZ\n"
 					+ "-----END PGP PUBLIC KEY BLOCK-----\n" + "",
 			"digitex",
-			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + "Version: BCPG C# v1.6.1.0\n" + "\n"
-					+ "mQENBF2q6I4BCACFJoXr5uODFHUWetBv/wzk477zGRmpO3LD0DxZqDfe6QIVpg3H\n"
-					+ "XGeVZRD9DPPoYUuT9+ns2RFNoe9WjL7Hod6Yzf81Y++HgORu6kfr0Co7kkZlXTTa\n"
-					+ "m/9kxO1gQRW3UsjR4reBRqg8hT4dBID7nclQSQnkXNDny3ZiubuMqzdnUg8+MHNc\n"
-					+ "bfXB1TXOxX7iIQLtv7qPMfhi6HRC6sTXzHOFKt0NLjGfIl8cqWQbr1ATHvBnj/gK\n"
-					+ "uCB34HuMs7FYqU8oAyNqkZ6ObEH1rMBHN8fW1dNUWVfTGTt/cfw/1GryGexFv0Dn\n"
-					+ "CDlC7E/hZDUaQGdVNrS6O7rfd2GULvKMJSb9ABEBAAG0AIkBHAQQAQIABgUCXaro\n"
-					+ "jgAKCRBw0WNu5f9T9lTXB/9imQCxBgA4D0i6IUQm9UE55S4jsEma/TyPQiKb0bwy\n"
-					+ "Rc508XqB4ec7QZ5X9KxLLeNT4sb6jiECZGrzQuq9aKDjsMoVI8evJXrN6qE16G9s\n"
-					+ "Em/TwhN+UTVlOcq67O4g3zDRMYEE1/Ho+84et8w6R9XMrrNjUhWL2X8o14nJlb7u\n"
-					+ "cgsB/6Ts+asPfnY/O2xiNw1XT+v4F7w0fMYkp+IMtJHOmzaCiic5MNqCuL6JotfN\n"
-					+ "H6yN35iJRVFhXrqm1C8CwKNN/A54Jx+3LZX8SuQWJ6BJEVEALv5H9LEoGkXNgq+7\n"
-					+ "nMc+dM2RR/1xoNqtcivDBRw6p7350MJSXPlVKe/yXnTF\n" + "=lBb4\n" + "Version: BCPG C# v1.8.5.0\n" + "",
+			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" +
+					"Version: BCPG C# v1.6.1.0\n" +
+					" \n" +
+					"mQENBF2q6I4BCACFJoXr5uODFHUWetBv/wzk477zGRmpO3LD0DxZqDfe6QIVpg3H\n" +
+					"XGeVZRD9DPPoYUuT9+ns2RFNoe9WjL7Hod6Yzf81Y++HgORu6kfr0Co7kkZlXTTa\n" +
+					"m/9kxO1gQRW3UsjR4reBRqg8hT4dBID7nclQSQnkXNDny3ZiubuMqzdnUg8+MHNc\n" +
+					"bfXB1TXOxX7iIQLtv7qPMfhi6HRC6sTXzHOFKt0NLjGfIl8cqWQbr1ATHvBnj/gK\n" +
+					"uCB34HuMs7FYqU8oAyNqkZ6ObEH1rMBHN8fW1dNUWVfTGTt/cfw/1GryGexFv0Dn\n" +
+					"CDlC7E/hZDUaQGdVNrS6O7rfd2GULvKMJSb9ABEBAAG0AIkBHAQQAQIABgUCXaro\n" +
+					"jgAKCRBw0WNu5f9T9lTXB/9imQCxBgA4D0i6IUQm9UE55S4jsEma/TyPQiKb0bwy\n" +
+					"Rc508XqB4ec7QZ5X9KxLLeNT4sb6jiECZGrzQuq9aKDjsMoVI8evJXrN6qE16G9s\n" +
+					"Em/TwhN+UTVlOcq67O4g3zDRMYEE1/Ho+84et8w6R9XMrrNjUhWL2X8o14nJlb7u\n" +
+					"cgsB/6Ts+asPfnY/O2xiNw1XT+v4F7w0fMYkp+IMtJHOmzaCiic5MNqCuL6JotfN\n" +
+					"H6yN35iJRVFhXrqm1C8CwKNN/A54Jx+3LZX8SuQWJ6BJEVEALv5H9LEoGkXNgq+7\n" +
+					"nMc+dM2RR/1xoNqtcivDBRw6p7350MJSXPlVKe/yXnTF\n" +
+					"=lBb4\n" +
+					"-----END PGP PUBLIC KEY BLOCK-----\n" + "",
 			"sgbpo",
 			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + "Version: OpenPGP.js v2.6.2\n"
 					+ "Comment: https://openpgpjs.org\n" + "\n"
