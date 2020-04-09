@@ -27,8 +27,8 @@ public class EmploymentDetails {
 //    @NotEmpty(message = "otherCompanyTaxCode not null")
     private String otherCompanyTaxCode;
 
-    @NotNull
-    @NotEmpty(message = "industry not null")
+//    @NotNull
+//    @NotEmpty(message = "industry not null")
     private String industry;
 
     @NotNull
