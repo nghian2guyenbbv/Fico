@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.models;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -13,10 +14,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.Builder;
 import lombok.Data;
+
+
 
 @Data
 @Document
+@Builder
 @JsonInclude(Include.NON_NULL)
 public class Momo {
 
@@ -60,6 +65,8 @@ public class Momo {
 	private boolean agree2;
 	private boolean agree3;
 	private boolean agree4;
+	private String  Stage;
+	private Map<String, Object> preChecks;
 	private Set<Photo> photos = new HashSet<>();
 	private Set<Reference> references = new HashSet<>();
 
