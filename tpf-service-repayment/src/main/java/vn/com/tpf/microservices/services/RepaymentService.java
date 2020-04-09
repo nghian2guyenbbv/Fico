@@ -462,4 +462,151 @@ public class RepaymentService {
 	}
 
 	//---------------------- END FUNCTION IMPORT -----------------
+
+	public Map<String, Object> getCustomers_vnPost(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			List<FicoCustomer> ficoCustomerList = null;
+
+			Assert.notNull(request.get("body"), "no body");
+			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			request_id = requestModel.getRequest_id();
+
+			try{
+				OffsetDateTime.parse(requestModel.getDate_time());
+			}catch (Exception e) {
+				log.info("Error: " + e);
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
+				responseModel.setMessage("Invalid input data");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			String inputValue = requestModel.getData().getSearch_value();
+
+			if(isValidIdNumer(inputValue)) {
+				ficoCustomerList = ficoCustomerDAO.findByIdentificationNumber(inputValue);
+			}else{
+				ficoCustomerList = ficoCustomerDAO.findByLoanAccountNo(inputValue);
+			}
+			if(ficoCustomerList.size() == 0) {
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
+				responseModel.setMessage("Invalid input data");
+			}else {
+				ficoCustomerList.forEach(ficoCustomer -> {
+					if(!ficoCustomer.isLoanActive()){
+						ficoCustomer.setNetAmount(0);
+					}else if(ficoCustomer.getNetAmount() <= 0){
+						ficoCustomer.setNetAmount(ficoCustomer.getInstallmentAmount());
+					}
+				});
+
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(0);
+				responseModel.setMessage("Success");
+				responseModel.setData(ficoCustomerList);
+			}
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(96);
+			responseModel.setMessage("System error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> customers_pay_vnPost(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			Assert.notNull(request.get("body"), "no body");
+			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			FicoTransPay ficoTransPay = new FicoTransPay();
+			request_id = requestModel.getRequest_id();
+
+			try{
+				OffsetDateTime.parse(requestModel.getDate_time());
+			}catch (Exception e) {
+				log.info("Error: " + e);
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
+				responseModel.setMessage("Invalid input data");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			if (requestModel.getData().getAmount() <= 0){
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
+				responseModel.setMessage("Invalid input data");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			FicoTransPay getByTransactionId = ficoTransPayDAO.findByTransactionId(requestModel.getData().getTransaction_id());
+			if (getByTransactionId == null) {
+				FicoCustomer ficoLoanId = ficoCustomerDAO.findByLoanId(requestModel.getData().getLoan_id());
+				List<FicoCustomer> ficoLoanAcct = ficoCustomerDAO.findByLoanAccountNo(requestModel.getData().getLoan_account_no());
+
+				if (ficoLoanId != null && ficoLoanAcct.size() > 0){
+					ficoTransPay.setLoanId(requestModel.getData().getLoan_id());
+					ficoTransPay.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
+					ficoTransPay.setTransactionId(requestModel.getData().getTransaction_id());
+					ficoTransPay.setAmount(requestModel.getData().getAmount());
+					ficoTransPay.setCreateDate(new Timestamp(new Date().getTime()));
+
+					ficoTransPayDAO.save(ficoTransPay);
+
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
+					responseModel.setMessage("Success");
+
+					responseModel.setData(Map.of("amount", requestModel.getData().getAmount(),
+							"loan_account_no", requestModel.getData().getLoan_account_no()));
+				}else{
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(2);
+					responseModel.setMessage("Invalid input data");
+				}
+			}else {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
+				responseModel.setMessage("Invalid input data");
+			}
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(96);
+			responseModel.setMessage("System error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
 }
