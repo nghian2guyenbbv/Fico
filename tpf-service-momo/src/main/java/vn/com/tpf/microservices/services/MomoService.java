@@ -307,7 +307,7 @@ public class MomoService {
 					String.format("data.momoLoadId %s not exits", momoLoanId)));
 		
 		JsonNode preCheck = mapper.convertValue(momo.getPreChecks(), JsonNode.class);
-		if (preCheck.path("data").path("result").asInt() != 0)
+		if ( preCheck == null || !preCheck.hasNonNull("data") || !preCheck.path("data").hasNonNull("result") || preCheck.path("data").path("result").asInt() != 0)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.momoLoanId %s quickCheck not pass %s",
 							momoLoanId, preCheck.path("data").path("description").asText())));

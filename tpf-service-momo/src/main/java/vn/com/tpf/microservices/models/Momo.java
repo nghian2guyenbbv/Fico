@@ -27,11 +27,11 @@ public class Momo {
 	@Id
 	private String id;
 
-	@Indexed
+	@Indexed(unique = false)
 	private String appId;
 	@Indexed(unique = true, sparse = true)
 	private String momoLoanId;
-	@Indexed
+	@Indexed(unique = false)
 	private String phoneNumber;
 	private String productCode;
 	private String firstName;
