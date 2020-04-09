@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import vn.com.tpf.microservices.utils.Utils;
+
 @Service
 public class RabbitMQService {
 
@@ -33,6 +35,10 @@ public class RabbitMQService {
 
 	@Autowired
 	private MomoService momoService;
+	
+	@Autowired
+	private Utils utils;
+
 
 	@PostConstruct
 	private void init() {
@@ -80,7 +86,9 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 			switch (request.path("func").asText()) {
 			case "createMomo":
-				return response(message, payload, momoService.createMomo(request));
+				return response(message, payload, Map.of("status", 200, "data", momoService.createMomo(request)));
+			case "preCheckMomo":
+				return response(message, payload, Map.of("status", 200, "data", momoService.preCheckMomo(request)));
 			case "getDetail":
 				return response(message, payload, momoService.getDetail(request));
 			case "updateAutomation":
@@ -89,24 +97,27 @@ public class RabbitMQService {
 				return response(message, payload, momoService.updateSms(request));
 			case "updateStatus":
 				return response(message, payload, momoService.updateStatus(request));
+
 			case "getListCancelled":
 				return response(message, payload, momoService.getListAppCancelled(request));
 			case "retryAutomation":
 				return response(message, payload, momoService.retryAutomation(request));	
 			case "updateAppId":
 				return response(message, payload, momoService.updateAppId(request));	
+
 			default:
-				return response(message, payload,Map.of("status", 500, "data",  ExceptionRespone(payload, 500, "function not found")));
+				return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
+						mapper.createObjectNode().put("message", "function not found"))));
+
 			}
 
-		} catch (IllegalArgumentException e) {
-			return response(message, payload, Map.of("status", 500, "data",  ExceptionRespone(payload, 500, e.toString())));
-		} catch (DataIntegrityViolationException e) {
-			return response(message, payload, Map.of("status", 400, "data", ExceptionRespone(payload, 1, "lead exits")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 500, "data",  ExceptionRespone(payload, 500, e.toString())));
+			return response(message, payload,
+					Map.of("status", 200, "data",
+							utils.getJsonNodeResponse(500, mapper.readTree(new String(payload, "UTF-8")),
+									mapper.createObjectNode().put("message", e.toString()))));
 		}
-		
+
 	}
 	
 	private Object ExceptionRespone( byte[] payload,int result_code ,String message) throws UnsupportedEncodingException, IOException {
