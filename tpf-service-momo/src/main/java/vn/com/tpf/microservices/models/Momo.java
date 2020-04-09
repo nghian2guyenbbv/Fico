@@ -2,7 +2,6 @@ package vn.com.tpf.microservices.models;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -65,9 +64,11 @@ public class Momo {
 	private boolean agree2;
 	private boolean agree3;
 	private boolean agree4;
-	private String  Stage;
-	private Map<String, Object> preChecks;
+
+	private Object preChecks;
+	@Builder.Default
 	private Set<Photo> photos = new HashSet<>();
+	@Builder.Default
 	private Set<Reference> references = new HashSet<>();
 
 	@CreatedDate

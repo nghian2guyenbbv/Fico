@@ -1,7 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -13,7 +11,6 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -97,7 +94,6 @@ public class RabbitMQService {
 				return response(message, payload, momoService.updateSms(request));
 			case "updateStatus":
 				return response(message, payload, momoService.updateStatus(request));
-
 			case "getListCancelled":
 				return response(message, payload, momoService.getListAppCancelled(request));
 			case "retryAutomation":
@@ -120,11 +116,4 @@ public class RabbitMQService {
 
 	}
 	
-	private Object ExceptionRespone( byte[] payload,int result_code ,String message) throws UnsupportedEncodingException, IOException {
-		JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-		log.info("{}",request);
-		return  Map.of("result_code", result_code,"request_id", request.path("body").path("request_id").asText(), "reference_id", request.path("body").path("reference_id").asText(),"message", message);
-
-	}
-
 }
