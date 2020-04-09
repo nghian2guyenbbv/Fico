@@ -21,4 +21,9 @@ public class MiscFrmAppDtlDTO {
     private String courierCode;
     private String oldContractLoanAmount;
     private String contractNumber;
+
+    //update 9-4-2020
+    private String zalo;
+    private String companyName;
+    private String monthlyFee;
 }
