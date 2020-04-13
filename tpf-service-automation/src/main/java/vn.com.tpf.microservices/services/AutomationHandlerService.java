@@ -65,8 +65,8 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
-    @Value("${spring.url.rabbitIdRes}")
-    private String rabbitIdRes;
+//    @Value("${spring.url.rabbitIdRes}")
+//    private String rabbitIdRes;
 
     private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts, String project) throws Exception {
         LoginDTO accountDTO = null;
@@ -223,7 +223,7 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "momoCreateApp":
-                    accountDTO = pollAccountFromQueue_OLD(accounts, project);
+                    accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_momoCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "fptCreateApp":
@@ -254,7 +254,7 @@ public class AutomationHandlerService {
         } finally {
             //logout(driver);
             if (project.equals("MOMO")) {
-                pushAccountToQueue_OLD(accounts, accountDTO);
+                pushAccountToQueue(accountDTO, project);
             } else {
                 pushAccountToQueue(accountDTO, project);
             }
