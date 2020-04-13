@@ -253,7 +253,6 @@ public class AutomationHandlerService {
         } finally {
             //logout(driver);
             if (project.equals("MOMO")) {
-//                pushAccountToQueue_OLD(accounts, accountDTO);
                 pushAccountToQueue(accountDTO, project);
             } else {
                 pushAccountToQueue(accountDTO, project);
