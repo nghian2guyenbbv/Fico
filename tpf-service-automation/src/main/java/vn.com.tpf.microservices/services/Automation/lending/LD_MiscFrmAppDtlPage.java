@@ -33,25 +33,25 @@ public class LD_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement tabMiscFrmAppDtlContainerElement;
 
-//    ////UAT
-//    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
-//    @CacheLookup
-//    private WebElement loanPurposeElement;
-//
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
-//    @CacheLookup
-//    private List<WebElement> loanPurposeOptionElement;
-
-    //PRO
-    //production khac id
-    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+    ////UAT
+    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
     @CacheLookup
     private WebElement loanPurposeElement;
 
-    //production khac
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
+
+//    //PRO
+//    //production khac id
+//    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+//    @CacheLookup
+//    private WebElement loanPurposeElement;
+//
+//    //production khac
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeOptionElement;
 
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
