@@ -111,6 +111,15 @@ public class AppService {
 			criteria.and("status").in(StringUtils.commaDelimitedListToSet(request.path("param").path("status").asText()));
 		}
 
+		//update filter vendor
+		if (request.path("param").path("vendor").isTextual()&& !StringUtils.isEmpty(request.path("param").path("vendor").asText())) {
+			if(request.path("param").path("vendor").asText().contains("DIGI-TEXX")){
+				criteria.orOperator(Criteria.where("optional.partnerId").is(null),Criteria.where("optional.partnerName").in(StringUtils.commaDelimitedListToSet(request.path("param").path("vendor").asText())));
+			}else{
+				criteria.and("optional.partnerName").in(StringUtils.commaDelimitedListToSet(request.path("param").path("vendor").asText()));
+			}
+		}
+
 		query.addCriteria(criteria);
 
 		if (request.path("param").path("fromDate").textValue() != null & request.path("param").path("toDate").textValue() != null){
@@ -144,9 +153,9 @@ public class AppService {
 			}
 		}
 
-        if (request.path("param").path("fullName").textValue() != null & !request.path("param").path("fullName").asText().equals("")){
-            query.addCriteria(Criteria.where("fullName").is(StringUtils.trimWhitespace(request.path("param").path("fullName").textValue())));
-        }
+		if (request.path("param").path("fullName").textValue() != null & !request.path("param").path("fullName").asText().equals("")){
+			query.addCriteria(Criteria.where("fullName").regex(StringUtils.trimWhitespace(request.path("param").path("fullName").textValue()), "i"));
+		}
 
         if (request.path("param").path("identificationNumber").textValue() != null & !request.path("param").path("identificationNumber").asText().equals("")){
             query.addCriteria(Criteria.where("optional.identificationNumber").is(request.path("param").path("identificationNumber").textValue()));

@@ -973,20 +973,17 @@ public class DataEntryService {
 										comment = item.getResponse().getComment();
 
 										responseCommnentToDigiTexDuplicate = true;
+
 									}
 								}
 							}
-						}
 
-						responseCommnentToDigiTex = true;
+							responseCommnentToDigiTex = true;
+						}
 
 					}
 				}
 
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("0");
 			}
 
 			if (requestCommnentFromDigiTex) {
@@ -1020,7 +1017,7 @@ public class DataEntryService {
 
 
 			if (responseCommnentToDigiTex) {
-				if (responseCommnentToDigiTexDuplicate) {
+//				if (responseCommnentToDigiTexDuplicate) {
 					ArrayNode documents = mapper.createArrayNode();
 					boolean checkIdCard = false;
 					boolean checkHousehold = false;
@@ -1173,14 +1170,14 @@ public class DataEntryService {
 					report.setPartnerName(partnerName);
 
 					mongoTemplate.save(report);
-				} else {
-					responseModel.setRequest_id(requestId);
-					responseModel.setReference_id(referenceId);
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("1");
-					responseModel.setMessage("Không thể trả thêm comment!");
-					return Map.of("status", 200, "data", responseModel);
-				}
+//				} else {
+//					responseModel.setRequest_id(requestId);
+//					responseModel.setReference_id(referenceId);
+//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//					responseModel.setResult_code("1");
+//					responseModel.setMessage("Không thể trả thêm comment!");
+//					return Map.of("status", 200, "data", responseModel);
+//				}
 			}
 
 			if (responseCommnentFullAPPFromDigiTex) {
@@ -1197,6 +1194,10 @@ public class DataEntryService {
 
 				mongoTemplate.save(report);
 			}
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
 		} catch (Exception e) {
 			log.info("ReferenceId : " + referenceId + "Error: " + e);
 			responseModel.setRequest_id(requestId);

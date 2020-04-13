@@ -79,4 +79,5 @@ public class DynamicForm {
 //    @NotEmpty(message = "remark not null")
     private String remark;
 
+    private String oldContractLoanAmount;
 }
