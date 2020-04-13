@@ -17,4 +17,7 @@ public class ReportModel {
     private String saleBranch;
 
     private String partnerName;
+
+    private String dsaCode;
+
 }
