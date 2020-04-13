@@ -65,8 +65,8 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
-//    @Value("${spring.url.rabbitIdRes}")
-//    private String rabbitIdRes;
+    @Value("${spring.url.rabbitIdRes}")
+    private String rabbitIdRes;
 
     private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts, String project) throws Exception {
         LoginDTO accountDTO = null;

@@ -197,6 +197,7 @@ public class DE_MiscFrmAppDtlPage {
         //update them contractNumber
         companyNameElement.sendKeys(data.getCompanyName());
         contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
         monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
 
@@ -287,6 +288,7 @@ public class DE_MiscFrmAppDtlPage {
         companyNameElement.sendKeys(data.getCompanyName());
         contractNumberElement.clear();
         contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
         monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
 
