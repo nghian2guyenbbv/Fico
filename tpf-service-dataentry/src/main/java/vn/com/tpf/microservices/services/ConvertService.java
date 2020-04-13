@@ -91,6 +91,13 @@ public class ConvertService {
 			optional.put("partnerName", application.getPartnerName());
 		}
 
+		try{
+			if (!StringUtils.isEmpty(application.getUserName()) && application.getStatus().equals("NEW")) {
+				optional.put("createdBy", application.getUserName());
+			}
+		} catch (Exception e) {
+		}
+
 		app.set("optional", optional);
 		return app;
 	}
