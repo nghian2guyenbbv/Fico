@@ -154,7 +154,7 @@ public class DE_MiscFrmAppDtlPage {
 
     @FindBy(how = How.ID, using = "amount_insurance_monthly_fee_frmAppDtl_2")
     private WebElement monthlyFeeElement;
-    
+
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver=driver;
