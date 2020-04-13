@@ -145,7 +145,16 @@ public class DE_MiscFrmAppDtlPage {
     @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_53")
     private WebElement oldContractLoanAmountOtherElememt;
 
+    //------------------ UDDATE 09-04-2020-------------------
+    @FindBy(how = How.ID, using = "ZALO_DYN_frmAppDtl_5")
+    private WebElement zaloElement;
 
+    @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
+    private WebElement companyNameElement;
+
+    @FindBy(how = How.ID, using = "amount_insurance_monthly_fee_frmAppDtl_2")
+    private WebElement monthlyFeeElement;
+    
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver=driver;
@@ -188,13 +197,18 @@ public class DE_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
 
         //update them contractNumber
+        companyNameElement.sendKeys(data.getCompanyName());
         contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
+        monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
 
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 
         courierCodeElement.sendKeys(data.getCourierCode());
+
+        zaloElement.sendKeys(data.getZalo());
 
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
@@ -272,8 +286,12 @@ public class DE_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
 
         //update them contractNumber
+        companyNameElement.clear();
+        companyNameElement.sendKeys(data.getCompanyName());
         contractNumberElement.clear();
         contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
+        monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
 
         remarkElement.clear();
@@ -283,6 +301,9 @@ public class DE_MiscFrmAppDtlPage {
 
         courierCodeElement.clear();
         courierCodeElement.sendKeys(data.getCourierCode());
+
+        zaloElement.clear();
+        zaloElement.sendKeys(data.getZalo());
 
         salesAgentCodeElement.clear();
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());

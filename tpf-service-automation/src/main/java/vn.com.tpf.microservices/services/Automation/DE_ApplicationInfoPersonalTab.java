@@ -448,12 +448,21 @@ public class DE_ApplicationInfoPersonalTab {
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> communicationDetailDivElement.isDisplayed());
-        selectPrimaryAddress(0);//default la Current Address
+        selectPrimaryAddress( applicationInfoDTO.getCommunicationDetails().getPrimaryAddress());//default la Current Address
         await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> primaryEmailElement.isDisplayed());
         getPrimaryEmailElement().sendKeys(applicationInfoDTO.getEmail());
 
-        //check nhap them so dien thoai thu 2, update them
+
+        //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=1
+                && !applicationInfoDTO.communicationDetails.getPrimaryAddress().equals("Current Address"))
+        {
+            cusMobileElements.clear();
+            cusMobileElements.sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(0).getPhoneNumber());
+        }
+
+        //check nhap them so dien thoai thu 2, update them, luc nao so mobile cung lay cua current
         if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
         {
             addAlternateMobileElement.click();
@@ -974,9 +983,18 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void selectPrimaryAddress(int index) {
+    public void selectPrimaryAddress(String type) {
         //checkBoxPrimaryAddressElements.get(index).click();
-        cbPrimaryAddessElement.click();
+        //cbPrimaryAddessElement.click();
+
+        //update lai cho nay , chon dia chi lien lac 9-4-2020
+        if(_driver.findElements(By.xpath("//*[@id='communicationList']/tbody/tr[td[4]='"+ type +"']/td[7]/input")).size()>0)
+        {
+            Utilities.captureScreenShot(_driver);
+            WebElement webElement=_driver.findElement(By.xpath("//*[@id='communicationList']/tbody/tr[td[4]='"+ type +"']/td[7]/input"));
+            webElement.click();
+            Utilities.captureScreenShot(_driver);
+        }
     }
 
     public void setFamilyValue(List<FamilyDTO> datas) throws IOException {
@@ -1172,11 +1190,32 @@ public class DE_ApplicationInfoPersonalTab {
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> communicationDetailDivElement.isDisplayed());
-        selectPrimaryAddress(0);//default la Current Address
+        selectPrimaryAddress(applicationInfoDTO.getCommunicationDetails().getPrimaryAddress());//default la Current Address
         await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> primaryEmailElement.isDisplayed());
         getPrimaryEmailElement().clear();
         getPrimaryEmailElement().sendKeys(applicationInfoDTO.getEmail());
+
+        //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=1
+                && !applicationInfoDTO.communicationDetails.getPrimaryAddress().equals("Current Address"))
+        {
+            cusMobileElements.clear();
+            cusMobileElements.sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(0).getPhoneNumber());
+        }
+
+        //check nhap them so dien thoai thu 2, update them, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
+        {
+            addAlternateMobileElement.click();
+
+            await("listMobileAlternateElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listMobileAlternateElement.size() > 0);
+
+            listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
+            Utilities.captureScreenShot(_driver);
+        }
+
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
