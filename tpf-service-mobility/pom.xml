@@ -7,7 +7,7 @@
   </parent>
   <artifactId>tpf-service-mobility</artifactId>
   <name>tpf-service-mobility</name>
-  <description>tpf-service-smartnet</description><dependencies>
+  <description>tpf-service-mobility</description><dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>

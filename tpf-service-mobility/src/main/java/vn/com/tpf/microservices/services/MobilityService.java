@@ -283,9 +283,11 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
 		final JsonNode data = request.path("body").path("data");
 
-		if (data.path("leadId").asInt(-1) == -1)
+		final long leadId = data.path("leadId").asLong(0);
+		
+		if (leadId == 0)
 			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.leadId required"));
+					mapper.createObjectNode().put("message", "data.leadId not null"));
 
 		if (data.path("productCode").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
@@ -297,7 +299,7 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.documents array required"));
 
-		Query query = Query.query(Criteria.where("leadId").is(data.path("leadId").asInt()));
+		Query query = Query.query(Criteria.where("leadId").is(leadId));
 		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
 		if (mobility == null)
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
