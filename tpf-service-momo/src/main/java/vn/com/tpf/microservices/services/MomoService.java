@@ -174,11 +174,11 @@ public class MomoService {
 		if (preCheckResult.path("status").asInt(0) != 200)
 			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
 
-		momo = Momo.builder().momoLoanId(momoLoanId).firstName(data.path("firstName").asText())
-				.lastName(data.path("lastName").asText()).firstName(data.path("lastName").asText())
-				.middleName(data.path("middleName").asText()).dateOfBirth(data.path("dateOfBirth").asText())
-				.city(address.path("data").path("cityName").asText())
-				.district(address.path("data").path("areaName").asText())
+		momo = Momo.builder().momoLoanId(momoLoanId)
+				.firstName(data.path("firstName").asText().toUpperCase()).lastName(data.path("lastName").asText().toUpperCase()).middleName(data.path("middleName").asText().toUpperCase())
+				.dateOfBirth(data.path("dateOfBirth").asText()).gender(data.path("gender").asText())
+				.phoneNumber(data.path("phoneNumber").asText())
+				.city(address.path("data").path("cityName").asText()).district(address.path("data").path("areaName").asText())
 				.region(address.path("data").path("region").asText()).personalId(data.path("personalId").asText())
 				.address1(data.path("address1").asText()).address2(data.path("address2").asText())
 				.ward(data.path("ward").asText()).salary(data.path("salary").asLong())
@@ -311,7 +311,12 @@ public class MomoService {
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.momoLoanId %s quickCheck not pass %s",
 							momoLoanId, preCheck.path("data").path("description").asText())));
-
+		
+		if(momo.getPhotos() != null && momo.getPhotos().size() != 0)
+			return utils.getJsonNodeResponse(1, body,
+					mapper.createObjectNode().put("message", String.format("data.momoLoanId %s  create app at %s",
+							momoLoanId,momo.getUpdatedAt().toString())));
+		
 		Update update = new Update().set("agree1", data.path("agree1").asBoolean())
 				.set("agree2", data.path("agree2").asBoolean()).set("agree3", data.path("agree3").asBoolean())
 				.set("agree4", data.path("agree4").asBoolean()).set("insurrance", data.path("insurrance").asBoolean())
