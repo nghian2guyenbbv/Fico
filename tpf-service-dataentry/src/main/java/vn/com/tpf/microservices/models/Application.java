@@ -48,4 +48,6 @@ public class Application {
     private String partnerName;
 
     private boolean isHolding = false;
+
+    private String reasonCancel;
 }

@@ -92,9 +92,10 @@ public class ConvertService {
 		}
 
 		try{
-			if (application.getStatus().equals("CANCEL")) {
-				optional.put("reasonCancel", application.getDescription());
-			}
+            optional.put("reasonCancel", application.getReasonCancel());
+//			if (application.getStatus().equals("CANCEL")) {
+//				optional.put("reasonCancel", application.getDescription());
+//			}
 
 			if (!StringUtils.isEmpty(application.getUserName()) && application.getStatus().equals("NEW")) {
 				optional.put("createdBy", application.getUserName());
