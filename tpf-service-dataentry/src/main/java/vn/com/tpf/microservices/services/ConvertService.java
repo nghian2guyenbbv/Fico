@@ -91,6 +91,18 @@ public class ConvertService {
 			optional.put("partnerName", application.getPartnerName());
 		}
 
+		try{
+			if (application.getStatus().equals("CANCEL")) {
+				optional.put("reasonCancel", application.getDescription());
+			}
+
+			if (!StringUtils.isEmpty(application.getUserName()) && application.getStatus().equals("NEW")) {
+				optional.put("createdBy", application.getUserName());
+			}
+		} catch (Exception e) {
+		}
+
+
 		optional.put("isHolding", application.isHolding());
 
 		app.set("optional", optional);

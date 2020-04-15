@@ -1401,6 +1401,7 @@ public class DataEntryService {
 				report.setStatus(data.getStatus().toUpperCase());
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				report.setDescription(data.getDescription());
 				mongoTemplate.save(report);
 
 				responseModel.setRequest_id(requestId);
@@ -2430,6 +2431,7 @@ public class DataEntryService {
                     .and("identificationNumber","applications.quickLead.identificationNumber")
                             .and("partnerName","partnerName")
                             .and("isHolding","applications.isHolding")
+                            .and("description","description")
 //                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
             );
 
@@ -2628,7 +2630,7 @@ public class DataEntryService {
 	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
-		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)", "Hold"};
+		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)", "Hold", "Description"};
 		try(
 				Workbook workbook = new XSSFWorkbook();
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -2685,6 +2687,7 @@ public class DataEntryService {
                 row.createCell(10).setCellValue(item.getBranch());
                 row.createCell(11).setCellValue(item.getDuration());
                 row.createCell(12).setCellValue(item.getHold());
+                row.createCell(13).setCellValue(item.getDescription());
 
 			}
 
