@@ -41,7 +41,6 @@ public class LeadsPage {
     private WebElement notifyElement;
 
     @FindBy(how = How.XPATH, using="//div[@class='ui-pnotify-text']")
-    @CacheLookup
     private WebElement notifyTextElement;
 
     @FindBy(how = How.XPATH, using="//span[@class='ui-pnotify-history-pulldown icon-chevron-down']")

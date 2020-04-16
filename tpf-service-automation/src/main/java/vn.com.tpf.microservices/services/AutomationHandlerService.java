@@ -334,11 +334,12 @@ public class AutomationHandlerService {
                     .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
 
             String notify = leadsPage.getNotifyTextElement().getText();
+            System.out.println("notify: =>" + notify);
             String leadApp = "";
             if (notify.contains("LEAD")) {
                 leadApp = notify.substring(notify.indexOf("LEAD"), notify.length());
             }
-
+            
             System.out.println("LEAD APP: =>" + leadApp);
             leadsPage.setData(leadApp);
 
