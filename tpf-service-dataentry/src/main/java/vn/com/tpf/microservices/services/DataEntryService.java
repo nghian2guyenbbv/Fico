@@ -1691,6 +1691,7 @@ public class DataEntryService {
 							update.set("quickLead.documentsComment.$.filename", item.getFilename());
 							update.set("quickLead.documentsComment.$.urlid", item.getUrlid());
 							update.set("quickLead.documentsComment.$.md5", item.getMd5());
+							update.set("quickLead.documentsAfterSubmit.$.contentType", item.getContentType());
 							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 						}
 					}
