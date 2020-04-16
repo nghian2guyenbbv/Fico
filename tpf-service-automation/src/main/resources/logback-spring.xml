@@ -20,7 +20,7 @@
 		<port>5672</port>
 		<username>tpf-service-automation</username>
 		<password>tpf-service-automation</password>
-		<routingKeyPattern>tpf-service-logstash-automation</routingKeyPattern>
+		<routingKeyPattern>tpf-service-logstash-automation-smartnet</routingKeyPattern>
 	</appender>
 	<root level="INFO">
 		<appender-ref ref="CONSOLE" />
