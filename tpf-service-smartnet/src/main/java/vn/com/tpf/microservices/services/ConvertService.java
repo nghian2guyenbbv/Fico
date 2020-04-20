@@ -32,7 +32,7 @@ public class ConvertService {
 		if (smartnet.getAppId() != null)
 			app.put("appId", smartnet.getAppId());
 		app.put("partnerId", smartnet.getLeadId());
-		app.put("status", smartnet.getStage());
+		app.put("status", smartnet.getStatus());
 		if (smartnet.getAutomationResults().size() != 0)
 			app.put("automationResult", mapper.convertValue(smartnet.getAutomationResults().get(0), JsonNode.class)
 					.path("automationResult").asText());
@@ -50,30 +50,55 @@ public class ConvertService {
 		});
 		app.set("documents", documents);
 		ObjectNode optional = mapper.createObjectNode();
+		optional.put("stage", smartnet.getStage());
 
 		app.set("optional", optional);
 		return app;
 	}
 	
 	
-	public ObjectNode toAppAutomation(Smartnet smartnet) {
+	public ObjectNode toAppAutomation(Smartnet smartnet,boolean updateStatus ) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("appId", smartnet.getAppId());
-		app.put("status", smartnet.getStage());
+		if(updateStatus)
+			app.put("status", smartnet.getStatus());
 		if (smartnet.getAutomationResults().size() != 0)
 			app.put("automationResult", mapper.convertValue(smartnet.getAutomationResults().get(0), JsonNode.class)
 					.path("automationResult").asText());
+		ObjectNode optional = mapper.createObjectNode();
+		optional.put("stage", smartnet.getStage());
+
+		app.set("optional", optional);
 		return app;
 	}
-	
 	
 	
 	
 	public ObjectNode toAppStatus(Smartnet smartnet) {
 		ObjectNode app = mapper.createObjectNode();
-		app.put("status", smartnet.getStage());
+		app.put("status", smartnet.getStatus());
 		return app;
 	}
+	
+	public ObjectNode toAppStageAndStatus(Smartnet smartnet) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("status", smartnet.getStatus());
+		ObjectNode optional = mapper.createObjectNode();
+		optional.put("stage", smartnet.getStage());
+
+		app.set("optional", optional);
+		return app;
+	}
+	
+	
+	public ObjectNode toAppStage(Smartnet smartnet) {
+		ObjectNode app = mapper.createObjectNode();
+		ObjectNode optional = mapper.createObjectNode();
+		optional.put("stage", smartnet.getStage());
+		app.set("optional", optional);
+		return app;
+	}
+	
 
 	public ObjectNode toAppFinnone(Smartnet smartnet) {
 
