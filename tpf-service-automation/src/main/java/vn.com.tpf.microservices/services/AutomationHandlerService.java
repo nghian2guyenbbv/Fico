@@ -720,7 +720,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1248,7 +1248,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1696,7 +1696,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1963,7 +1963,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
