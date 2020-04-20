@@ -64,8 +64,8 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
-//    @Value("${spring.url.rabbitIdRes}")
-//    private String rabbitIdRes;
+    @Value("${spring.url.rabbitIdRes}")
+    private String rabbitIdRes;
 
     private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts, String project) throws Exception {
         LoginDTO accountDTO = null;
@@ -333,11 +333,12 @@ public class AutomationHandlerService {
                     .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
 
             String notify = leadsPage.getNotifyTextElement().getText();
+            System.out.println("notify: =>" + notify);
             String leadApp = "";
             if (notify.contains("LEAD")) {
                 leadApp = notify.substring(notify.indexOf("LEAD"), notify.length());
             }
-
+            
             System.out.println("LEAD APP: =>" + leadApp);
             leadsPage.setData(leadApp);
 
@@ -718,7 +719,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1043,7 +1044,7 @@ public class AutomationHandlerService {
 
     private void updateStatusRabbit(Application application, String func) throws Exception {
 
-        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-dataentry",
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
                 Map.of("func", func, "body", application));
         System.out.println("rabit:=>" + jsonNode.toString());
 
@@ -1243,7 +1244,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1691,7 +1692,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1958,7 +1959,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();

@@ -57,10 +57,17 @@ public class DE_ReferencesPage {
     }
 
     //---------------------------UPDATE THEM PRIMARY PHONE --------------------
-
+    //---------------------------update them await table reference
+    @FindBy(how = How.ID, using = "references_details_table")
+    @CacheLookup
+    private WebElement tableReferencesElement;
 
 
     public void setData(List<ReferenceDTO> datas) throws IOException {
+
+        await("tableReferencesElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tableReferencesElement.isDisplayed());
+
         int index = 0;
         for (ReferenceDTO data : datas) {
         	_driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
