@@ -120,7 +120,8 @@ public class AppService {
 		}
 
 		//update filter vendor
-        if (request.path("param").path("vendor").isTextual()&& !StringUtils.isEmpty(request.path("param").path("vendor").asText())) {
+
+		if (request.path("param").path("vendor").isTextual()&& !StringUtils.isEmpty(request.path("param").path("vendor").asText())) {
 			if(request.path("param").path("vendor").asText().contains("DIGI-TEXX")){
 				criteria.orOperator(Criteria.where("optional.partnerId").is(null),Criteria.where("optional.partnerName").in(StringUtils.commaDelimitedListToSet(request.path("param").path("vendor").asText())));
 			}else{
@@ -160,6 +161,7 @@ public class AppService {
 				e.printStackTrace();
 			}
 		}
+
 
         if (request.path("param").path("fullName").textValue() != null & !request.path("param").path("fullName").asText().equals("")){
 			query.addCriteria(Criteria.where("fullName").regex(StringUtils.trimWhitespace(request.path("param").path("fullName").textValue()), "i"));
@@ -284,10 +286,8 @@ public class AppService {
 		}
 		if (entity.getAutomationResult() != null) {
 			update.set("automationResult", entity.getAutomationResult());
-			if (entity.getStatus() != null) {
-				update.push("automationHistory").atPosition(0)
+			update.push("automationHistory").atPosition(0)
 						.value(Map.of("status", entity.getAutomationResult(), "createdAt", new Date()));
-			}
 		}
 		if (entity.getAssigned() != null) {
 			update.set("assigned", entity.getAssigned());
