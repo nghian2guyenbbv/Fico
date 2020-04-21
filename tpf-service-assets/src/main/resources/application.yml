@@ -1,11 +1,10 @@
 #spring:
 #  rabbitmq:
-#    host: 10.131.23.30
+#    host: 10.131.31.202
 #  data:
 #    mongodb:
-#      #      uri: mongodb://10.131.21.234:27017/tpfdb
-#      uri: mongodb://10.131.23.30:27017/tpfdb
+#      uri: mongodb://10.131.31.202:27017/tpfdb
 #eureka:
 #  client:
 #    serviceUrl:
-#      defaultZone:  http://10.131.23.30:8761/eureka
+#      defaultZone:  http://10.131.31.202:8761/eureka
