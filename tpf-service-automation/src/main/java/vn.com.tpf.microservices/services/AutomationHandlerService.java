@@ -73,6 +73,9 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
+    @Value("${spring.url.rabbitIdRes}")
+    private String rabbitIdRes;
+
     private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts, String project) throws Exception {
         LoginDTO accountDTO = null;
         while (Objects.isNull(accountDTO)) {
@@ -228,7 +231,7 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "momoCreateApp":
-                    accountDTO = pollAccountFromQueue_OLD(accounts, project);
+                    accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_momoCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "fptCreateApp":
@@ -268,7 +271,7 @@ public class AutomationHandlerService {
         } finally {
             //logout(driver);
             if (project.equals("MOMO")) {
-                pushAccountToQueue_OLD(accounts, accountDTO);
+                pushAccountToQueue(accountDTO, project);
             } else {
                 pushAccountToQueue(accountDTO, project);
             }
@@ -348,11 +351,12 @@ public class AutomationHandlerService {
                     .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
 
             String notify = leadsPage.getNotifyTextElement().getText();
+            System.out.println("notify: =>" + notify);
             String leadApp = "";
             if (notify.contains("LEAD")) {
                 leadApp = notify.substring(notify.indexOf("LEAD"), notify.length());
             }
-
+            
             System.out.println("LEAD APP: =>" + leadApp);
             leadsPage.setData(leadApp);
 
@@ -733,7 +737,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1061,9 +1065,10 @@ public class AutomationHandlerService {
 //                Map.of("func", func, "token",
 //                        String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
 
-        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-dataentry",
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
                 Map.of("func", func, "body", application));
         System.out.println("rabit:=>" + jsonNode.toString());
+
 
     }
 
@@ -1260,7 +1265,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1708,7 +1713,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -1975,7 +1980,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("ERROR");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + "- toString: " + e.toString());
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -3823,7 +3828,9 @@ public class AutomationHandlerService {
             deSaleQueueDTO = (DESaleQueueDTO) mapValue.get("DESaleQueueList");
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
+
             stage = "LOGIN FINONE";
+
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
@@ -3831,58 +3838,51 @@ public class AutomationHandlerService {
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
 
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-
-            System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
             // ========== APPLICATIONS =================
             homePage.getMenuApplicationElement().click();
 
-            stage = "APPLICATION MANAGER";
-            // ========== APPLICATION MANAGER =================
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-            de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
-            System.out.println(stage + ": DONE");
-
-            homePage = new HomePage(driver);
-            homePage.getMenuApplicationElement().click();
-            stage = "SALE QUEUE";
-
             // ========== SALE QUEUE =================
+            stage = "SALE QUEUE";
             DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
-            de_ReturnSaleQueuePage.getApplicationElement().click();
-            de_ReturnSaleQueuePage.setData(deSaleQueueDTO, downdloadFileURL);
+            de_ReturnSaleQueuePage.setData(deSaleQueueDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL);
 
-            System.out.println(stage + ": DONE");
-            System.out.println("Auto - FINISH: " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+//            // ========== APPLICATION MANAGER =================
+//            stage = "APPLICATION MANAGER";
+//            homePage.getApplicationManagerElement().click();
+//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Manager"));
+//
+//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+//            de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName().toLowerCase());
+//
+//            System.out.println(stage + ": DONE");
+//
+//
+//            // ========== SALE QUEUE =================
+//            stage = "SALE QUEUE";
+//            DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
+//            de_ReturnSaleQueuePage.getMenuApplicationElement().click();
+//            de_ReturnSaleQueuePage.getApplicationElement().click();
+//            de_ReturnSaleQueuePage.saleQueue(deSaleQueueDTO, downdloadFileURL);
+
+            System.out.println("Auto - FINISH: " + stage + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========== Last Update User ACCA =================
-            if (!Objects.isNull(deSaleQueueDTO.getLastUpdateUser())){
-                for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
-                    if (documentList.getDocumentName().contains("(ACCA)")) {
-                        de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getLastUpdateUser());
-                    }
-                    break;
+            if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
+                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
+                if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent())
+                {
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                 }
             }
-
-            // ========= UPDATE DB ============================
-//            Query queryUpdate1 = new Query();
-//            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deSaleQueueDTO.getAppId()));
-//            Update update1 = new Update();
-//            update1.set("userauto", accountDTO.getUserName());
-//            update1.set("status", 1);
-//            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             deSaleQueueDTO.setStatus("OK");
             deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
@@ -4036,18 +4036,35 @@ public class AutomationHandlerService {
                     .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
 
             String leadAppID = "";
-            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
-                System.out.println(e.getText());
-                if (e.getText().contains("APPL")) {
-                    leadAppID = e.getText().substring(e.getText().indexOf("APPL"), e.getText().indexOf("APPL") + 12);
-                }
-            }
-            System.out.println("APPID: => " + leadAppID);
+//            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
+//                System.out.println(e.getText());
+//                if (e.getText().contains("APPL")) {
+//                    leadAppID = e.getText().substring(e.getText().indexOf("APPL"), e.getText().indexOf("APPL") + 12);
+//                }
+//            }
+//            System.out.println("APPID: => " + leadAppID);
+//
+//            Utilities.captureScreenShot(driver);
+//            System.out.println(stage + ": DONE");
 
-            Utilities.captureScreenShot(driver);
-            System.out.println(stage + ": DONE");
 
-
+//            //update thêm phần assign về acc tạo app để tranh rơi vào pool
+//            stage = "APPLICATION MANAGER";
+//            // ========== APPLICATION MANAGER =================
+//            homePage.getMenuApplicationElement().click();
+//            homePage.getApplicationManagerElement().click();
+//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Manager"));
+//
+//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+//
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
+//            System.out.println(stage + ": DONE");
+//            Utilities.captureScreenShot(driver);
+//
+//            //-------------------- END ---------------------------
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
@@ -4060,13 +4077,28 @@ public class AutomationHandlerService {
 
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
+
+            //get appID moi o day
+            leadAppID = de_applicationManagerPage.getAppID(leadApp);
+            System.out.println(" APP: =>" + leadAppID);
+
+            //smartner bo phan reassign user auto
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
+//
+//            de_applicationManagerPage.getBackBtnElement().click();
+//
+//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+//
+//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
             //-------------------- END ---------------------------
 
             application.setApplicationId(leadAppID);
+            application.setLeadApp(leadApp);
 
             //UPDATE STATUS
             application.setStatus("QUICKLEAD PASS");

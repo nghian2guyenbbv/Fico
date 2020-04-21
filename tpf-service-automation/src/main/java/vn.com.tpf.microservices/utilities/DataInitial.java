@@ -84,7 +84,7 @@ public class DataInitial {
                 .employeeNumber(employmentDetails.getEmployeeNumber())
                 .taxCode(employmentDetails.getEmployerCode())
                 .natureOfBussiness(employmentDetails.getNatureOfBusiness())
-                .natureOfOccupation("Unemployed")
+                .natureOfOccupation(employmentDetails.getNatureOfOccupation()!=null?employmentDetails.getNatureOfOccupation():"Unemployed")
                 .industry(employmentDetails.getIndustry())
                 .department(employmentDetails.getDepartmentName())
                 .level(employmentDetails.getDesignation())
@@ -186,6 +186,9 @@ public class DataInitial {
             ReferenceDTO referenceDTO = ReferenceDTO.builder()
                     .fullName(reference.getName())
                     .relationShip(reference.getRelationship())
+                    .priStd(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
+                    .priNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
+                    .priExt(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getExtension():"")
                     .mobilePhoneNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
             referenceDTOs.add(referenceDTO);
         }
@@ -207,7 +210,12 @@ public class DataInitial {
                         .maxRequestRate(dynamicForm.getMaximumInterestedRate())
                         .courierCode(dynamicForm.getCourierCode())
                         .totalMonthlyPayable(dynamicForm.getTotalMonthlyPayable())
-                        .loanOfWork(dynamicForm.getLoanAtWork())
+                        .loanOfWork(dynamicForm.getLoanAtWork()!=null?dynamicForm.getLoanAtWork():"")
+                        .companyName(dynamicForm.getCompanyName()!=null?dynamicForm.getCompanyName():"")
+                        .monthlyFee(dynamicForm.getMonthlyFee()!=null?dynamicForm.getMonthlyFee():"")
+                        .contractNumber(dynamicForm.getContractNumber()!=null?dynamicForm.getContractNumber():"")
+                        .oldContractLoanAmount(dynamicForm.getOldContractLoanAmount()!=null?dynamicForm.getOldContractLoanAmount():"")
+                        .zalo(dynamicForm.getZalo()!=null?dynamicForm.getZalo():"")
                         .remark(dynamicForm.getRemark()).build();
                 map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
             }

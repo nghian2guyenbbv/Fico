@@ -9,6 +9,7 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.models.Automation.ReferenceDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -55,7 +56,18 @@ public class DE_ReferencesPage {
         _driver = driver;
     }
 
+    //---------------------------UPDATE THEM PRIMARY PHONE --------------------
+    //---------------------------update them await table reference
+    @FindBy(how = How.ID, using = "references_details_table")
+    @CacheLookup
+    private WebElement tableReferencesElement;
+
+
     public void setData(List<ReferenceDTO> datas) throws IOException {
+
+        await("tableReferencesElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tableReferencesElement.isDisplayed());
+
         int index = 0;
         for (ReferenceDTO data : datas) {
         	_driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
@@ -69,6 +81,20 @@ public class DE_ReferencesPage {
 
             WebElement mobilePhone = _driver.findElement(By.id("mobilenumber_" + index + "_phoneNumber"));
             mobilePhone.sendKeys(data.getMobilePhoneNumber());
+
+            //update them nhap primary phone
+            if(data.getPriNumber()!=null&&!StringUtils.isEmpty(data.getPriNumber()))
+            {
+                WebElement priNumber = _driver.findElement(By.id("phoneNumber_phoneNumber_" + index));
+                priNumber.sendKeys(data.getPriNumber());
+
+                WebElement stdNumber = _driver.findElement(By.id("stdCode_phoneNumber_" + index));
+                stdNumber.sendKeys(data.getPriStd());
+
+                WebElement extNumber = _driver.findElement(By.id("extension_phoneNumber_" + index));
+                extNumber.sendKeys(data.getPriExt());
+            }
+
             if (index < datas.size() - 1) {
                 await("Btn Add Reference not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> btnCreateNewRowElement.isEnabled());
@@ -107,6 +133,23 @@ public class DE_ReferencesPage {
             WebElement mobilePhone = _driver.findElement(By.id("mobilenumber_" + index + "_phoneNumber"));
             mobilePhone.clear();
             mobilePhone.sendKeys(data.getMobilePhoneNumber());
+
+            //update them nhap primary phone
+            if(data.getPriNumber()!=null&&!StringUtils.isEmpty(data.getPriNumber()))
+            {
+                WebElement priNumber = _driver.findElement(By.id("phoneNumber_phoneNumber_" + index));
+                priNumber.clear();
+                priNumber.sendKeys(data.getPriNumber());
+
+                WebElement stdNumber = _driver.findElement(By.id("stdCode_phoneNumber_" + index));
+                stdNumber.clear();
+                stdNumber.sendKeys(data.getPriStd());
+
+                WebElement extNumber = _driver.findElement(By.id("extension_phoneNumber_" + index));
+                extNumber.clear();
+                extNumber.sendKeys(data.getPriExt());
+            }
+
             if (index < datas.size() - 1) {
                 await("Btn Add Reference not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> btnCreateNewRowElement.isEnabled());

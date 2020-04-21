@@ -404,7 +404,7 @@ public class PGPInfo {
 					"H6yN35iJRVFhXrqm1C8CwKNN/A54Jx+3LZX8SuQWJ6BJEVEALv5H9LEoGkXNgq+7\n" +
 					"nMc+dM2RR/1xoNqtcivDBRw6p7350MJSXPlVKe/yXnTF\n" +
 					"=lBb4\n" +
-					"Version: BCPG C# v1.8.5.0\n" +"",
+					"-----END PGP PUBLIC KEY BLOCK-----\n" +"",
 			"sgbpo",
 			"-----BEGIN PGP PUBLIC KEY BLOCK-----\n" +
 					"Version: OpenPGP.js v2.6.2\n" +

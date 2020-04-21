@@ -130,6 +130,29 @@ public class DE_MiscFrmAppDtlPage {
     private WebElement courierCodeElement;
 
 
+    //------------------ UDDATE 19-3-2020-------------------
+    @FindBy(how = How.ID, using = "insurance_company_contract_frmAppDtl_2")
+    private WebElement contractNumberElement;
+
+    @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_51")
+    private WebElement oldContractLoanAmountLess20Elememt;
+
+    @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_52")
+    private WebElement oldContractLoanAmountMore20Elememt;
+
+    @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_53")
+    private WebElement oldContractLoanAmountOtherElememt;
+
+    //------------------ UDDATE 09-04-2020-------------------
+    @FindBy(how = How.ID, using = "ZALO_DYN_frmAppDtl_5")
+    private WebElement zaloElement;
+
+    @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
+    private WebElement companyNameElement;
+
+    @FindBy(how = How.ID, using = "amount_insurance_monthly_fee_frmAppDtl_2")
+    private WebElement monthlyFeeElement;
+
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver=driver;
@@ -170,15 +193,41 @@ public class DE_MiscFrmAppDtlPage {
         Utilities.chooseDropdownValue(data.getHouseOwnership(), houseOwnerShipOptionElement);
         Utilities.captureScreenShot(_driver);
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
+
+        //update them contractNumber
+        companyNameElement.sendKeys(data.getCompanyName());
+        contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
+        monthlyFeeElement.sendKeys(data.getMonthlyFee());
+        //
+
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 
         courierCodeElement.sendKeys(data.getCourierCode());
 
+        zaloElement.sendKeys(data.getZalo());
+
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
         Utilities.captureScreenShot(_driver);
+
+        //update them oldContractNumber
+        if(data.getOldContractLoanAmount().equals("1"))
+        {
+            oldContractLoanAmountLess20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("2"))
+        {
+            oldContractLoanAmountMore20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("3"))
+        {
+            oldContractLoanAmountOtherElememt.click();
+        }
+        //
+
 
         if(data.getLoanOfWork().equals("Yes"))
         {
@@ -233,6 +282,16 @@ public class DE_MiscFrmAppDtlPage {
 
         mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
+
+        //update them contractNumber
+        companyNameElement.clear();
+        companyNameElement.sendKeys(data.getCompanyName());
+        contractNumberElement.clear();
+        contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
+        monthlyFeeElement.sendKeys(data.getMonthlyFee());
+        //
+
         remarkElement.clear();
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.clear();
@@ -241,12 +300,31 @@ public class DE_MiscFrmAppDtlPage {
         courierCodeElement.clear();
         courierCodeElement.sendKeys(data.getCourierCode());
 
+        zaloElement.clear();
+        zaloElement.sendKeys(data.getZalo());
+
         salesAgentCodeElement.clear();
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.clear();
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.clear();
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+
+
+        //update them oldContractNumber
+        if(data.getOldContractLoanAmount().equals("1"))
+        {
+            oldContractLoanAmountLess20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("2"))
+        {
+            oldContractLoanAmountMore20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("3"))
+        {
+            oldContractLoanAmountOtherElememt.click();
+        }
+        //
 
         if(data.getLoanOfWork().equals("Yes"))
         {

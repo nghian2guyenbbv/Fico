@@ -32,4 +32,6 @@ public class DynamicForm {
     public String employeeCard;
     public String downPayment;
 
+    public String oldContractLoanAmount;
+
 }

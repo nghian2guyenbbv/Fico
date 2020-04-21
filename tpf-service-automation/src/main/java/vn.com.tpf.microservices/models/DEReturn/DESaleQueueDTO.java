@@ -12,12 +12,12 @@ import java.util.List;
 
 @Data
 @Builder
-@Document(collection="automation_smartnet")
+@Document(collection="automation_return_smartnet")
 public class DESaleQueueDTO {
     private String appId;
     private String userAuto;
     private String status;
-    private String lastUpdateUser;
+    private String userCreatedSalesQueue;
     @CreatedDate
     private Date createDate;
     @LastModifiedDate
