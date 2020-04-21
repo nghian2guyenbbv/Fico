@@ -403,7 +403,41 @@ public class AutomationService {
 
 	//------------------------ END - SMARTNET - FUNCTION -------------------------------------
 
-	//------------------------ INITIATE_VERIFICATION - FUNCTION -------------------------------------
+
+	//------------------------ MOBILITY - FUNCTION -----------------------------------------
+
+	//------------------------ QUICKLEAD  -------------------------------------
+	public Map<String, Object> MOBILITY_quickLeadApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				MOBILITY_runAutomation_QL(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application.getQuickLead());
+	}
+
+	private void MOBILITY_runAutomation_QL(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"MOBILITY_quickLead","MOBILITY_FIELD");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+
+		//awaitTerminationAfterShutdown(workerThreadPool);
+	}
+	//------------------------ END - QUICKLEAD  -------------------------------------
+
+	//------------------------ INITIATE_VERIFICATION  -------------------------------------
 	public Map<String, Object> Initiate_Verification(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
@@ -429,9 +463,9 @@ public class AutomationService {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
-	//------------------------ END - INITIATE_VERIFICATION - FUNCTION -------------------------------------
+	//------------------------ END - INITIATE_VERIFICATION  -------------------------------------
 
-	//------------------------ WAIVE_OFF_ALL - FUNCTION -------------------------------------
+	//------------------------ WAIVE_OFF_ALL  -------------------------------------
 	public Map<String, Object> Waive_Off_All(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
@@ -457,9 +491,9 @@ public class AutomationService {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
-	//------------------------ END - WAIVE_OFF_ALL - FUNCTION -------------------------------------
+	//------------------------ END - WAIVE_OFF_ALL  -------------------------------------
 
-	//------------------------ FIELD_INVESTIGATION - FUNCTION -------------------------------------
+	//------------------------ FIELD_INVESTIGATION  -------------------------------------
 	public Map<String, Object> Field_Investigation(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
@@ -485,5 +519,6 @@ public class AutomationService {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
-	//------------------------ END - Field_Investigation - FUNCTION -------------------------------------
+	//------------------------ END - Field_Investigation  -------------------------------------
+	//------------------------ END - MOBILITY - FUNCTION -----------------------------------------
 }

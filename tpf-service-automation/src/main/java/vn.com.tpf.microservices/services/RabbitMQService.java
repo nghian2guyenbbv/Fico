@@ -143,6 +143,9 @@ public class RabbitMQService {
 				if(project.equals("smartnet")) {
 					return response(message, payload, automationService.SN_quickLeadApp(request));
 				}
+				else if (project.equals("mobility")){
+					return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
+				}
 				else
 				{
 					return response(message, payload, automationService.quickLeadApp(request));
