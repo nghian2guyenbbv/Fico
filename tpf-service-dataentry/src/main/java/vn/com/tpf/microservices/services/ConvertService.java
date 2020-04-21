@@ -92,11 +92,11 @@ public class ConvertService {
 		}
 
 		try{
-			if (!StringUtils.isEmpty(application.getUserName()) && application.getStatus().equals("NEW")) {
-				optional.put("createdBy", application.getUserName());
-			}
+			optional.put("reasonCancel", application.getReasonCancel());
+			optional.put("createdBy", application.getUserName());
 		} catch (Exception e) {
 		}
+
 
 		app.set("optional", optional);
 		return app;

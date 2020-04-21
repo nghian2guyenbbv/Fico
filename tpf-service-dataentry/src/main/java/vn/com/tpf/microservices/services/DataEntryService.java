@@ -1246,6 +1246,9 @@ public class DataEntryService {
 				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
 					update.set("userName_DE", token.path("user_name").textValue());
 				}
+				if (data.getStatus().toUpperCase().equals("CANCEL".toUpperCase())){
+					update.set("reasonCancel", data.getDescription());
+				}
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(queryUpdate, Application.class);
@@ -1261,6 +1264,7 @@ public class DataEntryService {
 				report.setStatus(data.getStatus().toUpperCase());
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+				report.setDescription(data.getDescription());
 				mongoTemplate.save(report);
 
 				responseModel.setRequest_id(requestId);
@@ -2215,6 +2219,7 @@ public class DataEntryService {
 							.and("fullName","applications.applicationInformation.personalInformation.personalInfo.fullName")
 							.and("identificationNumber","applications.quickLead.identificationNumber")
 							.and("partnerName","partnerName")
+							.and("description","description")
 //                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
 			);
 
@@ -2409,7 +2414,7 @@ public class DataEntryService {
 	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
-		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)"};
+		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)", "Description"};
 		try(
 				Workbook workbook = new XSSFWorkbook();
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -2465,6 +2470,7 @@ public class DataEntryService {
 				row.createCell(9).setCellValue(item.getIdentificationNumber());
 				row.createCell(10).setCellValue(item.getBranch());
 				row.createCell(11).setCellValue(item.getDuration());
+				row.createCell(12).setCellValue(item.getDescription());
 
 			}
 
