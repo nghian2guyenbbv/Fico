@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -454,14 +455,17 @@ public class MobilityService {
 					int sendCount = 0;
 					do {
 						JsonNode result = apiService.pushAppIdOfLeadId(mobilitySender);
-						if (result.path("resultCode").asText().equals("200")) 
-							return;					
+						if (result.path("resultCode").asText().equals("200")) {
+							log.info("{PupushAppIdOfLeadId DONE}", utils.getJsonNodeResponse(0, body,
+									mapper.createObjectNode().put("message", "")));
+							return;	
+						}
 						sendCount++;
 						Thread.sleep(5 * 60 * 1000);
 					} while (sendCount <= 2);
 
 				} catch (Exception e) {
-					log.info("{}", utils.getJsonNodeResponse(0, body,
+					log.info("{PupushAppIdOfLeadId Fail}", utils.getJsonNodeResponse(0, body,
 							mapper.createObjectNode().put("message", e.getMessage())));
 				}
 			}).start();
@@ -806,4 +810,35 @@ public class MobilityService {
 		return utils.getJsonNodeResponse(0, body, null);
 	}
 
+	public JsonNode createField(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		if (body.path("data").isNull())
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+		final JsonNode data = request.path("body").path("data");
+		final String appId = data.path("appId").asText();
+		if (appId.isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.appId not null"));
+		if (data.path("comment").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.comment not null"));
+		final String fieldType = data.path("fieldType").asText();
+		if (fieldType.isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.fieldType not null"));
+		System.out.println(!fieldType.equals("atCompany") || !fieldType.equals("atHouse") || !fieldType.equals("All"));
+		if (!(fieldType.equals("atCompany") || fieldType.equals("atHouse") || fieldType.equals("All"))) {
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.fieldType not valid"));
+		}
+				
+			
+		Query query = Query.query(Criteria.where("appId").is(appId));
+		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
+		if (mobility == null)
+			return utils.getJsonNodeResponse(1, body,
+					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
+		return data;
+	}
+	
 }

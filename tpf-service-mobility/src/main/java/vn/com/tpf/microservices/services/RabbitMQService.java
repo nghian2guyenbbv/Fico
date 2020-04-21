@@ -95,6 +95,9 @@ public class RabbitMQService {
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.addDocuments((request))));		
 				case "updateAutomation":
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.updateAutomation((request))));	
+					
+				case "createField":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.createField((request))));	
 			
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,

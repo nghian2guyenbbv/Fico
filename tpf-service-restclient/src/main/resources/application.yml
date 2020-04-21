@@ -1,21 +1,24 @@
-# spring:
-#   rabbitmq:
-#     host: 10.131.31.202
-#   data:
-#     mongodb:
-#       uri: mongodb://10.131.31.202:27017/tpfdb
-# security:
-#   oauth2:
-#     client:
-#       client-id: tpf-service-root
-#       client-secret: tpf-service-root
-#     resource:
-#       token-info-uri: http://10.131.31.202:1100/oauth/check_token
-#   eureka:
-#     client:
-#       registerWithEureka: true
-#       fetchRegistry: true
-#       serviceUrl:
-#         defaultZone: http://10.131.31.202:8761/eureka
-#     instance:
-#       hostname: 10.131.31.202
+  # spring:
+  #   rabbitmq:
+  #     host: 10.131.31.202
+  #   data:
+  #     mongodb:
+  #       uri: mongodb://10.131.31.202:27017/tpfdb
+   
+       
+  # eureka:
+  #   client:
+  #     serviceUrl:
+  #       defaultZone:  http://10.131.31.202:8761/eureka
+  #   instance:
+  #     hostname: 10.131.31.202
+
+  # security:
+  #   oauth2:
+  #     client:
+  #       client-id: tpf-service-root
+  #       client-secret: tpf-service-root
+  #     resource:
+  #       token-info-uri: http://10.131.31.202:1100/oauth/check_token
+ 
+  
