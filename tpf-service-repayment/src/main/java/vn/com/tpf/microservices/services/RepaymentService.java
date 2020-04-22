@@ -480,8 +480,8 @@ public class RepaymentService {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(2);
-				responseModel.setMessage("Invalid input data");
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Input date_time is invalid format");
 				return Map.of("status", 200, "data", responseModel);
 			}
 
@@ -497,7 +497,7 @@ public class RepaymentService {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(2);
-				responseModel.setMessage("Invalid input data");
+				responseModel.setMessage("Customer does not exist");
 			}else {
 				ficoCustomerList.forEach(ficoCustomer -> {
 					if(!ficoCustomer.isLoanActive()){
@@ -511,7 +511,6 @@ public class RepaymentService {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(0);
-				responseModel.setMessage("Success");
 				responseModel.setData(ficoCustomerList);
 			}
 		}
@@ -545,8 +544,8 @@ public class RepaymentService {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(2);
-				responseModel.setMessage("Invalid input data");
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Input date_time is invalid format");
 				return Map.of("status", 200, "data", responseModel);
 			}
 
@@ -554,8 +553,8 @@ public class RepaymentService {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(2);
-				responseModel.setMessage("Invalid input data");
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Input amount is equal or less than 0");
 				return Map.of("status", 200, "data", responseModel);
 			}
 
@@ -578,23 +577,19 @@ public class RepaymentService {
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(0);
-					responseModel.setMessage("Success");
-
-					responseModel.setData(Map.of("amount", requestModel.getData().getAmount(),
-							"loan_account_no", requestModel.getData().getLoan_account_no()));
 				}else{
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(2);
-					responseModel.setMessage("Invalid input data");
+					responseModel.setMessage("Customer does not exist");
 				}
 			}else {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(2);
-				responseModel.setMessage("Invalid input data");
+				responseModel.setMessage("Transaction existed");
 			}
 		}
 		catch (Exception e) {
