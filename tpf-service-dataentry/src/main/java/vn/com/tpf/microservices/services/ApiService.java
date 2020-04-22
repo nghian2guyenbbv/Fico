@@ -267,7 +267,7 @@ public class ApiService {
 				List<QLDocument> dataUpload = checkExist.getQuickLead().getDocuments();
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 						doc.put("file-name", "Personal-Image_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						documents.add(doc);
@@ -278,9 +278,9 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
-								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("Personal-Image", multipartFileToSend.getResource());
-					}else if (item.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+					}else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 						doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						documents.add(doc);
@@ -291,14 +291,14 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
-								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 					}
 				}
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())){
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 
@@ -308,7 +308,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
 
 
 							MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -324,7 +324,7 @@ public class ApiService {
 
 						}
 					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+					else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())){
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
@@ -336,7 +336,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;
@@ -346,7 +346,7 @@ public class ApiService {
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())){
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 
@@ -356,7 +356,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
 
 
 							MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -371,7 +371,7 @@ public class ApiService {
 							checkIdCard = true;
 						}
 					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
+					else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())){
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
@@ -383,7 +383,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;
@@ -425,17 +425,17 @@ public class ApiService {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("data").path("applicationId").textValue()));
 				Application checkExist = mongoTemplate.findOne(query, Application.class);
-
 				List<QLDocument> dataUploadOld = checkExist.getQuickLead().getDocuments();
 				List<QLDocument> dataUpload = checkExist.getQuickLead().getDocumentsComment();
+
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 						doc.put("file-name", "Personal-Image_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						String docId = null;
 						for (QLDocument item2 : dataUploadOld) {
-							if (item2.getOriginalname().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+							if (item2.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 								docId = item2.getUrlid();
 							}
 						}
@@ -448,14 +448,14 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
-								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("Personal-Image", multipartFileToSend.getResource());
-					}else if (item.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+					} else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 						doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						String docId = null;
 						for (QLDocument item2 : dataUploadOld) {
-							if (item2.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+							if (item2.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 								docId = item2.getUrlid();
 							}
 						}
@@ -468,21 +468,21 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
-								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 					}
 				}
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -495,7 +495,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
 
 
 //						MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -507,17 +507,16 @@ public class ApiService {
 
 							parts_02.add("ID-Card", multipartFileToSend.getResource());
 
-							checkIdCard  = true;
+							checkIdCard = true;
 						}
-					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+					} else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -530,7 +529,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;
@@ -540,14 +539,14 @@ public class ApiService {
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -560,7 +559,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
 
 
 //						MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -575,15 +574,14 @@ public class ApiService {
 							checkIdCard = true;
 
 						}
-					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
+					} else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -596,13 +594,365 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;
 						}
 					}
 				}
+
+//				List<QLDocument> dataUploadAfterSubmit = checkExist.getQuickLead().getDocumentsAfterSubmit();
+
+//				if (checkExist.getApplicationInformation() != null) {//retry document after submit
+//					for (QLDocument item : dataUploadAfterSubmit) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//							doc.put("file-name", "Personal-Image_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
+//									"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("Personal-Image", multipartFileToSend.getResource());
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//							doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
+//									"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("ACCA-Form", multipartFileToSend.getResource());
+//						}
+//					}
+//
+//					for (QLDocument item : dataUploadAfterSubmit) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//
+//					for (QLDocument item : dataUploadAfterSubmit) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//				}else {
+//					for (QLDocument item : dataUpload) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//							doc.put("file-name", "Personal-Image_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
+//									"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("Personal-Image", multipartFileToSend.getResource());
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//							doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
+//									"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("ACCA-Form", multipartFileToSend.getResource());
+//						}
+//					}
+//
+//					for (QLDocument item : dataUpload) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//
+//					for (QLDocument item : dataUpload) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//				}
 
 
 				parts_02.add("description", Map.of("files", documents));
@@ -701,54 +1051,58 @@ public class ApiService {
 		for (JsonNode item : mainNode) {
 			if (updateNode != null) {
 				for (JsonNode item2 : updateNode) {
-					if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+					if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ID-Card")) {
 							if (!checkIdCard) {
 								ObjectNode doc = mapper.createObjectNode();
 								doc.put("originalname", item.findPath("originalname").textValue());
 								doc.put("filename", item.findPath("filename").textValue());
 								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
 								doc.put("urlid", item2.findPath("document-id").asText(null));
 								((ArrayNode) resultNode).add(doc);
 
 								checkIdCard=true;
 							}
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Household")) {
 							if (!checkHousehold) {
 								ObjectNode doc = mapper.createObjectNode();
 								doc.put("originalname", item.findPath("originalname").textValue());
 								doc.put("filename", item.findPath("filename").textValue());
 								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
 								doc.put("urlid", item2.findPath("document-id").asText(null));
 								((ArrayNode) resultNode).add(doc);
 
 								checkHousehold = true;
 							}
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
 							if (!checkPersonalImage) {
 								ObjectNode doc = mapper.createObjectNode();
 								doc.put("originalname", item.findPath("originalname").textValue());
 								doc.put("filename", item.findPath("filename").textValue());
 								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
 								doc.put("urlid", item2.findPath("document-id").asText(null));
 								((ArrayNode) resultNode).add(doc);
 
 								checkPersonalImage = true;
 							}
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
 							if (!checkACCAForm) {
 								ObjectNode doc = mapper.createObjectNode();
 								doc.put("originalname", item.findPath("originalname").textValue());
 								doc.put("filename", item.findPath("filename").textValue());
 								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
 								doc.put("urlid", item2.findPath("document-id").asText(null));
 								((ArrayNode) resultNode).add(doc);
 
@@ -760,6 +1114,7 @@ public class ApiService {
 						doc.put("originalname", item.findPath("originalname").textValue());
 						doc.put("filename", item.findPath("filename").textValue());
 						doc.put("md5", item.findPath("md5").textValue());
+						doc.put("contentType", item.findPath("contentType").textValue());
 						((ArrayNode) resultNode).add(doc);
 
 						break;
@@ -770,6 +1125,7 @@ public class ApiService {
 				doc.put("originalname", item.findPath("originalname").textValue());
 				doc.put("filename", item.findPath("filename").textValue());
 				doc.put("md5", item.findPath("md5").textValue());
+				doc.put("contentType", item.findPath("contentType").textValue());
 				((ArrayNode) resultNode).add(doc);
 			}
 		}
@@ -944,7 +1300,7 @@ public class ApiService {
 				List<QLDocument> dataUpload = checkExist.getQuickLead().getDocuments();
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 						doc.put("file-name", "Personal-Image_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						documents.add(doc);
@@ -955,9 +1311,9 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
-								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("Personal-Image", multipartFileToSend.getResource());
-					}else if (item.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+					}else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 						doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						documents.add(doc);
@@ -968,14 +1324,14 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
-								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 					}
 				}
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())){
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 
@@ -985,7 +1341,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
 
 
 							MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -994,13 +1350,14 @@ public class ApiService {
 							doc.put("md5", item.getMd5());
 							documents.add(doc);
 
+
 							parts_02.add("ID-Card", multipartFileToSend.getResource());
 
 							checkIdCard = true;
 
 						}
 					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+					else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())){
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
@@ -1012,7 +1369,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;
@@ -1022,7 +1379,7 @@ public class ApiService {
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())){
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 
@@ -1032,7 +1389,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
 
 
 							MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -1047,7 +1404,7 @@ public class ApiService {
 							checkIdCard = true;
 						}
 					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
+					else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())){
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
@@ -1059,13 +1416,15 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;
 						}
 					}
 				}
+
+
 				parts_02.add("description", Map.of("files", documents));
 
 				try{
@@ -1135,17 +1494,367 @@ public class ApiService {
 				Query query = new Query();
 				query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("data").path("applicationId").textValue()));
 				Application checkExist = mongoTemplate.findOne(query, Application.class);
-
 				List<QLDocument> dataUploadOld = checkExist.getQuickLead().getDocuments();
 				List<QLDocument> dataUpload = checkExist.getQuickLead().getDocumentsComment();
+//				List<QLDocument> dataUploadAfterSubmit = checkExist.getQuickLead().getDocumentsAfterSubmit();
+
+//				if (checkExist.getApplicationInformation() != null) {//retry document after submit
+//					for (QLDocument item : dataUploadAfterSubmit) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//							doc.put("file-name", "Personal-Image_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
+//									"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("Personal-Image", multipartFileToSend.getResource());
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//							doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
+//									"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("ACCA-Form", multipartFileToSend.getResource());
+//						}
+//					}
+//
+//					for (QLDocument item : dataUploadAfterSubmit) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//
+//					for (QLDocument item : dataUploadAfterSubmit) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//				}else {
+//					for (QLDocument item : dataUpload) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//							doc.put("file-name", "Personal-Image_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
+//									"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("Personal-Image", multipartFileToSend.getResource());
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//							doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
+//							doc.put("md5", item.getMd5());
+//							String docId = null;
+//							for (QLDocument item2 : dataUploadOld) {
+//								if (item2.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+//									docId = item2.getUrlid();
+//								}
+//							}
+//							doc.put("document-id", docId);
+//							documents.add(doc);
+//
+//							HttpHeaders headers = new HttpHeaders();
+//							headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//							HttpEntity<String> entity = new HttpEntity<>(headers);
+//							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//							MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
+//									"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//							parts_02.add("ACCA-Form", multipartFileToSend.getResource());
+//						}
+//					}
+//
+//					for (QLDocument item : dataUpload) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//
+//					for (QLDocument item : dataUpload) {
+//						ObjectNode doc = mapper.createObjectNode();
+//						if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//							if (!checkIdCard) {
+//								doc.put("file-name", "ID-Card_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
+//										"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//
+//
+////						MessageDigest md5 = MessageDigest.getInstance("MD5");
+////						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+////						String hashString = new BigInteger(1, digest).toString(16);
+////						doc.put("md5", item.getMd5());
+////						documents.add(doc);
+//
+//
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//
+//								checkIdCard = true;
+//
+//							}
+//						} else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//							if (!checkHousehold) {
+//								doc.put("file-name", "Household_" + item.getOriginalname());
+//								doc.put("md5", item.getMd5());
+//								String docId = null;
+//								for (QLDocument item2 : dataUploadOld) {
+//									if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+//											item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+//										docId = item2.getUrlid();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								HttpHeaders headers = new HttpHeaders();
+//								headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+//								HttpEntity<String> entity = new HttpEntity<>(headers);
+//								ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
+//										"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//
+//								checkHousehold = true;
+//							}
+//						}
+//					}
+//				}
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 						doc.put("file-name", "Personal-Image_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						String docId = null;
 						for (QLDocument item2 : dataUploadOld) {
-							if (item2.getOriginalname().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+							if (item2.getOriginalname().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 								docId = item2.getUrlid();
 							}
 						}
@@ -1158,14 +1867,14 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + item.getOriginalname(),
-								"Personal-Image_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"Personal-Image_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("Personal-Image", multipartFileToSend.getResource());
-					}else if (item.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+					} else if (item.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 						doc.put("file-name", "ACCA-Form_" + item.getOriginalname());
 						doc.put("md5", item.getMd5());
 						String docId = null;
 						for (QLDocument item2 : dataUploadOld) {
-							if (item2.getOriginalname().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+							if (item2.getOriginalname().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 								docId = item2.getUrlid();
 							}
 						}
@@ -1178,21 +1887,21 @@ public class ApiService {
 						ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 						MultipartFile multipartFileToSend = new MockMultipartFile("ACCA-Form_" + item.getOriginalname(),
-								"ACCA-Form_" + item.getOriginalname(), "application/pdf", response.getBody());
+								"ACCA-Form_" + item.getOriginalname(), item.getContentType(), response.getBody());
 						parts_02.add("ACCA-Form", multipartFileToSend.getResource());
 					}
 				}
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -1205,21 +1914,28 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+
+
+//						MessageDigest md5 = MessageDigest.getInstance("MD5");
+//						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+//						String hashString = new BigInteger(1, digest).toString(16);
+//						doc.put("md5", item.getMd5());
+//						documents.add(doc);
+
 
 							parts_02.add("ID-Card", multipartFileToSend.getResource());
 
-							checkIdCard  = true;
+							checkIdCard = true;
 						}
-					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+					} else if (item.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -1232,7 +1948,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;
@@ -1242,14 +1958,14 @@ public class ApiService {
 
 				for (QLDocument item : dataUpload) {
 					ObjectNode doc = mapper.createObjectNode();
-					if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
+					if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 						if (!checkIdCard) {
 							doc.put("file-name", "ID-Card_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -1262,21 +1978,29 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + item.getOriginalname(),
-									"ID-Card_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"ID-Card_" + item.getOriginalname(), item.getContentType(), response.getBody());
+
+
+//						MessageDigest md5 = MessageDigest.getInstance("MD5");
+//						byte[] digest = md5.digest(multipartFileToSend.getBytes());
+//						String hashString = new BigInteger(1, digest).toString(16);
+//						doc.put("md5", item.getMd5());
+//						documents.add(doc);
+
 
 							parts_02.add("ID-Card", multipartFileToSend.getResource());
 
 							checkIdCard = true;
+
 						}
-					}
-					else if (item.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
+					} else if (item.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 						if (!checkHousehold) {
 							doc.put("file-name", "Household_" + item.getOriginalname());
 							doc.put("md5", item.getMd5());
 							String docId = null;
 							for (QLDocument item2 : dataUploadOld) {
-								if (item2.getOriginalname().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
-										item2.getOriginalname().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+								if (item2.getOriginalname().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+										item2.getOriginalname().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 									docId = item2.getUrlid();
 								}
 							}
@@ -1289,7 +2013,7 @@ public class ApiService {
 							ResponseEntity<byte[]> response = restTemplateDownload.exchange(urlUploadfile + item.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 							MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + item.getOriginalname(),
-									"Household_" + item.getOriginalname(), "application/pdf", response.getBody());
+									"Household_" + item.getOriginalname(), item.getContentType(), response.getBody());
 							parts_02.add("Household", multipartFileToSend.getResource());
 
 							checkHousehold = true;

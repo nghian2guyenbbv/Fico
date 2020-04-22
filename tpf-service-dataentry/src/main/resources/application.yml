@@ -1,0 +1,27 @@
+spring:
+  rabbitmq:
+    host: 127.0.0.1
+  data:
+    mongodb:
+      #      uri: mongodb://10.131.21.234:27017/tpfdb
+      uri: mongodb://127.0.0.1:27017/tpfdb
+  datasource:
+    url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
+    username: ServiceApp
+    password: UATServiceApp#Test2019#
+    driver-class-name: oracle.jdbc.OracleDriver
+security:
+  oauth2:
+    client:
+      client-id: tpf-service-root
+      client-secret: tpf-service-root
+    resource:
+      token-info-uri: http://127.0.0.1:1100/oauth/check_token
+  eureka:
+    client:
+      registerWithEureka: true
+      fetchRegistry: true
+      serviceUrl:
+        defaultZone: http://127.0.0.1:8761/eureka
+    instance:
+      hostname: 127.0.0.1

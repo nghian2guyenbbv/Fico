@@ -1,8 +1,15 @@
 package vn.com.tpf.microservices.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,12 +25,13 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import vn.com.tpf.microservices.models.App;
 import vn.com.tpf.microservices.models.ReportStatus;
-
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.*;
 
 @Service
 public class AppService {
@@ -61,7 +69,7 @@ public class AppService {
 		return response;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public JsonNode getListApp(JsonNode request, JsonNode info) {
 		int page = request.path("param").path("page").asInt(1);
 		int limit = request.path("param").path("limit").asInt(10);
@@ -112,7 +120,7 @@ public class AppService {
 		}
 
 		//update filter vendor
-		if (request.path("param").path("vendor").isTextual()&& !StringUtils.isEmpty(request.path("param").path("vendor").asText())) {
+        if (request.path("param").path("vendor").isTextual()&& !StringUtils.isEmpty(request.path("param").path("vendor").asText())) {
 			if(request.path("param").path("vendor").asText().contains("DIGI-TEXX")){
 				criteria.orOperator(Criteria.where("optional.partnerId").is(null),Criteria.where("optional.partnerName").in(StringUtils.commaDelimitedListToSet(request.path("param").path("vendor").asText())));
 			}else{
@@ -153,9 +161,9 @@ public class AppService {
 			}
 		}
 
-		if (request.path("param").path("fullName").textValue() != null & !request.path("param").path("fullName").asText().equals("")){
+        if (request.path("param").path("fullName").textValue() != null & !request.path("param").path("fullName").asText().equals("")){
 			query.addCriteria(Criteria.where("fullName").regex(StringUtils.trimWhitespace(request.path("param").path("fullName").textValue()), "i"));
-		}
+        }
 
         if (request.path("param").path("identificationNumber").textValue() != null & !request.path("param").path("identificationNumber").asText().equals("")){
             query.addCriteria(Criteria.where("optional.identificationNumber").is(request.path("param").path("identificationNumber").textValue()));
@@ -314,18 +322,18 @@ public class AppService {
 		return response(200, mapper.convertValue(nEntity, JsonNode.class), 0);
 	}
 
-	
+
 
 	public JsonNode updateAppId(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		Assert.isTrue(body.path("project").isTextual() && !body.path("project").asText().isEmpty(),
 				"project is required and not empty");
-		
+
 		Assert.isTrue(body.path("appId").isTextual() && !body.path("appId").asText().isEmpty(),
 				"appId is required and not empty");
 		Assert.isTrue(body.path("partnerId").isTextual() && !body.path("partnerId").asText().isEmpty(),
 				"partnerId is required and not empty");
-		
+
 		Query query = Query.query(Criteria.where("project").is(body.path("project").asText()).and("partnerId").is(body.path("partnerId").asText()));
 		App app = mongoTemplate.findOne(query, App.class);
 
@@ -334,12 +342,12 @@ public class AppService {
 		}
 
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-" + app.getProject().toLowerCase(), Map.of("func", "updateAppId", "body", body));
-		
+
 		return response(res.path("status").asInt(), res.path("data"), 0);
 
-	
+
 	}
-	
+
 	public JsonNode updateStatus(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 
@@ -365,11 +373,11 @@ public class AppService {
 
 		return response(200, null, 0);
 	}
-	
+
 
 
 	public JsonNode getCountStatus(JsonNode request) {
-		String referenceId = UUID.randomUUID().toString();
+//		String referenceId = UUID.randomUUID().toString();
 		try{
 			AggregationOperation match1 = Aggregation.match(Criteria.where("project").in(request.path("param").path("project").textValue()));
 

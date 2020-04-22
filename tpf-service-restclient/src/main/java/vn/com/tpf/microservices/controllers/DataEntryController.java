@@ -363,20 +363,19 @@ public class DataEntryController {
 									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
 				}
 
-				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
-					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
-					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
-					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
-					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
-					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
-					validateACCA = true;
-				}
-
+                if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+                    validateIdCard = true;
+                } else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+                    validateIdCard = true;
+                } else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+                    validateHousehold = true;
+                } else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+                    validateHousehold = true;
+                } else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+                    validatePersonalImage = true;
+                } else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+                    validateACCA = true;
+                }
 				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
 			}
 			if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
@@ -393,17 +392,17 @@ public class DataEntryController {
 									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
 				}
 
-				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
+				if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 					validateACCA = true;
 				}else {
 					validateComment = true;
@@ -498,7 +497,7 @@ public class DataEntryController {
 //										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 //								parts_02.add("Household", multipartFileToSend.getResource());
 //							}else
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -506,7 +505,7 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -522,23 +521,23 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
-								if (!checkIdCard) {
-									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									documents.add(doc);
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
+							    if (!checkIdCard) {
+                                    doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    documents.add(doc);
 
 									MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
 											"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 									parts_02.add("ID-Card", multipartFileToSend.getResource());
 
-									checkIdCard = true;
-								}
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
-								if (!checkHousehold) {
-									doc.put("file-name", "Household_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									documents.add(doc);
+                                    checkIdCard = true;
+                                }
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
+							    if (!checkHousehold) {
+                                    doc.put("file-name", "Household_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    documents.add(doc);
 
 									MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
 											"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
@@ -554,7 +553,7 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -566,7 +565,7 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -693,12 +692,12 @@ public class DataEntryController {
 //										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 //								parts_02.add("Household", multipartFileToSend.getResource());
 //							}else
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -708,12 +707,12 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -732,44 +731,45 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
-								if (!checkIdCard) {
-									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									String docId = null;
-									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
-											docId = response.path("data").path("data").get(j).path("urlid").textValue();
-										}
-									}
-									doc.put("document-id", docId);
-									documents.add(doc);
 
-									MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
-											"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-									parts_02.add("ID-Card", multipartFileToSend.getResource());
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
+							    if (!checkIdCard) {
+                                    doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    String docId = null;
+                                    for (int j = 0; j < countDocId; j++) {
+                                        if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+                                            docId = response.path("data").path("data").get(j).path("urlid").textValue();
+                                        }
+                                    }
+                                    doc.put("document-id", docId);
+                                    documents.add(doc);
 
-									checkIdCard = true;
-								}
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
-								if (!checkHousehold) {
-									doc.put("file-name", "Household_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									String docId = null;
-									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
-											docId = response.path("data").path("data").get(j).path("urlid").textValue();
-										}
-									}
-									doc.put("document-id", docId);
-									documents.add(doc);
+                                    MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
+                                            "ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+                                    parts_02.add("ID-Card", multipartFileToSend.getResource());
 
-									MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
-											"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-									parts_02.add("Household", multipartFileToSend.getResource());
+                                    checkIdCard = true;
+                                }
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
+							    if (!checkHousehold) {
+                                    doc.put("file-name", "Household_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    String docId = null;
+                                    for (int j = 0; j < countDocId; j++) {
+                                        if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+                                            docId = response.path("data").path("data").get(j).path("urlid").textValue();
+                                        }
+                                    }
+                                    doc.put("document-id", docId);
+                                    documents.add(doc);
 
-									checkHousehold = true;
-								}
+                                    MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
+                                            "Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+                                    parts_02.add("Household", multipartFileToSend.getResource());
+
+                                    checkHousehold = true;
+                                }
 							}
 							i = i + 1;
 						}
@@ -779,13 +779,13 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -799,13 +799,13 @@ public class DataEntryController {
 									checkIdCard = true;
 								}
 
-							} else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+							} else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -997,54 +997,59 @@ public class DataEntryController {
 		for (JsonNode item : mainNode) {
 			if (updateNode != null) {
 				for (JsonNode item2 : updateNode) {
-					if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+					if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ID-Card")) {
-							if (!checkIdCard) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
+						    if (!checkIdCard) {
+                                ObjectNode doc = mapper.createObjectNode();
+                                doc.put("originalname", item.findPath("originalname").textValue());
+                                doc.put("filename", item.findPath("filename").textValue());
+                                doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
+                                doc.put("urlid", item2.findPath("document-id").asText(null));
+                                ((ArrayNode) resultNode).add(doc);
 
-								checkIdCard=true;
-							}
+                                checkIdCard=true;
+                            }
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Household")) {
-							if (!checkHousehold) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
 
-								checkHousehold = true;
-							}
+                            if (!checkHousehold) {
+                                ObjectNode doc = mapper.createObjectNode();
+                                doc.put("originalname", item.findPath("originalname").textValue());
+                                doc.put("filename", item.findPath("filename").textValue());
+                                doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
+                                doc.put("urlid", item2.findPath("document-id").asText(null));
+                                ((ArrayNode) resultNode).add(doc);
+
+                                checkHousehold = true;
+                            }
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
 							if (!checkPersonalImage) {
 								ObjectNode doc = mapper.createObjectNode();
 								doc.put("originalname", item.findPath("originalname").textValue());
 								doc.put("filename", item.findPath("filename").textValue());
 								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
 								doc.put("urlid", item2.findPath("document-id").asText(null));
 								((ArrayNode) resultNode).add(doc);
 
 								checkPersonalImage = true;
 							}
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
 							if (!checkACCAForm) {
 								ObjectNode doc = mapper.createObjectNode();
 								doc.put("originalname", item.findPath("originalname").textValue());
 								doc.put("filename", item.findPath("filename").textValue());
 								doc.put("md5", item.findPath("md5").textValue());
+								doc.put("contentType", item.findPath("contentType").textValue());
 								doc.put("urlid", item2.findPath("document-id").asText(null));
 								((ArrayNode) resultNode).add(doc);
 
@@ -1056,6 +1061,7 @@ public class DataEntryController {
 						doc.put("originalname", item.findPath("originalname").textValue());
 						doc.put("filename", item.findPath("filename").textValue());
 						doc.put("md5", item.findPath("md5").textValue());
+						doc.put("contentType", item.findPath("contentType").textValue());
 						((ArrayNode) resultNode).add(doc);
 
 						break;
@@ -1074,6 +1080,7 @@ public class DataEntryController {
 				doc.put("originalname", item.findPath("originalname").textValue());
 				doc.put("filename", item.findPath("filename").textValue());
 				doc.put("md5", item.findPath("md5").textValue());
+				doc.put("contentType", item.findPath("contentType").textValue());
 				((ArrayNode) resultNode).add(doc);
 			}
 		}
@@ -1249,20 +1256,19 @@ public class DataEntryController {
 									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
 				}
 
-				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
+				if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 					validateACCA = true;
 				}
-
 				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
 			}
 			if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
@@ -1279,17 +1285,17 @@ public class DataEntryController {
 									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
 				}
 
-				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
+				if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
 					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
 					validateACCA = true;
 				}else {
 					validateComment = true;
@@ -1403,7 +1409,24 @@ public class DataEntryController {
 //							i = 0;
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+//							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
+//								doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+//								doc.put("md5", item.path("md5").textValue());
+//								documents.add(doc);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
+//										"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//							}else if (item.path("originalname").textValue().equals("TPF_Family Book.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
+//								doc.put("file-name", "Household_" + item.path("originalname").textValue());
+//								doc.put("md5", item.path("md5").textValue());
+//								documents.add(doc);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
+//										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//							}else
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -1411,7 +1434,7 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -1427,7 +1450,7 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1439,7 +1462,7 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1459,7 +1482,7 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1471,7 +1494,7 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1575,14 +1598,48 @@ public class DataEntryController {
 					ArrayNode documents = mapper.createArrayNode();
 					if(files != null) {
 						for (JsonNode item :body){
+//							i = 0;
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+//							if (item.path("originalname").textValue().equals("TPF_ID Card.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
+//								doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+//								doc.put("md5", item.path("md5").textValue());
+//								String docId = null;
+//								for (int j = 0; j < countDocId; j++){
+//									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_ID Card.pdf") ||
+//											response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Notarization of ID card.pdf")){
+//										docId = response.path("data").path("data").get(j).path("urlid").textValue();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
+//										"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+//								parts_02.add("ID-Card", multipartFileToSend.getResource());
+//							}else if (item.path("originalname").textValue().equals("TPF_Family Book.pdf") || item.path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
+//								doc.put("file-name", "Household_" + item.path("originalname").textValue());
+//								doc.put("md5", item.path("md5").textValue());
+//								String docId = null;
+//								for (int j = 0; j < countDocId; j++){
+//									if (response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Family Book.pdf") ||
+//											response.path("data").path("data").get(j).path("originalname").textValue().equals("TPF_Notarization of Family Book.pdf")){
+//										docId = response.path("data").path("data").get(j).path("urlid").textValue();
+//									}
+//								}
+//								doc.put("document-id", docId);
+//								documents.add(doc);
+//
+//								MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
+//										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+//								parts_02.add("Household", multipartFileToSend.getResource());
+//							}else
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -1592,12 +1649,12 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -1616,13 +1673,13 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -1635,13 +1692,13 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -1663,13 +1720,13 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -1683,13 +1740,13 @@ public class DataEntryController {
 									checkIdCard = true;
 								}
 
-							} else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+							} else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
