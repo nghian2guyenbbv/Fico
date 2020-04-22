@@ -89,6 +89,13 @@ public class ConvertService {
 		if (!StringUtils.isEmpty(application.getPartnerName())) {
 			optional.put("partnerName", application.getPartnerName());
 		}
+
+        try{
+            optional.put("reasonCancel", application.getReasonCancel());
+            optional.put("createdBy", application.getUserName());
+        } catch (Exception e) {
+        }
+
 		app.set("optional", optional);
 		return app;
 	}

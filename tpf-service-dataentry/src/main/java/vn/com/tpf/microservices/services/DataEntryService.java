@@ -1274,6 +1274,11 @@ public class DataEntryService {
 				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
 					update.set("userName_DE", token.path("user_name").textValue());
 				}
+
+				if (data.getStatus().toUpperCase().equals("CANCEL".toUpperCase())){
+					update.set("reasonCancel", data.getDescription());
+				}
+
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(queryUpdate, Application.class);
@@ -1293,6 +1298,7 @@ public class DataEntryService {
 					report.setPartnerId(dataFullApp.getPartnerId());
 					report.setPartnerName(dataFullApp.getPartnerName());
 				}
+				report.setDescription(data.getDescription());
 				mongoTemplate.save(report);
 
 				responseModel.setRequest_id(requestId);
