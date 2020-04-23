@@ -24,12 +24,12 @@ public class ConvertService {
 		app.put("appId", application.getApplicationId());
 //		app.put("status", application.getStatus());
 		if (application.getApplicationInformation() != null){
-			app.put("fullName", application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+			app.put("fullName", StringUtils.trimWhitespace(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName()));
 		}else {
-			app.put("fullName", (application.getQuickLead().getFirstName() + " " + application.getQuickLead().getLastName()).replaceAll("\\s+", " "));
+			app.put("fullName", (StringUtils.trimWhitespace(application.getQuickLead().getFirstName())+ " " + StringUtils.trimWhitespace(application.getQuickLead().getLastName())));
 		}
 //		app.put("automationResult", application.getDescription());
-		app.put("assigned", application.getUserName());
+//		app.put("assigned", application.getUserName());
 		ArrayNode documents = mapper.createArrayNode();
 		if(application.getQuickLead().getDocuments() != null) {
 			application.getQuickLead().getDocuments().forEach(e -> {
@@ -83,6 +83,7 @@ public class ConvertService {
 		if (application.getUserName_DE() != null) {
 			optional.put("userName_DE", application.getUserName_DE());
 		}
+
 		if (!StringUtils.isEmpty(application.getPartnerId())) {
 			optional.put("partnerId", application.getPartnerId());
 		}
@@ -90,7 +91,14 @@ public class ConvertService {
 			optional.put("partnerName", application.getPartnerName());
 		}
 
-		optional.put("isHolding", application.isHolding());
+		try{
+            optional.put("reasonCancel", application.getReasonCancel());
+			optional.put("createdBy", application.getUserName());
+		} catch (Exception e) {
+		}
+
+
+//		optional.put("isHolding", application.isHolding());
 
 		app.set("optional", optional);
 		return app;

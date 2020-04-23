@@ -23,6 +23,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -38,8 +41,12 @@ import javax.validation.ValidatorFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.CallableStatement;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -78,6 +85,9 @@ public class DataEntryService {
 
 	@Autowired
 	private ConvertService convertService;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	private RestTemplate restTemplate;
 
@@ -546,18 +556,19 @@ public class DataEntryService {
 				query.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 				Application checkExist = mongoTemplate.findOne(query, Application.class);
 
-				if(checkExist != null && checkExist.isHolding()){
-					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
-						this.responseToPartner(checkExist);
-					}
-					responseModel.setRequest_id(requestId);
-					responseModel.setReference_id(referenceId);
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("1");
-					responseModel.setMessage("Application is hold");
-
-					return Map.of("status", 200, "data", responseModel);
-				}
+//				//check hold
+//				if(checkExist != null && checkExist.isHolding()){
+//					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
+//						this.responseToPartner(checkExist);
+//					}
+//					responseModel.setRequest_id(requestId);
+//					responseModel.setReference_id(referenceId);
+//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//					responseModel.setResult_code("1");
+//					responseModel.setMessage("Application is hold");
+//
+//					return Map.of("status", 200, "data", responseModel);
+//				}
 
 				if (checkExist == null){
 					responseModel.setRequest_id(requestId);
@@ -702,6 +713,16 @@ public class DataEntryService {
 						}
 						mongoTemplate.save(report);
 
+//						new Thread(() -> {
+//							try {
+//								String resultInsertORA = insertToOracle_App(dataFullApp);
+//								if (!resultInsertORA.equals("success")) {
+//									log.info("ReferenceId : " + referenceId + "; Insert to Oracle: " + resultInsertORA);
+//								}
+//							}
+//							catch (Exception e) {}
+//						}).start();
+
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(UUID.randomUUID().toString());
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -805,8 +826,8 @@ public class DataEntryService {
 		String stageAuto = "";
 		String errorAuto = "";
 		String quickLeadId = "";
-
-		String commentDescription = "";
+        String commentDescription = "";
+		String commentType = "";
 		List<Document> documentCommnet = new ArrayList<Document>();
 		boolean responseCommnentFullAPPFromDigiTex = false;
 		try {
@@ -824,22 +845,23 @@ public class DataEntryService {
 			String partnerId = "";
 			String partnerName = "";
 
-			if(data.getComment() != null && data.getComment().size() > 0 && checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()) {
-				if (!StringUtils.isEmpty(data.getComment().get(0).getType()) && !data.getComment().get(0).getType().equals("FICO")) {
-					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
-						this.responseToPartner(checkExist.get(0));
-					}
-				}
-				responseModel.setRequest_id(requestId);
-				responseModel.setReference_id(referenceId);
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code("1");
-				responseModel.setMessage("Application is hold");
+//			//check hold
+//			if(data.getComment() != null && data.getComment().size() > 0 && checkExist != null && checkExist.size() > 0 && checkExist.get(0).isHolding()) {
+//				if (!StringUtils.isEmpty(data.getComment().get(0).getType()) && !data.getComment().get(0).getType().equals("FICO")) {
+//					if(!request.get("body").path("data").hasNonNull("isFeedBack")){
+//						this.responseToPartner(checkExist.get(0));
+//					}
+//				}
+//				responseModel.setRequest_id(requestId);
+//				responseModel.setReference_id(referenceId);
+//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//				responseModel.setResult_code("1");
+//				responseModel.setMessage("Application is hold");
+//
+//				return Map.of("status", 200, "data", responseModel);
+//			}
 
-				return Map.of("status", 200, "data", responseModel);
-			}
-
-			if (checkExist.size() <= 0) {
+			if (checkExist.size() <= 0){
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -883,10 +905,22 @@ public class DataEntryService {
 							update.push("comment", item);
 							Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, Application.class);
 							if (item.getRequest() != null) {
-								commentDescription = item.getRequest();
-							}
-							requestCommnentFromDigiTex = true;
-						} else {
+                                commentDescription = item.getRequest();
+                            }
+                            requestCommnentFromDigiTex = true;
+
+//							new Thread(() -> {
+//								try {
+//									String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), null,
+//											token.path("user_name").textValue(), item.getCreatedDate(), null);
+//									if (!resultInsertORA.equals("success")) {
+//										log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+//									}
+//								}
+//								catch (Exception e) {}
+//							}).start();
+
+						}else{
 							responseModel.setRequest_id(requestId);
 							responseModel.setReference_id(referenceId);
 							responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -899,6 +933,10 @@ public class DataEntryService {
 						if (item.getType().equals("FICO")) {// digitex tra comment
 //						if (checkCommentExist.get(0).getComment().get(0).getType().equals("FICO")) {// digitex tra comment(do digites k gui lai type nen k dung item.getType())
 							boolean checkResponseComment = false;
+							Date createdDate = new Date();
+							Date updatedDate = new Date();
+							String commentDGT = "";
+							String commentDGTLD;
 
 							List<CommentModel> listComment = checkCommentExist.get(0).getComment();
 							if (checkCommentExist.get(0).getError() != null) {
@@ -938,6 +976,9 @@ public class DataEntryService {
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 										checkResponseComment = true;
+										createdDate = itemComment.getCreatedDate();
+										updatedDate = new Date();
+										commentDGT = item.getResponse().getComment();
 									}
 								}
 							}
@@ -957,18 +998,44 @@ public class DataEntryService {
 							// update automation
 							if (item.getResponse().getData() != null) {
 								Application dataUpdate = item.getResponse().getData();
-								if (checkCommentExist.get(0).getQuickLead().getDocumentsComment() != null) {
+								if (checkCommentExist.get(0).getQuickLead().getDocumentsComment() != null){
 									dataUpdate.setDocuments(checkCommentExist.get(0).getQuickLead().getDocumentsComment());
 								}
+//								if (checkCommentExist.get(0).getQuickLead().getDocumentsAfterSubmit() != null) {
+//									dataUpdate.setDocuments(checkCommentExist.get(0).getQuickLead().getDocumentsAfterSubmit());
+//								}else if (checkCommentExist.get(0).getQuickLead().getDocumentsComment() != null){
+//                                    dataUpdate.setDocuments(checkCommentExist.get(0).getQuickLead().getDocumentsComment());
+//                                }
 								dataUpdate.setStage(stageAuto);
 								dataUpdate.setError(errorAuto);
 								rabbitMQService.send(queueAutoSGB,
-										Map.of("func", "updateAppError", "body", dataUpdate));
-							}
+										Map.of("func", "updateAppError","body", dataUpdate));
 
-						} else {//fico tra comment
-							try {
-								if (item.getResponse().getComment() == null || item.getResponse().getComment().equals("")) {
+								commentDGTLD = commentDGT;
+//								new Thread(() -> {
+//									try {
+//										dataUpdate.setQuickLead(checkCommentExist.get(0).getQuickLead());
+//										dataUpdate.setCreatedDate(checkCommentExist.get(0).getCreatedDate());
+//										dataUpdate.setLastModifiedDate(checkCommentExist.get(0).getLastModifiedDate());
+//										String resultInsertORA = insertToOracle_App(dataUpdate);
+//										if (!resultInsertORA.equals("success")) {
+//											log.info("ReferenceId : " + referenceId + "; Insert to Oracle: " + resultInsertORA);
+//										}
+//									}
+//									catch (Exception e) {}
+//									try {
+//										String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), commentDGTLD,
+//												token.path("user_name").textValue(), null, new Date());
+//										if (!resultInsertORA.equals("success")) {
+//											log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+//										}
+//									}
+//									catch (Exception e) {}
+//								}).start();
+							}
+						}else{//fico tra comment
+							try{
+								if (item.getResponse().getComment() == null || item.getResponse().getComment().equals("")){
 									responseModel.setRequest_id(requestId);
 									responseModel.setReference_id(referenceId);
 									responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -1000,8 +1067,17 @@ public class DataEntryService {
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 										comment = item.getResponse().getComment();
-
-										responseCommnentToDigiTexDuplicate = true;
+//										new Thread(() -> {
+//											try {
+//												String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), null, item.getResponse().getComment(),
+//														token.path("user_name").textValue(), item.getCreatedDate(), new Date());
+//												if (!resultInsertORA.equals("success")) {
+//													log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+//												}
+//											}
+//											catch (Exception e) {}
+//										}).start();
+                                        	responseCommnentToDigiTexDuplicate = true;
 //										}
 									}
 								}
@@ -1259,70 +1335,74 @@ public class DataEntryService {
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exists.");
 			}else{
-				try{
-					if (checkExist.get(0).getStatus().equals("COMPLETED")){
-						responseModel.setRequest_id(requestId);
-						responseModel.setReference_id(referenceId);
-						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-						responseModel.setResult_code("1");
-						responseModel.setMessage("applicationId is completed!");
+                try{
+                    if (checkExist.get(0).getStatus().equals("COMPLETED")){
+                        responseModel.setRequest_id(requestId);
+                        responseModel.setReference_id(referenceId);
+                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                        responseModel.setResult_code("1");
+                        responseModel.setMessage("applicationId is completed!");
 
-						return Map.of("status", 200, "data", responseModel);
-					}else if (checkExist.get(0).getStatus().equals("CANCEL")){
-						if (data.getStatus().toUpperCase().equals("CANCEL")){
-							responseModel.setRequest_id(requestId);
-							responseModel.setReference_id(referenceId);
-							responseModel.setDate_time(new Timestamp(new Date().getTime()));
-							responseModel.setResult_code("1");
-							responseModel.setMessage("applicationId is cancel!");
+                        return Map.of("status", 200, "data", responseModel);
+                    }else if (checkExist.get(0).getStatus().equals("CANCEL")){
+                        if (data.getStatus().toUpperCase().equals("CANCEL")){
+                            responseModel.setRequest_id(requestId);
+                            responseModel.setReference_id(referenceId);
+                            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                            responseModel.setResult_code("1");
+                            responseModel.setMessage("applicationId is cancel!");
 
-							return Map.of("status", 200, "data", responseModel);
-						}
-					}else if (checkExist.get(0).getStatus().equals("MANUALLY")){
-						if (data.getStatus().toUpperCase().equals("MANUALLY")){
-							responseModel.setRequest_id(requestId);
-							responseModel.setReference_id(referenceId);
-							responseModel.setDate_time(new Timestamp(new Date().getTime()));
-							responseModel.setResult_code("1");
-							responseModel.setMessage("applicationId is manually!");
+                            return Map.of("status", 200, "data", responseModel);
+                        }
+                    }else if (checkExist.get(0).getStatus().equals("MANUALLY")){
+                        if (data.getStatus().toUpperCase().equals("MANUALLY")){
+                            responseModel.setRequest_id(requestId);
+                            responseModel.setReference_id(referenceId);
+                            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                            responseModel.setResult_code("1");
+                            responseModel.setMessage("applicationId is manually!");
 
-							return Map.of("status", 200, "data", responseModel);
-						}
-					}else if(!StringUtils.isEmpty(data.getStatus()) && (data.getStatus().toUpperCase().equals("HOLD")
-							|| data.getStatus().toUpperCase().equals("ACTIVE"))){
-						if(data.getStatus().toUpperCase().equals("HOLD") && checkExist.get(0).isHolding()){
-							responseModel.setRequest_id(requestId);
-							responseModel.setReference_id(referenceId);
-							responseModel.setDate_time(new Timestamp(new Date().getTime()));
-							responseModel.setResult_code("1");
-							responseModel.setMessage("Application is hold");
-							return Map.of("status", 200, "data", responseModel);
-
-						}else if(data.getStatus().toUpperCase().equals("ACTIVE") && !checkExist.get(0).isHolding()){
-							responseModel.setRequest_id(requestId);
-							responseModel.setReference_id(referenceId);
-							responseModel.setDate_time(new Timestamp(new Date().getTime()));
-							responseModel.setResult_code("1");
-							responseModel.setMessage("Application is active");
-							return Map.of("status", 200, "data", responseModel);
-						}
-
-						return holdApp(checkExist.get(0), request, token);
-
-					}else if(checkExist.get(0).isHolding()){
-						if(!request.get("body").path("data").hasNonNull("isFeedBack")){
-							this.responseToPartner(checkExist.get(0));
-						}
-						responseModel.setRequest_id(requestId);
-						responseModel.setReference_id(referenceId);
-						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-						responseModel.setResult_code("1");
-						responseModel.setMessage("Application is hold");
-
-						return Map.of("status", 200, "data", responseModel);
-					}
-				}
-				catch (Exception ex){}
+                            return Map.of("status", 200, "data", responseModel);
+                        }
+                    }
+//					//event hold
+//                    else if(!StringUtils.isEmpty(data.getStatus()) && (data.getStatus().toUpperCase().equals("HOLD")
+//							|| data.getStatus().toUpperCase().equals("ACTIVE"))){
+//						if(data.getStatus().toUpperCase().equals("HOLD") && checkExist.get(0).isHolding()){
+//							responseModel.setRequest_id(requestId);
+//							responseModel.setReference_id(referenceId);
+//							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//							responseModel.setResult_code("1");
+//							responseModel.setMessage("Application is hold");
+//							return Map.of("status", 200, "data", responseModel);
+//
+//						}else if(data.getStatus().toUpperCase().equals("ACTIVE") && !checkExist.get(0).isHolding()){
+//							responseModel.setRequest_id(requestId);
+//							responseModel.setReference_id(referenceId);
+//							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//							responseModel.setResult_code("1");
+//							responseModel.setMessage("Application is active");
+//							return Map.of("status", 200, "data", responseModel);
+//						}
+//
+//						return holdApp(checkExist.get(0), request, token);
+//
+//					}
+//					//check hold
+//                    else if(checkExist.get(0).isHolding()){
+//						if(!request.get("body").path("data").hasNonNull("isFeedBack")){
+//							this.responseToPartner(checkExist.get(0));
+//						}
+//						responseModel.setRequest_id(requestId);
+//						responseModel.setReference_id(referenceId);
+//						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//						responseModel.setResult_code("1");
+//						responseModel.setMessage("Application is hold");
+//
+//						return Map.of("status", 200, "data", responseModel);
+//					}
+                }
+                catch (Exception ex){}
 
 				Query queryUpdate = new Query();
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
@@ -1334,6 +1414,9 @@ public class DataEntryService {
 				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
 					update.set("userName_DE", token.path("user_name").textValue());
 				}
+                if (data.getStatus().toUpperCase().equals("CANCEL".toUpperCase())){
+                    update.set("reasonCancel", data.getDescription());
+                }
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(queryUpdate, Application.class);
@@ -1349,10 +1432,14 @@ public class DataEntryService {
 				report.setStatus(data.getStatus().toUpperCase());
 				report.setCreatedBy(token.path("user_name").textValue());
 				report.setCreatedDate(new Date());
+
 				if(dataFullApp != null){
 					report.setPartnerId(dataFullApp.getPartnerId());
 					report.setPartnerName(dataFullApp.getPartnerName());
 				}
+
+				report.setDescription(data.getDescription());
+
 				mongoTemplate.save(report);
 
 				responseModel.setRequest_id(requestId);
@@ -1537,6 +1624,8 @@ public class DataEntryService {
 				app.setQuickLead(quickLead);
 				app.setStatus("UPLOADFILE");
 				app.setUserName(token.path("user_name").textValue());
+				app.setPartnerId("1");
+				app.setPartnerName("DIGI-TEXX");
 				app.setCreatedDate(new Date());
 
 				app.setPartnerId(request.get("partnerId").asText());
@@ -1602,9 +1691,60 @@ public class DataEntryService {
 							update.set("quickLead.documentsComment.$.filename", item.getFilename());
 							update.set("quickLead.documentsComment.$.urlid", item.getUrlid());
 							update.set("quickLead.documentsComment.$.md5", item.getMd5());
+							update.set("quickLead.documentsComment.$.contentType", item.getContentType());
 							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 						}
 					}
+
+//					if (checkExist.get(0).getApplicationInformation() != null){
+//						dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {
+//						});
+//						for (QLDocument item : dataUpload) {
+//							Query queryUpdate = new Query();
+//							queryUpdate.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()).and("quickLead.documentsAfterSubmit.originalname").is(item.getOriginalname()));
+//							List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
+//
+//							if (checkCommentExist.size() <= 0) {
+//								Query queryAddComment = new Query();
+//								queryAddComment.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
+//
+//								Update update = new Update();
+//								update.addToSet("quickLead.documentsAfterSubmit", item);
+//								Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, FindAndModifyOptions.options().upsert(true), Application.class);
+//							} else {
+//								Update update = new Update();
+//								update.set("quickLead.documentsAfterSubmit.$.filename", item.getFilename());
+//								update.set("quickLead.documentsAfterSubmit.$.urlid", item.getUrlid());
+//								update.set("quickLead.documentsAfterSubmit.$.md5", item.getMd5());
+//								update.set("quickLead.documentsAfterSubmit.$.contentType", item.getContentType());
+//								Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+//							}
+//						}
+//					}else {
+//						dataUpload = mapper.readValue(request.path("body").toString(), new TypeReference<List<QLDocument>>() {
+//						});
+//						for (QLDocument item : dataUpload) {
+//							Query queryUpdate = new Query();
+//							queryUpdate.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()).and("quickLead.documentsComment.originalname").is(item.getOriginalname()));
+//							List<Application> checkCommentExist = mongoTemplate.find(queryUpdate, Application.class);
+//
+//							if (checkCommentExist.size() <= 0) {
+//								Query queryAddComment = new Query();
+//								queryAddComment.addCriteria(Criteria.where("applicationId").is(request.get("appId").asText()));
+//
+//								Update update = new Update();
+//								update.addToSet("quickLead.documentsComment", item);
+//								Application resultUpdate = mongoTemplate.findAndModify(queryAddComment, update, FindAndModifyOptions.options().upsert(true), Application.class);
+//							} else {
+//								Update update = new Update();
+//								update.set("quickLead.documentsComment.$.filename", item.getFilename());
+//								update.set("quickLead.documentsComment.$.urlid", item.getUrlid());
+//								update.set("quickLead.documentsComment.$.md5", item.getMd5());
+//								update.set("quickLead.documentsComment.$.contentType", item.getContentType());
+//								Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+//							}
+//						}
+//					}
 
 					Map<String, Object> responseUI = new HashMap<>();
 					responseUI.put("quickLeadId", quickLeadId);
@@ -1901,6 +2041,8 @@ public class DataEntryService {
 		String commentId = UUID.randomUUID().toString().substring(0,10);
 		String errors = "";
 		String applicationId = "";
+		final String requestDes;
+		final String appId;
 		try{
 			applicationId = request.path("body").path("applicationId").textValue();
 			Query query = new Query();
@@ -1965,40 +2107,46 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
-					try {
-						if (request.path("body").path("description").textValue() != null) {
-							if (request.path("body").path("description").textValue().contains("move_to_next_stage")) {
-								Query queryLogin = new Query();
-								queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
-								Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
-								dataFullApp.setStage("END OF LEAD DETAIL");
-								rabbitMQService.send(queueAutoSGB,
-										Map.of("func", "updateAppError", "body", dataFullApp));
+                    try {
+                        if (request.path("body").path("description").textValue() != null) {
+                            if (request.path("body").path("description").textValue().contains("move_to_next_stage")) {
+                                Query queryLogin = new Query();
+                                queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
+                                Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+								if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+									dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+								}
+                                dataFullApp.setStage("END OF LEAD DETAIL");
+                                rabbitMQService.send(queueAutoSGB,
+                                        Map.of("func", "updateAppError", "body", dataFullApp));
 
-								responseModel.setRequest_id(requestId);
-								responseModel.setReference_id(UUID.randomUUID().toString());
-								responseModel.setDate_time(new Timestamp(new Date().getTime()));
-								responseModel.setResult_code("1");
-								responseModel.setMessage("move_to_next_stage");
-								return Map.of("status", 200, "data", responseModel);
-							}
-						}
-					}
-					catch (Exception e) {
-						log.info("ReferenceId : "+ referenceId + "Error move_to_next_stage: " + e);
-						responseModel.setRequest_id(requestId);
-						responseModel.setReference_id(UUID.randomUUID().toString());
-						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-						responseModel.setResult_code("1");
-						responseModel.setMessage(e.toString());
-					}
-
+                                responseModel.setRequest_id(requestId);
+                                responseModel.setReference_id(UUID.randomUUID().toString());
+                                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                                responseModel.setResult_code("1");
+                                responseModel.setMessage("move_to_next_stage");
+                                return Map.of("status", 200, "data", responseModel);
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        log.info("ReferenceId : "+ referenceId + "Error move_to_next_stage: " + e);
+                        responseModel.setRequest_id(requestId);
+                        responseModel.setReference_id(UUID.randomUUID().toString());
+                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                        responseModel.setResult_code("1");
+                        responseModel.setMessage(e.toString());
+                    }
 
 					if (errors.equals("LOGIN FINONE")){
 						try {
 							Query queryLogin = new Query();
 							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
 							Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+
+							if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+								dataFullApp.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+							}
 							rabbitMQService.send(queueAutoSGB,
 									Map.of("func", "fullInfoApp", "body", dataFullApp));
 
@@ -2087,6 +2235,20 @@ public class DataEntryService {
 						}
 						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
+					try{
+						appId = applicationId;
+						requestDes = errors;
+//						new Thread(() -> {
+//							try {
+//								String resultInsertORA = insertToOracle_Return(appId, commentId,"FICO", requestDes, null, null, new Date(), null);
+//								if (!resultInsertORA.equals("success")) {
+//									log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+//								}
+//							}
+//							catch (Exception e) {}
+//						}).start();
+					}
+					catch (Exception e) {}
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -2119,6 +2281,8 @@ public class DataEntryService {
 		String commentId = UUID.randomUUID().toString().substring(0,10);
 		String referenceId = UUID.randomUUID().toString();
 		String errors = "";
+		final String requestDes;
+		final String appId;
 		try{
 			applicationId = request.path("body").path("applicationId").textValue();
 			errors = request.path("body").path("stage").textValue();
@@ -2184,58 +2348,64 @@ public class DataEntryService {
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
-					try {
-						if (request.path("body").path("description").textValue() != null) {
-							if (request.path("body").path("description").textValue().contains("move_to_next_stage")) {
-								boolean checkFullApp = false;
-								Query queryLogin = new Query();
-								queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
-								Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
+                    try {
+                        if (request.path("body").path("description").textValue() != null) {
+                            if (request.path("body").path("description").textValue().contains("move_to_next_stage")) {
+                                boolean checkFullApp = false;
+                                Query queryLogin = new Query();
+                                queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
+                                Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
 
-								List<CommentModel> dataUpdate = dataFullApp.getComment();
-								dataUpdate.sort(Comparator.comparing(CommentModel::getCreatedDate).reversed());
+                                List<CommentModel> dataUpdate = dataFullApp.getComment();
+                                dataUpdate.sort(Comparator.comparing(CommentModel::getCreatedDate).reversed());
 
-								Application dataUpdateSendAuto = new Application();
-								for (CommentModel item : dataUpdate) {
-									if (item.getResponse() != null) {
-										dataUpdateSendAuto = item.getResponse().getData();
-										dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
-										dataUpdateSendAuto.setStage("END OF LEAD DETAIL");
-										if (dataFullApp.getError() != null) {
-											dataUpdateSendAuto.setError(dataFullApp.getError());
+                                Application dataUpdateSendAuto = new Application();
+                                for (CommentModel item : dataUpdate) {
+                                    if (item.getResponse() != null) {
+                                        dataUpdateSendAuto = item.getResponse().getData();
+										if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+											dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
 										}
-										checkFullApp = true;
-										break;
-									}
-								}
-								if (!checkFullApp) {
-									dataUpdateSendAuto = dataFullApp;
-									dataUpdateSendAuto.setStage("END OF LEAD DETAIL");
-									dataUpdateSendAuto.setError(" ");
-								}
-								rabbitMQService.send(queueAutoSGB,
-										Map.of("func", "updateAppError", "body", dataUpdateSendAuto));
+//										if (dataFullApp.getQuickLead().getDocumentsAfterSubmit() != null) {
+//											dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsAfterSubmit());
+//										}else if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+//											dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+//										}
+                                        dataUpdateSendAuto.setStage("END OF LEAD DETAIL");
+                                        if (dataFullApp.getError() != null) {
+                                            dataUpdateSendAuto.setError(dataFullApp.getError());
+                                        }
+                                        checkFullApp = true;
+                                        break;
+                                    }
+                                }
+                                if (!checkFullApp) {
+                                    dataUpdateSendAuto = dataFullApp;
+                                    dataUpdateSendAuto.setStage("END OF LEAD DETAIL");
+                                    dataUpdateSendAuto.setError(" ");
+                                }
+                                rabbitMQService.send(queueAutoSGB,
+                                        Map.of("func", "updateAppError", "body", dataUpdateSendAuto));
 
-								responseModel.setRequest_id(requestId);
-								responseModel.setReference_id(UUID.randomUUID().toString());
-								responseModel.setDate_time(new Timestamp(new Date().getTime()));
-								responseModel.setResult_code("1");
-								responseModel.setMessage("move_to_next_stage");
-								return Map.of("status", 200, "data", responseModel);
-							}
-						}
-					}
-					catch (Exception e) {
-						log.info("ReferenceId : "+ referenceId + "Error move_to_next_stage: " + e);
-						responseModel.setRequest_id(requestId);
-						responseModel.setReference_id(UUID.randomUUID().toString());
-						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-						responseModel.setResult_code("1");
-						responseModel.setMessage("move_to_next_stage");
-					}
+                                responseModel.setRequest_id(requestId);
+                                responseModel.setReference_id(UUID.randomUUID().toString());
+                                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                                responseModel.setResult_code("1");
+                                responseModel.setMessage("move_to_next_stage");
+                                return Map.of("status", 200, "data", responseModel);
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        log.info("ReferenceId : "+ referenceId + "Error move_to_next_stage: " + e);
+                        responseModel.setRequest_id(requestId);
+                        responseModel.setReference_id(UUID.randomUUID().toString());
+                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                        responseModel.setResult_code("1");
+                        responseModel.setMessage("move_to_next_stage");
+                    }
 
-					if (errors.equals("LOGIN FINONE")){
-
+                    if (errors.equals("LOGIN FINONE")){
 						try{
 							Query queryLogin = new Query();
 							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
@@ -2248,7 +2418,14 @@ public class DataEntryService {
 							for (CommentModel item : dataUpdate) {
 								if (item.getResponse() != null){
 									dataUpdateSendAuto = item.getResponse().getData();
-									dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+									if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+										dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+									}
+//									if (dataFullApp.getQuickLead().getDocumentsAfterSubmit() != null) {
+//										dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsAfterSubmit());
+//									}else if (dataFullApp.getQuickLead().getDocumentsComment() != null){
+//										dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
+//									}
 									dataUpdateSendAuto.setStage(item.getStage());
 									if (dataFullApp.getError() != null){
 										dataUpdateSendAuto.setError(dataFullApp.getError());
@@ -2345,6 +2522,21 @@ public class DataEntryService {
 						}
 						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
 					}
+
+					try{
+						appId = applicationId;
+						requestDes = errors;
+//						new Thread(() -> {
+//							try {
+//								String resultInsertORA = insertToOracle_Return(appId, commentId, "FICO", requestDes, null, null, new Date(), null);
+//								if (!resultInsertORA.equals("success")) {
+//									log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+//								}
+//							}
+//							catch (Exception e) {}
+//						}).start();
+					}
+					catch (Exception e) {}
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -2416,15 +2608,18 @@ public class DataEntryService {
 //            );
 
 
-			AggregationOperation group = Aggregation.group(Fields.from( Fields.field("applicationId", "applicationId")).and("createdDate","createdDate")
-							.and("status","status").and("quickLeadId","quickLeadId").and("description","description")
-							.and("function","function").and("createdBy","createdBy")
-							.and("commentDescription","commentDescription")
-							.and("branch","applications.quickLead.sourcingBranch")
-							.and("firstName","applications.quickLead.firstName")
-							.and("lastName","applications.quickLead.lastName")
-							.and("fullName","applications.applicationInformation.personalInformation.personalInfo.fullName")
-							.and("identificationNumber","applications.quickLead.identificationNumber")
+            AggregationOperation group = Aggregation.group(Fields.from( Fields.field("applicationId", "applicationId")).and("createdDate","createdDate")
+                    .and("status","status").and("quickLeadId","quickLeadId").and("description","description")
+                    .and("function","function").and("createdBy","createdBy")
+                    .and("commentDescription","commentDescription")
+                    .and("branch","applications.quickLead.sourcingBranch")
+                    .and("firstName","applications.quickLead.firstName")
+                    .and("lastName","applications.quickLead.lastName")
+                    .and("fullName","applications.applicationInformation.personalInformation.personalInfo.fullName")
+                    .and("identificationNumber","applications.quickLead.identificationNumber")
+                            .and("partnerName","partnerName")
+//                            .and("isHolding","applications.isHolding")
+                            .and("description","description")
 //                    .and("identificationNumberFull","applications.applicationInformation.personalInformation.identifications.identificationNumber")
 			);
 
@@ -2460,34 +2655,43 @@ public class DataEntryService {
 //                            }
 //                        }
 
-						if (item.getFullName() == null || item.getFullName().equals("")){
-							item.setFullName(item.getFirstName() + " " + item.getLastName());
-						}
-						if (item.getIdentificationNumberFull() == null || item.getIdentificationNumberFull().equals("")){
-						}else{
-							item.setIdentificationNumber(item.getIdentificationNumberFull());
-						}
-					}
-					catch (Exception exx) {
-						String a ="";
+
+                        if (item.getFullName() == null || item.getFullName().equals("")){
+                            item.setFullName(item.getFirstName() + " " + item.getLastName());
+                        }
+                        if (item.getIdentificationNumberFull() == null || item.getIdentificationNumberFull().equals("")){
+                        }else{
+                            item.setIdentificationNumber(item.getIdentificationNumberFull());
+                        }
+                    }
+                    catch (Exception exx) {
+                        String a ="";
+                    }
+
+                    if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
+                        startDate = item.getCreatedDate();
+                        appId = item.getApplicationId();
+                    } else {
+                        if (item.getApplicationId().equals(appId) && !item.getStatus().equals("COMPLETED")) {
+                            finishDate = item.getCreatedDate();
+                        } else {
+                            item.setDuration(Duration.between(startDate.toInstant(), finishDate.toInstant()).toMinutes());
+                        }
+                    }
+
+                    if (item.getPartnerName() == null || item.getPartnerName().equals("")){
+                    	item.setPartnerName("DIGI-TEXX");
 					}
 
-					if (item.getFunction().equals("QUICKLEAD") && item.getStatus().equals("PROCESSING")) {
-						startDate = item.getCreatedDate();
-						appId = item.getApplicationId();
-					} else {
-						if (item.getApplicationId().equals(appId) && !item.getStatus().equals("COMPLETED")) {
-							finishDate = item.getCreatedDate();
-						} else {
-							item.setDuration(Duration.between(startDate.toInstant(), finishDate.toInstant()).toMinutes());
-						}
-					}
-				}
-				catch (Exception ex) {
-				}
-			}
+//                    if (item.getIsHolding().equals("true")){
+//                        item.setHold("YES");
+//                    }
+                }
+                catch (Exception ex) {
+                }
+            }
 
-			// export excel
+            // export excel
 			in = tatReportToExcel(listData);
 
 			if (listData.size() > 0){
@@ -2622,7 +2826,7 @@ public class DataEntryService {
 	}
 
 	public static ByteArrayInputStream tatReportToExcel(List<Report> report) throws IOException {
-		String[] COLUMNs = {"Seq", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)"};
+		String[] COLUMNs = {"Seq","VENDOR", "App no.", "Action", "Create Date", "Create By", "Status", "Comment", "Full Name", "ID", "Branch", "Duration(Minutes)", "Description"};
 		try(
 				Workbook workbook = new XSSFWorkbook();
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -2662,23 +2866,25 @@ public class DataEntryService {
 				cellStyle.setDataFormat(dateFormat);
 
 				row.createCell(0).setCellValue(rowIdx - 1);
-				row.createCell(1).setCellValue(item.getApplicationId());
-				row.createCell(2).setCellValue(item.getFunction());
+				row.createCell(1).setCellValue(item.getPartnerName());
+				row.createCell(2).setCellValue(item.getApplicationId());
+				row.createCell(3).setCellValue(item.getFunction());
 
-				Cell cell = row.createCell(3);
+				Cell cell = row.createCell(4);
 				cell.setCellValue(item.getCreatedDate());
 				cell.setCellStyle(cellStyle);
 
 //				row.createCell(2).setCellValue(item.getCreatedDate());
-				row.createCell(4).setCellValue(item.getCreatedBy());
-				row.createCell(5).setCellValue(item.getStatus());
 
-				row.createCell(6).setCellValue(item.getCommentDescription());
-				row.createCell(7).setCellValue(item.getFullName());
-				row.createCell(8).setCellValue(item.getIdentificationNumber());
-				row.createCell(9).setCellValue(item.getBranch());
-				row.createCell(10).setCellValue(item.getDuration());
-
+				row.createCell(5).setCellValue(item.getCreatedBy());
+				row.createCell(6).setCellValue(item.getStatus());
+                row.createCell(7).setCellValue(item.getCommentDescription());
+				row.createCell(8).setCellValue(item.getFullName());
+				row.createCell(9).setCellValue(item.getIdentificationNumber());
+                row.createCell(10).setCellValue(item.getBranch());
+                row.createCell(11).setCellValue(item.getDuration());
+//                row.createCell(12).setCellValue(item.getHold());
+                row.createCell(12).setCellValue(item.getDescription());
 
 			}
 
@@ -2860,6 +3066,9 @@ public class DataEntryService {
 				obj.setSaleBranch(temp.getQuickLead().getSourcingBranch());
 				obj.setCreatedBy(temp.getUserName());
 				obj.setUpdateDate(temp.getLastModifiedDate());
+				obj.setPartnerName(temp.getPartnerName());
+				obj.setDsaCode(temp.getDynamicForm()!=null?temp.getDynamicForm().get(0).getSaleAgentCode():"");
+//				obj.setHolding(temp.isHolding());
 				return obj;
 			}).collect(Collectors.toList());
 
@@ -3915,16 +4124,16 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("body").path("request_id").textValue();
 		String applicationId = "";
-		String commentId = UUID.randomUUID().toString().substring(0,10);
+		String commentId = UUID.randomUUID().toString().substring(0, 10);
 		String referenceId = UUID.randomUUID().toString();
 		String errors = "";
-		try{
+		try {
 			applicationId = request.path("body").path("applicationId").textValue();
 			errors = request.path("body").path("stage").textValue();
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(request.path("body").path("applicationId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
-			if (checkExist.size() > 0){
+			if (checkExist.size() > 0) {
 				if (request.path("body").path("status").textValue().toUpperCase().equals("OK")) {
 					Update update = new Update();
 					update.set("status", "COMPLETED");
@@ -3943,21 +4152,13 @@ public class DataEntryService {
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp","reference_id", referenceId,
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+							Map.of("func", "updateApp", "reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
-					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
-//					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
+					apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 
-//					HttpHeaders headers = new HttpHeaders();
-//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), headers);
-//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-//					JsonNode body = mapper.valueToTree(res.getBody());
-
-				}else{
+				} else {
 					errors = request.path("body").path("stage").textValue();
 					try {
 						if (request.path("body").path("description").textValue() != null) {
@@ -3999,9 +4200,8 @@ public class DataEntryService {
 								return Map.of("status", 200, "data", responseModel);
 							}
 						}
-					}
-					catch (Exception e) {
-						log.info("ReferenceId : "+ referenceId + "Error move_to_next_stage: " + e);
+					} catch (Exception e) {
+						log.info("ReferenceId : " + referenceId + "Error move_to_next_stage: " + e);
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(UUID.randomUUID().toString());
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -4009,8 +4209,8 @@ public class DataEntryService {
 						responseModel.setMessage("move_to_next_stage");
 					}
 
-					if (errors.equals("LOGIN FINONE")){
-						try{
+					if (errors.equals("LOGIN FINONE")) {
+						try {
 							Query queryLogin = new Query();
 							queryLogin.addCriteria(Criteria.where("applicationId").is(applicationId));
 							Application dataFullApp = mongoTemplate.findOne(queryLogin, Application.class);
@@ -4020,18 +4220,18 @@ public class DataEntryService {
 
 							Application dataUpdateSendAuto = new Application();
 							for (CommentModel item : dataUpdate) {
-								if (item.getResponse() != null){
+								if (item.getResponse() != null) {
 									dataUpdateSendAuto = item.getResponse().getData();
 									dataUpdateSendAuto.setDocuments(dataFullApp.getQuickLead().getDocumentsComment());
 									dataUpdateSendAuto.setStage(item.getStage());
-									if (dataFullApp.getError() != null){
+									if (dataFullApp.getError() != null) {
 										dataUpdateSendAuto.setError(dataFullApp.getError());
 									}
 									break;
 								}
 							}
 							rabbitMQService.send("tpf-service-automation",
-									Map.of("func", "updateAppError","body", dataUpdateSendAuto));
+									Map.of("func", "updateAppError", "body", dataUpdateSendAuto));
 
 							responseModel.setRequest_id(requestId);
 							responseModel.setReference_id(UUID.randomUUID().toString());
@@ -4039,16 +4239,15 @@ public class DataEntryService {
 							responseModel.setResult_code("1");
 							responseModel.setMessage("LOGIN FINONE");
 							return Map.of("status", 200, "data", responseModel);
-						}
-						catch (Exception e) {
-							log.info("ReferenceId : "+ referenceId + "Error LOGIN FINONE: " + e);
+						} catch (Exception e) {
+							log.info("ReferenceId : " + referenceId + "Error LOGIN FINONE: " + e);
 						}
 					}
 
 					if (errors.toUpperCase().equals("END OF LEAD DETAIL") ||
 							errors.toUpperCase().equals("PERSONAL INFORMATION") ||
-							errors.toUpperCase().equals("EMPLOYMENT DETAILS")){
-					}else{
+							errors.toUpperCase().equals("EMPLOYMENT DETAILS")) {
+					} else {
 						errors = "OTHER";
 					}
 
@@ -4087,38 +4286,28 @@ public class DataEntryService {
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
-							Map.of("func", "updateApp","reference_id", referenceId,
-									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+							Map.of("func", "updateApp", "reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
 
 					//fico gui comment
 
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
-					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
-//					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
-
-//					HttpHeaders headers = new HttpHeaders();
-//					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//					headers.set("authkey", "699f6095-7a8b-4741-9aa5-e976004cacbb");
-//					HttpEntity<?> entity = new HttpEntity<>(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "fail",
-//							"commend-id", commentId, "errors", errors)), headers);
-//					ResponseEntity<?> res = restTemplate.postForEntity(urlDigitexFeedbackApi, entity, Object.class);
-//					JsonNode body = mapper.valueToTree(res.getBody());
+					apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 				}
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code("0");
-			}else{
+			} else {
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code("1");
 				responseModel.setMessage("applicationId not exist.");
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(UUID.randomUUID().toString());
@@ -4129,156 +4318,251 @@ public class DataEntryService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	private Map<String, Object> holdApp(Application app, JsonNode request, JsonNode token) {
-		log.info("{}",request.path("body").toString());
-		ResponseModel responseModel = new ResponseModel();
-		String requestId = request.path("body").path("request_id").textValue();
-		String referenceId = UUID.randomUUID().toString();
-		try{
-			List<String> list = Arrays.asList("PROCESSING", "RETURNED", "FULL_APP_FAIL");
-			boolean match = list.stream().anyMatch(s -> app.getStatus().contains(s));
+//	public String insertToOracle_App(Application application) {
+//		try {
+//			String IDCard = "";
+//			String currentAddressCity = "";
+//			String insurance = "N";
+//			final String IDCardLD;
+//			final String currentAddressCityLD;
+//			final String insuranceLD;
+//			for (Identification item: application.getApplicationInformation().getPersonalInformation().getIdentifications()) {
+//				if (item.getIdentificationType().equals("Current National ID")){
+//					IDCard = item.getIdentificationNumber();
+//					currentAddressCity = item.getPlaceOfIssue();
+//				}
+//				if (application.getLoanDetails().getVapDetails() != null){
+//					insurance = "Y";
+//				}
+//			}
+//			IDCardLD = IDCard;
+//			currentAddressCityLD = currentAddressCity;
+//			insuranceLD = insurance;
+//
+//			List prmtrsList = new ArrayList();
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.DATE));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.CHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
+////			prmtrsList.add(new SqlOutParameter("result", Types.VARCHAR));
+//
+//			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
+//				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
+//				callableStatement.setString(1, application.getApplicationId());
+//				callableStatement.setDate(2, application.getCreatedDate() != null ? new java.sql.Date(application.getCreatedDate().getTime()) : null);
+//				callableStatement.setString(3, application.getDynamicForm().get(0).getSaleAgentCode());
+//				callableStatement.setString(4, application.getQuickLead().getSourcingBranch());
+//				callableStatement.setString(5, application.getQuickLead().getSourcingBranch());
+//				callableStatement.setString(6, application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc());
+//				callableStatement.setString(7, application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+//				callableStatement.setString(8, IDCardLD);
+//				callableStatement.setString(9, currentAddressCityLD);
+//				callableStatement.setString(10, insuranceLD);
+//				callableStatement.setString(11, application.getQuickLeadId());
+//				callableStatement.setString(12, application.getPartnerName());
+//				callableStatement.setDate(13, application.getLastModifiedDate() != null ? new java.sql.Date(application.getLastModifiedDate().getTime()) : null);
+////				callableStatement.registerOutParameter(3, Types.VARCHAR);
+//				return callableStatement;
+//			}, prmtrsList);
+//
+//			return "success";
+//		}catch (Exception e) {
+//			return e.toString();
+//		}
+//	}
 
-			if(!match){
-				return Map.of("status", 200, "data", "status not valid");
-			}
-			String event = request.path("body").path("data").path("status").asText();
-			Update update = new Update();
-			if(event.toUpperCase().equals("HOLD")){
-				update.set("isHolding", true);
-			}else{
-				update.set("isHolding", false);
-			}
+//	public String insertToOracle_Return(String applicationId, String documentId, String commentType, String request, String reponse, String userName, Date createDate, Date updateDate){
+//		try {
+//			List prmtrsList = new ArrayList();
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+//			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
+//			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
+//
+//			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
+//				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION_RETURN(?, ?, ?, ?, ?, ?, ?, ?)}");
+//				callableStatement.setString(1, applicationId);
+//				callableStatement.setString(2, documentId);
+//				callableStatement.setString(3, commentType);
+//				callableStatement.setString(4, request != null ? request : "");
+//				callableStatement.setString(5, reponse != null ? reponse : "");
+//				callableStatement.setString(6, userName != null ? userName : "");
+//				callableStatement.setDate(7, createDate != null ? new java.sql.Date(createDate.getTime()) : null);
+//				callableStatement.setDate(8, updateDate != null ? new java.sql.Date(updateDate.getTime()) : null );
+//				return callableStatement;
+//			}, prmtrsList);
+//
+//			return "success";
+//		}catch (Exception e) {
+//			return e.toString();
+//		}
+//	}
 
-			Query query = new Query();
-			query.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
-			Application resultUpdate = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+//	private Map<String, Object> holdApp(Application app, JsonNode request, JsonNode token) {
+//		log.info("{}",request.path("body").toString());
+//		ResponseModel responseModel = new ResponseModel();
+//		String requestId = request.path("body").path("request_id").textValue();
+//		String referenceId = UUID.randomUUID().toString();
+//		try{
+//			List<String> list = Arrays.asList("PROCESSING", "RETURNED", "FULL_APP_FAIL");
+//			boolean match = list.stream().anyMatch(s -> app.getStatus().contains(s));
+//
+//			if(!match){
+//				return Map.of("status", 200, "data", "status not valid");
+//			}
+//			String event = request.path("body").path("data").path("status").asText();
+//			Update update = new Update();
+//			if(event.toUpperCase().equals("HOLD")){
+//				update.set("isHolding", true);
+//			}else{
+//				update.set("isHolding", false);
+//			}
+//
+//			Query query = new Query();
+//			query.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
+//			Application resultUpdate = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+//
+//			rabbitMQService.send("tpf-service-app",
+//					Map.of("func", "updateApp","reference_id", referenceId,
+//							"param", Map.of("project", "dataentry", "id", resultUpdate.getId()), "body", convertService.toAppDisplay(resultUpdate)));
+//
+//			Report report = new Report();
+//			report.setQuickLeadId(resultUpdate.getQuickLeadId());
+//			report.setApplicationId(resultUpdate.getApplicationId());
+//			report.setFunction(event);
+//			report.setStatus(resultUpdate.getStatus());
+//			report.setCreatedBy(token.path("user_name").textValue());
+//			report.setCreatedDate(new Date());
+//			if(resultUpdate != null){
+//				report.setPartnerId(resultUpdate.getPartnerId());
+//				report.setPartnerName(resultUpdate.getPartnerName());
+//			}
+//			String reason = request.path("body").path("data").path("description").asText("");
+//			report.setCommentDescription(reason);
+//			mongoTemplate.save(report);
+//
+//			responseModel.setRequest_id(requestId);
+//			responseModel.setReference_id(referenceId);
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code("0");
+//
+//			if(!request.path("body").path("data").hasNonNull("isFeedBack")){
+//				Map partner = this.getPartner(app.getPartnerId());
+//				if(StringUtils.isEmpty(partner.get("data"))){
+//					return Map.of("result_code", 3, "message","Not found partner");
+//				}
+//
+//				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", app.getApplicationId(),
+//						"status", event, "description", reason)), JsonNode.class);
+//				JsonNode responseDG = null;
+//				if(app.getPartnerId().equals("1")){
+//					responseDG = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+//				} else if(app.getPartnerId().equals("2")){
+//					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+//					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+//					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+//					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+//					String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+//					if(StringUtils.isEmpty(tokenPartner)){
+//						return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+//					}
+//					responseDG = apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, app.getPartnerId());
+//				}
+//
+//
+//				if (!responseDG.path("error-code").textValue().equals("")) {
+//					if (!responseDG.path("error-code").textValue().equals("null")) {
+//						log.info("ReferenceId : " + referenceId);
+//						responseModel.setRequest_id(requestId);
+//						responseModel.setReference_id(referenceId);
+//						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//						responseModel.setResult_code("1");
+//						responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+//
+//						return Map.of("status", 200, "data", responseModel);
+//					}
+//				}
+//			}
+//		}
+//		catch (Exception e) {
+//			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+//			responseModel.setRequest_id(requestId);
+//			responseModel.setReference_id(referenceId);
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code("1");
+//			responseModel.setMessage(e.getMessage());
+//		}
+//		return Map.of("status", 200, "data", responseModel);
+//	}
 
-			rabbitMQService.send("tpf-service-app",
-					Map.of("func", "updateApp","reference_id", referenceId,
-							"param", Map.of("project", "dataentry", "id", resultUpdate.getId()), "body", convertService.toAppDisplay(resultUpdate)));
-
-			Report report = new Report();
-			report.setQuickLeadId(resultUpdate.getQuickLeadId());
-			report.setApplicationId(resultUpdate.getApplicationId());
-			report.setFunction(event);
-			report.setStatus(resultUpdate.getStatus());
-			report.setCreatedBy(token.path("user_name").textValue());
-			report.setCreatedDate(new Date());
-			if(resultUpdate != null){
-				report.setPartnerId(resultUpdate.getPartnerId());
-				report.setPartnerName(resultUpdate.getPartnerName());
-			}
-			String reason = request.path("body").path("data").path("description").asText("");
-			report.setCommentDescription(reason);
-			mongoTemplate.save(report);
-
-			responseModel.setRequest_id(requestId);
-			responseModel.setReference_id(referenceId);
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("0");
-
-			if(!request.path("body").path("data").hasNonNull("isFeedBack")){
-				Map partner = this.getPartner(app.getPartnerId());
-				if(StringUtils.isEmpty(partner.get("data"))){
-					return Map.of("result_code", 3, "message","Not found partner");
-				}
-
-				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", app.getApplicationId(), "status", event)), JsonNode.class);
-				JsonNode responseDG = null;
-				if(app.getPartnerId().equals("1")){
-					responseDG = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
-				} else if(app.getPartnerId().equals("2")){
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
-					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-					String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-					if(StringUtils.isEmpty(tokenPartner)){
-						return Map.of("result_code", 3, "message","Not get token saigon-bpo");
-					}
-					responseDG = apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, app.getPartnerId());
-				}
-
-				if (!responseDG.path("error-code").textValue().equals("")) {
-					if (!responseDG.path("error-code").textValue().equals("null")) {
-						log.info("ReferenceId : " + referenceId);
-						responseModel.setRequest_id(requestId);
-						responseModel.setReference_id(referenceId);
-						responseModel.setDate_time(new Timestamp(new Date().getTime()));
-						responseModel.setResult_code("1");
-						responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
-
-						return Map.of("status", 200, "data", responseModel);
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-			log.info("ReferenceId : "+ referenceId + "Error: " + e);
-			responseModel.setRequest_id(requestId);
-			responseModel.setReference_id(referenceId);
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("1");
-			responseModel.setMessage(e.getMessage());
-		}
-		return Map.of("status", 200, "data", responseModel);
-	}
-
-	private JsonNode responseToPartner(Application checkExist) {
-		try {
-			String status;
-			if(checkExist.isHolding()){
-				status = "HOLD";
-			}else{
-				status = "ACTIVE";
-			}
-
-			Map partner = this.getPartner(checkExist.getPartnerId());
-			if(StringUtils.isEmpty(partner.get("data"))){
-				JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not found partner"), JsonNode.class);
-				return data;
-			}
-
-			JsonNode responseFromPartner = null;
-			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", checkExist.getApplicationId(), "status", status)), JsonNode.class);
-
-			if(checkExist.getPartnerId().equals("1")){
-				responseFromPartner = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
-			} else if(checkExist.getPartnerId().equals("2")){
-				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-				if(StringUtils.isEmpty(tokenPartner)){
-					JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
-					return data;
-				}
-				String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
-				responseFromPartner = apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, checkExist.getPartnerId());
-			}
-
-			if (!responseFromPartner.path("error-code").textValue().equals("")) {
-				if (!responseFromPartner.path("error-code").textValue().equals("null")) {
-					ResponseModel responseModel = new ResponseModel();
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("1");
-					responseModel.setMessage(responseFromPartner.path("error-code").textValue() + responseFromPartner.path("error-description").textValue());
-					JsonNode data = mapper.convertValue(responseModel, JsonNode.class);
-					return data;
-				}
-			}
-
-			ResponseModel responseModel = new ResponseModel();
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code("0");
-			JsonNode data = mapper.convertValue(responseModel, JsonNode.class);
-			return data;
-
-		} catch(Exception e){
-			log.info("{}", e.getMessage());
-		}
-		return null;
-	}
+//	private JsonNode responseToPartner(Application checkExist) {
+//		try {
+//			String status;
+//			if(checkExist.isHolding()){
+//				status = "HOLD";
+//			}else{
+//				status = "ACTIVE";
+//			}
+//
+//			Map partner = this.getPartner(checkExist.getPartnerId());
+//			if(StringUtils.isEmpty(partner.get("data"))){
+//				JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not found partner"), JsonNode.class);
+//				return data;
+//			}
+//
+//			JsonNode responseFromPartner = null;
+//			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", checkExist.getApplicationId(), "status", status)), JsonNode.class);
+//
+//			if(checkExist.getPartnerId().equals("1")){
+//				responseFromPartner = apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+//			} else if(checkExist.getPartnerId().equals("2")){
+//				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+//				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+//				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+//				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+//				if(StringUtils.isEmpty(tokenPartner)){
+//					JsonNode data = mapper.convertValue(Map.of("result_code", 3, "message","Not get token saigon-bpo"), JsonNode.class);
+//					return data;
+//				}
+//				String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+//				responseFromPartner = apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, checkExist.getPartnerId());
+//			}
+//
+//			if (!responseFromPartner.path("error-code").textValue().equals("")) {
+//				if (!responseFromPartner.path("error-code").textValue().equals("null")) {
+//					ResponseModel responseModel = new ResponseModel();
+//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//					responseModel.setResult_code("1");
+//					responseModel.setMessage(responseFromPartner.path("error-code").textValue() + responseFromPartner.path("error-description").textValue());
+//					JsonNode data = mapper.convertValue(responseModel, JsonNode.class);
+//					return data;
+//				}
+//			}
+//
+//			ResponseModel responseModel = new ResponseModel();
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code("0");
+//			JsonNode data = mapper.convertValue(responseModel, JsonNode.class);
+//			return data;
+//
+//		} catch(Exception e){
+//			log.info("{}", e.getMessage());
+//		}
+//		return null;
+//	}
 
 	public Map<String, Object> getAppByQuickLeadId(JsonNode request){
 		try{
