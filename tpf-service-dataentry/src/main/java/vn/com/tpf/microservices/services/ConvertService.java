@@ -97,6 +97,7 @@ public class ConvertService {
 		} catch (Exception e) {
 		}
 
+//		optional.put("isHolding", application.isHolding());
 
 		app.set("optional", optional);
 		return app;
