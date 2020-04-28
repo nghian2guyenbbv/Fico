@@ -23,9 +23,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-//import org.springframework.jdbc.core.JdbcTemplate;
-//import org.springframework.jdbc.core.SqlOutParameter;
-//import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -83,8 +83,8 @@ public class DataEntryService {
 	@Autowired
 	private ConvertService convertService;
 
-//	@Autowired
-//	private JdbcTemplate jdbcTemplate;
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	private RestTemplate restTemplate;
 
@@ -706,15 +706,15 @@ public class DataEntryService {
 						report.setCreatedDate(new Date());
 						mongoTemplate.save(report);
 
-//						new Thread(() -> {
-//							try {
-//								String resultInsertORA = insertToOracle_App(dataFullApp);
-//								if (!resultInsertORA.equals("success")) {
-//									log.info("ReferenceId : " + referenceId + "; Insert to Oracle: " + resultInsertORA);
-//								}
-//							}
-//							catch (Exception e) {}
-//						}).start();
+						new Thread(() -> {
+							try {
+								String resultInsertORA = insertToOracle_App(dataFullApp);
+								if (!resultInsertORA.equals("success")) {
+									log.info("ReferenceId : " + referenceId + "; Insert to Oracle: " + resultInsertORA);
+								}
+							}
+							catch (Exception e) {}
+						}).start();
 
 						responseModel.setRequest_id(requestId);
 						responseModel.setReference_id(UUID.randomUUID().toString());
@@ -893,16 +893,16 @@ public class DataEntryService {
                             }
                             requestCommnentFromDigiTex = true;
 
-//							new Thread(() -> {
-//								try {
-//									String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), null,
-//											token.path("user_name").textValue(), item.getCreatedDate(), null);
-//									if (!resultInsertORA.equals("success")) {
-//										log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
-//									}
-//								}
-//								catch (Exception e) {}
-//							}).start();
+							new Thread(() -> {
+								try {
+									String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), null,
+											token.path("user_name").textValue(), item.getCreatedDate(), null);
+									if (!resultInsertORA.equals("success")) {
+										log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+									}
+								}
+								catch (Exception e) {}
+							}).start();
 						}else{
 							responseModel.setRequest_id(requestId);
 							responseModel.setReference_id(referenceId);
@@ -995,26 +995,26 @@ public class DataEntryService {
 										Map.of("func", "updateAppError","body", dataUpdate));
 
 								commentDGTLD = commentDGT;
-//								new Thread(() -> {
-//									try {
-//										dataUpdate.setQuickLead(checkCommentExist.get(0).getQuickLead());
-//										dataUpdate.setCreatedDate(checkCommentExist.get(0).getCreatedDate());
-//										dataUpdate.setLastModifiedDate(checkCommentExist.get(0).getLastModifiedDate());
-//										String resultInsertORA = insertToOracle_App(dataUpdate);
-//										if (!resultInsertORA.equals("success")) {
-//											log.info("ReferenceId : " + referenceId + "; Insert to Oracle: " + resultInsertORA);
-//										}
-//									}
-//									catch (Exception e) {}
-//									try {
-//										String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), commentDGTLD,
-//												token.path("user_name").textValue(), null, new Date());
-//										if (!resultInsertORA.equals("success")) {
-//											log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
-//										}
-//									}
-//									catch (Exception e) {}
-//								}).start();
+								new Thread(() -> {
+									try {
+										dataUpdate.setQuickLead(checkCommentExist.get(0).getQuickLead());
+										dataUpdate.setCreatedDate(checkCommentExist.get(0).getCreatedDate());
+										dataUpdate.setLastModifiedDate(checkCommentExist.get(0).getLastModifiedDate());
+										String resultInsertORA = insertToOracle_App(dataUpdate);
+										if (!resultInsertORA.equals("success")) {
+											log.info("ReferenceId : " + referenceId + "; Insert to Oracle: " + resultInsertORA);
+										}
+									}
+									catch (Exception e) {}
+									try {
+										String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), commentDGTLD,
+												token.path("user_name").textValue(), null, new Date());
+										if (!resultInsertORA.equals("success")) {
+											log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+										}
+									}
+									catch (Exception e) {}
+								}).start();
 							}
 						}else{//fico tra comment
 							try{
@@ -1051,16 +1051,16 @@ public class DataEntryService {
 
 										comment = item.getResponse().getComment();
 
-//										new Thread(() -> {
-//											try {
-//												String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), null, item.getResponse().getComment(),
-//														token.path("user_name").textValue(), item.getCreatedDate(), new Date());
-//												if (!resultInsertORA.equals("success")) {
-//													log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
-//												}
-//											}
-//											catch (Exception e) {}
-//										}).start();
+										new Thread(() -> {
+											try {
+												String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), null, item.getResponse().getComment(),
+														token.path("user_name").textValue(), item.getCreatedDate(), new Date());
+												if (!resultInsertORA.equals("success")) {
+													log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+												}
+											}
+											catch (Exception e) {}
+										}).start();
 										responseCommnentToDigiTexDuplicate = true;
 //										}
 									}
@@ -2110,20 +2110,20 @@ public class DataEntryService {
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
-//					try{
-//						appId = applicationId;
-//						requestDes = errors;
-//						new Thread(() -> {
-//							try {
-//								String resultInsertORA = insertToOracle_Return(appId, commentId,"FICO", requestDes, null, null, new Date(), null);
-//								if (!resultInsertORA.equals("success")) {
-//									log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
-//								}
-//							}
-//							catch (Exception e) {}
-//						}).start();
-//					}
-//					catch (Exception e) {}
+					try{
+						appId = applicationId;
+						requestDes = errors;
+						new Thread(() -> {
+							try {
+								String resultInsertORA = insertToOracle_Return(appId, commentId,"FICO", requestDes, null, null, new Date(), null);
+								if (!resultInsertORA.equals("success")) {
+									log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+								}
+							}
+							catch (Exception e) {}
+						}).start();
+					}
+					catch (Exception e) {}
 
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
@@ -2361,20 +2361,22 @@ public class DataEntryService {
 							"commend-id", commentId, "errors", errors)), JsonNode.class);
 					apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
-//					try{
-//						appId = applicationId;
-//						requestDes = errors;
-//						new Thread(() -> {
-//							try {
-//								String resultInsertORA = insertToOracle_Return(appId, commentId, "FICO", requestDes, null, null, new Date(), null);
-//								if (!resultInsertORA.equals("success")) {
-//									log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
-//								}
-//							}
-//							catch (Exception e) {}
-//						}).start();
-//					}
-//					catch (Exception e) {}
+					try{
+						appId = applicationId;
+						requestDes = errors;
+						new Thread(() -> {
+							try {
+								String resultInsertORA = insertToOracle_Return(appId, commentId, "FICO", requestDes, null, null, new Date(), null);
+								if (!resultInsertORA.equals("success")) {
+									log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+								}
+							}
+							catch (Exception e) {}
+						}).start();
+					}
+					catch (Exception e) {}
+
+
 //					String resultDG = apiService.callApiDigitexx(urlDigitexFeedbackApi,dataSend);
 
 //					HttpHeaders headers = new HttpHeaders();
@@ -2950,98 +2952,98 @@ public class DataEntryService {
 		return true;
 	}
 
-//	public String insertToOracle_App(Application application) {
-//		try {
-//			String IDCard = "";
-//			String currentAddressCity = "";
-//			String insurance = "N";
-//			final String IDCardLD;
-//			final String currentAddressCityLD;
-//			final String insuranceLD;
-//			for (Identification item: application.getApplicationInformation().getPersonalInformation().getIdentifications()) {
-//				if (item.getIdentificationType().equals("Current National ID")){
-//					IDCard = item.getIdentificationNumber();
-//					currentAddressCity = item.getPlaceOfIssue();
-//				}
-//				if (application.getLoanDetails().getVapDetails() != null){
-//					insurance = "Y";
-//				}
-//			}
-//			IDCardLD = IDCard;
-//			currentAddressCityLD = currentAddressCity;
-//			insuranceLD = insurance;
-//
-//			List prmtrsList = new ArrayList();
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.DATE));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.CHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
-////			prmtrsList.add(new SqlOutParameter("result", Types.VARCHAR));
-//
-//			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
-//				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
-//				callableStatement.setString(1, application.getApplicationId());
-//				callableStatement.setDate(2, application.getCreatedDate() != null ? new java.sql.Date(application.getCreatedDate().getTime()) : null);
-//				callableStatement.setString(3, application.getDynamicForm().get(0).getSaleAgentCode());
-//				callableStatement.setString(4, application.getQuickLead().getSourcingBranch());
-//				callableStatement.setString(5, application.getQuickLead().getSourcingBranch());
-//				callableStatement.setString(6, application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc());
-//				callableStatement.setString(7, application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
-//				callableStatement.setString(8, IDCardLD);
-//				callableStatement.setString(9, currentAddressCityLD);
-//				callableStatement.setString(10, insuranceLD);
-//				callableStatement.setString(11, application.getQuickLeadId());
-//				callableStatement.setString(12, application.getPartnerName());
-//				callableStatement.setDate(13, application.getLastModifiedDate() != null ? new java.sql.Date(application.getLastModifiedDate().getTime()) : null);
-////				callableStatement.registerOutParameter(3, Types.VARCHAR);
-//				return callableStatement;
-//			}, prmtrsList);
-//
-//			return "success";
-//		}catch (Exception e) {
-//			return e.toString();
-//		}
-//	}
-//
-//	public String insertToOracle_Return(String applicationId, String documentId, String commentType, String request, String reponse, String userName, Date createDate, Date updateDate){
-//		try {
-//			List prmtrsList = new ArrayList();
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.VARCHAR));
-//			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
-//			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
-//
-//			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
-//				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION_RETURN(?, ?, ?, ?, ?, ?, ?, ?)}");
-//				callableStatement.setString(1, applicationId);
-//				callableStatement.setString(2, documentId);
-//				callableStatement.setString(3, commentType);
-//				callableStatement.setString(4, request != null ? request : "");
-//				callableStatement.setString(5, reponse != null ? reponse : "");
-//				callableStatement.setString(6, userName != null ? userName : "");
-//				callableStatement.setDate(7, createDate != null ? new java.sql.Date(createDate.getTime()) : null);
-//				callableStatement.setDate(8, updateDate != null ? new java.sql.Date(updateDate.getTime()) : null );
-//				return callableStatement;
-//			}, prmtrsList);
-//
-//			return "success";
-//		}catch (Exception e) {
-//			return e.toString();
-//		}
-//	}
+	public String insertToOracle_App(Application application) {
+		try {
+			String IDCard = "";
+			String currentAddressCity = "";
+			String insurance = "N";
+			final String IDCardLD;
+			final String currentAddressCityLD;
+			final String insuranceLD;
+			for (Identification item: application.getApplicationInformation().getPersonalInformation().getIdentifications()) {
+				if (item.getIdentificationType().equals("Current National ID")){
+					IDCard = item.getIdentificationNumber();
+					currentAddressCity = item.getPlaceOfIssue();
+				}
+				if (application.getLoanDetails().getVapDetails() != null){
+					insurance = "Y";
+				}
+			}
+			IDCardLD = IDCard;
+			currentAddressCityLD = currentAddressCity;
+			insuranceLD = insurance;
+
+			List prmtrsList = new ArrayList();
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.DATE));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.CHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
+//			prmtrsList.add(new SqlOutParameter("result", Types.VARCHAR));
+
+			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
+				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
+				callableStatement.setString(1, application.getApplicationId());
+				callableStatement.setDate(2, application.getCreatedDate() != null ? new java.sql.Date(application.getCreatedDate().getTime()) : null);
+				callableStatement.setString(3, application.getDynamicForm().get(0).getSaleAgentCode());
+				callableStatement.setString(4, application.getQuickLead().getSourcingBranch());
+				callableStatement.setString(5, application.getQuickLead().getSourcingBranch());
+				callableStatement.setString(6, application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc());
+				callableStatement.setString(7, application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFullName());
+				callableStatement.setString(8, IDCardLD);
+				callableStatement.setString(9, currentAddressCityLD);
+				callableStatement.setString(10, insuranceLD);
+				callableStatement.setString(11, application.getQuickLeadId());
+				callableStatement.setString(12, application.getPartnerName());
+				callableStatement.setDate(13, application.getLastModifiedDate() != null ? new java.sql.Date(application.getLastModifiedDate().getTime()) : null);
+//				callableStatement.registerOutParameter(3, Types.VARCHAR);
+				return callableStatement;
+			}, prmtrsList);
+
+			return "success";
+		}catch (Exception e) {
+			return e.toString();
+		}
+	}
+
+	public String insertToOracle_Return(String applicationId, String documentId, String commentType, String request, String reponse, String userName, Date createDate, Date updateDate){
+		try {
+			List prmtrsList = new ArrayList();
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.VARCHAR));
+			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
+			prmtrsList.add(new SqlParameter(Types.TIMESTAMP));
+
+			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
+				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION_RETURN(?, ?, ?, ?, ?, ?, ?, ?)}");
+				callableStatement.setString(1, applicationId);
+				callableStatement.setString(2, documentId);
+				callableStatement.setString(3, commentType);
+				callableStatement.setString(4, request != null ? request : "");
+				callableStatement.setString(5, reponse != null ? reponse : "");
+				callableStatement.setString(6, userName != null ? userName : "");
+				callableStatement.setDate(7, createDate != null ? new java.sql.Date(createDate.getTime()) : null);
+				callableStatement.setDate(8, updateDate != null ? new java.sql.Date(updateDate.getTime()) : null );
+				return callableStatement;
+			}, prmtrsList);
+
+			return "success";
+		}catch (Exception e) {
+			return e.toString();
+		}
+	}
 
 //	private Map<String, Object> holdApp(Application app, JsonNode request, JsonNode token) {
 //		log.info("{}",request.path("body").toString());
