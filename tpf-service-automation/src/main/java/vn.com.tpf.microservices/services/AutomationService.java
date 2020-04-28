@@ -437,34 +437,6 @@ public class AutomationService {
 	}
 	//------------------------ END - QUICKLEAD  -------------------------------------
 
-	//------------------------ INITIATE_VERIFICATION  -------------------------------------
-	public Map<String, Object> Initiate_Verification(JsonNode request) throws Exception {
-		JsonNode body = request.path("body");
-		System.out.println(request);
-		Assert.notNull(request.get("body"), "no body");
-		List<InitiateVerificationDTO> initiateVerificationDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<InitiateVerificationDTO>>(){});
-
-		new Thread(() -> {
-			try {
-				runAutomation_Initiate_Verification(initiateVerificationDTOList);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}).start();
-
-		return response(0, body, initiateVerificationDTOList);
-	}
-
-	private void runAutomation_Initiate_Verification(List<InitiateVerificationDTO> initiateVerificationDTOList) throws Exception {
-		String browser = "chrome";
-		Map<String, Object> mapValue = DataInitial.getDataFrom_Initiate_Verification(initiateVerificationDTOList);
-
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Initiate_Verification","MOBILITY_FIELD");
-		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
-		workerThreadPool.submit(automationThreadService);
-	}
-	//------------------------ END - INITIATE_VERIFICATION  -------------------------------------
-
 	//------------------------ WAIVE_OFF_ALL  -------------------------------------
 	public Map<String, Object> Waive_Off_All(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");

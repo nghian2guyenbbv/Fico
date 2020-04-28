@@ -29,7 +29,6 @@ public class FieldInvestigationDTO {
     private String remarksDecisionFic;
     private String timeOfVisit;
     private String verificationDate;
-    private String statusField;
 
     private String userName;
     private String userAuto;

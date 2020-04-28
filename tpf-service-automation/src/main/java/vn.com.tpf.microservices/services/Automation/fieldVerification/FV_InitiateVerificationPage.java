@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.*;
+import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationDTO;
 import vn.com.tpf.microservices.models.FieldVerification.InitiateVerificationDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -120,7 +121,7 @@ public class FV_InitiateVerificationPage {
         _driver = driver;
     }
 
-    public void setData(InitiateVerificationDTO initiateVerificationDTO, String user) {
+    public void setData(FieldInvestigationDTO fieldInvestigationDTO, String user) {
         String stage = "";
 
         menuApplicationElement.click();
@@ -136,7 +137,7 @@ public class FV_InitiateVerificationPage {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
-        applicationNumberElement.sendKeys(initiateVerificationDTO.getAppId());
+        applicationNumberElement.sendKeys(fieldInvestigationDTO.getAppId());
         searchApplicationElement.click();
 
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -190,12 +191,12 @@ public class FV_InitiateVerificationPage {
 
         applicationAssignedNumberElement.clear();
 
-        applicationAssignedNumberElement.sendKeys(initiateVerificationDTO.getAppId());
+        applicationAssignedNumberElement.sendKeys(fieldInvestigationDTO.getAppId());
 
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + initiateVerificationDTO.getAppId() +"')]"));
+        WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + fieldInvestigationDTO.getAppId() +"')]"));
 
         applicationIdAssignedNumberElement.click();
 

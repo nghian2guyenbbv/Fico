@@ -169,8 +169,6 @@ public class RabbitMQService {
 				return response(message, payload, automationService.DE_ResponseQuery(request));
 			case "deSaleQueue":
 				return response(message, payload, automationService.DE_SaleQueue(request));
-			case "initiateVerification":
-				return response(message, payload, automationService.Initiate_Verification(request));
 			case "waiveOffAll":
 				return response(message, payload, automationService.Waive_Off_All(request));
 			case "fieldInvestigation":

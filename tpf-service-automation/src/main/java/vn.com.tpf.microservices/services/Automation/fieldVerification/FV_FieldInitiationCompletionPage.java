@@ -220,7 +220,8 @@ public class FV_FieldInitiationCompletionPage {
         await("tbFieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationEntryTable.size() > 0);
 
-        decisionInputElement.sendKeys(fieldList.getDecisionFic());
+//        decisionInputElement.sendKeys(fieldList.getDecisionFic());
+        decisionInputElement.sendKeys("Approve");
 
         await("decisionUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> decisionUlElement.isDisplayed());
@@ -239,6 +240,7 @@ public class FV_FieldInitiationCompletionPage {
                 .until(() -> reasonSelectElement.size() > 0);
 
         reasonInputElement.sendKeys(fieldList.getResonDecisionFic());
+
 
         await("reasonUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> reasonUlElement.isDisplayed());

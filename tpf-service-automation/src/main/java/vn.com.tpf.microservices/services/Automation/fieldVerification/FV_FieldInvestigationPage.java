@@ -29,6 +29,9 @@ import vn.com.tpf.microservices.utilities.*;
 public class FV_FieldInvestigationPage {
     private WebDriver _driver;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
+    private WebElement menuApplicationElement;
+
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Field Investigation Verification')]")
     @CacheLookup
     private WebElement fieldInvestigationVerificationElement;
@@ -142,6 +145,9 @@ public class FV_FieldInvestigationPage {
     public void setData(FieldInvestigationDTO fieldList, String downLoadFileURL) {
         String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+
+        menuApplicationElement.click();
+        fieldInvestigationVerificationElement.click();
         await("fieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fieldInvestigationEntryElement.isDisplayed());
 
@@ -249,9 +255,11 @@ public class FV_FieldInvestigationPage {
         System.out.println(stage + ": DONE");
         //========================
 
-        noOfAttemptsInput.sendKeys(fieldList.getNoOfAttempts());
+//        noOfAttemptsInput.sendKeys(fieldList.getNoOfAttempts());
+        noOfAttemptsInput.sendKeys("1");
 
-        verificationAgentInputElement.sendKeys(fieldList.getVerificationAgent());
+//        verificationAgentInputElement.sendKeys(fieldList.getVerificationAgent());
+        verificationAgentInputElement.sendKeys("TPF Agent");
 
         await("verificationAgentUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> verificationAgentUlElement.isDisplayed());
@@ -269,15 +277,16 @@ public class FV_FieldInvestigationPage {
             }
         }
 
-        resultDescriptionSelect.sendKeys(fieldList.getResultDecisionFiv());
+//        resultDescriptionSelect.sendKeys(fieldList.getResultDecisionFiv());
+        resultDescriptionSelect.sendKeys("Positive");
 
-        if ("PRE-APPROVED".equals(fieldList.getStatusField())){
-            remarksDescriptionTextArea.sendKeys(fieldList.getRemarksDecisionFiv());
+//        if ("PRE-APPROVED".equals(fieldList.getStatusField())){
+            if(!Objects.isNull(fieldList.getRemarksDecisionFiv())){
+                remarksDescriptionTextArea.sendKeys(fieldList.getRemarksDecisionFiv());
+            }
             timeOfVisitElement.sendKeys(fieldList.getTimeOfVisit());
             verificationDateElement.sendKeys(fieldList.getVerificationDate());
-        }
-
-        fieldList.getStatusField();
+//        }
 
         buttonSaveAndProceed.click();
 
