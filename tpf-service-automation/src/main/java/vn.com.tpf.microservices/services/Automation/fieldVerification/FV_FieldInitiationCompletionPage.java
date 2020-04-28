@@ -44,7 +44,7 @@ public class FV_FieldInitiationCompletionPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicationManagerForm1')]//input[@type='button']")
     private WebElement searchApplicationElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr//td")
     private List<WebElement> tdApplicationElement;
 
     @FindBy(how = How.ID, using = "showTasks")
@@ -86,11 +86,11 @@ public class FV_FieldInitiationCompletionPage {
     @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id = 'fieldInvestigationEntryTable']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbFieldInvestigationEntryTable;
 
@@ -157,7 +157,7 @@ public class FV_FieldInitiationCompletionPage {
         searchApplicationElement.click();
 
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdApplicationElement.size() > 0);
+                .until(() -> tdApplicationElement.size() > 2);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
@@ -186,6 +186,7 @@ public class FV_FieldInitiationCompletionPage {
 
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserOptionElement.size() > 0);
+
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
                 e.click();
@@ -211,14 +212,14 @@ public class FV_FieldInitiationCompletionPage {
         applicationAssignedNumberElement.sendKeys(fieldList.getAppId());
 
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 0);
+                .until(() -> tbApplicationAssignedElement.size() > 2);
 
         WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + fieldList.getAppId() + "')]"));
 
         applicationIdAssignedNumberElement.click();
 
         await("tbFieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbFieldInvestigationEntryTable.size() > 0);
+                .until(() -> tbFieldInvestigationEntryTable.size() > 2);
 
 //        decisionInputElement.sendKeys(fieldList.getDecisionFic());
         decisionInputElement.sendKeys("Approve");

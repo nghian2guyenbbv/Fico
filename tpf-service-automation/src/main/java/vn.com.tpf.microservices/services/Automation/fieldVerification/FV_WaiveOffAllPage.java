@@ -41,7 +41,7 @@ public class FV_WaiveOffAllPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicationManagerForm1')]//input[@type='button']")
     private WebElement searchApplicationElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr//td")
     private List<WebElement> tdApplicationElement;
 
     @FindBy(how = How.ID, using = "showTasks")
@@ -81,7 +81,7 @@ public class FV_WaiveOffAllPage {
     @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
@@ -128,14 +128,14 @@ public class FV_WaiveOffAllPage {
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Manager"));
 
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("applicationManagerFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
         applicationNumberElement.sendKeys(waiveOffAllDTO.getAppId());
         searchApplicationElement.click();
 
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdApplicationElement.size() > 0);
+                .until(() -> tdApplicationElement.size() > 2);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
@@ -164,6 +164,7 @@ public class FV_WaiveOffAllPage {
 
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserOptionElement.size() > 0);
+
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
                 e.click();
