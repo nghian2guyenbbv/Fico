@@ -275,7 +275,7 @@ public class DE_ReturnSaleQueuePage {
         applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
         await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 2);
+                .until(() -> tbApplicationAssignedElement.size() > 0);
 
         WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
 
