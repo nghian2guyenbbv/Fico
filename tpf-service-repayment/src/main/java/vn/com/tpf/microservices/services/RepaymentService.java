@@ -564,6 +564,16 @@ public class RepaymentService {
 				List<FicoCustomer> ficoLoanAcct = ficoCustomerDAO.findByLoanAccountNo(requestModel.getData().getLoan_account_no());
 
 				if (ficoLoanId != null && ficoLoanAcct.size() > 0){
+					if(ficoLoanId.getIdentificationNumber() != null && requestModel.getData().getIdentification_number() != null
+							&& !ficoLoanId.getIdentificationNumber().equals(requestModel.getData().getIdentification_number())){
+						responseModel.setRequest_id(requestModel.getRequest_id());
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(2);
+						responseModel.setMessage("Input identification number does not match loan");
+						return Map.of("status", 200, "data", responseModel);
+					}
+
 					ficoTransPay.setLoanId(requestModel.getData().getLoan_id());
 					ficoTransPay.setLoanAccountNo(requestModel.getData().getLoan_account_no());
 					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
