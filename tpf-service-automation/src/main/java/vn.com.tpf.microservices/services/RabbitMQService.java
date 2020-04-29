@@ -169,10 +169,10 @@ public class RabbitMQService {
 				return response(message, payload, automationService.DE_ResponseQuery(request));
 			case "deSaleQueue":
 				return response(message, payload, automationService.DE_SaleQueue(request));
-			case "waiveOffAll":
-				return response(message, payload, automationService.Waive_Off_All(request));
-			case "fieldInvestigation":
-				return response(message, payload, automationService.Field_Investigation(request));
+			case "waiveField":
+				return response(message, payload, automationService.Waive_Field(request));
+			case "submitField":
+				return response(message, payload, automationService.Submit_Field(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

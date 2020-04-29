@@ -1,4 +1,4 @@
-package vn.com.tpf.microservices.services.Automation.fieldVerification;
+package vn.com.tpf.microservices.services.Automation.autoField;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -10,7 +10,7 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
-import vn.com.tpf.microservices.models.FieldVerification.WaiveOffAllDTO;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -22,7 +22,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 
 @Getter
-public class FV_WaiveOffAllPage {
+public class FV_FieldVerificationPage {
     private WebDriver _driver;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
@@ -65,11 +65,7 @@ public class FV_WaiveOffAllPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
     private WebElement saveTaskElement;
 
-    @FindBy(how = How.ID, using = "holder")
-    @CacheLookup
-    private WebElement textSelectUserContainerElement;
-
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//span[contains(text(),'Applications')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
     @CacheLookup
     private WebElement applicationElement;
 
@@ -89,33 +85,48 @@ public class FV_WaiveOffAllPage {
     @CacheLookup
     private List<WebElement> tbFieldInvestigationInitiationElement;
 
-    @FindBy(how = How.ID, using = "waiveOffAll")
+    @FindBy(how = How.XPATH, using = "//button[contains(text(), 'Initiate Verification')]")
     @CacheLookup
-    private WebElement btnWaiveOffAllElement;
+    private WebElement btnInitiateVerificationElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//table[contains(@id,'fii_waiveOff')]")
+    @FindBy(how = How.XPATH, using = "//table[contains(@id, 'initiate_Verification')]")
     @CacheLookup
-    private WebElement tbFiiWaiveOffElement;
+    private WebElement tbVerificationTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//table[contains(@id,'fii_waiveOff')]//select[starts-with(@id, 'field_investigation_waiveOff_reasonCodeNO')]")
+    @FindBy(how = How.XPATH, using = "//table[contains(@id, 'initiate_Verification')]//select")
     @CacheLookup
-    private WebElement selectReasonCodeElement;
+    private WebElement selectVerificationTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@class,'modal-body')]//div[contains(@class,'modal-footer')]//button[contains(text(), 'Waive Off Verification')]")
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'initiateVerification')]//div[contains(@class,'modal-body')]//table[contains(@id, 'initiate_Verification')]//input[starts-with(@id, 'Text_field_investigation_entry_verification_agencyNO')]")
     @CacheLookup
-    private WebElement btnWaiveOffVerificationPopupElement;
+    private WebElement inputAgencyElement;
+
+    @FindBy(how = How.ID, using = "holder")
+    private WebElement textSelectUserContainerElement;
+
+    @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO0')]")
+    @CacheLookup
+    private List<WebElement> liAgencyElement;
+
+    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_field_investigation_entry_verification_agency')]")
+    @CacheLookup
+    private List<WebElement> textInputAgencyElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'initiateVerification')]//div[contains(@class,'modal-footer actionBtnDiv')]//button[contains(text(), 'Initiate Verification')]")
+    @CacheLookup
+    private WebElement btnInitiateVerificationPopupElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
 
-    public FV_WaiveOffAllPage(WebDriver driver) {
+    public FV_FieldVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
 
-    public void setData(WaiveOffAllDTO waiveOffAllDTO, String user) {
+    public void setData(SubmitFieldDTO submitFieldDTO, String user) {
         String stage = "";
 
         menuApplicationElement.click();
@@ -128,10 +139,10 @@ public class FV_WaiveOffAllPage {
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Manager"));
 
-        await("applicationManagerFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
-        applicationNumberElement.sendKeys(waiveOffAllDTO.getAppId());
+        applicationNumberElement.sendKeys(submitFieldDTO.getAppId());
         searchApplicationElement.click();
 
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -175,7 +186,7 @@ public class FV_WaiveOffAllPage {
         saveTaskElement.click();
         System.out.println(stage + ": DONE");
 
-        // ========== WAIVE OFF ALL =================
+        // ========== INITIATE VERIFICATION =================
 
         menuApplicationElement.click();
 
@@ -186,26 +197,44 @@ public class FV_WaiveOffAllPage {
 
         applicationAssignedNumberElement.clear();
 
-        applicationAssignedNumberElement.sendKeys(waiveOffAllDTO.getAppId());
+        applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + waiveOffAllDTO.getAppId() +"')]"));
+        WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + submitFieldDTO.getAppId() +"')]"));
 
         applicationIdAssignedNumberElement.click();
 
         await("tbFieldInvestigationInitiationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
 
-        btnWaiveOffAllElement.click();
+        btnInitiateVerificationElement.click();
 
-        await("tbFiiWaiveOffElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbFiiWaiveOffElement.isDisplayed());
+        await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbVerificationTypeElement.isDisplayed());
 
-        selectReasonCodeElement.sendKeys(waiveOffAllDTO.getReasonCode());
+        selectVerificationTypeElement.sendKeys("Residence Verification");
 
-        btnWaiveOffVerificationPopupElement.click();
+        await("inputAgencyElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> inputAgencyElement.isDisplayed());
+
+        inputAgencyElement.sendKeys("TPF Agency");
+
+        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectUserContainerElement.isDisplayed());
+
+        await("liAgencyElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> liAgencyElement.size() > 0);
+
+        for (WebElement e : liAgencyElement) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals("TPF Agency")) {
+                e.click();
+                break;
+            }
+        }
+
+        btnInitiateVerificationPopupElement.click();
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());

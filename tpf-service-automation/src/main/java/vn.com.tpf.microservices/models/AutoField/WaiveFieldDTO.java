@@ -1,9 +1,8 @@
-package vn.com.tpf.microservices.models.FieldVerification;
+package vn.com.tpf.microservices.models.AutoField;
 
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,7 +11,7 @@ import java.util.Date;
 @Data
 @Builder
 @Document(collection="automation_field_mobility")
-public class WaiveOffAllDTO {
+public class WaiveFieldDTO {
     private String appId;
     private String userName;
     private String userAuto;

@@ -3,12 +3,11 @@ package vn.com.tpf.microservices.utilities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
-import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationDTO;
-import vn.com.tpf.microservices.models.FieldVerification.InitiateVerificationDTO;
-import vn.com.tpf.microservices.models.FieldVerification.WaiveOffAllDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 
 import java.util.ArrayList;
@@ -717,21 +716,15 @@ public class DataInitial {
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Initiate_Verification(List<InitiateVerificationDTO> initiateVerificationDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_Waive_Field(List<WaiveFieldDTO> waiveFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
-        map.put("InitiateVerificationList", initiateVerificationDTOList);
+        map.put("WaiveFieldList", waiveFieldDTOList);
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Waive_Off_All(List<WaiveOffAllDTO> waiveOffAllDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_Submit_Field(List<SubmitFieldDTO> submitFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
-        map.put("WaiveOffAllList", waiveOffAllDTOList);
-        return map;
-    }
-
-    public static Map<String, Object> getDataFrom_Field_Investigation(List<FieldInvestigationDTO> fieldInvestigationDTOList) throws JsonProcessingException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("FieldInvestigationList", fieldInvestigationDTOList);
+        map.put("SubmitFieldList", submitFieldDTOList);
         return map;
     }
 }

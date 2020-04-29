@@ -4,7 +4,7 @@ spring:
   cloud:
     config:
 #      uri: http://192.168.0.203:8888
-      uri: http://10.131.23.30:8888
+      uri: http://10.131.31.202:8888
 ---
 spring:
   profiles: dev
