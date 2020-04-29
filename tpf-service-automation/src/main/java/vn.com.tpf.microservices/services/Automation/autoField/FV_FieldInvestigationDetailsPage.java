@@ -85,8 +85,7 @@ public class FV_FieldInvestigationDetailsPage {
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
-    @CacheLookup
+    @FindBy(how = How.XPATH, using = "//div[@id = 'fieldInvestigationEntryTable_wrapper']//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
     private List<WebElement> tbFieldInvestigationEntryTable;
 
     @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_decision-control-group']//div[@id = 'application_fi_verdict_decision_chzn']//div[@class = 'chzn-drop']//div[@class = 'chzn-search']//input[@type = 'text']")
@@ -226,7 +225,7 @@ public class FV_FieldInvestigationDetailsPage {
                 .until(() -> decisionSelectElement.size() > 0);
 
         for (WebElement e : decisionSelectElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getDecisionFic())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Approve")) {
                 e.click();
                 break;
             }

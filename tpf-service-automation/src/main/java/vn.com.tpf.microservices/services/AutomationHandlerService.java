@@ -4478,7 +4478,7 @@ public class AutomationHandlerService {
         Instant start = Instant.now();
         String stage = "";
         WaiveFieldDTO waiveFieldDTO = null;
-        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println("Auto - WAIVE FIELD" + ": START" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
@@ -4490,14 +4490,12 @@ public class AutomationHandlerService {
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
-            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
+            System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
             do {
                 try {
                     Instant startIn = Instant.now();
-
-                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0));
                     waiveFieldDTO = mongoTemplate.findOne(query, WaiveFieldDTO.class);
@@ -4518,6 +4516,7 @@ public class AutomationHandlerService {
 
                         stage = "HOME PAGE";
                         HomePage homePage = new HomePage(driver);
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========== APPLICATIONS =================
                         homePage.getMenuApplicationElement().click();
@@ -4526,6 +4525,7 @@ public class AutomationHandlerService {
                         stage = "WAIVE OFF ALL";
                         FV_WaiveFieldPage fv_WaiveFieldPage = new FV_WaiveFieldPage(driver);
                         fv_WaiveFieldPage.setData(waiveFieldDTO, accountDTO.getUserName().toLowerCase());
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
@@ -4542,6 +4542,7 @@ public class AutomationHandlerService {
                         responseModel.setAutomation_result("WAIVE FIELD PASS");
 
                         Utilities.captureScreenShot(driver);
+                        System.out.println("AUTO - WAIVE FIELD" + ": DONE - PASS" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
 
@@ -4559,6 +4560,7 @@ public class AutomationHandlerService {
                     WaiveFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
 
                     System.out.println(ex.getMessage());
+                    System.out.println("AUTO - WAIVE FIELD" + ": DONE - FIELD" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                 }
             } while (!Objects.isNull(waiveFieldDTO));
         } catch (Exception e) {
@@ -4574,6 +4576,8 @@ public class AutomationHandlerService {
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
+
+            System.out.println("AUTO - WAIVE FIELD" + ": DONE - FIELD" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
@@ -4584,6 +4588,7 @@ public class AutomationHandlerService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            System.out.println("AUTO - WAIVE FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         }
     }
     //------------------------ END WAIVE FIELD -----------------------------------------------------
@@ -4594,8 +4599,8 @@ public class AutomationHandlerService {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
-        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         SubmitFieldDTO submitFieldDTO = null;
+        System.out.println("Auto - SUBMIT FIELD" + ": START" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
@@ -4607,8 +4612,8 @@ public class AutomationHandlerService {
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
-            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
+            System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
             do {
                 try {
@@ -4636,7 +4641,7 @@ public class AutomationHandlerService {
 
                         stage = "HOME PAGE";
                         HomePage homePage = new HomePage(driver);
-                        System.out.println(stage + ": DONE");
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========== APPLICATIONS =================
                         homePage.getMenuApplicationElement().click();
@@ -4644,22 +4649,20 @@ public class AutomationHandlerService {
                         // ========== FIELD VERIFICATION =================
                         stage = "FIELD VERIFICATION";
                         FV_FieldVerificationPage fv_FieldVerificationPage = new FV_FieldVerificationPage(driver);
-                        fv_FieldVerificationPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase());
-                        System.out.println(stage + ": DONE");
+                        fv_FieldVerificationPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL, start);
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
-                        // ========== FIELD INVESTIGATION VERIFICATION =================
+                        /*// ========== FIELD INVESTIGATION VERIFICATION =================
                         stage = "FIELD INVESTIGATION VERIFICATION";
                         FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(driver);
                         fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL);
-                        System.out.println(stage + ": DONE");
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());*/
 
                         // ========== FIELD INVESTIGATION DETAILS =================
                         stage = "FIELD INVESTIGATION DETAILS";
                         FV_FieldInvestigationDetailsPage fv_FieldInvestigationDetailsPage = new FV_FieldInvestigationDetailsPage(driver);
                         fv_FieldInvestigationDetailsPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase());
-                        System.out.println(stage + ": DONE");
-
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + submitFieldDTO.getAppId() + " - User: " + submitFieldDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
@@ -4676,6 +4679,7 @@ public class AutomationHandlerService {
                         responseModel.setAutomation_result("SUBMIT_FIELD PASS");
 
                         Utilities.captureScreenShot(driver);
+                        System.out.println("Auto - SUBMIT FIELD" + ": FINISH - PASS" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
                     responseModel.setReference_id(submitFieldDTO.getReference_id());
@@ -4692,6 +4696,8 @@ public class AutomationHandlerService {
                     SubmitFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, SubmitFieldDTO.class);
 
                     System.out.println(ex.getMessage());
+
+                    System.out.println("Auto - SUBMIT FIELD" + ": FINISH - FAILED" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                 }
             } while (!Objects.isNull(submitFieldDTO));
         } catch (Exception e) {
@@ -4706,6 +4712,8 @@ public class AutomationHandlerService {
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
+
+            System.out.println("Auto - SUBMIT FIELD" + ": FINISH - FAILED" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
@@ -4716,6 +4724,7 @@ public class AutomationHandlerService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            System.out.println("Auto - SUBMIT FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         }
     }
     //------------------------ END SUBMIT FIELD -----------------------------------------------------

@@ -203,15 +203,17 @@ public class FV_WaiveFieldPage {
         await("tbFiiWaiveOffElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFiiWaiveOffElement.isDisplayed());
 
-        selectReasonCodeElement.sendKeys(waiveFieldDTO.getReasonCode());
+        selectReasonCodeElement.sendKeys("F.1.1 Bỏ qua bước FI");
 
         btnWaiveOffVerificationPopupElement.click();
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
-        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        btnMoveToNextStageElement.click();
+
+//        JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
+//        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));

@@ -14,6 +14,8 @@ import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -126,7 +128,7 @@ public class FV_FieldVerificationPage {
         _driver = driver;
     }
 
-    public void setData(SubmitFieldDTO submitFieldDTO, String user) {
+    public void setData(SubmitFieldDTO submitFieldDTO, String user, String downdloadFileURL, Instant start) {
         String stage = "";
 
         menuApplicationElement.click();
@@ -246,6 +248,12 @@ public class FV_FieldVerificationPage {
                 .until(_driver::getTitle, is("Application Grid"));
 
         Utilities.captureScreenShot(_driver);
+
+        // ========== FIELD INVESTIGATION VERIFICATION =================
+        stage = "FIELD INVESTIGATION VERIFICATION";
+        FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(_driver);
+        fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL);
+        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
     }
 }

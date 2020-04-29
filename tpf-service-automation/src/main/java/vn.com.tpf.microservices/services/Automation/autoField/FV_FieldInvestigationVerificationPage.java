@@ -277,7 +277,7 @@ public class FV_FieldInvestigationVerificationPage {
                 .until(() -> verificationAgentLiAndElement.size() > 0);
 
         for (WebElement e : verificationAgentLiElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getVerificationAgent())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("TPF Agent")) {
                 e.click();
                 break;
             }
@@ -290,7 +290,9 @@ public class FV_FieldInvestigationVerificationPage {
         if(!Objects.isNull(submitFieldDTO.getRemarksDecisionFiv())){
             remarksDescriptionTextArea.sendKeys(submitFieldDTO.getRemarksDecisionFiv());
         }
+        timeOfVisitElement.clear();
         timeOfVisitElement.sendKeys(submitFieldDTO.getTimeOfVisit());
+        verificationDateElement.clear();
         verificationDateElement.sendKeys(submitFieldDTO.getVerificationDate());
 //        }
 
