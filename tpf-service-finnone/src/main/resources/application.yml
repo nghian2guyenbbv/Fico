@@ -1,12 +1,12 @@
-#  spring:
-#   rabbitmq:
-#     host: 10.131.31.202
+  spring:
+   rabbitmq:
+     host: 10.131.31.202
 
-#  eureka:
-#    instance:
-#      hostname: 10.131.31.202
-#    client:
-#     serviceUrl:
-#       defaultZone:  http://10.131.31.202:8761/eureka
+  eureka:
+    instance:
+      hostname: 10.131.31.202
+    client:
+     serviceUrl:
+       defaultZone:  http://10.131.31.202:8761/eureka
   
      

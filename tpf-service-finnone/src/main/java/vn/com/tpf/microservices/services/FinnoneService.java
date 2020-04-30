@@ -24,21 +24,15 @@ public class FinnoneService {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-	
-	
-	 @Autowired
-     public JdbcTemplate jdbcTemplateFicocen;
-	
-	
+
+	@Autowired
+	public JdbcTemplate jdbcTemplateFicocen;
+
 	private JsonNode response(int status, JsonNode data) {
 		ObjectNode response = mapper.createObjectNode();
 		response.put("status", status).set("data", data);
 		return response;
 	}
-	
-	
-	
-
 
 	public JsonNode getReason(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();
@@ -64,9 +58,10 @@ public class FinnoneService {
 	}
 
 	public JsonNode getAppInfo(JsonNode request) {
-		
+
 		try {
-			String query = String.format("SELECT * FROM  V_APP_INFO WHERE APPLICATION_NUMBER = '%s'", request.path("body").path("data").path("appId").asText());
+			String query = String.format("SELECT * FROM  V_APP_INFO WHERE APPLICATION_NUMBER = '%s'",
+					request.path("body").path("data").path("appId").asText());
 			Object rowObjectNode = jdbcTemplateFicocen.queryForObject(query, new Object[] {}, (rs, rowNum) -> {
 				ObjectNode row = mapper.createObjectNode();
 				row.put("appId", rs.getString("APPLICATION_NUMBER"));
@@ -75,7 +70,7 @@ public class FinnoneService {
 //				System.out.println("STATUS");
 				row.put("stage", rs.getString("STAGE").toUpperCase().replace(" ", "_"));
 //				System.out.println("STAGE");
-				row.put("reasonCode", rs.getString("REASON_CODE"));				
+				row.put("reasonCode", rs.getString("REASON_CODE"));
 				row.put("reasonCodeValue", rs.getString("REASON_CODE_VALUE"));
 //				System.out.println("REASON_CODE");
 				row.put("reasonDetail", rs.getString("REASON_DETAIL"));
@@ -107,16 +102,48 @@ public class FinnoneService {
 				row.put("emi", rs.getDouble("EMI"));
 //				System.out.println("EMI");
 				row.put("userName", rs.getString("USER_NAME"));
-			
 				return row;
 			});
-
 			return response(200, mapper.convertValue(rowObjectNode, JsonNode.class));
-
 		} catch (Exception e) {
-
 			return response(500, mapper.createObjectNode().put("message", e.getMessage()));
+		}
+	}
 
+	public JsonNode getDataFields(JsonNode request) {
+		ObjectNode row = mapper.createObjectNode();
+		try {
+			String query = String.format("SELECT FN_GET_DATA_API_F1 ('%s') RESULT FROM DUAL",
+					request.path("body").path("appId").asText());
+			String rowObjectNode = jdbcTemplate.queryForObject(query, new Object[] {},
+					(rs, rowNum) -> rs.getString("RESULT"));
+			JsonNode rows = mapper.readTree(rowObjectNode);
+			if (rows == null) {
+				return response(499, mapper.createObjectNode().put("message", String.format("appId %s isn't in database Finnone",request.path("body").path("appId").asText() )));
+			}
+			row.put("appId", rows.path("appId").asText());
+			row.put("fullName", rows.path("custName").asText());
+			row.put("phone", rows.path("custPhone").asText());
+			row.put("dateOfBirth", rows.path("dob").asText());
+			row.put("sex", rows.path("gender").asText());
+			row.put("nationalId", rows.path("custID").asText());
+			row.put("bankCard", rows.path("bankCard").asText());
+			row.put("spouseName", rows.path("famiName").asText());
+			row.put("spouseIdCard", rows.path("famiID").asText());
+			row.put("spousePhone", rows.path("famiPhone").asText());
+			row.put("homeAddress", rows.path("homeAddr").asText());
+			row.put("cityCodeHome", rows.path("homeCity").asText());
+			row.put("districtCodeHome", rows.path("homeDist").asText());
+			row.put("homeCom", rows.path("compAddr").asText());
+			row.put("cityCodeCom", rows.path("compCity").asText());
+			row.put("districtCodeCom", rows.path("compDist").asText());
+			row.put("comName", rows.path("compName").asText());
+			row.put("position", rows.path("compPosi").asText());
+			row.put("appStatus", rows.path("appStatus").asText());
+			row.put("appStage", rows.path("appStage").asText());
+			return response(200, mapper.convertValue(rows, JsonNode.class));
+		} catch (Exception e) {
+			return response(500, mapper.createObjectNode().put("message", e.getMessage()));
 		}
 	}
 
