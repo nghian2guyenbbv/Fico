@@ -92,11 +92,10 @@ public class ConvertService {
 		}
 
 		try{
-            optional.put("reasonCancel", application.getReasonCancel());
+			optional.put("reasonCancel", application.getReasonCancel());
 			optional.put("createdBy", application.getUserName());
 		} catch (Exception e) {
 		}
-
 
 //		optional.put("isHolding", application.isHolding());
 
