@@ -58,12 +58,13 @@ public class Mobile4csService {
             fileRes.put(Response.REFERENCE_ID, UUID.randomUUID().toString());
             fileRes.put(Response.RESULT_CODE,dataSql.getInt("result"));
             fileRes.put("result_message",dataSql.getString("description"));
-            ObjectNode data = mapper.createObjectNode();
+           /* ObjectNode data = mapper.createObjectNode();*/
             String[] countLoan = dataSql.getString("description").split("\\s+");
-            if(!countLoan[3].equals("có")){
+            /*if(!countLoan[3].equals("có")){
                 data.put("hadLoan",countLoan[3]);
                 fileRes.set(Response.DATA,data);
-            }
+            }*/
+            fileRes.put("valid",Integer.parseInt(countLoan[3]));
 
             logStr+="SQL Data : " + sum;
             logStr+="Response: " + fileRes;
@@ -111,10 +112,10 @@ public class Mobile4csService {
                     data.put("typeOfLoan ",dataLoan.getString("loanType"));
                     data.put("loanAccountNumber  ",dataLoan.getString("loanId"));
                     data.put("productSchemaName",dataLoan.getString("loanProd"));
-                    data.put("totalLoanAmount",dataLoan.getString("loanAmount"));
-                    data.put("remainingPrincipal",dataLoan.getString("loanRemain"));
+                    data.put("totalLoanAmount",dataLoan.getLong("loanAmount"));
+                    data.put("remainingPrincipal",dataLoan.getLong("loanRemain"));
                     data.put("loanStatus",dataLoan.getString("loanStatus"));
-                    data.put("daysPastDue",dataLoan.getString("loanDPD"));
+                    data.put("daysPastDue",dataLoan.getInt("loanDPD"));
                     dataArrayNode.add(data);
                 }
             }
