@@ -82,11 +82,22 @@ public class MobilityController {
 	}
 	
 	@PostMapping("/mobility/returnQueue")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-smartnet')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-mobility')")
 	public ResponseEntity<?> returnQueue(@RequestBody ObjectNode body) throws Exception {
 		body.put("reference_id", UUID.randomUUID().toString());
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "returnQueue");
+		request.put("body", body);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-mobility", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+	
+	@PostMapping("/mobility/createField")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-mobility')")
+	public ResponseEntity<?> createField(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "createField");
 		request.put("body", body);
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-mobility", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
