@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AmqpService extends AmqpAppender {
 
-	public AmqpService() {
-		this.setExchangeType("direct");
-		this.setExchangeName("");
-	}
+    public AmqpService() {
+        this.setExchangeType("direct");
+        this.setExchangeName("");
+    }
 
 }
