@@ -27,10 +27,7 @@ import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.models.ResponseAutomationModel;
 import vn.com.tpf.microservices.services.Automation.*;
-import vn.com.tpf.microservices.services.Automation.autoField.FV_FieldInvestigationDetailsPage;
-import vn.com.tpf.microservices.services.Automation.autoField.FV_FieldInvestigationVerificationPage;
-import vn.com.tpf.microservices.services.Automation.autoField.FV_FieldVerificationPage;
-import vn.com.tpf.microservices.services.Automation.autoField.FV_WaiveFieldPage;
+import vn.com.tpf.microservices.services.Automation.autoField.*;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
@@ -4244,7 +4241,7 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            await("Lead Page timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Lead Page timeout").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
             leadsPage.getSpanAllNotifyElement().click();
@@ -4645,6 +4642,12 @@ public class AutomationHandlerService {
 
                         // ========== APPLICATIONS =================
                         homePage.getMenuApplicationElement().click();
+
+                        // ========== APPLICATIONS MANAGER =================
+                        /*stage = "APPLICATIONS MANAGER";
+                        FV_ApplicationManagerPage fv_ApplicationManagerPage = new FV_ApplicationManagerPage(driver);
+                        fv_ApplicationManagerPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase(), start);
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());*/
 
                         // ========== FIELD VERIFICATION =================
                         stage = "FIELD VERIFICATION";

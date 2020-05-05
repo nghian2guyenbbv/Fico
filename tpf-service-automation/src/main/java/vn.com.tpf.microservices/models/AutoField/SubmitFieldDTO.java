@@ -40,4 +40,6 @@ public class SubmitFieldDTO {
     private String reference_id;
     private String project;
     private String transaction_id;
+
+    private String stageApplication;
 }

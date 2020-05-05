@@ -331,9 +331,15 @@ public class AutomationService {
 
 	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws Exception {
 		String browser = "chrome";
+		String projectJson = deResponseQueryDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
+		AutomationThreadService automationThreadService = null;
+		if(projectJson.equals("smartnet")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
+		}else if(projectJson.equals("mobility")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
+		}
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -359,9 +365,15 @@ public class AutomationService {
 
 	private void runAutomationDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws Exception {
 		String browser = "chrome";
+		String projectJson = deSaleQueueDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
+		AutomationThreadService automationThreadService = null;
+		if(projectJson.equals("smartnet")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
+		}else if(projectJson.equals("mobility")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","MOBILITY_FIELD");
+		}
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -486,7 +498,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Submit_Field(submitFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY_FIELDS");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY_FIELD");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
