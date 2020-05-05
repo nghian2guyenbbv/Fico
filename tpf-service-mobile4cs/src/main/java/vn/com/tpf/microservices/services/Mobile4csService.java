@@ -213,11 +213,12 @@ public class Mobile4csService {
             if(resul_code.equals("0")){
                 fileRes.put(Response.RESULT_CODE, ResultData.SUCCESS.getResultCode());
                 fileRes.put(Response.RESULT_MESSAGE, ResultData.SUCCESS.getResultMessage());
+                log.info("Data: " + response.path("data").asText());
             }else{
                 fileRes.put(Response.RESULT_CODE, ResultData.FAIL.getResultCode());
                 fileRes.put(Response.RESULT_MESSAGE, ResultData.FAIL.getResultMessage());
+                log.info("Message: " + response.path("message").asText());
             }
-            log.info(response.path("data").asText());
         } catch (Exception e) {
             log.info("Error: " + e);
         }
