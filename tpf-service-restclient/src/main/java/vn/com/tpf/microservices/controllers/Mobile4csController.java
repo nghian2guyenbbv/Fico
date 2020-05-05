@@ -61,4 +61,15 @@ public class Mobile4csController {
         ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-mobile4cs", request);
         return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
     }
+
+    @PostMapping("/mobile4cs/sendSms")
+    @PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-mobile4cs')")
+    public ResponseEntity<?> sendSms(@RequestHeader("Authorization") String token,@RequestBody ObjectNode body) throws Exception {
+        Map<String, Object> request = new HashMap<>();
+        request.put("func", "sendSms");
+        request.put("token", token);
+        request.put("body", body);
+        ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-mobile4cs", request);
+        return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+    }
 }

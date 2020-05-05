@@ -12,21 +12,21 @@ import org.springframework.web.client.RestTemplate;
 @EnableDiscoveryClient
 public class Application {
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
 
-	@Value("${spring.rabbitmq.app-id}")
-	private String appId;
+    @Value("${spring.rabbitmq.app-id}")
+    private String appId;
 
-	@Bean
-	public Queue queue() {
-		return new Queue(appId, true, false, false);
-	}
+    @Bean
+    public Queue queue() {
+        return new Queue(appId, true, false, false);
+    }
 
-	@Bean
-	public RestTemplate restTemplate() {
-		return new RestTemplate();
-	}
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
 }
