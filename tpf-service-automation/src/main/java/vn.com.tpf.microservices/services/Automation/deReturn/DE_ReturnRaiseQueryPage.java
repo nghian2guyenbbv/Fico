@@ -48,7 +48,7 @@ public class DE_ReturnRaiseQueryPage {
     @CacheLookup
     private WebElement searchApplicationElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='queries_to_be_responded']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='queries_to_be_responded']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tdResponseQueryElement;
 
@@ -56,7 +56,7 @@ public class DE_ReturnRaiseQueryPage {
     @CacheLookup
     private WebElement idRowResponseQueryElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='response_grid_table']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='response_grid_table']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbDivResponseQueryElement;
 
@@ -94,26 +94,26 @@ public class DE_ReturnRaiseQueryPage {
     @SneakyThrows
     public void setData(DEResponseQueryDTO deResponseQueryDTO, String downLoadFileURL) {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("responseQueryFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> responseQueryFormElement.isDisplayed());
 
         applicationNumberElement.clear();
         applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdResponseQueryElement.size() > 0);
+        await("tdResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tdResponseQueryElement.size() > 2);
 
         idRowResponseQueryElement.click();
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbDivResponseQueryElement.size() > 0);
+        await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 2);
 
 
         textSeachResponseQueryElement.clear();
         textSeachResponseQueryElement.sendKeys("T_RETURN");
         idRowCalculationElement.click();
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbDivResponseQueryElement.size() > 0);
+        await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 2);
 
         textResponseElement.clear();
         textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());

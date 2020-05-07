@@ -1,33 +1,42 @@
-package vn.com.tpf.microservices.services.Automation.fieldVerification;
+package vn.com.tpf.microservices.services.Automation.autoField;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.*;
-
-import static org.awaitility.Awaitility.*;
+import org.openqa.selenium.support.CacheLookup;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.How;
+import org.openqa.selenium.support.PageFactory;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldAttachmentDTO;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.utilities.Constant;
+import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.*;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationAttachmentDTO;
-import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationDTO;
-import vn.com.tpf.microservices.utilities.*;
+import static org.awaitility.Awaitility.await;
 
 
 @Getter
-public class FV_FieldInvestigationPage {
+public class FV_FieldInvestigationVerificationPage {
     private WebDriver _driver;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
+    private WebElement menuApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Field Investigation Verification')]")
     @CacheLookup
@@ -133,23 +142,26 @@ public class FV_FieldInvestigationPage {
     @CacheLookup
     private WebElement verificationDateElement;
 
-    public FV_FieldInvestigationPage(WebDriver driver) {
+    public FV_FieldInvestigationVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
 
     @SneakyThrows
-    public void setData(FieldInvestigationDTO fieldList, String downLoadFileURL) {
+    public void setData(SubmitFieldDTO submitFieldDTO, String downLoadFileURL) {
         String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+
+        menuApplicationElement.click();
+        fieldInvestigationVerificationElement.click();
         await("fieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fieldInvestigationEntryElement.isDisplayed());
 
         appIdSearchInput.clear();
-        appIdSearchInput.sendKeys(fieldList.getAppId());
+        appIdSearchInput.sendKeys(submitFieldDTO.getAppId());
 
         if(fieldInvestigationEntryTable.size()!=0) {
-            List<WebElement> residenceVerificationTds =_driver.findElements(new By.ByXPath("//table[@id='fieldInvestigationEntryTable']//tbody//tr//td[3][contains(text(),'" + fieldList.getAppId() + "')]"));
+            List<WebElement> residenceVerificationTds =_driver.findElements(new By.ByXPath("//table[@id='fieldInvestigationEntryTable']//tbody//tr//td[3][contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
             await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> residenceVerificationTds.size() > 0);
             if (residenceVerificationTds.size()!=0){
@@ -160,10 +172,10 @@ public class FV_FieldInvestigationPage {
         await("fieldVerificationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fieldVerificationElement.isDisplayed());
 
-        WebElement radioPhoneConfirmedElement = _driver.findElement(new By.ByXPath("//div[@id = 'genericForm_Residence_Verification-field-form']//input[@value = '" + fieldList.getPhoneConfirmed() + "']"));
+        WebElement radioPhoneConfirmedElement = _driver.findElement(new By.ByXPath("//div[@id = 'genericForm_Residence_Verification-field-form']//input[@value = '" + submitFieldDTO.getPhoneConfirmed() + "']"));
         radioPhoneConfirmedElement.click();
 
-        resultHomeVisitInput.sendKeys(fieldList.getResultHomeVisit());
+        resultHomeVisitInput.sendKeys(submitFieldDTO.getResultHomeVisit());
 
         await("resultHomeVisitUl displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultHomeVisitUl.isDisplayed());
@@ -172,13 +184,13 @@ public class FV_FieldInvestigationPage {
                 .until(() -> resultHomeVisitSelect.size() > 0);
 
         for (WebElement e : resultHomeVisitSelect) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(fieldList.getResultHomeVisit())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResultHomeVisit())) {
                 e.click();
                 break;
             }
         }
 
-        resultOfficeVisitInput.sendKeys(fieldList.getResultOfficeVisit());
+        resultOfficeVisitInput.sendKeys(submitFieldDTO.getResultOfficeVisit());
 
         await("resultOfficeVisitUl displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultOfficeVisitUl.isDisplayed());
@@ -187,13 +199,13 @@ public class FV_FieldInvestigationPage {
                 .until(() -> resultOfficeVisitSelect.size() > 0);
 
         for (WebElement e : resultOfficeVisitSelect) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(fieldList.getResultOfficeVisit())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResultOfficeVisit())) {
                 e.click();
                 break;
             }
         }
 
-        resultHomeVisit2Input.sendKeys(fieldList.getResult2ndHomeVisit());
+        resultHomeVisit2Input.sendKeys(submitFieldDTO.getResult2ndHomeVisit());
 
         await("resultHomeVisit2Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultHomeVisit2Ul.isDisplayed());
@@ -202,7 +214,7 @@ public class FV_FieldInvestigationPage {
                 .until(() -> resultHomeVisit2Select.size() > 0);
 
         for (WebElement e : resultHomeVisit2Select) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(fieldList.getResult2ndHomeVisit())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResult2ndHomeVisit())) {
                 e.click();
                 break;
             }
@@ -213,7 +225,7 @@ public class FV_FieldInvestigationPage {
         int i = 0;
         stage = "UPLOAD FILE";
         System.out.println(stage + ": START");
-        for (FieldInvestigationAttachmentDTO attachmentFileList : fieldList.getAttachmentField()) {
+        for (SubmitFieldAttachmentDTO attachmentFileList : submitFieldDTO.getAttachmentField()) {
             attachmentsButtonUploadA.click();
 
             Thread.sleep(1000);
@@ -249,9 +261,11 @@ public class FV_FieldInvestigationPage {
         System.out.println(stage + ": DONE");
         //========================
 
-        noOfAttemptsInput.sendKeys(fieldList.getNoOfAttempts());
+//        noOfAttemptsInput.sendKeys(fieldList.getNoOfAttempts());
+        noOfAttemptsInput.sendKeys("1");
 
-        verificationAgentInputElement.sendKeys(fieldList.getVerificationAgent());
+//        verificationAgentInputElement.sendKeys(fieldList.getVerificationAgent());
+        verificationAgentInputElement.sendKeys("TPF Agent");
 
         await("verificationAgentUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> verificationAgentUlElement.isDisplayed());
@@ -263,21 +277,24 @@ public class FV_FieldInvestigationPage {
                 .until(() -> verificationAgentLiAndElement.size() > 0);
 
         for (WebElement e : verificationAgentLiElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(fieldList.getVerificationAgent())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("TPF Agent")) {
                 e.click();
                 break;
             }
         }
 
-        resultDescriptionSelect.sendKeys(fieldList.getResultDecisionFiv());
+//        resultDescriptionSelect.sendKeys(fieldList.getResultDecisionFiv());
+        resultDescriptionSelect.sendKeys("Positive");
 
-        if ("PRE-APPROVED".equals(fieldList.getStatusField())){
-            remarksDescriptionTextArea.sendKeys(fieldList.getRemarksDecisionFiv());
-            timeOfVisitElement.sendKeys(fieldList.getTimeOfVisit());
-            verificationDateElement.sendKeys(fieldList.getVerificationDate());
+//        if ("PRE-APPROVED".equals(fieldList.getStatusField())){
+        if(!Objects.isNull(submitFieldDTO.getRemarksDecisionFiv())){
+            remarksDescriptionTextArea.sendKeys(submitFieldDTO.getRemarksDecisionFiv());
         }
-
-        fieldList.getStatusField();
+        timeOfVisitElement.clear();
+        timeOfVisitElement.sendKeys(submitFieldDTO.getTimeOfVisit());
+        verificationDateElement.clear();
+        verificationDateElement.sendKeys(submitFieldDTO.getVerificationDate());
+//        }
 
         buttonSaveAndProceed.click();
 

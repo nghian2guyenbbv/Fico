@@ -1,19 +1,16 @@
-package vn.com.tpf.microservices.services.Automation.fieldVerification;
+package vn.com.tpf.microservices.services.Automation.autoField;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.LocalFileDetector;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
-import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationDTO;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -25,7 +22,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 
 @Getter
-public class FV_FieldInitiationCompletionPage {
+public class FV_FieldInvestigationDetailsPage {
     private WebDriver _driver;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
@@ -44,7 +41,7 @@ public class FV_FieldInitiationCompletionPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicationManagerForm1')]//input[@type='button']")
     private WebElement searchApplicationElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr//td")
     private List<WebElement> tdApplicationElement;
 
     @FindBy(how = How.ID, using = "showTasks")
@@ -72,8 +69,6 @@ public class FV_FieldInitiationCompletionPage {
     @CacheLookup
     private WebElement textSelectUserContainerElement;
 
-
-
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
     @CacheLookup
     private WebElement applicationElement;
@@ -86,12 +81,11 @@ public class FV_FieldInitiationCompletionPage {
     @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id = 'fieldInvestigationEntryTable']//tbody//tr")
-    @CacheLookup
+    @FindBy(how = How.XPATH, using = "//div[@id = 'fieldInvestigationEntryTable_wrapper']//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
     private List<WebElement> tbFieldInvestigationEntryTable;
 
     @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_decision-control-group']//div[@id = 'application_fi_verdict_decision_chzn']//div[@class = 'chzn-drop']//div[@class = 'chzn-search']//input[@type = 'text']")
@@ -131,13 +125,13 @@ public class FV_FieldInitiationCompletionPage {
     private WebElement btnMoveToNextStageElement;
 
 
-    public FV_FieldInitiationCompletionPage(WebDriver driver) {
+    public FV_FieldInvestigationDetailsPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
 
     @SneakyThrows
-    public void setData(FieldInvestigationDTO fieldList, String user) {
+    public void setData(SubmitFieldDTO submitFieldDTO, String user) {
         String stage = "";
 
         menuApplicationElement.click();
@@ -153,11 +147,11 @@ public class FV_FieldInitiationCompletionPage {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
-        applicationNumberElement.sendKeys(fieldList.getAppId());
+        applicationNumberElement.sendKeys(submitFieldDTO.getAppId());
         searchApplicationElement.click();
 
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdApplicationElement.size() > 0);
+                .until(() -> tdApplicationElement.size() > 2);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
@@ -186,6 +180,7 @@ public class FV_FieldInitiationCompletionPage {
 
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserOptionElement.size() > 0);
+
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
                 e.click();
@@ -208,19 +203,20 @@ public class FV_FieldInitiationCompletionPage {
 
         applicationAssignedNumberElement.clear();
 
-        applicationAssignedNumberElement.sendKeys(fieldList.getAppId());
+        applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 0);
+                .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + fieldList.getAppId() + "')]"));
+        WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
 
         applicationIdAssignedNumberElement.click();
 
         await("tbFieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbFieldInvestigationEntryTable.size() > 0);
+                .until(() -> tbFieldInvestigationEntryTable.size() > 2);
 
-        decisionInputElement.sendKeys(fieldList.getDecisionFic());
+//        decisionInputElement.sendKeys(fieldList.getDecisionFic());
+        decisionInputElement.sendKeys("Approve");
 
         await("decisionUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> decisionUlElement.isDisplayed());
@@ -229,7 +225,7 @@ public class FV_FieldInitiationCompletionPage {
                 .until(() -> decisionSelectElement.size() > 0);
 
         for (WebElement e : decisionSelectElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(fieldList.getDecisionFic())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Approve")) {
                 e.click();
                 break;
             }
@@ -238,7 +234,8 @@ public class FV_FieldInitiationCompletionPage {
         await("Reason Select loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> reasonSelectElement.size() > 0);
 
-        reasonInputElement.sendKeys(fieldList.getResonDecisionFic());
+        reasonInputElement.sendKeys(submitFieldDTO.getResonDecisionFic());
+
 
         await("reasonUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> reasonUlElement.isDisplayed());
@@ -247,14 +244,14 @@ public class FV_FieldInitiationCompletionPage {
                 .until(() -> reasonSelectElement.size() > 0);
 
         for (WebElement e : reasonSelectElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(fieldList.getResonDecisionFic())) {
+            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResonDecisionFic())) {
                 e.click();
                 break;
             }
         }
 
-        if(!Objects.isNull(fieldList.getRemarksDecisionFic())){
-            decisionCommentsElement.sendKeys(fieldList.getRemarksDecisionFic());
+        if(!Objects.isNull(submitFieldDTO.getRemarksDecisionFic())){
+            decisionCommentsElement.sendKeys(submitFieldDTO.getRemarksDecisionFic());
         }
 
         btnSaveDecisionElement.click();

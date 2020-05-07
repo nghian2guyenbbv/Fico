@@ -8,17 +8,14 @@ import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
-import vn.com.tpf.microservices.models.FieldVerification.FieldInvestigationDTO;
-import vn.com.tpf.microservices.models.FieldVerification.InitiateVerificationDTO;
-import vn.com.tpf.microservices.models.FieldVerification.WaiveOffAllDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.DataInitial;
@@ -334,9 +331,15 @@ public class AutomationService {
 
 	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws Exception {
 		String browser = "chrome";
+		String projectJson = deResponseQueryDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
+		AutomationThreadService automationThreadService = null;
+		if(projectJson.equals("smartnet")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
+		}else if(projectJson.equals("mobility")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
+		}
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -362,9 +365,15 @@ public class AutomationService {
 
 	private void runAutomationDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws Exception {
 		String browser = "chrome";
+		String projectJson = deSaleQueueDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
+		AutomationThreadService automationThreadService = null;
+		if(projectJson.equals("smartnet")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
+		}else if(projectJson.equals("mobility")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","MOBILITY_FIELD");
+		}
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -437,88 +446,64 @@ public class AutomationService {
 	}
 	//------------------------ END - QUICKLEAD  -------------------------------------
 
-	//------------------------ INITIATE_VERIFICATION  -------------------------------------
-	public Map<String, Object> Initiate_Verification(JsonNode request) throws Exception {
+	//------------------------ WAIVE_FIELD  --------------------------------------
+	public Map<String, Object> Waive_Field(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-		List<InitiateVerificationDTO> initiateVerificationDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<InitiateVerificationDTO>>(){});
+		List<WaiveFieldDTO> waiveFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveFieldDTO>>(){});
 
 		new Thread(() -> {
 			try {
-				runAutomation_Initiate_Verification(initiateVerificationDTOList);
+				runAutomation_Waive_Field(waiveFieldDTOList);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}).start();
 
-		return response(0, body, initiateVerificationDTOList);
+		return response(0, body, waiveFieldDTOList);
 	}
 
-	private void runAutomation_Initiate_Verification(List<InitiateVerificationDTO> initiateVerificationDTOList) throws Exception {
+	private void runAutomation_Waive_Field(List<WaiveFieldDTO> waiveFieldDTOList) throws Exception {
 		String browser = "chrome";
-		Map<String, Object> mapValue = DataInitial.getDataFrom_Initiate_Verification(initiateVerificationDTOList);
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Initiate_Verification","MOBILITY_FIELD");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY_FIELD");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
-	//------------------------ END - INITIATE_VERIFICATION  -------------------------------------
 
-	//------------------------ WAIVE_OFF_ALL  -------------------------------------
-	public Map<String, Object> Waive_Off_All(JsonNode request) throws Exception {
+	//------------------------ END - WAIVE_FIELD  ----------------------------------
+
+	//------------------------ SUBMIT_FIELD  -------------------------------------
+
+	public Map<String, Object> Submit_Field(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
-		List<WaiveOffAllDTO> waiveOffAllDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveOffAllDTO>>(){});
+		List<SubmitFieldDTO> submitFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<SubmitFieldDTO>>(){});
 
 		new Thread(() -> {
 			try {
-				runAutomation_Waive_Off_All(waiveOffAllDTOList);
+				runAutomation_Submit_Field(submitFieldDTOList);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}).start();
 
-		return response(0, body, waiveOffAllDTOList);
+		return response(0, body, submitFieldDTOList);
 	}
 
-	private void runAutomation_Waive_Off_All(List<WaiveOffAllDTO> waiveOffAllDTOList) throws Exception {
+	private void runAutomation_Submit_Field(List<SubmitFieldDTO> submitFieldDTOList) throws Exception {
 		String browser = "chrome";
-		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Off_All(waiveOffAllDTOList);
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Submit_Field(submitFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Off_All","MOBILITY_FIELD");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY_FIELD");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
-	//------------------------ END - WAIVE_OFF_ALL  -------------------------------------
 
-	//------------------------ FIELD_INVESTIGATION  -------------------------------------
-	public Map<String, Object> Field_Investigation(JsonNode request) throws Exception {
-		JsonNode body = request.path("body");
-		System.out.println(request);
-		Assert.notNull(request.get("body"), "no body");
-		List<FieldInvestigationDTO> fieldInvestigationDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<FieldInvestigationDTO>>(){});
+	//------------------------ END - SUBMIT_FIELD  -------------------------------
 
-		new Thread(() -> {
-			try {
-				runAutomation_Field_Investigation(fieldInvestigationDTOList);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}).start();
-
-		return response(0, body, fieldInvestigationDTOList);
-	}
-
-	private void runAutomation_Field_Investigation(List<FieldInvestigationDTO> fieldInvestigationDTOList) throws Exception {
-		String browser = "chrome";
-		Map<String, Object> mapValue = DataInitial.getDataFrom_Field_Investigation(fieldInvestigationDTOList);
-
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Field_Investigation","MOBILITY_FIELD");
-		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
-		workerThreadPool.submit(automationThreadService);
-	}
-	//------------------------ END - Field_Investigation  -------------------------------------
 	//------------------------ END - MOBILITY - FUNCTION -----------------------------------------
 }
