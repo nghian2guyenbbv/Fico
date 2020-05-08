@@ -1,8 +1,10 @@
 package vn.com.tpf.microservices.dao;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -10,9 +12,13 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.Map;
 
+@Component
 public class Mobiles4csDAO {
 
-    public String getStringData(JdbcTemplate jdbcTemplate, String function, Map<String, String> param) {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public String getStringData(String function, Map<String, String> param) {
         SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName(function);
         MapSqlParameterSource paramMap = new MapSqlParameterSource();
         param.forEach((k, v) -> {
@@ -21,7 +27,7 @@ public class Mobiles4csDAO {
         return call.executeFunction(String.class, paramMap);
     }
 
-    public Clob getClobData(JdbcTemplate jdbcTemplate, String function, Map<String, String> param) {
+    public Clob getClobData(String function, Map<String, String> param) {
         SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName(function);
         MapSqlParameterSource paramMap = new MapSqlParameterSource();
         param.forEach((k, v) -> {
