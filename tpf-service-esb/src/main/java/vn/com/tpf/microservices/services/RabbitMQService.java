@@ -34,7 +34,7 @@ public class RabbitMQService {
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
+		rabbitTemplate.setReplyTimeout(60000);
 	}
 
 	public void send(String appId, Object object) throws Exception {
