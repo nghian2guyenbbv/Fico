@@ -195,18 +195,18 @@ public class Mobile4csService {
             responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
             responseModel.setResult_message(ResultData.SUCCESS.getResultMessage());
             ObjectNode data = mapper.createObjectNode();
-            data.put(" fullName", dataSql.getString("fullName"));
-            data.put(" dateOfBirth", dataSql.getString("DOB"));
+            data.put("fullName", dataSql.getString("fullName"));
+            data.put("dateOfBirth", dataSql.getString("DOB"));
             data.put(" phoneNumber", getStringFromJsonArray(dataSql.getJSONArray("phoneNo")));
-            data.put(" idCardNumber", dataSql.getString("idCard"));
-            data.put(" currentAddress", dataSql.getString("curAdd"));
-            data.put(" permanentAddress", dataSql.getString("perAdd"));
-            data.put(" companyName", dataSql.getString("comName").toString());
-            data.put(" workingAddress", dataSql.getString("perAdd"));
-            data.put(" workingPhoneNumber", "telePhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("telePhone")) + "mobiPhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("mobiPhone")));
-            data.put(" referencePhoneNumber", getStringFromJsonArray(dataSql.getJSONArray("refPhone")));
-            data.put(" emailAddress", dataSql.getString("email"));
-            data.put(" zaloAddress", dataSql.getString("zalo"));
+            data.put("idCardNumber", dataSql.getString("idCard"));
+            data.put("currentAddress", dataSql.getString("curAdd"));
+            data.put("permanentAddress", dataSql.getString("perAdd"));
+            data.put("companyName", dataSql.getString("comName"));
+            data.put("workingAddress", getStringFromJsonArray(dataSql.getJSONArray("comAdd")));
+            data.put("workingPhoneNumber", "telePhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("telePhone")) + "mobiPhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("mobiPhone")));
+            data.put("referencePhoneNumber", getStringFromJsonArray(dataSql.getJSONArray("refPhone")));
+            data.put("emailAddress", dataSql.getString("email"));
+            data.put("zaloAddress", dataSql.getString("zalo"));
 
             responseModel.setData(data);
         } catch (Exception e) {
