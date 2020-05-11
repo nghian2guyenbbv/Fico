@@ -81,11 +81,11 @@ public class Mobile4csService {
             String dataClob = mobiles4csDAO.handleClob(clob);
             JSONArray parseDataClob = new JSONArray(dataClob);
 
-            responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
-
             if (parseDataClob.isEmpty()) {
-                responseModel.setResult_message("Không có khoảng vay nào");
+                responseModel.setResult_code(ResultData.DATAEMPTY.getResultCode());
+                responseModel.setResult_message(ResultData.DATAEMPTY.getResultMessage());
             } else {
+                responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
                 responseModel.setResult_message("Có " + parseDataClob.length() + " khoảng vay");
                 ArrayNode dataArrayNode = mapper.createArrayNode();
                 for (Object o : parseDataClob) {
@@ -133,9 +133,13 @@ public class Mobile4csService {
             String sum = mobiles4csDAO.getStringData("FN_DETAIL_INQUIRY_MOBILE4CS", sqlParam);
             JSONObject dataSql = new JSONObject(sum);
             ObjectNode data = mapper.createObjectNode();
-            responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
-            responseModel.setResult_message(ResultData.SUCCESS.getResultMessage());
-            if (!dataSql.isEmpty()) {
+
+            if (dataSql.isEmpty()) {
+                responseModel.setResult_code(ResultData.DATAEMPTY.getResultCode());
+                responseModel.setResult_message(ResultData.DATAEMPTY.getResultMessage());
+            }else{
+                responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
+                responseModel.setResult_message(ResultData.SUCCESS.getResultMessage());
                 data.put("loanAccountNumber  ", dataSql.getString("loanId"));
                 data.put("productSchemaName", dataSql.getString("prodName"));
                 data.put("totalLoanAmount", dataSql.getLong("loanAmount"));
@@ -163,7 +167,6 @@ public class Mobile4csService {
                     }
                 }
                 data.put("schedule", dataArrayNode);
-
                 responseModel.setData(data);
             }
 
@@ -192,23 +195,28 @@ public class Mobile4csService {
 
             String sum = mobiles4csDAO.getStringData("FN_USER_PROFILE_MOBILE4CS", sqlParam);
             JSONObject dataSql = new JSONObject(sum);
-            responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
-            responseModel.setResult_message(ResultData.SUCCESS.getResultMessage());
-            ObjectNode data = mapper.createObjectNode();
-            data.put(" fullName", dataSql.getString("fullName"));
-            data.put(" dateOfBirth", dataSql.getString("DOB"));
-            data.put(" phoneNumber", getStringFromJsonArray(dataSql.getJSONArray("phoneNo")));
-            data.put(" idCardNumber", dataSql.getString("idCard"));
-            data.put(" currentAddress", dataSql.getString("curAdd"));
-            data.put(" permanentAddress", dataSql.getString("perAdd"));
-            data.put(" companyName", dataSql.getString("comName").toString());
-            data.put(" workingAddress", dataSql.getString("perAdd"));
-            data.put(" workingPhoneNumber", "telePhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("telePhone")) + "mobiPhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("mobiPhone")));
-            data.put(" referencePhoneNumber", getStringFromJsonArray(dataSql.getJSONArray("refPhone")));
-            data.put(" emailAddress", dataSql.getString("email"));
-            data.put(" zaloAddress", dataSql.getString("zalo"));
 
-            responseModel.setData(data);
+            ObjectNode data = mapper.createObjectNode();
+            if(dataSql.isEmpty()){
+                responseModel.setResult_code(ResultData.DATAEMPTY.getResultCode());
+                responseModel.setResult_message(ResultData.DATAEMPTY.getResultMessage());
+            }else {
+                responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
+                responseModel.setResult_message(ResultData.SUCCESS.getResultMessage());
+                data.put("fullName", dataSql.getString("fullName"));
+                data.put("dateOfBirth", dataSql.getString("DOB"));
+                data.put("phoneNumber", getStringFromJsonArray(dataSql.getJSONArray("phoneNo")));
+                data.put("idCardNumber", dataSql.getString("idCard"));
+                data.put("currentAddress", dataSql.getString("curAdd"));
+                data.put("permanentAddress", dataSql.getString("perAdd"));
+                data.put("companyName", dataSql.getString("comName"));
+                data.put("workingAddress", getStringFromJsonArray(dataSql.getJSONArray("comAdd")));
+                data.put("workingPhoneNumber", "telePhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("telePhone")) +" "+ "mobiPhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("mobiPhone")));
+                data.put("referencePhoneNumber", getStringFromJsonArray(dataSql.getJSONArray("refPhone")));
+                data.put("emailAddress", dataSql.getString("email"));
+                data.put("zaloAddress", dataSql.getString("zalo"));
+                responseModel.setData(data);
+            }
         } catch (Exception e) {
             log.info("Error: " + e);
             responseModel.setResult_code(ResultData.OTHER_ERROR.getResultCode());
@@ -247,6 +255,8 @@ public class Mobile4csService {
             }
         } catch (Exception e) {
             log.info("Error: " + e);
+            responseModel.setResult_code(ResultData.OTHER_ERROR.getResultCode());
+            responseModel.setResult_message(ResultData.OTHER_ERROR.getResultMessage());
         }
 
         return responseModel.getResponseModel(mapper);

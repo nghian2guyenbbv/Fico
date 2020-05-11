@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.commons;
 public enum ResultData {
     SUCCESS("0", "Success"),
     FAIL("1", "Fail"),
+    DATAEMPTY("2", "Data empty"),
     OTHER_ERROR("500", "Other Error");
 
     private String resultCode;
