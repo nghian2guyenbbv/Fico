@@ -197,7 +197,7 @@ public class Mobile4csService {
             ObjectNode data = mapper.createObjectNode();
             data.put("fullName", dataSql.getString("fullName"));
             data.put("dateOfBirth", dataSql.getString("DOB"));
-            data.put(" phoneNumber", getStringFromJsonArray(dataSql.getJSONArray("phoneNo")));
+            data.put("phoneNumber", getStringFromJsonArray(dataSql.getJSONArray("phoneNo")));
             data.put("idCardNumber", dataSql.getString("idCard"));
             data.put("currentAddress", dataSql.getString("curAdd"));
             data.put("permanentAddress", dataSql.getString("perAdd"));
