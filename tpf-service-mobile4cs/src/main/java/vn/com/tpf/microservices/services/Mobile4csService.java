@@ -130,8 +130,9 @@ public class Mobile4csService {
             Map<String, String> sqlParam = new HashMap<>();
             sqlParam.put("P_LOAN_ACCOUNT", request.path("body").path(Response.DATA).path("loanAccountNumber").textValue());
 
-            String sum = mobiles4csDAO.getStringData("FN_DETAIL_INQUIRY_MOBILE4CS", sqlParam);
-            JSONObject dataSql = new JSONObject(sum);
+            Clob clob = mobiles4csDAO.getClobData("FN_DETAIL_INQUIRY_MOBILE4CS", sqlParam);
+            String dataClob = mobiles4csDAO.handleClob(clob);
+            JSONObject dataSql = new JSONObject(dataClob);
             ObjectNode data = mapper.createObjectNode();
 
             if (dataSql.isEmpty()) {
@@ -170,7 +171,7 @@ public class Mobile4csService {
                 responseModel.setData(data);
             }
 
-            logStr += "SQL Data : " + sum;
+            logStr += "SQL Data : " + dataClob;
             logStr += "Response: " + responseModel.toString();
         } catch (Exception e) {
             log.info("Error: " + e);
