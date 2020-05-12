@@ -334,9 +334,9 @@ public class AutomationService {
 		String projectJson = deResponseQueryDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
 		AutomationThreadService automationThreadService = null;
-		if(projectJson.equals("smartnet")) {
+		if("smartnet".equals(projectJson)) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
-		}else if(projectJson.equals("mobility")) {
+		}else if("mobility".equals(projectJson)) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
 		}
 

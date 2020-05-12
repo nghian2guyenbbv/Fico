@@ -10,12 +10,12 @@ import java.util.Date;
 
 @Data
 @Builder
-@Document(collection="automation_field_mobility")
+@Document(collection="automation_mobility_field")
 public class WaiveFieldDTO {
     private String appId;
     private String userName;
     private String userAuto;
-    private int status=0;
+    private int status = 0;
     @CreatedDate
     private Date createDate;
     @LastModifiedDate
@@ -24,4 +24,5 @@ public class WaiveFieldDTO {
     private String reference_id;
     private String project;
     private String transaction_id;
+    private String automation_result;
 }

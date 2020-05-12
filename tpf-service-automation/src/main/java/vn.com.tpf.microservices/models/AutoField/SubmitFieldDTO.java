@@ -11,7 +11,7 @@ import java.util.List;
 
 @Data
 @Builder
-@Document(collection="automation_field_mobility")
+@Document(collection="automation_mobility_field")
 public class SubmitFieldDTO {
     private String appId;
     private String phoneConfirmed;

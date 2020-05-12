@@ -102,6 +102,12 @@ public class DE_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private WebElement btnSaveAndNextElement;
 
+    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'confirmDeleteVapNext')]")
+    private WebElement dialogConfirmDeleteVapNextElements;
+
+    @FindBy(how = How.XPATH, using = "//div[@class = 'modal-scrollable']//div[starts-with(@id,'confirmDeleteVap')]//a[contains(text(),'Confirm')]")
+    private WebElement btnConfirmDeleteVapNextElements;
+
 
     //------------------------- UPDATE ---------------------------------
 
