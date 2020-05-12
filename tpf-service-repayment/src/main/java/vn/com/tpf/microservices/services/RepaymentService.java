@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.dao.FicoCustomerDAO;
 import vn.com.tpf.microservices.dao.FicoImportPayooDAO;
 import vn.com.tpf.microservices.dao.FicoTransPayDAO;
@@ -487,6 +488,16 @@ public class RepaymentService {
 
 			String inputValue = requestModel.getData().getSearch_value();
 
+			if(StringUtils.isEmpty(requestModel.getData().getSearch_value())
+					|| requestModel.getData().getSearch_value().toUpperCase().contains("NULL")){
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Input search_value is null, empty or contains 'NULL' ");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
 			if(isValidIdNumer(inputValue)) {
 				ficoCustomerList = ficoCustomerDAO.findByIdentificationNumber(inputValue);
 			}else{
@@ -549,12 +560,32 @@ public class RepaymentService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
+			String errMsg = "";
+			if(requestModel.getData() == null){
+				errMsg = "Can not parse input data. ";
+			}
 			if (requestModel.getData().getAmount() <= 0){
+				errMsg += "Input amount is equal or less than 0. ";
+			}
+			if(StringUtils.isEmpty(requestModel.getData().getTransaction_id())
+					|| requestModel.getData().getTransaction_id().toUpperCase().contains("NULL")){
+				errMsg += "Input transaction_id is null, empty or contains 'NULL'. ";
+			}
+			if(StringUtils.isEmpty(requestModel.getData().getIdentification_number())
+					|| requestModel.getData().getIdentification_number().toUpperCase().contains("NULL")){
+				errMsg += "Input identification_number is null, empty or contains 'NULL'. ";
+			}
+			if(StringUtils.isEmpty(requestModel.getData().getLoan_account_no())
+					|| requestModel.getData().getLoan_account_no().toUpperCase().contains("NULL")){
+				errMsg += "Input loan_account_no is null, empty or contains 'NULL'. ";
+			}
+
+			if(!StringUtils.isEmpty(errMsg)){
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(1);
-				responseModel.setMessage("Input amount is equal or less than 0");
+				responseModel.setMessage(errMsg);
 				return Map.of("status", 200, "data", responseModel);
 			}
 
@@ -570,7 +601,7 @@ public class RepaymentService {
 						responseModel.setReference_id(UUID.randomUUID().toString());
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code(2);
-						responseModel.setMessage("Input identification number does not match loan");
+						responseModel.setMessage("Input identification_number does not match loan");
 						return Map.of("status", 200, "data", responseModel);
 					}
 
