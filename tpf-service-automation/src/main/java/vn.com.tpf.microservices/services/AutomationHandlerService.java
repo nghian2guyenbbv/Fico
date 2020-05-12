@@ -4539,6 +4539,7 @@ public class AutomationHandlerService {
                         update1Pass.set("userAuto", accountDTO.getUserName());
                         update1Pass.set("status", 1);
                         update1Pass.set("automation_result", "WAIVE_FIELD_PASS");
+                        update1Pass.set("project", waiveFieldDTO.getProject());
                         WaiveFieldDTO resultUpdate1 = mongoTemplate.findAndModify(queryUpdate1, update1Pass, WaiveFieldDTO.class);
 
                         /*responseModel.setReference_id(waiveFieldDTO.getReference_id());
@@ -4564,6 +4565,9 @@ public class AutomationHandlerService {
                     updateFailed.set("userAuto", accountDTO.getUserName());
                     updateFailed.set("status", 3);
                     updateFailed.set("automation_result", "WAIVE_FIELD_FAILED"  + " - " + ex.getMessage());
+                    updateFailed.set("project", waiveFieldDTO.getProject());
+                    updateFailed.set("transaction_id", waiveFieldDTO.getTransaction_id());
+                    updateFailed.set("reference_id", waiveFieldDTO.getReference_id());
                     WaiveFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, updateFailed, WaiveFieldDTO.class);
 
                     System.out.println(ex.getMessage());
