@@ -23,9 +23,7 @@ import lombok.Data;
 @Builder
 @JsonInclude(Include.NON_NULL)
 
-public class MobilityField {
-	@Id
-	private String id;
+public class MobilityFieldKH {
 	@Indexed
 	private String appId;
 	private String fullName;
@@ -48,38 +46,4 @@ public class MobilityField {
 	private String kycNotes;
 	private int fieldType;
 	private String comment;
-	private String phoneConfirmed;
-	private String resultHomeVisit;
-	private String resultOfficeVisit;
-	private String result2ndHomeVisit;
-	private List<Object> filesUpload;
-	@Builder.Default
-	private String noOfAttempts = "1";
-	private String remarksDecisionFic;
-	@Builder.Default
-	private String verificationAgent = "TPF Agent";
-	private String resultDecisionFiv;
-	private String remarksDecisionFiv;
-	private String decisionFic;
-	
-	@Builder.Default
-	private String chanel = "DIRECT";
-	@Builder.Default
-	private String branch = "SMARTNET";
-	private String scheme;
-	private String schemeFinnOne;
-	private String product;	
-	private String productFinnOne;
-	private String appStage;
-	private String appStatus;
-	
-	@Builder.Default
-	private List<Object> automationResults = Arrays.asList();
-
-	@CreatedDate
-	private Date createdAt;
-	@LastModifiedDate
-	private Date updatedAt;
 }
-
-

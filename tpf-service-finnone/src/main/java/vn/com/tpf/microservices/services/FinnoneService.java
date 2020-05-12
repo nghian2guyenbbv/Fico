@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
@@ -111,37 +113,67 @@ public class FinnoneService {
 	}
 
 	public JsonNode getDataFields(JsonNode request) {
-		ObjectNode row = mapper.createObjectNode();
+
+
 		try {
-			String query = String.format("SELECT FN_GET_DATA_API_F1 ('%s') RESULT FROM DUAL",
-					request.path("body").path("appId").asText());
-			String rowObjectNode = jdbcTemplate.queryForObject(query, new Object[] {},
-					(rs, rowNum) -> rs.getString("RESULT"));
-			JsonNode rows = mapper.readTree(rowObjectNode);
-			if (rows == null) {
-				return response(499, mapper.createObjectNode().put("message", String.format("appId %s isn't in database Finnone",request.path("body").path("appId").asText() )));
+			JsonNode apps = request.path("body").path("apps");
+			
+			String input = "";
+			for (JsonNode app : apps) {
+				input += String.format("%s,", app.path("appId").asText());
 			}
-			row.put("appId", rows.path("appId").asText());
-			row.put("fullName", rows.path("custName").asText());
-			row.put("phone", rows.path("custPhone").asText());
-			row.put("dateOfBirth", rows.path("dob").asText());
-			row.put("sex", rows.path("gender").asText());
-			row.put("nationalId", rows.path("custID").asText());
-			row.put("bankCard", rows.path("bankCard").asText());
-			row.put("spouseName", rows.path("famiName").asText());
-			row.put("spouseIdCard", rows.path("famiID").asText());
-			row.put("spousePhone", rows.path("famiPhone").asText());
-			row.put("homeAddress", rows.path("homeAddr").asText());
-			row.put("cityCodeHome", rows.path("homeCity").asText());
-			row.put("districtCodeHome", rows.path("homeDist").asText());
-			row.put("homeCom", rows.path("compAddr").asText());
-			row.put("cityCodeCom", rows.path("compCity").asText());
-			row.put("districtCodeCom", rows.path("compDist").asText());
-			row.put("comName", rows.path("compName").asText());
-			row.put("position", rows.path("compPosi").asText());
-			row.put("appStatus", rows.path("appStatus").asText());
-			row.put("appStage", rows.path("appStage").asText());
-			return response(200, mapper.convertValue(rows, JsonNode.class));
+	
+			String query = String.format("SELECT * FROM TABLE(FN_GET_DATA_API_F1('%s'))",
+					 StringUtils.removeEnd(input, ","));
+
+			
+			List<JsonNode> output = jdbcTemplate.query(query, new Object[] {},
+					(rs, rowNum) -> {
+						ObjectNode row = mapper.createObjectNode();
+						row.put("appId", rs.getString("APPLICATION_NUMBER") != null ? rs.getString("APPLICATION_NUMBER"): "*");
+
+						row.put("fullName", rs.getString("CUSTOMER_NAME")!= null ? rs.getString("CUSTOMER_NAME"): "*");
+
+						row.put("phone", rs.getString("PHONE_NUMBER")!= null ? rs.getString("PHONE_NUMBER"): "*");
+
+						row.put("dateOfBirth", rs.getString("DOB")!= null ? rs.getString("DOB"): "*");
+						row.put("sex", rs.getString("GENDER")!= null ? rs.getString("GENDER"): "*");
+
+						row.put("nationalId", rs.getString("CUST_ICARD_NO")!= null ? rs.getString("CUST_ICARD_NO"): "*");
+
+						row.put("bankCard", rs.getString("BANK_CARD")!= null ? rs.getString("BANK_CARD"): "*");
+
+						row.put("spouseName", rs.getString("MEMBER_NAME1")!= null ? rs.getString("MEMBER_NAME1"): "*");
+
+						row.put("spouseIdCard", rs.getString("MEM_ICARD_NO")!= null ? rs.getString("MEM_ICARD_NO"): "*");
+
+						row.put("spousePhone", rs.getString("PHONE_NUMBER_FM")!= null ? rs.getString("PHONE_NUMBER_FM"): "*");
+
+						row.put("homeAddress", rs.getString("HOME_ADDRESS")!= null ? rs.getString("HOME_ADDRESS"): "*");
+
+						row.put("cityCodeHome", rs.getString("HOME_CITY")!= null ? rs.getString("HOME_CITY"): "*");
+
+						row.put("districtCodeHome", rs.getString("HOME_DISTRICT")!= null ? rs.getString("HOME_DISTRICT"): "*");
+
+						row.put("homeCom", rs.getString("COMP_ADDRESS")!= null ? rs.getString("COMP_ADDRESS"): "*");
+
+						row.put("cityCodeCom", rs.getString("COMP_CITY")!= null ? rs.getString("COMP_CITY"): "*");
+
+						row.put("districtCodeCom", rs.getString("COMP_DISTRICT")!= null ? rs.getString("COMP_DISTRICT"): "*");
+
+						row.put("comName", rs.getString("COMP_NAME")!= null ? rs.getString("COMP_NAME"): "*");
+
+						row.put("position", rs.getString("COMP_POSITION")!= null ? rs.getString("COMP_POSITION"): "*");
+
+						row.put("appStatus", rs.getString("APPL_STATUS")!= null ? rs.getString("APPL_STATUS"): "*");
+
+						row.put("appStage", rs.getString("APPL_STAGE")!= null ? rs.getString("APPL_STAGE"): "*");
+						
+						return row;
+					}
+			);
+
+			return response(200, mapper.convertValue(output, JsonNode.class));
 		} catch (Exception e) {
 			return response(500, mapper.createObjectNode().put("message", e.getMessage()));
 		}

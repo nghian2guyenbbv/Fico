@@ -102,4 +102,26 @@ public class MobilityController {
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-mobility", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
+	@PostMapping("/mobility/waiveField")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-mobility')")
+	public ResponseEntity<?> waiveField(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "waiveField");
+		request.put("body", body);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-mobility", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+	
+	
+	@PostMapping("/mobility/submitField")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-mobility')")
+	public ResponseEntity<?> submitField(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "submitField");
+		request.put("body", body);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-mobility", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
 }

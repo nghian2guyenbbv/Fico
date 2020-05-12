@@ -95,10 +95,13 @@ public class RabbitMQService {
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.addDocuments((request))));		
 				case "updateAutomation":
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.updateAutomation((request))));	
-					
 				case "createField":
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.createField((request))));	
-			
+				case "submitField": 
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.submitField((request))));	
+				case "waiveField": 
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.waiveField((request))));	
+					
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
 							mapper.createObjectNode().put("message", "function not found"))));

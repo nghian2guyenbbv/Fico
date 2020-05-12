@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.Mobility;
+import vn.com.tpf.microservices.models.MobilityField;
 
 @Service
 public class ApiService {
@@ -41,6 +42,9 @@ public class ApiService {
 
 	@Value("${spring.url.mobility-push-app-id}")
 	private String urlMobilityPushAppId;
+	
+	@Value("${spring.url.mobility-push-data-field}")
+	private String urlMobilityPushDataField;
 
 	@Value("${spring.mobility-username}")
 	private String mobilityUsername;
@@ -174,9 +178,10 @@ public class ApiService {
 			log.info("{}", dataLogReq);
 
 			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-Mobility==]");
 			dataLogReq.put("func", "[Res] Push AppId Of LeadId to ESB");
 			dataLogRes.set("status", mapper.convertValue(responseEntity.getStatusCode(), JsonNode.class));
+			dataLogRes.set("Body response", mapper.convertValue(responseEntity.getBody(), JsonNode.class));
 			dataLogRes.set("payload", request);
 			log.info("{}", dataLogRes);
 			
@@ -188,7 +193,7 @@ public class ApiService {
 			return response;
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-Mobility==]");
 			dataLogRes.put("status", 500);
 			dataLogRes.put("result", e.toString());
 			dataLogRes.set("payload", request);
@@ -198,6 +203,61 @@ public class ApiService {
 			return response;
 		}
 	}
+	
+	
+	public ObjectNode pushCeateFieldEsb(ArrayNode mobilityFields, String request_id) {
+
+		ObjectNode request =  mapper.createObjectNode(); 
+
+		try {
+			HttpHeaders requestHeaders = new HttpHeaders();
+			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+			requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+			
+			request.put("request_id", request_id);
+			request.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+			request.set("data", mobilityFields);
+			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(request, requestHeaders);
+			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityPushDataField, HttpMethod.POST,
+					requestEntity, ObjectNode.class);
+			
+
+			
+			ObjectNode dataLogReq = mapper.createObjectNode();
+			dataLogReq.put("type", "[==HTTP-LOG-REQUEST-MobilityField==]");
+			dataLogReq.put("method", "POST");
+			dataLogReq.put("bodyRequest", urlMobilityPushDataField + request);
+			dataLogReq.put("func", "Push CeateField to ESB");
+			dataLogReq.set("payload", request);
+			log.info("{}", dataLogReq);
+
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-MobilityField==]");
+			dataLogReq.put("func", "Push CeateField to ESB");
+			dataLogRes.set("status", mapper.convertValue(responseEntity.getStatusCode(), JsonNode.class));
+			dataLogRes.set("Body response", mapper.convertValue(responseEntity.getBody(), JsonNode.class));
+			dataLogRes.set("payload", request);
+			log.info("{}", dataLogRes);
+			
+			ObjectNode response = mapper.createObjectNode();
+			if (responseEntity.getStatusCode().is2xxSuccessful())
+				response.put("resultCode", 200);
+			else
+				response.put("resultCode", responseEntity.getStatusCodeValue());
+			return response;
+		} catch (Exception e) {
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-MobilityField==]");
+			dataLogRes.put("status", 500);
+			dataLogRes.put("result", e.toString());
+			dataLogRes.set("payload", request);
+			log.info("{}", dataLogRes);
+			ObjectNode response = mapper.createObjectNode();
+			response.put("resultCode", 500);
+			return response;
+		}
+	}
+
 
 //	private ObjectNode getPartnerAccessToken() {
 //		ObjectNode user = mapper.createObjectNode();
