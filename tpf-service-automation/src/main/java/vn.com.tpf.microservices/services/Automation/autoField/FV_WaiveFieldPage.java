@@ -207,6 +207,9 @@ public class FV_WaiveFieldPage {
 
         btnWaiveOffVerificationPopupElement.click();
 
+        JavascriptExecutor WaiveOffVerification = (JavascriptExecutor)_driver;
+        WaiveOffVerification.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
+
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
