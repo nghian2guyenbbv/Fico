@@ -1254,40 +1254,14 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.decisionFic not null"));
 
-		final int fieldType = data.path("fieldType").asInt();
-
-		if (!(fieldType == At_Company || fieldType == (At_House) || fieldType == (ALL))) {
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.fieldType not valid"));
-		}
-		MobilityField mobilityfield = mobilityfieldTemplate.findOne(Query.query(Criteria.where("appId").is(appId)),
-				MobilityField.class);
-
-		if (mobilityfield != null)
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s created field", appId)));
+		
 
 		JsonNode getDataFieldsDB = rabbitMQService.sendAndReceive("tpf-service-finnone", Map.of("func", "getDataFields",
 				"reference_id", body.path("reference_id"), "body", Map.of("appId", data.path("appId").asText())));
 
-		if (getDataFieldsDB.path("status").asInt(0) != 200) {
-			return utils.getJsonNodeResponse(1, body, getDataFieldsDB.path("data"));
-		}
 
-		if ((getDataFieldsDB.path("data").path("appStage")).asText().toUpperCase().equals("CANCELLATION")) {
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", "APPLICATION CANCELLED"));
-		}
 
-		if ((getDataFieldsDB.path("data").path("appStage")).asText().toUpperCase().equals("REJECTION")) {
-			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message", "APPLICATION REJECTED"));
-		}
-
-		mobilityfield = mapper.convertValue(getDataFieldsDB.path("data"), MobilityField.class);
-
-		mobilityfieldTemplate.save(mobilityfield);
-
-		return utils.getJsonNodeResponse(0, body, mapper.convertValue(mobilityfield, JsonNode.class));
+		return utils.getJsonNodeResponse(0, body, mapper.convertValue(body, JsonNode.class));
 	}
 
 }
