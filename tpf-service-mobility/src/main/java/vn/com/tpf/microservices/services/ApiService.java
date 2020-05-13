@@ -1,7 +1,11 @@
 package vn.com.tpf.microservices.services;
 
 import java.net.URLConnection;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import vn.com.tpf.microservices.models.Mobility;
+import vn.com.tpf.microservices.models.MobilityField;
 
 @Service
 public class ApiService {
@@ -37,6 +42,9 @@ public class ApiService {
 
 	@Value("${spring.url.mobility-push-app-id}")
 	private String urlMobilityPushAppId;
+	
+	@Value("${spring.url.mobility-push-data-field}")
+	private String urlMobilityPushDataField;
 
 	@Value("${spring.mobility-username}")
 	private String mobilityUsername;
@@ -133,98 +141,51 @@ public class ApiService {
 		}
 	}
 
+	/// validFileSize
 	private boolean validFileSize(int byteInput, double mbFileLimit) {
 		final int WEIGHT = 1000000;
 		return byteInput <= mbFileLimit * WEIGHT;
 	}
 
-	public ObjectNode pushAppIdOfLeadId(Mobility mobility) {
+	public ObjectNode pushAppIdOfLeadId(Mobility mobility, String request_id) {
 		ObjectNode request = mapper.createObjectNode();
+
 		try {
-			ObjectNode authenInfo = getPartnerAccessToken();
-			if (authenInfo.path("resultCode").asInt() != 200)
-				return authenInfo;
 
 			HttpHeaders requestHeaders = new HttpHeaders();
 			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 			requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-			requestHeaders.add("Authorization",
-					String.format("Bearer %s", authenInfo.path("data").path("access_token").asText()));
 
-			request.put("LEAD_ID", String.format("%s", mobility.getLeadId()));
-			request.put("APP_ID", mobility.getAppId());
+			request.put("request_id", request_id);
+			request.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+			
+			ObjectNode data = mapper.createObjectNode();
+			data.put("leadId", String.format("%s", mobility.getLeadId()));
+			data.put("appId", mobility.getAppId());
+			request.set("data", data);
 
-			String dataString = mapper.writeValueAsString(request);
+			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(request, requestHeaders);
 
-			JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-					Map.of("func", "pgpEncrypt", "body", Map.of("project", "mobility", "data", dataString)));
-
-			HttpEntity<String> requestEntity = new HttpEntity<>(encrypt.path("data").asText(), requestHeaders);
-
-			ResponseEntity<String> responseEntity = restTemplate.exchange(urlMobilityPushAppId, HttpMethod.POST,
-					requestEntity, String.class);
-						
-			JsonNode decrypt = rabbitMQService.sendAndReceive("tpf-service-assets", Map.of("func", "pgpDecrypt", "body",
-					Map.of("project", "mobility", "data", responseEntity.getBody().toString())));
-
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
-			dataLogRes.set("status", mapper.convertValue(responseEntity.getStatusCode(), JsonNode.class));
-			dataLogRes.set("payload", request);
-			dataLogRes.set("result", decrypt);
-
-			log.info("{}", dataLogRes);
-
-			ObjectNode response = mapper.createObjectNode();
-
-			if (responseEntity.getStatusCode().is2xxSuccessful())
-				response.put("resultCode", 200);
-			else
-				response.put("resultCode", responseEntity.getStatusCodeValue());
-			return response;
-		} catch (Exception e) {
-
-			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
-			dataLogRes.put("status", 500);
-			dataLogRes.put("result", e.toString());
-			dataLogRes.set("payload", request);
-			log.info("{}", dataLogRes);
-			ObjectNode response = mapper.createObjectNode();
-			response.put("resultCode", 500);
-			return response;
-		}
-	}
-
-	private ObjectNode getPartnerAccessToken() {
-		ObjectNode user = mapper.createObjectNode();
-		try {
-			HttpHeaders requestHeaders = new HttpHeaders();
-			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
-			requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-
-
-			user.put("username", mobilityUsername);
-			user.put("password", mobilityPassword);
-
-			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(user, requestHeaders);
-
-			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityUserLogin, HttpMethod.POST,
+			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityPushAppId, HttpMethod.POST,
 					requestEntity, ObjectNode.class);
-			JsonNode responseApi = mapper.convertValue(responseEntity.getBody(), JsonNode.class);
 			
+			ObjectNode dataLogReq = mapper.createObjectNode();
+			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
+			dataLogReq.put("method", "POST");
+			dataLogReq.put("bodyRequest", urlMobilityPushAppId + request);
+			dataLogReq.put("func", "[Req] Push AppId Of LeadId to ESB");
+			dataLogReq.set("payload", request);
+			log.info("{}", dataLogReq);
+
 			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-Mobility==]");
+			dataLogReq.put("func", "[Res] Push AppId Of LeadId to ESB");
 			dataLogRes.set("status", mapper.convertValue(responseEntity.getStatusCode(), JsonNode.class));
-			dataLogRes.set("payload", user);
-			dataLogRes.set("result",responseApi);
-
+			dataLogRes.set("Body response", mapper.convertValue(responseEntity.getBody(), JsonNode.class));
+			dataLogRes.set("payload", request);
 			log.info("{}", dataLogRes);
-
+			
 			ObjectNode response = mapper.createObjectNode();
-
-			response.set("data", responseApi);
-
 			if (responseEntity.getStatusCode().is2xxSuccessful())
 				response.put("resultCode", 200);
 			else
@@ -232,17 +193,117 @@ public class ApiService {
 			return response;
 		} catch (Exception e) {
 			ObjectNode dataLogRes = mapper.createObjectNode();
-			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-Mobility==]");
 			dataLogRes.put("status", 500);
 			dataLogRes.put("result", e.toString());
-			dataLogRes.set("payload", user);
+			dataLogRes.set("payload", request);
 			log.info("{}", dataLogRes);
-			
 			ObjectNode response = mapper.createObjectNode();
 			response.put("resultCode", 500);
-			response.set("data", mapper.convertValue(Map.of("messagess", e.getMessage()), JsonNode.class));
 			return response;
 		}
 	}
+	
+	
+	public ObjectNode pushCeateFieldEsb(ArrayNode mobilityFields, String request_id) {
+
+		ObjectNode request =  mapper.createObjectNode(); 
+
+		try {
+			HttpHeaders requestHeaders = new HttpHeaders();
+			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+			requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+			
+			request.put("request_id", request_id);
+			request.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+			request.set("data", mobilityFields);
+			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(request, requestHeaders);
+			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityPushDataField, HttpMethod.POST,
+					requestEntity, ObjectNode.class);
+			
+
+			
+			ObjectNode dataLogReq = mapper.createObjectNode();
+			dataLogReq.put("type", "[==HTTP-LOG-REQUEST-MobilityField==]");
+			dataLogReq.put("method", "POST");
+			dataLogReq.put("bodyRequest", urlMobilityPushDataField + request);
+			dataLogReq.put("func", "Push CeateField to ESB");
+			dataLogReq.set("payload", request);
+			log.info("{}", dataLogReq);
+
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-MobilityField==]");
+			dataLogReq.put("func", "Push CeateField to ESB");
+			dataLogRes.set("status", mapper.convertValue(responseEntity.getStatusCode(), JsonNode.class));
+			dataLogRes.set("Body response", mapper.convertValue(responseEntity.getBody(), JsonNode.class));
+			dataLogRes.set("payload", request);
+			log.info("{}", dataLogRes);
+			
+			ObjectNode response = mapper.createObjectNode();
+			if (responseEntity.getStatusCode().is2xxSuccessful())
+				response.put("resultCode", 200);
+			else
+				response.put("resultCode", responseEntity.getStatusCodeValue());
+			return response;
+		} catch (Exception e) {
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-MobilityField==]");
+			dataLogRes.put("status", 500);
+			dataLogRes.put("result", e.toString());
+			dataLogRes.set("payload", request);
+			log.info("{}", dataLogRes);
+			ObjectNode response = mapper.createObjectNode();
+			response.put("resultCode", 500);
+			return response;
+		}
+	}
+
+
+//	private ObjectNode getPartnerAccessToken() {
+//		ObjectNode user = mapper.createObjectNode();
+//		try {
+//			HttpHeaders requestHeaders = new HttpHeaders();
+//			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+//			requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+//			user.put("username", mobilityUsername);
+//			user.put("password", mobilityPassword);
+//
+//			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(user, requestHeaders);
+//
+//			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityUserLogin, HttpMethod.POST,
+//					requestEntity, ObjectNode.class);
+//			JsonNode responseApi = mapper.convertValue(responseEntity.getBody(), JsonNode.class);
+//			
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+//			dataLogRes.set("status", mapper.convertValue(responseEntity.getStatusCode(), JsonNode.class));
+//			dataLogRes.set("payload", user);
+//			dataLogRes.set("result",responseApi);
+//
+//			log.info("{}", dataLogRes);
+//
+//			ObjectNode response = mapper.createObjectNode();
+//
+//			response.set("data", responseApi);
+//
+//			if (responseEntity.getStatusCode().is2xxSuccessful())
+//				response.put("resultCode", 200);
+//			else
+//				response.put("resultCode", responseEntity.getStatusCodeValue());
+//			return response;
+//		} catch (Exception e) {
+//			ObjectNode dataLogRes = mapper.createObjectNode();
+//			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE==]");
+//			dataLogRes.put("status", 500);
+//			dataLogRes.put("result", e.toString());
+//			dataLogRes.set("payload", user);
+//			log.info("{}", dataLogRes);
+//			
+//			ObjectNode response = mapper.createObjectNode();
+//			response.put("resultCode", 500);
+//			response.set("data", mapper.convertValue(Map.of("messagess", e.getMessage()), JsonNode.class));
+//			return response;
+//		}
+//	}
 
 }

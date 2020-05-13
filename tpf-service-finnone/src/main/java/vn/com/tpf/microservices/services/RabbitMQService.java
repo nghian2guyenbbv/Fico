@@ -89,7 +89,9 @@ public class RabbitMQService {
 			case "getPrecheckList":
 				return response(message, payload, finnoneService.getPreCheckList(request));
 			case "getAppInfo":
-				return response(message, payload, finnoneService.getAppInfo(request));
+				return response(message, payload, finnoneService.getAppInfo(request)); 
+			case "getDataFields":
+				return response(message, payload, finnoneService.getDataFields(request)); 
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

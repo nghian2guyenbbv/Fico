@@ -39,7 +39,13 @@ public class AppService {
 				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), Object.class)));
 		return response(res.path("status").asInt(), res.path("data"));
 	}
-
+	
+	public JsonNode waiveField(JsonNode request) throws Exception {
+		final String queue_automation = "tpf-service-automation-mobility";
+		JsonNode res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "waiveField", "reference_id",
+				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), Object.class)));
+		return response(res.path("status").asInt(), res.path("data"));
+	}
 
 	public JsonNode updateApp(JsonNode request) throws Exception {
 		JsonNode res = rabbitMQService.sendAndReceive("tpf-service-automation", Map.of("func", "updateApp", "reference_id",

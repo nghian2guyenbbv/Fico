@@ -8,7 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import lombok.Builder;
 import vn.com.tpf.microservices.models.Mobility;
+import vn.com.tpf.microservices.models.MobilityWaiveField;
 
 @Service
 public class ConvertService {
@@ -17,8 +19,8 @@ public class ConvertService {
 
 	private final String ProductTypeCode = "Personal Finance";
 	private final String CustomerType = "Individual";
-	private final String SourcingChannel = "DIRECT";
-	private final String SourcingBranch = "SMARTNET";
+//	private final String SourcingChannel = "DIRECT";
+//	private final String SourcingBranch = "SMARTNET";
 	private final String NatureOfOccupation = "Others";
 	private final String Comment = "Comments";
 	private final String PreferredModeOfCommunication = "Web-Portal Comments";
@@ -72,6 +74,14 @@ public class ConvertService {
 		return app;
 	}
 	
+	public ObjectNode toAppAutomationField(MobilityWaiveField mobilityyWaiveField ) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("appId", mobilityyWaiveField.getAppId());
+		if (mobilityyWaiveField.getAutomationResults().size() != 0)
+			app.put("automationResult", mapper.convertValue(mobilityyWaiveField.getAutomationResults().get(0), JsonNode.class)
+					.path("automationResult").asText());
+		return app;
+	}
 	
 	
 	public ObjectNode toAppStatus(Mobility mobility) {
@@ -86,6 +96,12 @@ public class ConvertService {
 		ObjectNode optional = mapper.createObjectNode();
 		optional.put("stage", mobility.getStage());
 		app.set("optional", optional);
+		return app;
+	}
+	
+	public ObjectNode toESBMobilityWaiveField(MobilityWaiveField mobilityWaiveField) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("appId", mobilityWaiveField.getAppId());
 		return app;
 	}
 	
@@ -104,9 +120,9 @@ public class ConvertService {
 		quickLead.put("firstName", mobility.getFirstName());
 		quickLead.put("lastName", mobility.getLastName());
 		quickLead.put("city", mobility.getCityFinnOne());
-		quickLead.put("sourcingChannel", SourcingChannel);
+		quickLead.put("sourcingChannel", mobility.getChanel());
 		quickLead.put("dateOfBirth", mobility.getDateOfBirth());
-		quickLead.put("sourcingBranch", SourcingBranch);
+		quickLead.put("sourcingBranch", mobility.getBranch());
 		quickLead.put("natureOfOccupation", NatureOfOccupation);
 		quickLead.put("schemeCode", mobility.getSchemeFinnOne());
 		quickLead.put("comment", Comment);
@@ -132,6 +148,7 @@ public class ConvertService {
 		return app;
 	}
 
+	
 	public ObjectNode toReturnQueryFinnone(Mobility mobility) {
 
 		ObjectNode app = mapper.createObjectNode();
@@ -151,6 +168,7 @@ public class ConvertService {
 		return app;
 	}
 
+	
 	public ObjectNode toSaleQueueFinnone(Mobility mobility) {
 
 		ObjectNode app = mapper.createObjectNode();
