@@ -89,15 +89,25 @@ public class FV_WaiveFieldPage {
     @CacheLookup
     private List<WebElement> tbFieldInvestigationInitiationElement;
 
+    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td[5]")
+    private WebElement tdCurrentVerificationStatus;
+
     @FindBy(how = How.ID, using = "waiveOffAll")
     @CacheLookup
     private WebElement btnWaiveOffAllElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//table[contains(@id,'fii_waiveOff')]")
+    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[@class = 'waiveOff']")
     @CacheLookup
-    private WebElement tbFiiWaiveOffElement;
+    private WebElement btnWaiveOff;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//table[contains(@id,'fii_waiveOff')]//select[starts-with(@id, 'field_investigation_waiveOff_reasonCodeNO')]")
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']")
+    private WebElement popupFiiWaiveOffElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
+    @CacheLookup
+    private WebElement btnInverse;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//table[contains(@id,'fii_waiveOff')]//select[starts-with(@id, 'field_investigation_waiveOff_reasonCodeNO')]")
     @CacheLookup
     private WebElement selectReasonCodeElement;
 
@@ -137,11 +147,11 @@ public class FV_WaiveFieldPage {
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 2);
 
-        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> showTaskElement.isDisplayed());
-
         await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> "FII".equals(tdCheckStageApplicationElement.getText()));
+
+        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> showTaskElement.isDisplayed());
 
 
         showTaskElement.click();
@@ -197,18 +207,31 @@ public class FV_WaiveFieldPage {
 
         await("tbFieldInvestigationInitiationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
+        System.out.println(tdCurrentVerificationStatus.getText());
+        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
+            btnWaiveOffAllElement.click();
+        }else{
+            btnWaiveOff.click();
 
-        btnWaiveOffAllElement.click();
+            await("popupFiiWaiveOffElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> popupFiiWaiveOffElement.isDisplayed());
 
-        await("tbFiiWaiveOffElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbFiiWaiveOffElement.isDisplayed());
+            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> btnInverse.isDisplayed());
+
+            btnInverse.click();
+
+        }
+
+        await("selectReasonCodeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> selectReasonCodeElement.isDisplayed());
 
         selectReasonCodeElement.sendKeys("F.1.1 Bỏ qua bước FI");
 
-//        btnWaiveOffVerificationPopupElement.click();
+        btnWaiveOffVerificationPopupElement.click();
 
-        JavascriptExecutor WaiveOffVerification = (JavascriptExecutor)_driver;
-        WaiveOffVerification.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
+//        JavascriptExecutor WaiveOffVerification = (JavascriptExecutor)_driver;
+//        WaiveOffVerification.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
