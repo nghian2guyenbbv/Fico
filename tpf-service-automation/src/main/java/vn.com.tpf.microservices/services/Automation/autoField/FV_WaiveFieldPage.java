@@ -140,9 +140,9 @@ public class FV_WaiveFieldPage {
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
 
-        if (!"FII".equals(tdCheckStageApplicationElement.getText())){
-            return;
-        }
+        await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> "FII".equals(tdCheckStageApplicationElement.getText()));
+
 
         showTaskElement.click();
 
@@ -205,7 +205,7 @@ public class FV_WaiveFieldPage {
 
         selectReasonCodeElement.sendKeys("F.1.1 Bỏ qua bước FI");
 
-        btnWaiveOffVerificationPopupElement.click();
+//        btnWaiveOffVerificationPopupElement.click();
 
         JavascriptExecutor WaiveOffVerification = (JavascriptExecutor)_driver;
         WaiveOffVerification.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
