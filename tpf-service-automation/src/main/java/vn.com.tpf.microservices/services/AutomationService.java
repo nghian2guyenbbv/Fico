@@ -449,9 +449,20 @@ public class AutomationService {
 	//------------------------ WAIVE_FIELD  --------------------------------------
 	public Map<String, Object> Waive_Field(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+		String transaction_id = request.path("body").path("transaction_id").asText();
+		String project = request.path("body").path("project").asText();
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
 		List<WaiveFieldDTO> waiveFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveFieldDTO>>(){});
+		int i = 0;
+		while (i < waiveFieldDTOList.size()) {
+			waiveFieldDTOList.get(i).setReference_id(reference_id);
+			waiveFieldDTOList.get(i).setTransaction_id(transaction_id);
+			waiveFieldDTOList.get(i).setProject(project);
+			i++;
+		}
+
 
 		new Thread(() -> {
 			try {
@@ -468,7 +479,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY_FIELDS");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY_FIELD");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
