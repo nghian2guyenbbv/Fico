@@ -4756,12 +4756,13 @@ public class AutomationHandlerService {
     private void autoUpdateStatusRabbitMobility(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
         JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-esb",
                 Map.of("func", func,
-                        "reference_id", responseAutomationModel.getReference_id(),
                         "body", Map.of(
                                 "project", responseAutomationModel.getProject(),
                                 "transaction_id", responseAutomationModel.getTransaction_id(),
-                                "data", responseAutomationModel.getData())
-                        ));
+                                "reference_id", responseAutomationModel.getReference_id(),
+                                "data",responseAutomationModel.getData()
+                        )));
+
         System.out.println("rabit:=>" + jsonNode.toString());
     }
 
