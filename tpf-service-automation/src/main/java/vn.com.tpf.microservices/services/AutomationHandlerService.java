@@ -4491,7 +4491,6 @@ public class AutomationHandlerService {
         String reference_id = "";
         String projectField = "";
         WaiveFieldDTO waiveFieldDTO = WaiveFieldDTO.builder().build();
-//        List<WaiveFieldDTO> waiveFieldDTOList = null;
         System.out.println("Auto - WAIVE FIELD" + ": START" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
@@ -4528,14 +4527,14 @@ public class AutomationHandlerService {
                         Query queryUpdate = new Query();
                         queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(waiveFieldDTO.getAppId()).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
 
-                        Update updateFirst = new Update();
-                        updateFirst.set("userAuto", accountDTO.getUserName());
-                        updateFirst.set("status", 2);
-                        updateFirst.set("project", waiveFieldDTO.getProject());
-                        updateFirst.set("transaction_id", waiveFieldDTO.getTransaction_id());
-                        updateFirst.set("reference_id", waiveFieldDTO.getReference_id());
-                        updateFirst.set("automation_result", "WAIVE_FIELD_RUN");
-                        WaiveFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, updateFirst, WaiveFieldDTO.class);
+                        Update updateFirst2 = new Update();
+                        updateFirst2.set("userAuto", accountDTO.getUserName());
+                        updateFirst2.set("status", 2);
+                        updateFirst2.set("project", waiveFieldDTO.getProject());
+                        updateFirst2.set("transaction_id", waiveFieldDTO.getTransaction_id());
+                        updateFirst2.set("reference_id", waiveFieldDTO.getReference_id());
+                        updateFirst2.set("automation_result", "WAIVE_FIELD_RUN");
+                        WaiveFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, updateFirst2, WaiveFieldDTO.class);
 
                         if (resultUpdate == null) {
                             continue;
@@ -4582,6 +4581,15 @@ public class AutomationHandlerService {
             } while (!Objects.isNull(waiveFieldDTO));
         } catch (Exception e) {
 
+            Query queryUpdateFaild = new Query();
+            queryUpdateFaild.addCriteria(Criteria.where("appId").is(waiveFieldDTO.getAppId()).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
+            Update updateFailed2 = new Update();
+            updateFailed2.set("userAuto", accountDTO.getUserName());
+            updateFailed2.set("status", 3);
+            updateFailed2.set("automation_result", "WAIVE_FIELD_FAILED");
+            updateFailed2.set("automation_result_message", e.getMessage());
+            mongoTemplate.findAndModify(queryUpdateFaild, updateFailed2, WaiveFieldDTO.class);
+
             System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
 
@@ -4617,11 +4625,22 @@ public class AutomationHandlerService {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
+        String transaction_id = "";
+        String reference_id = "";
+        String projectField = "";
         SubmitFieldDTO submitFieldDTO = null;
         System.out.println("Auto - SUBMIT FIELD" + ": START" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
+
+            Query queryFirst = new Query();
+            queryFirst.addCriteria(Criteria.where("status").is(0));
+            submitFieldDTO = mongoTemplate.findOne(queryFirst, SubmitFieldDTO.class);
+            transaction_id = submitFieldDTO.getTransaction_id();
+            reference_id = submitFieldDTO.getReference_id();
+            projectField = submitFieldDTO.getProject();
+
             //get account run
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
@@ -4633,6 +4652,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
+            submitFieldDTO = null;
             do {
                 try {
                     Instant startIn = Instant.now();
