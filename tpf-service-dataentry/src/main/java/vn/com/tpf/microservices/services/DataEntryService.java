@@ -2993,7 +2993,7 @@ public class DataEntryService {
 			Map<String, Object> resultData = jdbcTemplate.call(connection -> {
 				CallableStatement callableStatement = connection.prepareCall("{call ETL_MGO_APPLICATION(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
 				callableStatement.setString(1, application.getApplicationId());
-				callableStatement.setDate(2, application.getCreatedDate() != null ? new java.sql.Date(application.getCreatedDate().getTime()) : null);
+				callableStatement.setDate(2, application.getCreatedDate() != null ? new java.sql.Date(application.getCreatedDate().getTime()) : new java.sql.Date(new Date().getTime()));
 				callableStatement.setString(3, application.getDynamicForm().get(0).getSaleAgentCode());
 				callableStatement.setString(4, application.getQuickLead().getSourcingBranch());
 				callableStatement.setString(5, application.getQuickLead().getSourcingBranch());
@@ -3035,7 +3035,7 @@ public class DataEntryService {
 				callableStatement.setString(4, request != null ? request : "");
 				callableStatement.setString(5, reponse != null ? reponse : "");
 				callableStatement.setString(6, userName != null ? userName : "");
-				callableStatement.setDate(7, createDate != null ? new java.sql.Date(createDate.getTime()) : null);
+				callableStatement.setDate(7, createDate != null ? new java.sql.Date(createDate.getTime()) : new java.sql.Date(new Date().getTime()));
 				callableStatement.setDate(8, updateDate != null ? new java.sql.Date(updateDate.getTime()) : null );
 				return callableStatement;
 			}, prmtrsList);
