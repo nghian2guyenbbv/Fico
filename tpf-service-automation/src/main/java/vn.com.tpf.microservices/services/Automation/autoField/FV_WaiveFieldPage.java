@@ -228,18 +228,21 @@ public class FV_WaiveFieldPage {
 
         selectReasonCodeElement.sendKeys("F.1.1 Bỏ qua bước FI");
 
-        btnWaiveOffVerificationPopupElement.click();
+        await("btnWaiveOffVerificationPopupElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnWaiveOffVerificationPopupElement.isDisplayed());
 
-//        JavascriptExecutor WaiveOffVerification = (JavascriptExecutor)_driver;
-//        WaiveOffVerification.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
+//        btnWaiveOffVerificationPopupElement.click();
+
+        JavascriptExecutor btnWaiveOffVerificationPopup = (JavascriptExecutor)_driver;
+        btnWaiveOffVerificationPopup.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        btnMoveToNextStageElement.click();
+//        btnMoveToNextStageElement.click();
 
-//        JavascriptExecutor jse2 = (JavascriptExecutor)_driver;
-//        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
+        btnMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
