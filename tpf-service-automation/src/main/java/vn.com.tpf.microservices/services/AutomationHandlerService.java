@@ -4496,6 +4496,14 @@ public class AutomationHandlerService {
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
+
+            Query queryFirst = new Query();
+            queryFirst.addCriteria(Criteria.where("status").is(0));
+            waiveFieldDTO = mongoTemplate.findOne(queryFirst, WaiveFieldDTO.class);
+            transaction_id = waiveFieldDTO.getTransaction_id();
+            reference_id = waiveFieldDTO.getReference_id();
+            projectField = waiveFieldDTO.getProject();
+
             //get account run
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
@@ -4507,14 +4515,12 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
+            waiveFieldDTO = null;
             do {
                 try {
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0));
                     waiveFieldDTO = mongoTemplate.findOne(query, WaiveFieldDTO.class);
-                    transaction_id = waiveFieldDTO.getTransaction_id();
-                    reference_id = waiveFieldDTO.getReference_id();
-                    projectField = waiveFieldDTO.getProject();
 
                     if (!Objects.isNull(waiveFieldDTO)) {
 
