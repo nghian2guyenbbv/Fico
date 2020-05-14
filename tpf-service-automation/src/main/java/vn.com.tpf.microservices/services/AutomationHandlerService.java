@@ -4566,12 +4566,6 @@ public class AutomationHandlerService {
                         update1Pass.set("reference_id", waiveFieldDTO.getReference_id());
                         mongoTemplate.findAndModify(queryUpdate1, update1Pass, WaiveFieldDTO.class);
 
-                        /*responseModel.setReference_id(waiveFieldDTO.getReference_id());
-                        responseModel.setProject(waiveFieldDTO.getProject());
-                        responseModel.setTransaction_id(waiveFieldDTO.getTransaction_id());
-                        responseModel.setApp_id(waiveFieldDTO.getAppId());
-                        responseModel.setAutomation_result("WAIVE_FIELD_PASS");*/
-
                         Utilities.captureScreenShot(driver);
                         System.out.println("AUTO - WAIVE FIELD" + ": DONE - PASS" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                     }
@@ -4581,7 +4575,8 @@ public class AutomationHandlerService {
                     Update updateFailed = new Update();
                     updateFailed.set("userAuto", accountDTO.getUserName());
                     updateFailed.set("status", 3);
-                    updateFailed.set("automation_result", "WAIVE_FIELD_FAILED"  + " - " + ex.getMessage());
+                    updateFailed.set("automation_result", "WAIVE_FIELD_FAILED");
+                    updateFailed.set("automation_result_message", ex.getMessage());
                     mongoTemplate.findAndModify(queryUpdateFaild, updateFailed, WaiveFieldDTO.class);
                 }
             } while (!Objects.isNull(waiveFieldDTO));
