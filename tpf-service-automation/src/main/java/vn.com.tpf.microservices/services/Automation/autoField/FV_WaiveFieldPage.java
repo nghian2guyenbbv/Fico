@@ -237,7 +237,7 @@ public class FV_WaiveFieldPage {
 //            btnInverse.click();
 
             await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableFiiWaiveOffAddElement.size() > 2);
+                    .until(() -> tableFiiWaiveOffAddElement.size() > 1);
 
         }
 
