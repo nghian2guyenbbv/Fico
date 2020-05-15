@@ -479,7 +479,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY_FIELDS");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY_FIELD");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -490,10 +490,19 @@ public class AutomationService {
 
 	public Map<String, Object> Submit_Field(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+		String transaction_id = request.path("body").path("transaction_id").asText();
+		String project = request.path("body").path("project").asText();
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
 		List<SubmitFieldDTO> submitFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<SubmitFieldDTO>>(){});
-
+		int i = 0;
+		while (i < submitFieldDTOList.size()) {
+			submitFieldDTOList.get(i).setReference_id(reference_id);
+			submitFieldDTOList.get(i).setTransaction_id(transaction_id);
+			submitFieldDTOList.get(i).setProject(project);
+			i++;
+		}
 		new Thread(() -> {
 			try {
 				runAutomation_Submit_Field(submitFieldDTOList);
