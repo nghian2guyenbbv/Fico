@@ -15,6 +15,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -134,7 +135,9 @@ public class AutoAssignService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	@Transactional
+//	@Transactional
+//	@Scheduled(fixedDelay = 1000, initialDelay = 1000)
+	@Scheduled(cron="0 0 0 * * *", zone="Asia/Saigon")
 	public void createdConfigureAuto() {
 		try{
 			try{
