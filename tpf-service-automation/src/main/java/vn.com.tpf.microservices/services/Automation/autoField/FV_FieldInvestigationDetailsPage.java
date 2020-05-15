@@ -156,9 +156,8 @@ public class FV_FieldInvestigationDetailsPage {
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
 
-        if (!"FIC".equals(tdCheckStageApplicationElement.getText())){
-            return;
-        }
+        await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> "FIC".equals(tdCheckStageApplicationElement.getText()));
 
         showTaskElement.click();
 

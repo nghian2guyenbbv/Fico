@@ -4370,6 +4370,8 @@ public class AutomationHandlerService {
         } finally {
             if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
                 application.setApplicationId("UNKNOW");
+                application.setStatus("QUICKLEAD_FAILED");
+                application.setDescription("Khong thanh cong");
             }
 
             Instant finish = Instant.now();

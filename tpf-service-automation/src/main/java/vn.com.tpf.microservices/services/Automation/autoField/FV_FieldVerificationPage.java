@@ -153,9 +153,8 @@ public class FV_FieldVerificationPage {
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
 
-        if (!"FII".equals(tdCheckStageApplicationElement.getText())){
-            return;
-        }
+        await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> "FII".equals(tdCheckStageApplicationElement.getText()));
 
         showTaskElement.click();
 
