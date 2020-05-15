@@ -103,6 +103,12 @@ public class FV_WaiveFieldPage {
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']")
     private WebElement popupFiiWaiveOffElement;
 
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//table[contains(@id,'fii_waiveOff')]//tbody//tr//td")
+    private List<WebElement> tableFiiWaiveOffElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//table[contains(@id,'fii_waiveOff')]//tbody//tr")
+    private List<WebElement> tableFiiWaiveOffAddElement;
+
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
     @CacheLookup
     private WebElement btnInverse;
@@ -209,17 +215,29 @@ public class FV_WaiveFieldPage {
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
         System.out.println(tdCurrentVerificationStatus.getText());
         if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
+
             btnWaiveOffAllElement.click();
+
+            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> tableFiiWaiveOffElement.size() > 2);
+
         }else{
+
             btnWaiveOff.click();
 
-            await("popupFiiWaiveOffElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> popupFiiWaiveOffElement.isDisplayed());
 
             await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnInverse.isDisplayed());
 
-            btnInverse.click();
+            JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
+            btnInverseJE.executeScript("arguments[0].click();", btnInverse);
+
+//            btnInverse.click();
+
+            await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> tableFiiWaiveOffAddElement.size() > 2);
 
         }
 
