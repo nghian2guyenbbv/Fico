@@ -4508,9 +4508,21 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
+            FV_CheckLoginUserConfirmation fv_CheckLoginUserConfirmation = new FV_CheckLoginUserConfirmation(driver);
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+            try {
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
+            }catch (Exception e){
+                await("Popup confirm login Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> fv_CheckLoginUserConfirmation.getPopupSignUserConfirm().isDisplayed());
+
+                fv_CheckLoginUserConfirmation.getBtnSignUserConfirm().click();
+
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
+            }
+
             Utilities.captureScreenShot(driver);
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
@@ -4565,6 +4577,8 @@ public class AutomationHandlerService {
                         update1Pass.set("reference_id", waiveFieldDTO.getReference_id());
                         mongoTemplate.findAndModify(queryUpdate1, update1Pass, WaiveFieldDTO.class);
 
+                        Thread.sleep(Constant.TIME_OUT_S);
+
                         Utilities.captureScreenShot(driver);
                         System.out.println("AUTO - WAIVE FIELD" + ": DONE - PASS" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                     }
@@ -4577,6 +4591,7 @@ public class AutomationHandlerService {
                     updateFailed.set("automation_result", "WAIVE_FIELD_FAILED");
                     updateFailed.set("automation_result_message", ex.getMessage());
                     mongoTemplate.findAndModify(queryUpdateFaild, updateFailed, WaiveFieldDTO.class);
+                    Thread.sleep(Constant.TIME_OUT_S);
                 }
             } while (!Objects.isNull(waiveFieldDTO));
         } catch (Exception e) {
@@ -4589,13 +4604,13 @@ public class AutomationHandlerService {
             updateFailed2.set("automation_result", "WAIVE_FIELD_FAILED");
             updateFailed2.set("automation_result_message", e.getMessage());
             mongoTemplate.findAndModify(queryUpdateFaild, updateFailed2, WaiveFieldDTO.class);
-
             System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
 
         } finally {
+
             Query queryUpdateFailed = new Query();
             queryUpdateFailed.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
             List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
@@ -4647,8 +4662,20 @@ public class AutomationHandlerService {
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+            FV_CheckLoginUserConfirmation fv_CheckLoginUserConfirmation = new FV_CheckLoginUserConfirmation(driver);
+            try {
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
+            }catch (Exception e){
+                await("Popup confirm login Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> fv_CheckLoginUserConfirmation.getPopupSignUserConfirm().isDisplayed());
+
+                fv_CheckLoginUserConfirmation.getBtnSignUserConfirm().click();
+
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
+            }
+
             Utilities.captureScreenShot(driver);
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
@@ -4666,11 +4693,17 @@ public class AutomationHandlerService {
 
                         //update app
                         Query queryUpdate = new Query();
-                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(submitFieldDTO.getAppId()));
-                        Update update = new Update();
-                        update.set("userAuto", accountDTO.getUserName());
-                        update.set("status", 2);
-                        SubmitFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, SubmitFieldDTO.class);
+                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(submitFieldDTO.getAppId()).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
+
+                        Update updateFirst2 = new Update();
+                        updateFirst2.set("userAuto", accountDTO.getUserName());
+                        updateFirst2.set("status", 2);
+                        updateFirst2.set("project", submitFieldDTO.getProject());
+                        updateFirst2.set("transaction_id", submitFieldDTO.getTransaction_id());
+                        updateFirst2.set("reference_id", submitFieldDTO.getReference_id());
+                        updateFirst2.set("automation_result", "WAIVE_FIELD_RUN");
+                        SubmitFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, updateFirst2, SubmitFieldDTO.class);
+
 
                         if (resultUpdate == null) {
                             continue;
@@ -4710,34 +4743,31 @@ public class AutomationHandlerService {
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
-                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(submitFieldDTO.getAppId()));
-                        Update update1 = new Update();
-                        update1.set("userAuto", accountDTO.getUserName());
-                        update1.set("status", 1);
-                        SubmitFieldDTO resultUpdate1 = mongoTemplate.findAndModify(queryUpdate1, update1, SubmitFieldDTO.class);
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(submitFieldDTO.getAppId()).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
+                        Update update1Pass = new Update();
+                        update1Pass.set("userAuto", accountDTO.getUserName());
+                        update1Pass.set("status", 1);
+                        update1Pass.set("automation_result", "SUBMIT_FIELD_PASS");
+                        update1Pass.set("project", submitFieldDTO.getProject());
+                        update1Pass.set("transaction_id", submitFieldDTO.getTransaction_id());
+                        update1Pass.set("reference_id", submitFieldDTO.getReference_id());
+                        mongoTemplate.findAndModify(queryUpdate1, update1Pass, SubmitFieldDTO.class);
 
-                        responseModel.setReference_id(submitFieldDTO.getReference_id());
-                        responseModel.setProject(submitFieldDTO.getProject());
-                        responseModel.setTransaction_id(submitFieldDTO.getTransaction_id());
-                        responseModel.setApp_id(submitFieldDTO.getAppId());
-                        responseModel.setAutomation_result("SUBMIT_FIELD PASS");
+                        Thread.sleep(Constant.TIME_OUT_S);
 
                         Utilities.captureScreenShot(driver);
                         System.out.println("Auto - SUBMIT FIELD" + ": FINISH - PASS" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
-                    responseModel.setReference_id(submitFieldDTO.getReference_id());
-                    responseModel.setProject(submitFieldDTO.getProject());
-                    responseModel.setTransaction_id(submitFieldDTO.getTransaction_id());
-                    responseModel.setApp_id(submitFieldDTO.getAppId());
-                    responseModel.setAutomation_result("SUBMIT_FIELD FAILED" + " - " + ex.getMessage());
-
-                    Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(submitFieldDTO.getAppId()));
-                    Update update = new Update();
-                    update.set("userAuto", accountDTO.getUserName());
-                    update.set("status", 3);
-                    SubmitFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, SubmitFieldDTO.class);
+                    Query queryUpdateFaild = new Query();
+                    queryUpdateFaild.addCriteria(Criteria.where("appId").is(submitFieldDTO.getAppId()).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
+                    Update updateFailed = new Update();
+                    updateFailed.set("userAuto", accountDTO.getUserName());
+                    updateFailed.set("status", 3);
+                    updateFailed.set("automation_result", "SUBMIT_FIELD_FAILED");
+                    updateFailed.set("automation_result_message", ex.getMessage());
+                    mongoTemplate.findAndModify(queryUpdateFaild, updateFailed, SubmitFieldDTO.class);
+                    Thread.sleep(Constant.TIME_OUT_S);
 
                     System.out.println(ex.getMessage());
 
@@ -4745,11 +4775,15 @@ public class AutomationHandlerService {
                 }
             } while (!Objects.isNull(submitFieldDTO));
         } catch (Exception e) {
-            responseModel.setReference_id(submitFieldDTO.getReference_id());
-            responseModel.setProject(submitFieldDTO.getProject());
-            responseModel.setTransaction_id(submitFieldDTO.getTransaction_id());
-            responseModel.setApp_id(submitFieldDTO.getAppId());
-            responseModel.setAutomation_result("SUBMIT_FIELD FAILED" + " - " + e.getMessage());
+
+            Query queryUpdateFaild = new Query();
+            queryUpdateFaild.addCriteria(Criteria.where("appId").is(submitFieldDTO.getAppId()).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
+            Update updateFailed2 = new Update();
+            updateFailed2.set("userAuto", accountDTO.getUserName());
+            updateFailed2.set("status", 3);
+            updateFailed2.set("automation_result", "SUBMIT_FIELD_FAILED");
+            updateFailed2.set("automation_result_message", e.getMessage());
+            mongoTemplate.findAndModify(queryUpdateFaild, updateFailed2, SubmitFieldDTO.class);
 
 
             System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
@@ -4759,12 +4793,22 @@ public class AutomationHandlerService {
 
             System.out.println("Auto - SUBMIT FIELD" + ": FINISH - FAILED" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         } finally {
+            Query queryUpdateFailed = new Query();
+            queryUpdateFailed.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id));
+            List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
+
+            responseModel.setReference_id(reference_id);
+            responseModel.setProject(projectField);
+            responseModel.setTransaction_id(transaction_id);
+            responseModel.setData(resultRespone);
+
+
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
             pushAccountToQueue(accountDTO, project);
             try {
-                autoUpdateStatusRabbit(responseModel, "updateAutomation");
+                autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
             } catch (Exception e) {
                 e.printStackTrace();
             }
