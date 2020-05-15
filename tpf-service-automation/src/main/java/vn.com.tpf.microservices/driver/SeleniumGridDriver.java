@@ -33,7 +33,7 @@ public class SeleniumGridDriver {
         if (browser.equalsIgnoreCase("chrome")) {
             ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.addArguments("--no-sandbox");
-//            chromeOptions.addArguments("headless");
+            chromeOptions.addArguments("headless");
             chromeOptions.addArguments("--incognito");
             chromeOptions.addArguments("--disable-gpu");
             chromeOptions.addArguments("--disable-dev-shm-usage");
