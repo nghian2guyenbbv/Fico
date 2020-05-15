@@ -284,7 +284,7 @@ public class LeadDetailPage {
                     "TPF_Transcript","TPF_Representatives "); //
             Utilities.captureScreenShot(_driver);
 
-            /*for (WebElement element : docNameElement) {
+            for (WebElement element : docNameElement) {
                 final int _tempIndex = index;
                 String docName = element.getText();
                 //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
@@ -317,7 +317,7 @@ public class LeadDetailPage {
                     }
                 }
                 index++;
-            }*/
+            }
 
             saveDocBtnElement.click();
             Utilities.captureScreenShot(_driver);
