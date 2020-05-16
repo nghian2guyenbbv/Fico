@@ -4703,7 +4703,7 @@ public class AutomationHandlerService {
                         updateFirst2.set("project", submitFieldDTO.getProject());
                         updateFirst2.set("transaction_id", submitFieldDTO.getTransaction_id());
                         updateFirst2.set("reference_id", submitFieldDTO.getReference_id());
-                        updateFirst2.set("automation_result", "WAIVE_FIELD_RUN");
+                        updateFirst2.set("automation_result", "SUBMIT_FIELD_RUN");
                         SubmitFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, updateFirst2, SubmitFieldDTO.class);
 
 
