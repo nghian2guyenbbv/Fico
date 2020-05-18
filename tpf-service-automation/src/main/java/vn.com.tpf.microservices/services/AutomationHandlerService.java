@@ -4533,11 +4533,13 @@ public class AutomationHandlerService {
             do {
                 try {
                     Query query = new Query();
-                    query.addCriteria(Criteria.where("status").is(0).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
+                    query.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
                     checkResultExist = mongoTemplate.find(query, WaiveFieldDTO.class);
                     if (checkResultExist.size() < 1){
                         mongoTemplate.insert(waiveFieldDTOList, WaiveFieldDTO.class);
                     }
+                    query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
                     waiveFieldDTO = mongoTemplate.findOne(query, WaiveFieldDTO.class);
                     if (!Objects.isNull(waiveFieldDTO)) {
 
@@ -4593,7 +4595,7 @@ public class AutomationHandlerService {
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
-                        queryUpdate1.addCriteria(Criteria.where("_id").is(new ObjectId(waiveFieldDTO.getId())).and("status").is(2).and("appId").is(waiveFieldDTO.getAppId()).and("transaction_id").is(waiveFieldDTO.getTransaction_id()).and("reference_id").is(waiveFieldDTO.getReference_id()));
+                        queryUpdate1.addCriteria(Criteria.where("_id").is(waiveFieldDTO.getId()).and("status").is(2).and("appId").is(waiveFieldDTO.getAppId()).and("transaction_id").is(waiveFieldDTO.getTransaction_id()).and("reference_id").is(waiveFieldDTO.getReference_id()));
                         Update update1Pass = new Update();
                         update1Pass.set("userAuto", accountDTO.getUserName());
                         update1Pass.set("status", 1);
@@ -4682,11 +4684,13 @@ public class AutomationHandlerService {
             do {
                 try {
                     Query query = new Query();
-                    query.addCriteria(Criteria.where("status").is(0).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
+                    query.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
                     checkResultExist = mongoTemplate.find(query, SubmitFieldDTO.class);
                     if (checkResultExist.size() < 1){
                         mongoTemplate.insert(submitFieldDTOList, WaiveFieldDTO.class);
                     }
+                    query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
                     submitFieldDTO = mongoTemplate.findOne(query, SubmitFieldDTO.class);
                     if (!Objects.isNull(submitFieldDTO)) {
 
