@@ -83,6 +83,8 @@ public class RabbitMQService {
 				return response(message, payload, appService.createQuickLeadApp(request));
 			case "waiveField":
 				return response(message, payload, appService.waiveField(request));
+			case "submitField":
+				return response(message, payload, appService.submitField(request));
 			case "updateApp":
 				return response(message, payload, appService.updateApp(request));
 			case "updateAutomation":

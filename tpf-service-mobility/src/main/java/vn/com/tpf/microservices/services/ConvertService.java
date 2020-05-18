@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import lombok.Builder;
 import vn.com.tpf.microservices.models.Mobility;
+import vn.com.tpf.microservices.models.MobilityField;
 import vn.com.tpf.microservices.models.MobilityWaiveField;
 
 @Service
@@ -59,12 +60,51 @@ public class ConvertService {
 	}
 	
 	
+	public ObjectNode toAppDisplay(MobilityField mobilityField) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("project", "mobility");
+		app.put("uuid", mobilityField.getId());
+		if (mobilityField.getAppId() != null)
+			app.put("appId", mobilityField.getAppId());
+		app.put("status", mobilityField.getAppStatus());
+		if (mobilityField.getAutomationResults() != null && mobilityField.getAutomationResults().size() != 0)
+			app.put("automationResult", mapper.convertValue(mobilityField.getAutomationResults().get(0), JsonNode.class)
+					.path("automationResult").asText());
+		app.put("fullName", (mobilityField.getFullName()));
+
+		ObjectNode optional = mapper.createObjectNode();
+		optional.put("stage", mobilityField.getAppStage());
+
+		app.set("optional", optional);
+		return app;
+	}
+	
+	public ObjectNode toAppDisplay(MobilityWaiveField mobilityWaiveField) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("project", "mobility");
+		app.put("uuid", mobilityWaiveField.getId());
+		if (mobilityWaiveField.getAppId() != null)
+			app.put("appId", mobilityWaiveField.getAppId());
+//		app.put("status", mobilityWaiveField.getAppStatus());
+		if (mobilityWaiveField.getAutomationResults() != null && mobilityWaiveField.getAutomationResults().size() != 0)
+			app.put("automationResult", mapper.convertValue(mobilityWaiveField.getAutomationResults().get(0), JsonNode.class)
+					.path("automationResult").asText());
+//		app.put("fullName", (mobilityWaiveField.getFullName()));
+
+		ObjectNode optional = mapper.createObjectNode();
+		/* optional.put("stage", mobilityWaiveField.getAppStage()); */
+
+		app.set("optional", optional);
+		return app;
+	}
+	
+	
 	public ObjectNode toAppAutomation(Mobility mobility,boolean updateStatus ) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("appId", mobility.getAppId());
 		if(updateStatus)
 			app.put("status", mobility.getStatus());
-		if (mobility.getAutomationResults().size() != 0)
+		if (mobility.getAutomationResults() != null && mobility.getAutomationResults().size() != 0)
 			app.put("automationResult", mapper.convertValue(mobility.getAutomationResults().get(0), JsonNode.class)
 					.path("automationResult").asText());
 		ObjectNode optional = mapper.createObjectNode();
@@ -74,15 +114,27 @@ public class ConvertService {
 		return app;
 	}
 	
-	public ObjectNode toAppAutomationField(MobilityWaiveField mobilityyWaiveField ) {
+	public ObjectNode toAppAutomationField(MobilityWaiveField mobilityWaiveField ) {
 		ObjectNode app = mapper.createObjectNode();
-		app.put("appId", mobilityyWaiveField.getAppId());
-		if (mobilityyWaiveField.getAutomationResults().size() != 0)
-			app.put("automationResult", mapper.convertValue(mobilityyWaiveField.getAutomationResults().get(0), JsonNode.class)
+		app.put("appId", mobilityWaiveField.getAppId());
+		if (mobilityWaiveField.getAutomationResults() != null && mobilityWaiveField.getAutomationResults().size() != 0)
+			app.put("automationResult", mapper.convertValue(mobilityWaiveField.getAutomationResults().get(0), JsonNode.class)
 					.path("automationResult").asText());
 		return app;
 	}
 	
+	public ObjectNode toAppAutomationSubmitField(MobilityField mobilityField ) {
+		ObjectNode app = mapper.createObjectNode();
+		app.put("appId", mobilityField.getAppId());
+		if (mobilityField.getAutomationResults() != null && mobilityField.getAutomationResults().size() != 0)
+			app.put("automationResult", mapper.convertValue(mobilityField.getAutomationResults().get(0), JsonNode.class)
+					.path("automationResult").asText());
+		ObjectNode optional = mapper.createObjectNode();
+		optional.put("stage", mobilityField.getAppStage());
+
+		app.set("optional", optional);
+		return app;
+	}
 	
 	public ObjectNode toAppStatus(Mobility mobility) {
 		ObjectNode app = mapper.createObjectNode();

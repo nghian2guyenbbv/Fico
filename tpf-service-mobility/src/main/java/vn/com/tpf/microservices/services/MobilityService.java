@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import vn.com.tpf.microservices.models.Mobility;
 import vn.com.tpf.microservices.models.MobilityField;
 import vn.com.tpf.microservices.models.MobilityFieldKH;
+import vn.com.tpf.microservices.models.MobilityFinnOneFiled;
 import vn.com.tpf.microservices.models.MobilityWaiveField;
 import vn.com.tpf.microservices.utils.Utils;
 
@@ -50,10 +51,15 @@ public class MobilityService {
 			"Rejection".toUpperCase().trim());
 	private final String STAGE_QUICKLEAD_FAILED_AUTOMATION = "QUICKLEAD_FAILED_AUTOMATION";
 
+	private final String AUTOMATION_SUBMIT_RUN_FIELD = "SUBMIT_RUN_FIELD";
+	private final String AUTOMATION_SUBMIT_FAILED_FIELD = "SUBMIT_FAILED_FIELD";
+	private final String AUTOMATION_SUBMIT_PASS_FIELD = "SUBMIT_PASS_FIELD";
+
+	private final String STAGE_SUBMIT_FIELD_RUN = "SUBMIT_RUN_FIELD";
+	private final String STAGE_SUBMIT_FIELD_FAILED = "SUBMIT_FAILED_FIELD";
+
 	private final String AUTOMATION_QUICKLEAD_PASS = "QUICKLEAD_PASS";
 	private final String AUTOMATION_QUICKLEAD_FAILED = "QUICKLEAD_FAILED";
-	private final String AUTOMATION_WAIVEFIELD_PASS = "WAIVEFIELD_PASS";
-	private final String AUTOMATION_WAIVEFIELD_FAILED = "WAIVEFIELD_FAILED";
 
 	private final String AUTOMATION_RETURNQUERY_PASS = "RESPONSEQUERY_PASS";
 	private final String AUTOMATION_RETURNQUERY_FAILED = "RESPONSEQUERY_FAILED";
@@ -71,6 +77,9 @@ public class MobilityService {
 	private final String STATUS_T_RETURN = "T_RETURN";
 	private final String STATUS_PRE_APPROVAL = "PRE_APPROVAL";
 	private final String STATUS_RETURNED = "RETURNED";
+
+	private final String STAGE_SUBMIT = "CREDIT_APPROVAL";
+	private final String STATUS_SUBMIT = "PRE_APPROVAL";
 
 	private final String STATUS_RESUBMITING = "RESPONSE_QUERY_UPLOADING";
 //	private final String STATUS_RESUBMIT_FAILED = "RESPONSE_QUERY_FAILED_AUTOMATION";
@@ -99,7 +108,7 @@ public class MobilityService {
 
 	@Autowired
 	private MongoTemplate mobilityTemplate;
-	
+
 	@Autowired
 	private MongoTemplate mobilitywaivefieldTemplate;
 
@@ -293,6 +302,7 @@ public class MobilityService {
 							convertService.toAppStatus(mobility)));
 		}
 		((ObjectNode) item.path("data")).remove(KEY_USER_NAME);
+
 		return utils.getJsonNodeResponse(0, body, item.path("data"));
 	}
 
@@ -383,15 +393,10 @@ public class MobilityService {
 			}
 		}
 
-		/// documents input
-
 		for (JsonNode document : documentsDb)
 			if (document.path("required").asBoolean())
 				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
 						String.format("document %s required", document.path("code").asText())));
-
-///  apiService.uploadDocumentInternal
-
 		List<HashMap> filesUpload = new ArrayList<HashMap>();
 		for (JsonNode document : documents) {
 			JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
@@ -434,11 +439,10 @@ public class MobilityService {
 		return utils.getJsonNodeResponse(0, body, null);
 	}
 
-	/// Logic updateAutomation && push appid leadid to vendor
-
 	public JsonNode updateAutomation(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		if (!request.hasNonNull("body"))
+
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "body not null"));
 		if (body.path("transaction_id").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
@@ -452,181 +456,109 @@ public class MobilityService {
 			return updateAutomationMobility(request);
 		}
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JsonNode updateAutomationWaveField(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		
+
 		if (!body.path("data").isArray())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "body.data not null"));
-		
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "body.data not null"));
+
 		ArrayNode apps = mapper.convertValue(body.path("data"), ArrayNode.class);
 		for (JsonNode app : apps) {
 			if (app.path("appId").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "app_id not null"));
-			
-		if (app.path("automation_result").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "automation_result not null"));
-			String automationResult = body.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "app_id not null"));
+
+			if (app.path("automation_result").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "automation_result not null"));
+			String automationResult = app.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
 
 			Query query = Query.query(Criteria.where("appId").is(app.path("appId").asText()));
-			MobilityWaiveField mobilityWaiveField = mobilitywaivefieldTemplate .findOne(query, MobilityWaiveField.class);
+
+			MobilityWaiveField mobilityWaiveField = mobilitywaivefieldTemplate.findOne(query, MobilityWaiveField.class);
 			if (mobilityWaiveField == null)
 				return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
 						String.format("id %s mobilityWaiveField not exits", app.path("appId").asText())));
-			
+
 			HashMap<String, Object> automationResultObject = new HashMap<>();
 
 			automationResultObject.put("createdAt", new Date());
 
 			automationResultObject.put("automationResult", automationResult);
 
-			LinkedList<Map> automationResultsNew = mapper.convertValue(mobilityWaiveField.getAutomationResults(), LinkedList.class);
+			LinkedList<Map> automationResultsNew = mapper.convertValue(mobilityWaiveField.getAutomationResults(),
+					LinkedList.class);
 			if (automationResultsNew == null)
 				automationResultsNew = new LinkedList<Map>();
 			automationResultsNew.push(automationResultObject);
 			Update update = new Update().set("updatedAt", new Date());
 			update.set("automationResults", automationResultsNew);
 
-			mobilityWaiveField = mobilitywaivefieldTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					MobilityWaiveField.class);
+			mobilityWaiveField = mobilitywaivefieldTemplate.findAndModify(query, update,
+					new FindAndModifyOptions().returnNew(true), MobilityWaiveField.class);
 			if (!automationResult.isBlank())
-			rabbitMQService.send("tpf-service-app",
-					Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-							Map.of("project", "mobility", "id", mobilityWaiveField.getId()), "body",
-							convertService.toAppAutomationField(mobilityWaiveField)));
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+								Map.of("project", "mobility", "id", mobilityWaiveField.getId()), "body",
+								convertService.toAppAutomationField(mobilityWaiveField)));
 		}
 
 		return utils.getJsonNodeResponse(0, request, null);
 	}
-	
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JsonNode updateAutomationSubmitField(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		
-		String automationResult = body.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
-		boolean updateStatus = false;
 
-		Query query = Query.query(Criteria.where("_id").is(body.path("transaction_id").asText()));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
-			return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
-					String.format("id %s mobility not exits", body.path("transaction_id").asText())));
-		
-		HashMap<String, Object> automationResultObject = new HashMap<>();
+		if (!body.path("data").isArray())
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "body.data not null"));
 
-		automationResultObject.put("createdAt", new Date());
+		ArrayNode apps = mapper.convertValue(body.path("data"), ArrayNode.class);
+		for (JsonNode app : apps) {
+			if (app.path("appId").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "app_id not null"));
 
-		automationResultObject.put("automationResult", automationResult);
+			if (app.path("automation_result").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "automation_result not null"));
+			String automationResult = app.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
 
-		LinkedList<Map> automationResultsNew = mapper.convertValue(mobility.getAutomationResults(), LinkedList.class);
-		if (automationResultsNew == null)
-			automationResultsNew = new LinkedList<Map>();
-		automationResultsNew.push(automationResultObject);
-		Update update = new Update().set("updatedAt", new Date());
-		update.set("automationResults", automationResultsNew);
+			Query query = Query.query(Criteria.where("appId").is(app.path("appId").asText()));
 
-		if (automationResult.contains(AUTOMATION_QUICKLEAD_PASS)) {
-			update.set("appId", body.path("app_id").asText());
-			update.set("stage", STAGE_LEAD_DETAILS);
-			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Mobility.class);
-			final Mobility mobilitySender = Mobility.builder().leadId(mobility.getLeadId()).appId(mobility.getAppId())
-					.build();
-			new Thread(() -> {
-				try {
-					int sendCount = 0;
-					do {
-						JsonNode result = apiService.pushAppIdOfLeadId(mobilitySender,
-								request.path("reference_id").asText());
-						if (result.path("resultCode").asText().equals("200")) {
-							return;
-						}
-						sendCount++;
-						Thread.sleep(5 * 60 * 1000);
-					} while (sendCount >= 2);
-				} catch (Exception e) {
-					log.info("{}", utils.getJsonNodeResponse(0, body,
-							mapper.createObjectNode().put("message", e.getMessage())));
-				}
-			}).start();
-		}
-		if (automationResult.contains(AUTOMATION_QUICKLEAD_FAILED)) {
-			update.set("stage", STAGE_QUICKLEAD_FAILED_AUTOMATION);
+			MobilityField mobilityfield = mobilityfieldTemplate.findOne(query, MobilityField.class);
+			if (mobilityfield == null)
+				return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
+						String.format("id %s not exits", app.path("appId").asText())));
+
+			HashMap<String, Object> automationResultObject = new HashMap<>();
+
+			automationResultObject.put("createdAt", new Date());
+
+			automationResultObject.put("automationResult", automationResult);
+
+			LinkedList<Map> automationResultsNew = mapper.convertValue(mobilityfield.getAutomationResults(),
+					LinkedList.class);
+			if (automationResultsNew == null)
+				automationResultsNew = new LinkedList<Map>();
+			automationResultsNew.push(automationResultObject);
+			Update update = new Update().set("updatedAt", new Date());
+			update.set("automationResults", automationResultsNew);
+			
+			mobilityfield = mobilityfieldTemplate.findAndModify(query, update,
+					new FindAndModifyOptions().returnNew(true), MobilityField.class);
+			if (!automationResult.isBlank())
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+								Map.of("project", "mobility", "id", mobilityfield.getId()), "body",
+								convertService.toAppAutomationSubmitField(mobilityfield)));
 		}
 
-		if (automationResult.contains(AUTOMATION_RETURNQUERY_PASS)) {
-			JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
-
-			if (returns.hasNonNull("returnQueries")
-					&& (mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
-							.asBoolean())
-				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-						String.format("data.appId %s returnQuery is complete", mobility.getAppId())));
-
-			LinkedList<Map> returnQueriesNew = mapper.convertValue(
-					mapper.convertValue(returns.path("returnQueries"), ArrayNode.class), LinkedList.class);
-			if (returnQueriesNew == null)
-				returnQueriesNew = new LinkedList<Map>();
-			returnQueriesNew.get(0).put("isComplete", true);
-			returnQueriesNew.get(0).put("updatedAt", new Date());
-			update.set("updatedAt", new Date());
-			update.set("returns.returnQueries", returnQueriesNew);
-			update.set("status", STATUS_RETURNED);
-			update.set("stage", STAGE_LEAD_DETAILS);
-			updateStatus = true;
-		}
-		if (automationResult.contains(AUTOMATION_RETURNQUERY_FAILED))
-			update.set("stage", STAGE_RAISE_QUERY_FAILED);
-
-		if (automationResult.contains(AUTOMATION_SALEQUEUE_PASS)) {
-			JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
-
-			if (returns.hasNonNull("returnQueues")
-					&& (mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)).get(0).path("isComplete")
-							.asBoolean())
-				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-						String.format("data.appId %s returnQueue is complete", mobility.getAppId())));
-
-			LinkedList<Map> returnQueuesNew = mapper
-					.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
-			if (returnQueuesNew == null)
-				returnQueuesNew = new LinkedList<Map>();
-			returnQueuesNew.get(0).put("isComplete", true);
-			returnQueuesNew.get(0).put("updatedAt", new Date());
-			update.set("updatedAt", new Date());
-			update.set("returns.returnQueues", returnQueuesNew);
-
-			final String currentStage = mobility.getStage();
-			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA)
-					|| currentStage.equals(STAGE_SALES_QUEUE_HAS_ACCA_FAILED))
-				update.set("stage", STAGE_LEAD_DETAILS);
-			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING) || currentStage.equals(STAGE_SALES_QUEUE_FAILED))
-				update.set("stage", STAGE_LOGIN_ACCEPTANCE);
-		}
-
-		if (automationResult.contains(AUTOMATION_SALEQUEUE_FAILED)) {
-			final String currentStage = mobility.getStage();
-			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA))
-				update.set("stage", STAGE_SALES_QUEUE_HAS_ACCA_FAILED);
-			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING))
-				update.set("stage", STAGE_SALES_QUEUE_FAILED);
-		}
-
-		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				Mobility.class);
-		if (!automationResult.isBlank())
-			rabbitMQService.send("tpf-service-app",
-					Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-							Map.of("project", "mobility", "id", mobility.getId()), "body",
-							convertService.toAppAutomation(mobility, updateStatus)));
 		return utils.getJsonNodeResponse(0, request, null);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JsonNode updateAutomationMobility(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
@@ -644,7 +576,7 @@ public class MobilityService {
 		if (mobility == null)
 			return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
 					String.format("id %s mobility not exits", body.path("transaction_id").asText())));
-		
+
 		HashMap<String, Object> automationResultObject = new HashMap<>();
 
 		automationResultObject.put("createdAt", new Date());
@@ -754,7 +686,7 @@ public class MobilityService {
 							convertService.toAppAutomation(mobility, updateStatus)));
 		return utils.getJsonNodeResponse(0, request, null);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JsonNode returnQuery(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
@@ -1030,15 +962,15 @@ public class MobilityService {
 		ArrayList<MobilityField> mobilityFields = new ArrayList<MobilityField>();
 		Set<String> set = new HashSet<String>();
 		for (JsonNode app : apps) {
-		     if (set.add(app.path("appId").asText()) == false) {
-		    	 return utils.getJsonNodeResponse(499, app,
-							mapper.createObjectNode().put("message", String.format("data.appId duplicates %s",app.path("appId").asText())));
-		     }
+			if (set.add(app.path("appId").asText()) == false) {
+				return utils.getJsonNodeResponse(499, app, mapper.createObjectNode().put("message",
+						String.format("data.appId duplicates %s", app.path("appId").asText())));
+			}
 		}
-		
+
 		for (JsonNode app : apps) {
 			final String appId = app.path("appId").asText();
-			
+
 			if (appId.isBlank())
 				return utils.getJsonNodeResponse(499, app,
 						mapper.createObjectNode().put("message", "data.appId not null"));
@@ -1051,7 +983,11 @@ public class MobilityService {
 				return utils.getJsonNodeResponse(499, app,
 						mapper.createObjectNode().put("message", "data.fieldType not valid"));
 			}
-			mobilityFields.add(mapper.convertValue(app, MobilityField.class));
+			MobilityField mobilityF = mapper.convertValue(app, MobilityField.class);
+					
+			mobilityF =	MobilityField.builder().appId(appId).build();
+			
+			mobilityFields.add(mobilityF);
 		}
 
 		JsonNode getDataFieldsDB = rabbitMQService.sendAndReceive("tpf-service-finnone", Map.of("func", "getDataFields",
@@ -1066,15 +1002,12 @@ public class MobilityService {
 		if (getDataFieldsDB.path("data").isArray()) {
 			for (JsonNode item : getDataFieldsDB.path("data")) {
 				for (MobilityField mobilityField : mobilityFields) {
-
 					if (mobilityField.getAppId().equals(item.path("appId").asText())) {
 						MobilityField convert = mapper.convertValue(item, MobilityField.class);
 						convert.setComment(mobilityField.getComment());
 						convert.setKycNotes(mobilityField.getKycNotes());
 						convert.setFieldType(mobilityField.getFieldType());
-						if (!(convert.getAppStage().toUpperCase().equals("CANCELLATION"))
-								&& !(convert.getAppStage().toUpperCase().equals("REJECTION"))) {
-
+						if ((convert.getAppStage().toUpperCase().equals("FII"))) {
 							Query queryMon = Query.query(Criteria.where("appId").is(convert.getAppId()));
 							MobilityField mobilityfieldMon = mobilityTemplate.findOne(queryMon, MobilityField.class);
 							Update update = new Update();
@@ -1105,8 +1038,15 @@ public class MobilityService {
 								mobilityfieldMon = mobilityfieldTemplate.findAndModify(queryMon, update,
 										new FindAndModifyOptions().returnNew(true), MobilityField.class);
 							} else {
-								mobilityfieldTemplate.save(convert);
+								MobilityField mobilityF = mapper.convertValue(convert, MobilityField.class);
+								
+								mobilityF =	MobilityField.builder().appId(mobilityF.getAppId()).build();
+								mobilityfieldTemplate.save(mobilityF);
 							}
+
+							
+							rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", request.path("body").path("reference_id"),
+									"body", convertService.toAppDisplay(convert).put("reference_id", request.path("body").path("reference_id").asText())));
 							MobilityFieldKH convertKH = mapper.convertValue(convert, MobilityFieldKH.class);
 							mobilityfieldSender.add(convertKH);
 						}
@@ -1139,19 +1079,20 @@ public class MobilityService {
 
 	public JsonNode waiveField(JsonNode request) throws Exception {
 		ArrayNode apps = mapper.convertValue(request.path("body").path("data"), ArrayNode.class);
-		if (apps.isNull())
-			return utils.getJsonNodeResponse(499, request.path("body").path("data"),
-					mapper.createObjectNode().put("message", "data not null"));
 
-		ArrayNode mobilityWaiveFields = JsonNodeFactory.instance.arrayNode();;
+		if (!request.path("body").hasNonNull("data")
+				|| mapper.convertValue(request.path("body").path("data"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, request.path("body"),
+					mapper.createObjectNode().put("message", "data array required"));
+		ArrayNode mobilityWaiveFields = JsonNodeFactory.instance.arrayNode();
 		Set<JsonNode> set = new HashSet<JsonNode>();
 		for (JsonNode app : apps) {
-		     if (set.add(app) == false) {
-		    	 return utils.getJsonNodeResponse(499, app,
-							mapper.createObjectNode().put("message", String.format("data.appId duplicates %s",app.path("appId").asText())));
-		     }
+			if (set.add(app) == false) {
+				return utils.getJsonNodeResponse(499, request.path("body"), mapper.createObjectNode().put("message",
+						String.format("data.appId duplicates %s", app.path("appId").asText())));
+			}
 		}
-		
+
 		for (JsonNode app : apps) {
 
 			final String appId = app.path("appId").asText();
@@ -1159,53 +1100,93 @@ public class MobilityService {
 				return utils.getJsonNodeResponse(499, app,
 						mapper.createObjectNode().put("message", "data.appId not null"));
 			MobilityWaiveField mobilityWaiveField = mapper.convertValue(app, MobilityWaiveField.class);
-			
+
 			Query queryMon = Query.query(Criteria.where("appId").is(mobilityWaiveField.getAppId()));
-			MobilityWaiveField mobilityWaiveFieldMon = mobilitywaivefieldTemplate.findOne(queryMon, MobilityWaiveField.class);
-			
+			MobilityWaiveField mobilityWaiveFieldMon = mobilitywaivefieldTemplate.findOne(queryMon,
+					MobilityWaiveField.class);
+
 			mobilityWaiveField.setProject("mobility");
-			mobilityWaiveFields
-					.add(convertService.toESBMobilityWaiveField(mobilityWaiveField));
-			if (mobilityWaiveFieldMon != null) { 
+			mobilityWaiveFields.add(convertService.toESBMobilityWaiveField(mobilityWaiveField));
+			if (mobilityWaiveFieldMon != null) {
 				Update update = new Update();
+				if (mobilityWaiveFieldMon.getAutomationResults() != null) {
+					var check_Automation = mapper.convertValue(mobilityWaiveFieldMon.getAutomationResults().get(0),
+							JsonNode.class);
+					var autoRun = (check_Automation.path("automationResult").asText().equals("WAIVE_FIELD_RUN"));
+					if (check_Automation != null && autoRun) {
+						return utils.getJsonNodeResponse(499, request.path("body"), mapper.createObjectNode().put(
+								"message", String.format("data.appId %s WAIVE_FIELD_RUN", app.path("appId").asText())));
+					}
+
+					LinkedList<Map> autoResults = new LinkedList<Map>();
+					HashMap<String, Object> autoUpdate = new HashMap<>();
+					autoUpdate.put("createdAt", new Date());
+					autoUpdate.put("automationResult", "WAIVE_FIELD_RUN");
+					autoResults.push(autoUpdate);
+					update.set("automationResults", autoResults);
+
+				}
 				update.set("updatedAt", new Date());
 				mobilityWaiveFieldMon = mobilitywaivefieldTemplate.findAndModify(queryMon, update,
 						new FindAndModifyOptions().returnNew(true), MobilityWaiveField.class);
+
 			} else {
+				HashMap<String, Object> automationResult = new HashMap<>();
+				automationResult.put("createdAt", new Date());
+				automationResult.put("automationResult", "WAIVE_FIELD_RUN");
+				List<Object> list = new ArrayList<>();
+				list.add(automationResult);
+				mobilityWaiveField.setAutomationResults(list);
+				mobilityWaiveField = MobilityWaiveField.builder().appId(appId).build();
+				mobilityfieldTemplate.save(mobilityWaiveField);
 				mobilitywaivefieldTemplate.save(mobilityWaiveField);
 			}
-			
+
+			rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", request.path("body").path("reference_id"),
+					"body", convertService.toAppDisplay(mobilityWaiveField).put("reference_id", request.path("body").path("reference_id").asText())));
 		}
 
 		HashMap<String, Object> requestSend = new HashMap<>();
 		requestSend.put("func", "waiveField");
 		ObjectNode body = mapper.createObjectNode();
 		body.put("project", "mobility");
-		body.put("transaction_id", "transaction_wave_field");
+		body.put("transaction_id", "transaction_waive_field");
 		body.set("data", mobilityWaiveFields);
 		requestSend.put("body", body);
 		requestSend.put("reference_id", request.path("body").path("reference_id"));
 		rabbitMQService.send("tpf-service-esb", requestSend);
-		
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
-	
+
 	public JsonNode submitField(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		if (body.path("data").isNull())
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
 		final JsonNode data = request.path("body").path("data");
+
 		final String appId = data.path("appId").asText();
 
 		if (appId.isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.appId not null"));
 		Query query = Query.query(Criteria.where("appId").is(appId));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
+		MobilityField mobilityfield = mobilityfieldTemplate.findOne(query, MobilityField.class);
+		if (mobilityfield == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
+		if (mobilityfield.getAutomationResults() != null)  {
+			var check_Automation = mapper.convertValue(mobilityfield.getAutomationResults().get(0),
+					JsonNode.class);
+				var autoRun = (check_Automation.path("automationResult").asText().equals("WAIVE_FIELD_RUN"));
 
+				if  (autoRun)
+					return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.appId %s UPLOADING", appId)));
+		}
+		if (mobilityfield.getAppStage().equals(STAGE_SUBMIT) || mobilityfield.getAppStatus().equals(STATUS_SUBMIT))
+		return utils.getJsonNodeResponse(1, body,
+				mapper.createObjectNode().put("message", String.format("data.appId %s UPLOADING", appId)));
+		
 		if (data.path("phoneConfirmed").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.phoneConfirmed not null"));
@@ -1221,10 +1202,6 @@ public class MobilityService {
 		if (data.path("result2ndHomeVisit").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.result2ndHomeVisit not null"));
-
-		if (data.path("fileName").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.fileName not null"));
 
 		if (data.path("noOfAttempts").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
@@ -1246,6 +1223,14 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.remarksDecisionFiv not null"));
 
+		if (data.path("timeOfVisit").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.timeOfVisit not null"));
+
+		if (data.path("verificationDate").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.verificationDate not null"));
+
 		if (data.path("resonDecisionFic").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.resonDecisionFic not null"));
@@ -1254,14 +1239,219 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.decisionFic not null"));
 
+		if (!data.hasNonNull("files") || mapper.convertValue(data.path("files"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, request.path("body"),
+					mapper.createObjectNode().put("message", "data.files array required"));
+		ArrayNode documents = mapper.convertValue(data.path("files"), ArrayNode.class);
+		for (int index = 0; index < documents.size(); index++) {
+			if (documents.get(index).path("documentMd5").asText().isBlank()
+					|| documents.get(index).path("documentFilename").asText().isBlank()
+					|| documents.get(index).path("documentFileExtension").asText().isBlank()
+					|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+		}
 		
+		ArrayList<JsonNode> mobilityFields = new ArrayList<JsonNode>();
+		
+		
+		mobilityFields.add(mapper.createObjectNode().put("appId", appId));
 
 		JsonNode getDataFieldsDB = rabbitMQService.sendAndReceive("tpf-service-finnone", Map.of("func", "getDataFields",
-				"reference_id", body.path("reference_id"), "body", Map.of("appId", data.path("appId").asText())));
+				"reference_id", request.path("body").path("reference_id"), "body", Map.of("apps", mobilityFields)));
 
+		if (getDataFieldsDB.path("status").asInt(0) != 200) {
+			return utils.getJsonNodeResponse(1, request.path("body"), getDataFieldsDB.path("data"));
+		}
+		
+		if (getDataFieldsDB.path("data").isArray()) {
+			for (JsonNode item : getDataFieldsDB.path("data")) {
+					if (mobilityfield.getAppId().equals(item.path("appId").asText())) {
+						MobilityField check = mapper.convertValue(item, MobilityField.class);
+						if (!(check.getAppStage().toUpperCase().equals("FII"))) {
+							
+							return utils.getJsonNodeResponse(1, body,
+									mapper.createObjectNode().put("message", String.format("data.appId %s %s", appId, check.getAppStage().toUpperCase())));
+						}
+					}
+			}
+		}
+		
+		JsonNode getListFinnOneFileds = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getListFinnOneFileds", "reference_id", request.path("reference_id"), "body",
+						data.path("phoneConfirmed")));
 
+		if (getListFinnOneFileds.path("status").asInt() != 200)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", String.format("data not found")));
 
-		return utils.getJsonNodeResponse(0, body, mapper.convertValue(body, JsonNode.class));
+		Update update = new Update();
+		var a = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("phoneConfirmed")) {
+			if ((i.has(data.path("phoneConfirmed").asText())))
+				update.set("phoneConfirmed", i.get(data.path("phoneConfirmed").asText()).asText());
+			a++;
+			break;
+		}
+		if (a == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.phoneConfirmed %s  not exits", data.path("phoneConfirmed").asText())));
+		var b = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("resultHomeVisit")) {
+
+			if ((i.has(data.path("resultHomeVisit").asText())))
+				update.set("resultHomeVisit", i.get(data.path("resultHomeVisit").asText()).asText());
+			b++;
+			break;
+
+		}
+		if (b == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.resultHomeVisit %s  not exits", data.path("resultHomeVisit").asText())));
+
+		var c = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("resultOfficeVisit")) {
+			if ((i.has(data.path("resultOfficeVisit").asText())))
+				update.set("resultOfficeVisit", i.get(data.path("resultOfficeVisit").asText()).asText());
+			c++;
+			break;
+		}
+		if (c == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.resultOfficeVisit %s  not exits", data.path("resultOfficeVisit").asText())));
+
+		var d = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("result2ndHomeVisit")) {
+			if ((i.has(data.path("result2ndHomeVisit").asText())))
+				update.set("result2ndHomeVisit", i.get(data.path("result2ndHomeVisit").asText()).asText());
+			d++;
+			break;
+		}
+		if (d == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.result2ndHomeVisit %s  not exits", data.path("result2ndHomeVisit").asText())));
+
+		var f = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("verificationAgent")) {
+			if ((i.has(data.path("verificationAgent").asText())))
+				update.set("verificationAgent", i.get(data.path("verificationAgent").asText()).asText());
+			f++;
+			break;
+		}
+		if (f == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.verificationAgent %s  not exits", data.path("verificationAgent").asText())));
+		var g = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("resultDecisionFiv")) {
+			if ((i.has(data.path("resultDecisionFiv").asText())))
+				update.set("resultDecisionFiv", i.get(data.path("resultDecisionFiv").asText()).asText());
+			g++;
+			break;
+		}
+		if (g == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.resultDecisionFiv %s  not exits", data.path("resultDecisionFiv").asText())));
+
+		var j = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("resonDecisionFic")) {
+			if ((i.has(data.path("resonDecisionFic").asText())))
+				update.set("resonDecisionFic", i.get(data.path("resonDecisionFic").asText()).asText());
+			j++;
+			break;
+		}
+		if (j == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.resonDecisionFic %s  not exits", data.path("resonDecisionFic").asText())));
+		var m = 0;
+		for (JsonNode i : getListFinnOneFileds.path("data").path("decisionFic")) {
+			if ((i.has(data.path("decisionFic").asText())))
+				update.set("decisionFic", i.get(data.path("decisionFic").asText()).asText());
+			m++;
+			break;
+		}
+		if (m == 0)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.decisionFic %s  not exits", data.path("decisionFic").asText())));
+
+		if (!(getListFinnOneFileds.path("data").path("noOfAttempts").has(data.path("noOfAttempts").asText())))
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.noOfAttempts %s  not exits", data.path("noOfAttempts").asText())));
+		update.set("noOfAttempts", getListFinnOneFileds.path("data").path("noOfAttempts")
+				.path(data.path("noOfAttempts").asText()).asInt());
+
+		List<HashMap> filesUpload = new ArrayList<HashMap>();
+		ArrayNode filesUploadSender = JsonNodeFactory.instance.arrayNode();
+		for (JsonNode document : documents) {
+			JsonNode filesDbInfo = mapper.convertValue(getListFinnOneFileds.path("data").path("filesUpload"),
+					JsonNode.class);
+			JsonNode uploadResult = apiService.uploadDocumentInternal(document, filesDbInfo);
+			if (uploadResult.path("resultCode").asInt() != 200)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+					.equals(document.path("documentMd5").asText().toLowerCase()))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message",
+								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+										uploadResult.path("md5").asText().toLowerCase())));
+			HashMap<String, String> docUpload = new HashMap<>();
+			docUpload.put("documentFilename", document.path("documentFilename").asText());
+			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+			docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+			docUpload.put("documentMd5", document.path("documentMd5").asText());
+
+			docUpload.put("originalname", document.path("documentFilename").asText().concat(".")
+					.concat(document.path("documentFileExtension").asText()));
+			docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+			filesUpload.add(docUpload);
+			ObjectNode item = mapper.createObjectNode();
+			item.put("fileName", uploadResult.path("data").path("filename").asText());
+			filesUploadSender.add(item);
+		}
+
+		update = update.set("updatedAt", new Date()).set("filesUpload", filesUpload)
+				.set("timeOfVisit", data.path("timeOfVisit").asText())
+				.set("verificationDate", data.path("verificationDate").asText())
+				.set("remarksDecisionFic", data.path("remarksDecisionFic").asText())
+				.set("remarksDecisionFiv", data.path("remarksDecisionFiv").asText()).set("appStatus", STATUS_SUBMIT).set("appStage", STAGE_SUBMIT);
+
+		mobilityfield = mobilityfieldTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				MobilityField.class);
+		
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+						Map.of("project", "mobility", "id", mobilityfield.getId()), "body",
+						convertService.toAppAutomationSubmitField(mobilityfield)));
+
+		ArrayNode mobilitySubmitFields = JsonNodeFactory.instance.arrayNode();
+
+		ObjectNode mobilityObjectNode = mapper.createObjectNode();
+		mobilityObjectNode.put("appId", mobilityfield.getAppId());
+		mobilityObjectNode.put("phoneConfirmed", mobilityfield.getPhoneConfirmed());
+		mobilityObjectNode.put("resultHomeVisit", mobilityfield.getResultHomeVisit());
+		mobilityObjectNode.put("resultOfficeVisit", mobilityfield.getResultOfficeVisit());
+		mobilityObjectNode.put("result2ndHomeVisit", mobilityfield.getResult2ndHomeVisit());
+		mobilityObjectNode.set("attachmentField", filesUploadSender);
+		mobilityObjectNode.put("timeOfVisit", mobilityfield.getTimeOfVisit());
+		mobilityObjectNode.put("verificationDate", mobilityfield.getVerificationDate());
+		mobilityObjectNode.put("remarksDecisionFiv", mobilityfield.getRemarksDecisionFiv());
+		mobilityObjectNode.put("remarksDecisionFic", mobilityfield.getRemarksDecisionFic());
+		mobilityObjectNode.put("resonDecisionFic", mobilityfield.getResonDecisionFic());
+
+		mobilitySubmitFields.add(mobilityObjectNode);
+
+		HashMap<String, Object> requestSend = new HashMap<>();
+
+		requestSend.put("func", "submitField");
+		ObjectNode bodySender = mapper.createObjectNode();
+		bodySender.put("project", "mobility");
+		bodySender.put("transaction_id", "transaction_submit_field");
+		bodySender.set("data", mobilitySubmitFields);
+		requestSend.put("body", bodySender);
+		requestSend.put("reference_id", request.path("body").path("reference_id"));
+
+		rabbitMQService.send("tpf-service-esb", requestSend);
+
+		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
-
 }
