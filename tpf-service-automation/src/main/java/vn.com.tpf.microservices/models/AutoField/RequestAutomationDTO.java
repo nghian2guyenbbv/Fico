@@ -12,4 +12,5 @@ public class RequestAutomationDTO {
     private String project;
     private String transaction_id;
     private List<WaiveFieldDTO> waiveFieldDTO;
+    private List<SubmitFieldDTO> submitFieldDTO;
 }

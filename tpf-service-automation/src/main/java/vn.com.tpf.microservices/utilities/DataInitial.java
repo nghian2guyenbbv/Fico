@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.utilities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
+import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.models.Automation.*;
@@ -716,15 +717,27 @@ public class DataInitial {
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Waive_Field(List<WaiveFieldDTO> waiveFieldDTOList) throws JsonProcessingException {
+    /*public static Map<String, Object> getDataFrom_Waive_Field_V2(List<WaiveFieldDTO> waiveFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("WaiveFieldList", waiveFieldDTOList);
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Submit_Field(List<SubmitFieldDTO> submitFieldDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_Submit_Field_V2(List<SubmitFieldDTO> submitFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("SubmitFieldList", submitFieldDTOList);
+        return map;
+    }*/
+
+    public static Map<String, Object> getDataFrom_Waive_Field(RequestAutomationDTO waiveFieldDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("RequestAutomationWaiveFieldList", waiveFieldDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("RequestAutomationSubmitFieldList", submitFieldDTOList);
         return map;
     }
 }

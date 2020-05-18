@@ -134,14 +134,14 @@ public class FV_WaiveFieldPage {
     public void setData(WaiveFieldDTO waiveFieldDTO, String user) {
         String stage = "";
 
-        menuApplicationElement.click();
+        /*menuApplicationElement.click();
 
-        applicationManagerElement.click();
+        applicationManagerElement.click();*/
 
         // ========== APPLICATION MANAGER =================
         stage = "APPLICATION MANAGER";
 
-        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        /*await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Manager"));
 
         await("applicationManagerFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -154,7 +154,7 @@ public class FV_WaiveFieldPage {
                 .until(() -> tdApplicationElement.size() > 2);
 
         await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> "FII".equals(tdCheckStageApplicationElement.getText()));
+                .until(() -> "FII".equals(tdCheckStageApplicationElement.getText()));*/
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
