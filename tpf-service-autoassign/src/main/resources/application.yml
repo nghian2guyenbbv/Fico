@@ -1,21 +1,21 @@
-spring:
-  rabbitmq:
-    host: 127.0.0.1
-  datasource:
-#      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
-        url: jdbc:postgresql://127.0.0.1:5432/postgres
-#security:
-#  oauth2:
-#    client:
-#      client-id: tpf-service-root
-#      client-secret: tpf-service-root
-#    resource:
-#      token-info-uri: http://127.0.0.1:1100/oauth/check_token
-#eureka:
-#  client:
-#    registerWithEureka: true
-#    fetchRegistry: true
-#    serviceUrl:
-#      defaultZone: http://127.0.0.1:8761/eureka
-#  instance:
-#    hostname: 127.0.0.1
+#spring:
+#  rabbitmq:
+#    host: 127.0.0.1
+#  datasource:
+#      url: jdbc:postgresql://10.1.66.30:5435/ficodb
+##        url: jdbc:postgresql://127.0.0.1:5432/postgres
+##security:
+##  oauth2:
+##    client:
+##      client-id: tpf-service-root
+##      client-secret: tpf-service-root
+##    resource:
+##      token-info-uri: http://127.0.0.1:1100/oauth/check_token
+##eureka:
+##  client:
+##    registerWithEureka: true
+##    fetchRegistry: true
+##    serviceUrl:
+##      defaultZone: http://127.0.0.1:8761/eureka
+##  instance:
+##    hostname: 127.0.0.1

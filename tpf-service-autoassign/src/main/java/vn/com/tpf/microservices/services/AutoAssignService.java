@@ -269,6 +269,7 @@ public class AutoAssignService {
 		try{
 			RequestModel requestModel = mapper.treeToValue(request, RequestModel.class);
 			DateTimeFormatter formatterParseInput = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			List<Long> listPriority = new ArrayList<Long>();
 
 			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
@@ -276,12 +277,65 @@ public class AutoAssignService {
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(0);
-				responseModel.setMessage("data null!");
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Please input required field ");
 				return Map.of("status", 200, "data", responseModel);
 			}
 
 			List<AutoAssignConfigure> inputData = requestModel.getData();
+			for (AutoAssignConfigure item :	inputData) {
+				AutoAssignConfigure resultConfigById = autoAssignConfigureDAO.findConfigureById(item.getId());
+				if (resultConfigById != null) {
+					if (formatterParseInput.format(resultConfigById.getCreatedDate().toLocalDateTime()).equals(formatterParseInput.format(LocalDate.now())) &&
+							resultConfigById.getVendorId() != 3) {
+						if (item.getTotalQuanlity() >= resultConfigById.getActualTotalQuanlity()) {
+							if (item.getQuanlityInDay() >= (item.getTotalQuanlity() - resultConfigById.getActualTotalQuanlity())) {
+								responseModel.setRequest_id(requestModel.getRequest_id());
+								responseModel.setReference_id(UUID.randomUUID().toString());
+								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+								responseModel.setResult_code(3);
+								responseModel.setMessage("Quanlity In Day not large than Total Quanlity - Actual Total Quanlity");
+								return Map.of("status", 200, "data", responseModel);
+							}
+						} else {
+							responseModel.setRequest_id(requestModel.getRequest_id());
+							responseModel.setReference_id(UUID.randomUUID().toString());
+							responseModel.setDate_time(new Timestamp(new Date().getTime()));
+							responseModel.setResult_code(2);
+							responseModel.setMessage("Total Quanlity not less than Actual Total Quanlity");
+							return Map.of("status", 200, "data", responseModel);
+						}
+					}
+
+					if (item.getQuanlityInDay() < resultConfigById.getActualQuanlityInDay()){
+						responseModel.setRequest_id(requestModel.getRequest_id());
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(1);
+						responseModel.setMessage("Quanlity In Day not less than Actual Quanlity In Day");
+						return Map.of("status", 200, "data", responseModel);
+					}
+
+					if (listPriority.contains(item.getPriority())) {
+						responseModel.setRequest_id(requestModel.getRequest_id());
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(4);
+						responseModel.setMessage("Duplicate Priority");
+						return Map.of("status", 200, "data", responseModel);
+					}
+					listPriority.add(item.getPriority());
+				}else {
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(1);
+					responseModel.setMessage("config_id not found!");
+					return Map.of("status", 200, "data", responseModel);
+				}
+			}
+
+//			List<AutoAssignConfigure> inputData = requestModel.getData();
 			for (AutoAssignConfigure item :	inputData) {
 				AutoAssignConfigure resultConfigById = autoAssignConfigureDAO.findConfigureById(item.getId());
 				if (formatterParseInput.format(resultConfigById.getCreatedDate().toLocalDateTime()).equals(formatterParseInput.format(LocalDate.now())) &&
