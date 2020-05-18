@@ -61,6 +61,8 @@ public class MobilityField {
 	private String resultDecisionFiv;
 	private String remarksDecisionFiv;
 	private String decisionFic;
+	private String resonDecisionFic;
+	
 	
 	@Builder.Default
 	private String chanel = "DIRECT";
@@ -72,6 +74,9 @@ public class MobilityField {
 	private String productFinnOne;
 	private String appStage;
 	private String appStatus;
+	private String timeOfVisit;
+	private String verificationDate;
+	
 	
 	@Builder.Default
 	private List<Object> automationResults = Arrays.asList();
