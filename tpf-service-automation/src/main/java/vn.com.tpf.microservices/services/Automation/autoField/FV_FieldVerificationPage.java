@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation.autoField;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -139,6 +140,10 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//table[@id = 'initiate_Verification']//tbody//tr")
     private List<WebElement> tableFiiBtnAddElement;
 
+    @FindBy(how = How.XPATH, using = "//div[starts-with(@class, 'ui-pnotify')]//div[@class ='alert ui-pnotify-container alert-error ui-pnotify-shadow']//div[@class = 'ui-pnotify-text']")
+    @CacheLookup
+    private WebElement popupError;
+
 
     public FV_FieldVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -247,12 +252,15 @@ public class FV_FieldVerificationPage {
             await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnInverse.isDisplayed());
 
-            JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
-            btnInverseJE.executeScript("arguments[0].click();", btnInverse);
+            if(tableFiiBtnAddElement.size() < 2){
+
+                JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
+                btnInverseJE.executeScript("arguments[0].click();", btnInverse);
 
 
-            await("Line visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableFiiBtnAddElement.size() > 1);
+                await("Line visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> tableFiiBtnAddElement.size() > 1);
+            }
 
         }
 
@@ -281,6 +289,9 @@ public class FV_FieldVerificationPage {
         }
 
         btnInitiateVerificationPopupElement.click();
+
+        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
+                .until(() -> "false".equals(popupError.isDisplayed()));
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
