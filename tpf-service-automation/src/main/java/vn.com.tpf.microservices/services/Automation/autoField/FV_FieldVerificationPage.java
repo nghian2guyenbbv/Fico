@@ -106,7 +106,7 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.ID, using = "holder")
     private WebElement textSelectUserContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO0')]")
+    @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO')]")
     @CacheLookup
     private List<WebElement> liAgencyElement;
 
