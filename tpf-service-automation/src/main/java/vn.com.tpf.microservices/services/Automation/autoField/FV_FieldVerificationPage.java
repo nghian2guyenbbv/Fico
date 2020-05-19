@@ -2,7 +2,6 @@ package vn.com.tpf.microservices.services.Automation.autoField;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
