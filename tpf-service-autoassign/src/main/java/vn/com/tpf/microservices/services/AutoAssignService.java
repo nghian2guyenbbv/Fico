@@ -180,6 +180,7 @@ public class AutoAssignService {
 					autoAssignConfigureHistory.setData(inputDataInsert.toString());
 					AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
 				}
+				int result = autoAssignConfigureDAO.updateSeq();
 			}
 			catch (Exception e) {
 				log.info("Error_Insert: " + e.toString());

@@ -22,7 +22,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests().antMatchers("/", "/v1/login","/sms/add_tpfsms_customer", "/actuator/*", "/v1/pgp/*").permitAll()
 		.antMatchers(HttpMethod.POST, "/v1/app/update_status/**/**").permitAll()
-//				.antMatchers(HttpMethod.POST, "/configureVendor/**/**", "/configureApplication/**/**").permitAll()
+//				.antMatchers(HttpMethod.POST, "/configureVendor/**/**", "/configureApplication/**/**", "/getConfigInDay/**/**").permitAll()
 				.anyRequest().authenticated();
 	}
 

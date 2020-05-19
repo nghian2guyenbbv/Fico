@@ -42,5 +42,8 @@ public interface AutoAssignConfigureDAO extends JpaRepository<AutoAssignConfigur
     @Query(value = "select * from auto_assign.getvendorconfig(?1, ?2) AS a(b integer) ", nativeQuery = true)
     List<Object> getVendorConfigApplication(String requestId, String referenceId);
 
+    @Modifying
+    @Query(value = "ALTER SEQUENCE auto_assign.seq_config_app RESTART WITH 1 ", nativeQuery = true)
+    int updateSeq();
 }
 
