@@ -111,19 +111,26 @@ public class FV_WaiveFieldPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td[5]")
     private WebElement tdCurrentVerificationStatus;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr//td")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr//td")
     private List<WebElement> tableInDialogElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr//td")
+    private WebElement tableInDialogElement2;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[contains(text(), 'View Details')]")
     @CacheLookup
     private WebElement btnViewDetails;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'waiveOffVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
     @CacheLookup
     private WebElement btnInverse;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr")
     private List<WebElement> tableFiiBtnAddElement;
+
+    @FindBy(how = How.XPATH, using = "//div[starts-with(@class, 'ui-pnotify')]//div[@class ='alert ui-pnotify-container alert-error ui-pnotify-shadow']//div[@class = 'ui-pnotify-text']")
+    @CacheLookup
+    private WebElement popupError;
 
 
     public FV_WaiveFieldPage(WebDriver driver) {
@@ -227,16 +234,19 @@ public class FV_WaiveFieldPage {
             btnViewDetails.click();
 
             await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableInDialogElement.size() > 2);
+                    .until(() -> tableInDialogElement2.isDisplayed());
 
             await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnInverse.isDisplayed());
 
-            JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
-            btnInverseJE.executeScript("arguments[0].click();", btnInverse);
+            if(tableFiiBtnAddElement.size() < 2){
 
-            await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableFiiBtnAddElement.size() > 1);
+                JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
+                btnInverseJE.executeScript("arguments[0].click();", btnInverse);
+
+                await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> tableFiiBtnAddElement.size() > 1);
+            }
 
         }
 
@@ -252,6 +262,9 @@ public class FV_WaiveFieldPage {
 
         JavascriptExecutor btnWaiveOffVerificationPopup = (JavascriptExecutor)_driver;
         btnWaiveOffVerificationPopup.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
+
+        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
+                .until(() -> "false".equals(popupError.isDisplayed()));
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
