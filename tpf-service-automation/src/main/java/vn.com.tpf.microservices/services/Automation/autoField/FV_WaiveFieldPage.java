@@ -89,29 +89,12 @@ public class FV_WaiveFieldPage {
     @CacheLookup
     private List<WebElement> tbFieldInvestigationInitiationElement;
 
-    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td[5]")
-    private WebElement tdCurrentVerificationStatus;
-
     @FindBy(how = How.ID, using = "waiveOffAll")
     @CacheLookup
     private WebElement btnWaiveOffAllElement;
 
-    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[@class = 'waiveOff']")
-    @CacheLookup
-    private WebElement btnWaiveOff;
-
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']")
     private WebElement popupFiiWaiveOffElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//table[contains(@id,'fii_waiveOff')]//tbody//tr//td")
-    private List<WebElement> tableFiiWaiveOffElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//table[contains(@id,'fii_waiveOff')]//tbody//tr")
-    private List<WebElement> tableFiiWaiveOffAddElement;
-
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
-    @CacheLookup
-    private WebElement btnInverse;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//table[contains(@id,'fii_waiveOff')]//select[starts-with(@id, 'field_investigation_waiveOff_reasonCodeNO')]")
     @CacheLookup
@@ -124,6 +107,23 @@ public class FV_WaiveFieldPage {
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td[5]")
+    private WebElement tdCurrentVerificationStatus;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr//td")
+    private List<WebElement> tableInDialogElement;
+
+    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[contains(text(), 'View Details')]")
+    @CacheLookup
+    private WebElement btnViewDetails;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'waiveOffVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
+    @CacheLookup
+    private WebElement btnInverse;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr")
+    private List<WebElement> tableFiiBtnAddElement;
 
 
     public FV_WaiveFieldPage(WebDriver driver) {
@@ -213,20 +213,21 @@ public class FV_WaiveFieldPage {
 
         await("tbFieldInvestigationInitiationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
+
         System.out.println(tdCurrentVerificationStatus.getText());
         if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
 
             btnWaiveOffAllElement.click();
 
             await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableFiiWaiveOffElement.size() > 2);
+                    .until(() -> tableInDialogElement.size() > 2);
 
         }else{
 
-            btnWaiveOff.click();
+            btnViewDetails.click();
 
             await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> popupFiiWaiveOffElement.isDisplayed());
+                    .until(() -> tableInDialogElement.size() > 2);
 
             await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnInverse.isDisplayed());
@@ -234,10 +235,8 @@ public class FV_WaiveFieldPage {
             JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
             btnInverseJE.executeScript("arguments[0].click();", btnInverse);
 
-//            btnInverse.click();
-
             await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableFiiWaiveOffAddElement.size() > 1);
+                    .until(() -> tableFiiBtnAddElement.size() > 1);
 
         }
 

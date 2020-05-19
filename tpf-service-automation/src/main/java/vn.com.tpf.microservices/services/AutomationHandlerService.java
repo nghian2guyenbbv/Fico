@@ -4818,6 +4818,7 @@ public class AutomationHandlerService {
             try {
                 autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
             } catch (Exception e) {
+                System.out.println("UPDATE STATUS RABBIT: FAILED - MESSAGE: " + e.getMessage() + "\n TRACE: " + e.toString());
                 e.printStackTrace();
             }
             System.out.println("Auto - SUBMIT FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());

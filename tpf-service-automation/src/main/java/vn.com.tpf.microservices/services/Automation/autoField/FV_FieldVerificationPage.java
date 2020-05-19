@@ -83,7 +83,7 @@ public class FV_FieldVerificationPage {
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
-    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbFieldInvestigationInitiationElement;
 
@@ -121,6 +121,23 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td[5]")
+    private WebElement tdCurrentVerificationStatus;
+
+    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[contains(text(), 'View Details')]")
+    @CacheLookup
+    private WebElement btnViewDetails;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//table[@id = 'initiate_Verification']//tbody//tr//td")
+    private List<WebElement> tableInDialogElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
+    @CacheLookup
+    private WebElement btnInverse;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//table[@id = 'initiate_Verification']//tbody//tr")
+    private List<WebElement> tableFiiBtnAddElement;
 
 
     public FV_FieldVerificationPage(WebDriver driver) {
@@ -210,7 +227,35 @@ public class FV_FieldVerificationPage {
         await("tbFieldInvestigationInitiationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
 
-        btnInitiateVerificationElement.click();
+
+
+        System.out.println(tdCurrentVerificationStatus.getText());
+        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
+
+            btnInitiateVerificationElement.click();
+
+            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> tableInDialogElement.size() > 2);
+
+        }else{
+
+            btnViewDetails.click();
+
+            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> tableInDialogElement.size() > 2);
+
+            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> btnInverse.isDisplayed());
+
+            JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
+            btnInverseJE.executeScript("arguments[0].click();", btnInverse);
+
+
+            await("Line visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> tableFiiBtnAddElement.size() > 1);
+
+        }
+
 
         await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbVerificationTypeElement.isDisplayed());
