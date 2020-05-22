@@ -16,7 +16,6 @@ public class ResponseModel {
     private String request_id;
     private String reference_id;
     private String result_code;
-    private Integer valid;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String result_message;
@@ -42,10 +41,6 @@ public class ResponseModel {
 
     public void setData(Object data) {
         mapData.put(Response.DATA, data);
-    }
-
-    public void setValid(Integer valid) {
-        mapData.put("valid", valid);
     }
 
     public JsonNode getResponseModel(ObjectMapper mapper) {

@@ -77,7 +77,7 @@ public class RabbitMQService {
         try {
             JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
             switch (request.path("func").asText()) {
-                case "recheckRegister":
+                case "precheckRegister":
                     return response(message, payload, mobile4csService.getHadLoan(request));
                 case "quickInquiry":
                     return response(message, payload, mobile4csService.getQuickInquiry(request));
