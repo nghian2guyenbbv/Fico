@@ -85,9 +85,18 @@ public class ApiService {
 			dataLogReq.set("payload", data);
 
 			final String documentCode = data.path("documentCode").asText();
+			final String documentFilename = data.path("documentFilename").asText();
 			final String documentFileExtension = data.path("documentFileExtension").asText();
 			final String documentUrlDownload = data.path("documentUrlDownload").asText();
-			final String fileName = documentCode.concat(".").concat(documentFileExtension);
+			
+			String fileName = "";
+			if (documentCode.isBlank()) {
+				fileName = documentFilename.concat(".").concat(documentFileExtension);
+				
+			} else {
+				fileName = documentCode.concat(".").concat(documentFileExtension);
+			}
+			
 			log.info("{}", dataLogReq);
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));

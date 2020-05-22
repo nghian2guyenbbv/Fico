@@ -58,8 +58,7 @@ public class ConvertService {
 		app.set("optional", optional);
 		return app;
 	}
-	
-	
+
 	public ObjectNode toAppDisplay(MobilityField mobilityField) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "mobility");
@@ -78,7 +77,7 @@ public class ConvertService {
 		app.set("optional", optional);
 		return app;
 	}
-	
+
 	public ObjectNode toAppDisplay(MobilityWaiveField mobilityWaiveField) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "mobility");
@@ -87,8 +86,9 @@ public class ConvertService {
 			app.put("appId", mobilityWaiveField.getAppId());
 //		app.put("status", mobilityWaiveField.getAppStatus());
 		if (mobilityWaiveField.getAutomationResults() != null && mobilityWaiveField.getAutomationResults().size() != 0)
-			app.put("automationResult", mapper.convertValue(mobilityWaiveField.getAutomationResults().get(0), JsonNode.class)
-					.path("automationResult").asText());
+			app.put("automationResult",
+					mapper.convertValue(mobilityWaiveField.getAutomationResults().get(0), JsonNode.class)
+							.path("automationResult").asText());
 //		app.put("fullName", (mobilityWaiveField.getFullName()));
 
 		ObjectNode optional = mapper.createObjectNode();
@@ -97,12 +97,11 @@ public class ConvertService {
 		app.set("optional", optional);
 		return app;
 	}
-	
-	
-	public ObjectNode toAppAutomation(Mobility mobility,boolean updateStatus ) {
+
+	public ObjectNode toAppAutomation(Mobility mobility, boolean updateStatus) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("appId", mobility.getAppId());
-		if(updateStatus)
+		if (updateStatus)
 			app.put("status", mobility.getStatus());
 		if (mobility.getAutomationResults() != null && mobility.getAutomationResults().size() != 0)
 			app.put("automationResult", mapper.convertValue(mobility.getAutomationResults().get(0), JsonNode.class)
@@ -113,17 +112,18 @@ public class ConvertService {
 		app.set("optional", optional);
 		return app;
 	}
-	
-	public ObjectNode toAppAutomationField(MobilityWaiveField mobilityWaiveField ) {
+
+	public ObjectNode toAppAutomationField(MobilityWaiveField mobilityWaiveField) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("appId", mobilityWaiveField.getAppId());
 		if (mobilityWaiveField.getAutomationResults() != null && mobilityWaiveField.getAutomationResults().size() != 0)
-			app.put("automationResult", mapper.convertValue(mobilityWaiveField.getAutomationResults().get(0), JsonNode.class)
-					.path("automationResult").asText());
+			app.put("automationResult",
+					mapper.convertValue(mobilityWaiveField.getAutomationResults().get(0), JsonNode.class)
+							.path("automationResult").asText());
 		return app;
 	}
-	
-	public ObjectNode toAppAutomationSubmitField(MobilityField mobilityField ) {
+
+	public ObjectNode toAppAutomationSubmitField(MobilityField mobilityField) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("appId", mobilityField.getAppId());
 		if (mobilityField.getAutomationResults() != null && mobilityField.getAutomationResults().size() != 0)
@@ -135,14 +135,13 @@ public class ConvertService {
 		app.set("optional", optional);
 		return app;
 	}
-	
+
 	public ObjectNode toAppStatus(Mobility mobility) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("status", mobility.getStatus());
 		return app;
 	}
-	
-	
+
 	public ObjectNode toAppStage(Mobility mobility) {
 		ObjectNode app = mapper.createObjectNode();
 		ObjectNode optional = mapper.createObjectNode();
@@ -150,13 +149,12 @@ public class ConvertService {
 		app.set("optional", optional);
 		return app;
 	}
-	
+
 	public ObjectNode toESBMobilityWaiveField(MobilityWaiveField mobilityWaiveField) {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("appId", mobilityWaiveField.getAppId());
 		return app;
 	}
-	
 
 	public ObjectNode toAppFinnone(Mobility mobility) {
 
@@ -200,7 +198,6 @@ public class ConvertService {
 		return app;
 	}
 
-	
 	public ObjectNode toReturnQueryFinnone(Mobility mobility) {
 
 		ObjectNode app = mapper.createObjectNode();
@@ -220,7 +217,6 @@ public class ConvertService {
 		return app;
 	}
 
-	
 	public ObjectNode toSaleQueueFinnone(Mobility mobility) {
 
 		ObjectNode app = mapper.createObjectNode();
