@@ -173,6 +173,9 @@ public class DE_ReturnSaleQueuePage {
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
 
+        await("Stage SALES_QUEUE wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> "SALES_QUEUE".equals(tdCheckStageApplicationElement.getText()));
+
         if (!"SALES_QUEUE".equals(tdCheckStageApplicationElement.getText())){
             return;
         }

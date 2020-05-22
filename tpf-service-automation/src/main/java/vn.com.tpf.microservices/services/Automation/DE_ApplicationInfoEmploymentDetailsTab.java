@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
@@ -411,7 +408,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                 await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> modalMajorChangeElement.isDisplayed());
                 Utilities.captureScreenShot(_driver);
-                btnMajorChangeElement.get(0).click();
+
+//                btnMajorChangeElement.get(0).click();
+                JavascriptExecutor btnMajorChangeElement2 = (JavascriptExecutor)_driver;
+                btnMajorChangeElement2.executeScript("arguments[0].click();", btnMajorChangeElement);
 
                 Utilities.captureScreenShot(_driver);
             }
