@@ -289,8 +289,8 @@ public class FV_FieldVerificationPage {
 
         btnInitiateVerificationPopupElement.click();
 
-        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
-                .until(() -> "false".equals(popupError.isDisplayed()));
+//        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
+//                .until(() -> "false".equals(popupError.isDisplayed()));
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());

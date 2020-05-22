@@ -263,8 +263,8 @@ public class FV_WaiveFieldPage {
         JavascriptExecutor btnWaiveOffVerificationPopup = (JavascriptExecutor)_driver;
         btnWaiveOffVerificationPopup.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
 
-        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
-                .until(() -> "false".equals(popupError.isDisplayed()));
+//        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
+//                .until(() -> "false".equals(popupError.isDisplayed()));
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
