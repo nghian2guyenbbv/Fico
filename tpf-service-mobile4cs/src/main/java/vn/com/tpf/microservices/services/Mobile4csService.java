@@ -50,7 +50,9 @@ public class Mobile4csService {
             responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
             responseModel.setResult_message(dataSql.getString("description"));
             if (1 == dataSql.getInt("result")) {
-                responseModel.setValid(1);
+                ObjectNode data = mapper.createObjectNode();
+                data.put("valid", 1);
+                responseModel.setData(data);
             }
 
             logStr += "SQL Data : " + sum;
@@ -99,6 +101,9 @@ public class Mobile4csService {
                         data.put("remainingPrincipal", dataLoan.getLong("loanRemain"));
                         data.put("loanStatus", dataLoan.getString("loanStatus"));
                         data.put("daysPastDue", dataLoan.getInt("loanDPD"));
+                        data.put("dueDate", dataLoan.getString("loanDueDate"));
+                        data.put("nextInstallmentAmount", dataLoan.getLong("loanInstalAmount"));
+                        data.put("maturityDate", dataLoan.getString("loanMaturity"));
                         dataArrayNode.add(data);
                     }
                 }
@@ -152,6 +157,7 @@ public class Mobile4csService {
                 data.put("repaymentAmount", dataSql.getLong("repayAmount"));
                 data.put("loanStatus", dataSql.getString("loanStatus"));
                 data.put("dueDate", dataSql.getString("dueDate"));
+                data.put("effectiveInterestRate", dataSql.getString("effRate"));
                 ArrayNode dataArrayNode = mapper.createArrayNode();
                 JSONArray parseDataClob = dataSql.getJSONArray("schedule");
                 for (Object o : parseDataClob) {
