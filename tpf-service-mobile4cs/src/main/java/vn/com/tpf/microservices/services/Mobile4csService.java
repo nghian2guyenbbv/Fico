@@ -54,6 +54,12 @@ public class Mobile4csService {
                 data.put("valid", 1);
                 responseModel.setData(data);
             }
+            else
+            {
+                ObjectNode data = mapper.createObjectNode();
+                data.put("valid", 0);
+                responseModel.setData(data);
+            }
 
             logStr += "SQL Data : " + sum;
             logStr += "Response: " + responseModel.toString();
