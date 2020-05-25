@@ -4747,7 +4747,7 @@ public class AutomationHandlerService {
                             // ========== FIELD INVESTIGATION VERIFICATION =================
                             stage = "FIELD INVESTIGATION VERIFICATION";
                             FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(driver);
-                            fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL);
+                            fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL, accountDTO.getUserName());
                             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                             stageApplication = "FIC";
                         }
