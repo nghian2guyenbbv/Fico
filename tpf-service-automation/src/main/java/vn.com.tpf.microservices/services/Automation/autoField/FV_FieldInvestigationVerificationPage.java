@@ -152,6 +152,7 @@ public class FV_FieldInvestigationVerificationPage {
         String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
 
+        stage = "Field Investigation";
         menuApplicationElement.click();
         fieldInvestigationVerificationElement.click();
         await("fieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

@@ -134,14 +134,14 @@ public class FV_FieldInvestigationDetailsPage {
     public void setData(SubmitFieldDTO submitFieldDTO, String user) {
         String stage = "";
 
-        /*menuApplicationElement.click();
+        menuApplicationElement.click();
 
-        applicationManagerElement.click();*/
+        applicationManagerElement.click();
 
         // ========== APPLICATION MANAGER =================
         stage = "APPLICATION MANAGER";
 
-        /*await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Manager"));
 
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -157,7 +157,7 @@ public class FV_FieldInvestigationDetailsPage {
                 .until(() -> showTaskElement.isDisplayed());
 
         await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> "FIC".equals(tdCheckStageApplicationElement.getText()));*/
+                .until(() -> "FIC".equals(tdCheckStageApplicationElement.getText()));
 
         showTaskElement.click();
 

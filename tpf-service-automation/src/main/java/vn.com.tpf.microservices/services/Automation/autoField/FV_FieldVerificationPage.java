@@ -304,12 +304,5 @@ public class FV_FieldVerificationPage {
                 .until(_driver::getTitle, is("Application Grid"));
 
         Utilities.captureScreenShot(_driver);
-
-        // ========== FIELD INVESTIGATION VERIFICATION =================
-        stage = "FIELD INVESTIGATION VERIFICATION";
-        FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(_driver);
-        fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL);
-        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
-
     }
 }

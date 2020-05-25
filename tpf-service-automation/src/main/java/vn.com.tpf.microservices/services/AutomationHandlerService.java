@@ -4741,7 +4741,17 @@ public class AutomationHandlerService {
                             FV_FieldVerificationPage fv_FieldVerificationPage = new FV_FieldVerificationPage(driver);
                             fv_FieldVerificationPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL, start);
                             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
-                        } else if ("FIC".equals(stageApplication)){
+                            stageApplication = "FIV";
+                        }
+                        if ("FIV".equals(stageApplication)){
+                            // ========== FIELD INVESTIGATION VERIFICATION =================
+                            stage = "FIELD INVESTIGATION VERIFICATION";
+                            FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(driver);
+                            fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL);
+                            System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+                            stageApplication = "FIC";
+                        }
+                        if ("FIC".equals(stageApplication)){
                             // ========== FIELD INVESTIGATION DETAILS =================
                             stage = "FIELD INVESTIGATION DETAILS";
                             FV_FieldInvestigationDetailsPage fv_FieldInvestigationDetailsPage = new FV_FieldInvestigationDetailsPage(driver);
