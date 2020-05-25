@@ -29,6 +29,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.is;
 
 
 @Getter
@@ -37,6 +38,48 @@ public class FV_FieldInvestigationVerificationPage {
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
     private WebElement menuApplicationElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'FI Allocation Grid')]")
+    @CacheLookup
+    private WebElement fiAllocationGridElement;
+
+    @FindBy(how = How.ID, using = "fiSearchForm")
+    private WebElement fiAllocationGridFormElement;
+
+    @FindBy(how = How.ID, using = "applicationId")
+    private WebElement fiAllocationGridApplicationNumberElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@class = 'row-fluid']//button[@id = 'searchApplication']")
+    private WebElement searchFIAllocationGridElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'container-no-tpl']//table[@id = 'FiSearch']//tbody//tr//td")
+    @CacheLookup
+    private List<WebElement> fiAllocationGridTable;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'container-no-tpl']//table[@id = 'FiSearch']//tbody//tr//td[20]//img[@id = 'AssignTo']")
+    private WebElement assignToFIAllocationGridElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@class = 'modal-scrollable']")
+    private WebElement popupFIAllocationGridElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[@id = '-control-group']//input[contains(@class, 'agent_search_input')]")
+    private WebElement inputSearchFIAllocationGridElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table[@id = 'agent-table']//tbody[@id = 'agent-table-tbody']//tr[@style = 'display: table-row;']//td")
+    @CacheLookup
+    private List<WebElement> tableSearchFIAllocationGridElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table[@id = 'agent-table']//tbody[@id = 'agent-table-tbody']//tr[@style = 'display: table-row;']//td//input[@name = 'sel_all_class']")
+    private WebElement selectFIAllocationGridElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[@id = 'pill-div']//span[contains(@class, 'pill-bread')]")
+    private WebElement spanSelectUserElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//button[text() = 'Done']")
+    private WebElement doneButtonFIAllocationGridElement;
+
+
+
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Field Investigation Verification')]")
     @CacheLookup
@@ -148,12 +191,49 @@ public class FV_FieldInvestigationVerificationPage {
     }
 
     @SneakyThrows
-    public void setData(SubmitFieldDTO submitFieldDTO, String downLoadFileURL) {
+    public void setData(SubmitFieldDTO submitFieldDTO, String downLoadFileURL, String accountAuto) {
         String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
 
-        stage = "Field Investigation";
+        stage = "FI ALLOCATION GRID";
         menuApplicationElement.click();
+
+        fiAllocationGridElement.click();
+
+        await("FI Entries Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("FI Entries Grid"));
+
+        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> fiAllocationGridFormElement.isDisplayed());
+
+        fiAllocationGridApplicationNumberElement.sendKeys(submitFieldDTO.getAppId());
+        searchFIAllocationGridElement.click();
+
+        await("Application FIAllocationGrid not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> fiAllocationGridTable.size() > 2);
+
+        assignToFIAllocationGridElement.click();
+
+        await("Popup FIAllocationGrid visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> popupFIAllocationGridElement.isDisplayed());
+
+        inputSearchFIAllocationGridElement.sendKeys(accountAuto);
+
+        await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tableSearchFIAllocationGridElement.size() > 2);
+
+        selectFIAllocationGridElement.click();
+
+        await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> spanSelectUserElement.isDisplayed());
+
+        doneButtonFIAllocationGridElement.click();
+
+        await("FI Entries Grid done timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("FI Entries Grid"));
+
+        menuApplicationElement.click();
+
         fieldInvestigationVerificationElement.click();
         await("fieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fieldInvestigationEntryElement.isDisplayed());
