@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -345,24 +346,27 @@ public class FV_FieldInvestigationVerificationPage {
 //        noOfAttemptsInput.sendKeys(fieldList.getNoOfAttempts());
         noOfAttemptsInput.sendKeys("1");
 
-//        verificationAgentInputElement.sendKeys(fieldList.getVerificationAgent());
-        verificationAgentInputElement.sendKeys("TPF Agent");
+        if (StringUtils.isNotEmpty(submitFieldDTO.getVerificationAgent())){
+            verificationAgentInputElement.sendKeys(submitFieldDTO.getVerificationAgent());
+//            verificationAgentInputElement.sendKeys("TPF Agent");
+            await("verificationAgentUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> verificationAgentUlElement.isDisplayed());
 
-        await("verificationAgentUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> verificationAgentUlElement.isDisplayed());
+            await("verificationAgentLiElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> verificationAgentLiElement.size() > 0);
 
-        await("verificationAgentLiElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> verificationAgentLiElement.size() > 0);
+            await("Find Verification Agent not found").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> verificationAgentLiAndElement.size() > 0);
 
-        await("Find Verification Agent not found").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> verificationAgentLiAndElement.size() > 0);
-
-        for (WebElement e : verificationAgentLiElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("TPF Agent")) {
-                e.click();
-                break;
+            for (WebElement e : verificationAgentLiElement) {
+//                if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("TPF Agent")) {
+                if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getVerificationAgent())) {
+                    e.click();
+                    break;
+                }
             }
         }
+//
 
 //        resultDescriptionSelect.sendKeys(fieldList.getResultDecisionFiv());
         resultDescriptionSelect.sendKeys("Positive");
