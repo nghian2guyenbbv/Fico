@@ -65,11 +65,11 @@ public class FV_FieldInvestigationVerificationPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[@id = '-control-group']//input[contains(@class, 'agent_search_input')]")
     private WebElement inputSearchFIAllocationGridElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table[@id = 'agent-table']//tbody[@id = 'agent-table-tbody']//tr[@style = 'display: table-row;']//td")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table//tbody[@id = 'agent-table-tbody']//tr[not(starts-with(@style, 'display: none;'))]//td")
     @CacheLookup
     private List<WebElement> tableSearchFIAllocationGridElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table[@id = 'agent-table']//tbody[@id = 'agent-table-tbody']//tr[@style = 'display: table-row;']//td//input[@name = 'sel_all_class']")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table//tbody[@id = 'agent-table-tbody']//tr[not(starts-with(@style, 'display: none;'))]//td//input")
     private WebElement selectFIAllocationGridElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[@id = 'pill-div']//span[contains(@class, 'pill-bread')]")
