@@ -18,11 +18,11 @@ public class Mobile4csController {
     @Autowired
     private RabbitMQService rabbitMQService;
 
-    @PostMapping("/mobile4cs/recheckRegister")
+    @PostMapping("/mobile4cs/precheckRegister")
     @PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-mobile4cs')")
     public ResponseEntity<?> recheckRegister(@RequestHeader("Authorization") String token,@RequestBody ObjectNode body) throws Exception {
         Map<String, Object> request = new HashMap<>();
-        request.put("func", "recheckRegister");
+        request.put("func", "precheckRegister");
         request.put("token", token);
         request.put("body", body);
         ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-mobile4cs", request);

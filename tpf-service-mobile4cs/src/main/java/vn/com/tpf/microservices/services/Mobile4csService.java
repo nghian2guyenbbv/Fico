@@ -50,7 +50,15 @@ public class Mobile4csService {
             responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
             responseModel.setResult_message(dataSql.getString("description"));
             if (1 == dataSql.getInt("result")) {
-                responseModel.setValid(1);
+                ObjectNode data = mapper.createObjectNode();
+                data.put("valid", 1);
+                responseModel.setData(data);
+            }
+            else
+            {
+                ObjectNode data = mapper.createObjectNode();
+                data.put("valid", 0);
+                responseModel.setData(data);
             }
 
             logStr += "SQL Data : " + sum;
@@ -92,13 +100,16 @@ public class Mobile4csService {
                     if (o instanceof JSONObject) {
                         JSONObject dataLoan = (JSONObject) o;
                         ObjectNode data = mapper.createObjectNode();
-                        data.put("typeOfLoan ", dataLoan.getString("loanType"));
-                        data.put("loanAccountNumber  ", dataLoan.getString("loanId"));
+                        data.put("typeOfLoan", dataLoan.getString("loanType"));
+                        data.put("loanAccountNumber", dataLoan.getString("loanId"));
                         data.put("productSchemaName", dataLoan.getString("loanProd"));
                         data.put("totalLoanAmount", dataLoan.getLong("loanAmount"));
                         data.put("remainingPrincipal", dataLoan.getLong("loanRemain"));
                         data.put("loanStatus", dataLoan.getString("loanStatus"));
                         data.put("daysPastDue", dataLoan.getInt("loanDPD"));
+                        data.put("dueDate", dataLoan.getString("loanDueDate"));
+                        data.put("nextInstallmentAmount", dataLoan.getLong("loanInstalAmount"));
+                        data.put("maturityDate", dataLoan.getString("loanMaturity"));
                         dataArrayNode.add(data);
                     }
                 }
@@ -141,7 +152,7 @@ public class Mobile4csService {
             }else{
                 responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
                 responseModel.setResult_message(ResultData.SUCCESS.getResultMessage());
-                data.put("loanAccountNumber  ", dataSql.getString("loanId"));
+                data.put("loanAccountNumber", dataSql.getString("loanId"));
                 data.put("productSchemaName", dataSql.getString("prodName"));
                 data.put("totalLoanAmount", dataSql.getLong("loanAmount"));
                 data.put("disbursementDate", dataSql.getString("disbDate"));
@@ -152,14 +163,15 @@ public class Mobile4csService {
                 data.put("repaymentAmount", dataSql.getLong("repayAmount"));
                 data.put("loanStatus", dataSql.getString("loanStatus"));
                 data.put("dueDate", dataSql.getString("dueDate"));
+                data.put("effectiveInterestRate", dataSql.getString("effRate"));
                 ArrayNode dataArrayNode = mapper.createArrayNode();
                 JSONArray parseDataClob = dataSql.getJSONArray("schedule");
                 for (Object o : parseDataClob) {
                     if (o instanceof JSONObject) {
                         JSONObject dataLoan = (JSONObject) o;
                         ObjectNode dataObject = mapper.createObjectNode();
-                        dataObject.put("installment ", dataLoan.getLong("instAmount"));
-                        dataObject.put("emi ", dataLoan.getLong("EMI"));
+                        dataObject.put("installment", dataLoan.getLong("instAmount"));
+                        dataObject.put("emi", dataLoan.getLong("EMI"));
                         dataObject.put("principal", dataLoan.getLong("principal"));
                         dataObject.put("interest", dataLoan.getLong("interest"));
                         dataObject.put("paidPrincipal ", dataLoan.getLong("paidPrincial"));
