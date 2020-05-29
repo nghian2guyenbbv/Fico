@@ -107,10 +107,10 @@ public class ApiService {
 				return mapper.createObjectNode().put("resultCode", 404).put("message",
 						String.format("Cann't download file % from partnet % ", fileName, documentUrlDownload));
 			byte[] byteArrayBase64 = responseDownload.getBody();
-			if (!validFileSize(byteArrayBase64.length, documentDbInfo.path("sizeLimit").asDouble()))
-				return mapper.createObjectNode().put("resultCode", 404).put("message",
-						String.format("%s file size %s over limit %s", documentCode, byteArrayBase64.length,
-								String.format("%sMb", documentDbInfo.path("sizeLimit").asDouble())));
+//			if (!validFileSize(byteArrayBase64.length, documentDbInfo.path("sizeLimit").asDouble()))
+//				return mapper.createObjectNode().put("resultCode", 404).put("message",
+//						String.format("%s file size %s over limit %s", documentCode, byteArrayBase64.length,
+//								String.format("%sMb", documentDbInfo.path("sizeLimit").asDouble())));
 			headers = new HttpHeaders();
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
