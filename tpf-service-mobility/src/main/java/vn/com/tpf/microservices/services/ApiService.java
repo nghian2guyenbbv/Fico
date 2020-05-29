@@ -85,9 +85,18 @@ public class ApiService {
 			dataLogReq.set("payload", data);
 
 			final String documentCode = data.path("documentCode").asText();
+			final String documentFilename = data.path("documentFilename").asText();
 			final String documentFileExtension = data.path("documentFileExtension").asText();
 			final String documentUrlDownload = data.path("documentUrlDownload").asText();
-			final String fileName = documentCode.concat(".").concat(documentFileExtension);
+			
+			String fileName = "";
+			if (documentCode.isBlank()) {
+				fileName = documentFilename.concat(".").concat(documentFileExtension);
+				
+			} else {
+				fileName = documentCode.concat(".").concat(documentFileExtension);
+			}
+			
 			log.info("{}", dataLogReq);
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
@@ -98,10 +107,10 @@ public class ApiService {
 				return mapper.createObjectNode().put("resultCode", 404).put("message",
 						String.format("Cann't download file % from partnet % ", fileName, documentUrlDownload));
 			byte[] byteArrayBase64 = responseDownload.getBody();
-			if (!validFileSize(byteArrayBase64.length, documentDbInfo.path("sizeLimit").asDouble()))
-				return mapper.createObjectNode().put("resultCode", 404).put("message",
-						String.format("%s file size %s over limit %s", documentCode, byteArrayBase64.length,
-								String.format("%sMb", documentDbInfo.path("sizeLimit").asDouble())));
+//			if (!validFileSize(byteArrayBase64.length, documentDbInfo.path("sizeLimit").asDouble()))
+//				return mapper.createObjectNode().put("resultCode", 404).put("message",
+//						String.format("%s file size %s over limit %s", documentCode, byteArrayBase64.length,
+//								String.format("%sMb", documentDbInfo.path("sizeLimit").asDouble())));
 			headers = new HttpHeaders();
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
