@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -255,10 +256,12 @@ public class FV_FieldInvestigationDetailsPage {
 
         btnSaveDecisionElement.click();
 
-//        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
-//        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        Thread.sleep(40000);
 
-        btnMoveToNextStageElement.click();
+        JavascriptExecutor jseMoveNextStage = (JavascriptExecutor) _driver;
+        jseMoveNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+
+//        btnMoveToNextStageElement.click();
 
         Utilities.captureScreenShot(_driver);
 
