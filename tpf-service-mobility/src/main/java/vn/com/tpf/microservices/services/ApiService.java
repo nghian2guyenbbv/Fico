@@ -167,7 +167,8 @@ public class ApiService {
 
 			request.put("request_id", request_id);
 			request.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-			
+			requestHeaders.set("clientId", "1");
+			requestHeaders.set("sign", "1");
 			ObjectNode data = mapper.createObjectNode();
 			data.put("leadId", String.format("%s", mobility.getLeadId()));
 			data.put("appId", mobility.getAppId());
@@ -222,7 +223,8 @@ public class ApiService {
 			HttpHeaders requestHeaders = new HttpHeaders();
 			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 			requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-			
+			requestHeaders.set("clientId", "1");
+			requestHeaders.set("sign", "1");
 			request.put("request_id", request_id);
 			request.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 			request.set("data", mobilityFields);
