@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.LocalFileDetector;
@@ -228,7 +229,10 @@ public class FV_FieldInvestigationVerificationPage {
         await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> spanSelectUserElement.isDisplayed());
 
-        doneButtonFIAllocationGridElement.click();
+//        doneButtonFIAllocationGridElement.click();
+
+        JavascriptExecutor jseBTNDone = (JavascriptExecutor)_driver;
+        jseBTNDone.executeScript("arguments[0].click();", doneButtonFIAllocationGridElement);
 
         await("FI Entries Grid done timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("FI Entries Grid"));
