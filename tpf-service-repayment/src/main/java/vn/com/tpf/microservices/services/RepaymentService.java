@@ -7,25 +7,36 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.dao.FicoCustomerDAO;
 import vn.com.tpf.microservices.dao.FicoImportPayooDAO;
+import vn.com.tpf.microservices.dao.FicoReceiptPaymentDAO;
 import vn.com.tpf.microservices.dao.FicoTransPayDAO;
 import vn.com.tpf.microservices.models.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -55,11 +66,16 @@ public class RepaymentService {
 	private FicoImportPayooDAO ficoImportPayooDAO;
 
 	@Autowired
+	private FicoReceiptPaymentDAO ficoReceiptPaymentDAO;
+
+	@Autowired
 	private TransactionTemplate transactionTemplate;
 
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	@Value("${spring.hostRequest.url}")
+	private String urlAPI;
 
 	@SuppressWarnings("unchecked")
 
@@ -218,7 +234,63 @@ public class RepaymentService {
 					ficoTransPay.setCreateDate(new Timestamp(new Date().getTime()));
 
 					ficoTransPayDAO.save(ficoTransPay);
+					new Thread(() -> {
+						FicoRepaymentModel ficoRepaymentModel = new FicoRepaymentModel();
+						ReceiptProcessingMO ficoReceiptPayment = new ReceiptProcessingMO();
+						SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+						if (!requestModel.getData().getTransaction_id().isEmpty()){
+							ficoReceiptPayment.setInstrumentReferenceNumber(requestModel.getData().getTransaction_id());
+						}
+						if (requestModel.getData().getTransaction_id().startsWith("PY")){
+							ficoReceiptPayment.setSourceAccountNumber("45992855603");
+						} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
+							ficoReceiptPayment.setSourceAccountNumber("45992855306");
+						}
+						ReqHeader requestHeader = new ReqHeader();
+						requestHeader.setTenantId(505);
+						UserDetail userDetail = new UserDetail();
+						userDetail.setBranchId(5);
+						userDetail.setUserCode("system");
+						requestHeader.setUserDetail(userDetail);
+						ficoReceiptPayment.setRequestHeader(requestHeader);
+						ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
+						ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
+						ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
+						ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+						ficoReceiptPayment.setTransactionCurrencyCode("VND");
+						ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+						ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+						ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
+						ficoReceiptPayment.setAutoAllocation("Y");
+						ficoReceiptPayment.setReceiptNo("");
+						ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
+						ficoReceiptPayment.setDepositDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+						ficoReceiptPayment.setDepositBankAccountNumber("519200003");
+						ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+						ficoReceiptPayment.setReceiptTransactionStatus("C");
+						ficoReceiptPayment.setProcessTillMaker(false);
+						ficoReceiptPayment.setRequestChannel("RECEIPT");
+						ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
 
+						// Save report receipt payment
+						saveReportReceiptPayment(requestModel);
+
+						String urlReceiptLMS = urlAPI + "";
+						URI uri = null;
+						try {
+							uri = new URI(urlAPI);
+						} catch (URISyntaxException e) {
+							e.printStackTrace();
+						}
+						RestTemplate restTemplate = new RestTemplate();
+						MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+						headers.add("clientId", "1");
+						headers.add("sign", "1");
+						headers.add("Content-Type", "application/json");
+						HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
+						ResponseEntity<JsonNode> res = restTemplate.postForEntity(uri, body, JsonNode.class);
+						log.info("{}", res.getBody());
+					}).start();
 					responseModel.setRequest_id(requestModel.getRequest_id());
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -462,4 +534,38 @@ public class RepaymentService {
 	}
 
 	//---------------------- END FUNCTION IMPORT -----------------
+	//---------------------- START FUNCTION SAVE REPORT -----------------
+	public void saveReportReceiptPayment(RequestModel requestModel){
+		FicoReceiptPayment ficoReceiptPayment = new FicoReceiptPayment();
+		if (!requestModel.getData().getTransaction_id().isEmpty()){
+			ficoReceiptPayment.setInstrumentReferenceNumber(requestModel.getData().getTransaction_id());
+		}
+		if (requestModel.getData().getTransaction_id().startsWith("PY")){
+			ficoReceiptPayment.setSourceAccountNumber("45992855603");
+		} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
+			ficoReceiptPayment.setSourceAccountNumber("45992855306");
+		}
+		ficoReceiptPayment.setTenantId(505);
+		ficoReceiptPayment.setBranchId(5);
+		ficoReceiptPayment.setUserCode("system");
+		ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
+		ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
+		ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
+		ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+		ficoReceiptPayment.setTransactionCurrencyCode("VND");
+		ficoReceiptPayment.setInstrumentDate(new Timestamp(new Date().getTime()));
+		ficoReceiptPayment.setTransactionValueDate(new Timestamp(new Date().getTime()));
+		ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
+		ficoReceiptPayment.setAutoAllocation("Y");
+		ficoReceiptPayment.setReceiptNo("");
+		ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
+		ficoReceiptPayment.setDepositDate(new Timestamp(new Date().getTime()));
+		ficoReceiptPayment.setDepositBankAccountNumber("519200003");
+		ficoReceiptPayment.setRealizationDate(new Timestamp(new Date().getTime()));
+		ficoReceiptPayment.setReceiptTransactionStatus("C");
+		ficoReceiptPayment.setProcessTillMaker("FALSE");
+		ficoReceiptPayment.setRequestChannel("RECEIPT");
+		ficoReceiptPaymentDAO.save(ficoReceiptPayment);
+	}
+	//---------------------- END FUNCTION SAVE REPORT -----------------
 }
