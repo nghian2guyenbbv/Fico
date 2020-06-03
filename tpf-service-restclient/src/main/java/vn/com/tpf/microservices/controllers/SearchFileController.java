@@ -19,12 +19,10 @@ public class SearchFileController {
 	private RabbitMQService rabbitMQService;
 
 	@PostMapping("/search-file-by-keyword")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-search-folder','tpf-service-root','tpf-service-momo','3p-service-momo')")
-	public ResponseEntity<?> create(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> create( @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getListPathFileByKeyword");
-		request.put("token", token);
 		request.put("body", body);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-search-folder", request);
