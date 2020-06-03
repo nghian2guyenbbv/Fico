@@ -81,8 +81,6 @@ public class AutoAssignService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-//	@SuppressWarnings("unchecked")
-
 	public Map<String, Object> getVendor() {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
@@ -135,8 +133,6 @@ public class AutoAssignService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-//	@Transactional
-//	@Scheduled(fixedDelay = 1000, initialDelay = 1000)
 	@Scheduled(cron="0 0 0 * * *", zone="Asia/Saigon")
 	public void createdConfigureAuto() {
 		try{
@@ -420,12 +416,12 @@ public class AutoAssignService {
 				vendorQueue = vendor.getQueue();
 			}
 
-			AutoAssignLog inputLog = new AutoAssignLog();
-			inputLog.setRequestId(request_id);
-			inputLog.setReferenceId(reference_id);
-			inputLog.setData(request.path("data").toString());
-			inputLog.setCreatedDate(new Timestamp(new Date().getTime()));
-			AutoAssignLog result = autoAssignLogDAO.save(inputLog);
+//			AutoAssignLog inputLog = new AutoAssignLog();
+//			inputLog.setRequestId(request_id);
+//			inputLog.setReferenceId(reference_id);
+//			inputLog.setData(request.path("data").toString());
+//			inputLog.setCreatedDate(new Timestamp(new Date().getTime()));
+//			AutoAssignLog result = autoAssignLogDAO.save(inputLog);
 
 			responseModel.setRequest_id(requestApplicationModel.getRequest_id());
 			responseModel.setReference_id(reference_id);

@@ -36,7 +36,7 @@ public class RabbitMQService {
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
+		rabbitTemplate.setReplyTimeout(60000);
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -80,24 +80,8 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
-			case "getCustomers":
-//				return response(message, payload, repaymentService.getCustomers(request));
-//			case "getCustomers_pay":
-//				return response(message, payload, repaymentService.getCustomers_pay(request));
-//			case "customers_pay":
-//				return response(message, payload, repaymentService.customers_pay(request));
-//			case "importTrans":
-//				return response(message, payload, repaymentService.importTrans(request));
-//			case "settleTrans":
-//				return response(message, payload, repaymentService.settle(request));
-//			case "getListTrans":
-//				return response(message, payload, repaymentService.getListTrans(request));
-//			case "getReport":
-//				return response(message, payload, repaymentService.getReport(request));
-//			case "getTransDate":
-//				return response(message, payload, repaymentService.getTransDate(request));
-//			case "syncData":
-//					return response(message, payload, repaymentService.syncData(request));
+			case "":
+//				return ;
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

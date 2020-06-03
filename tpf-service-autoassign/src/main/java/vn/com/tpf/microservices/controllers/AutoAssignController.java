@@ -105,7 +105,7 @@ public class AutoAssignController {
 		request.put("body", body);
 
 		JsonNode response = rabbitMQService.sendAndReceive(responseConfig.get("vendorQueue").toString(), request);
-		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+		return ResponseEntity.status(response.path("status").asInt(200)).body(response.path("data"));
 	}
 
 	@PostMapping("/configureVendor")
@@ -123,9 +123,3 @@ public class AutoAssignController {
 	}
 
 }
-
-//		rabbitMQService.send(response.get("vendorQueue").toString(), request);
-//		return ResponseEntity.status(200).body(Map.of("result_code", 0, "reference_id", refId, "date_time", new Timestamp(new Date().getTime())));
-
-//		return ResponseEntity.status(200).body(Map.of("result_code", 0, "request_id", reqId,"reference_id", refId, "date_time", new Timestamp(new Date().getTime()),
-//		"data", Map.of("vendorName", response.get("vendorName"), "vendorId", response.get("vendorId"))));
