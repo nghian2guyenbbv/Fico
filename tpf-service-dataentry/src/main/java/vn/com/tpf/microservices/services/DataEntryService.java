@@ -1067,6 +1067,7 @@ public class DataEntryService {
 										Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 										comment = item.getResponse().getComment();
+
 										new Thread(() -> {
 											try {
 												String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), null, item.getResponse().getComment(),
@@ -1088,6 +1089,7 @@ public class DataEntryService {
 						}
 					}
 				}
+
 			}
 			if (requestCommnentFromDigiTex) {
 				Query queryUpdate = new Query();
@@ -1120,6 +1122,7 @@ public class DataEntryService {
 
 
 			if (responseCommnentToDigiTex) {
+
 //                if (responseCommnentToDigiTexDuplicate) { // bo check tra comment nhieu lan
 				ArrayNode documents = mapper.createArrayNode();
 				boolean checkIdCard = false;
@@ -1414,9 +1417,11 @@ public class DataEntryService {
 				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
 					update.set("userName_DE", token.path("user_name").textValue());
 				}
+
                 if (data.getStatus().toUpperCase().equals("CANCEL".toUpperCase())){
                     update.set("reasonCancel", data.getDescription());
                 }
+
 				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(queryUpdate, Application.class);
