@@ -1,5 +1,7 @@
 package vn.com.tpf.microservices.models;
 
+import java.util.Date;
+
 public class SearchModel {
     private String search_value;
     private String transaction_id;
@@ -8,8 +10,16 @@ public class SearchModel {
     private String loan_account_no;
     private String identification_number;
     private long amount;
-
+    private Date create_date;
     public SearchModel() {
+    }
+
+    public Date getCreate_date() {
+        return create_date;
+    }
+
+    public void setCreate_date(Date create_date) {
+        this.create_date = create_date;
     }
 
     public long getLoan_id() {
