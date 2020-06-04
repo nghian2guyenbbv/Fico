@@ -251,6 +251,8 @@ public class FV_FieldInvestigationVerificationPage {
             await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> residenceVerificationTds.size() > 0);
             if (residenceVerificationTds.size()!=0){
+                await("Residence Verification visibale timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> residenceVerificationTd.isDisplayed());
                 residenceVerificationTd.click();
             }
         }
