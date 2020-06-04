@@ -275,7 +275,7 @@ public class RepaymentService {
 						// Save report receipt payment
 						saveReportReceiptPayment(requestModel);
 
-						String urlReceiptLMS = urlAPI + "";
+						String urlReceiptLMS = urlAPI;
 						URI uri = null;
 						try {
 							uri = new URI(urlAPI);
@@ -537,6 +537,7 @@ public class RepaymentService {
 	//---------------------- START FUNCTION SAVE REPORT -----------------
 	public void saveReportReceiptPayment(RequestModel requestModel){
 		FicoReceiptPayment ficoReceiptPayment = new FicoReceiptPayment();
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
 		if (!requestModel.getData().getTransaction_id().isEmpty()){
 			ficoReceiptPayment.setInstrumentReferenceNumber(requestModel.getData().getTransaction_id());
 		}
@@ -553,15 +554,15 @@ public class RepaymentService {
 		ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
 		ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
 		ficoReceiptPayment.setTransactionCurrencyCode("VND");
-		ficoReceiptPayment.setInstrumentDate(new Timestamp(new Date().getTime()));
-		ficoReceiptPayment.setTransactionValueDate(new Timestamp(new Date().getTime()));
+		ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+		ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
 		ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
 		ficoReceiptPayment.setAutoAllocation("Y");
 		ficoReceiptPayment.setReceiptNo("");
 		ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
-		ficoReceiptPayment.setDepositDate(new Timestamp(new Date().getTime()));
+		ficoReceiptPayment.setDepositDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
 		ficoReceiptPayment.setDepositBankAccountNumber("519200003");
-		ficoReceiptPayment.setRealizationDate(new Timestamp(new Date().getTime()));
+		ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
 		ficoReceiptPayment.setReceiptTransactionStatus("C");
 		ficoReceiptPayment.setProcessTillMaker("FALSE");
 		ficoReceiptPayment.setRequestChannel("RECEIPT");

@@ -5,7 +5,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.sql.String;
 
 @Data
 @Entity
@@ -41,10 +41,10 @@ public class FicoReceiptPayment implements Serializable {
     private String transactionCurrencyCode;
 
     @Column(name="instrument_date")
-    private Timestamp instrumentDate;
+    private String instrumentDate;
 
     @Column(name="transaction_value_date")
-    private Timestamp transactionValueDate;
+    private String transactionValueDate;
 
     @Column(name="receipt_or_payout_amount")
     private long receiptOrPayoutAmount;
@@ -65,13 +65,13 @@ public class FicoReceiptPayment implements Serializable {
     private String sourceAccountNumber;
 
     @Column(name="deposit_date")
-    private Timestamp depositDate;
+    private String depositDate;
 
     @Column(name="deposit_bank_account_number")
     private String depositBankAccountNumber;
 
     @Column(name="realization_date")
-    private Timestamp realizationDate;
+    private String realizationDate;
 
     @Column(name="receipt_transaction_status")
     private String receiptTransactionStatus;
