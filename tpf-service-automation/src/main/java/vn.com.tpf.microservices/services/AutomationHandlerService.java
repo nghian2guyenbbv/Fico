@@ -1639,12 +1639,12 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
-            if(!"none".equals(loanDetailsSourcingDetailsTab.getDialogConfirmDeleteVapNextElements().isDisplayed()))
-            {
-                JavascriptExecutor jse = (JavascriptExecutor)driver;
-                jse.executeScript("arguments[0].click();", loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElements());
-                Thread.sleep(2000);
-            }
+//            if(!"none".equals(loanDetailsSourcingDetailsTab.getDialogConfirmDeleteVapNextElements().isDisplayed()))
+//            {
+//                JavascriptExecutor jse = (JavascriptExecutor)driver;
+//                jse.executeScript("arguments[0].click();", loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElements());
+//                Thread.sleep(2000);
+//            }
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
