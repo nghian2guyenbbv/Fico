@@ -38,7 +38,8 @@
 		<module>tpf-service-dataentry</module>
 		<module>tpf-service-automation</module>
 		<module>tpf-service-smartnet</module>
-</modules>
+        <module>tpf-service-search-file</module>
+    </modules>
 
 
 	<dependencies>

@@ -55,11 +55,11 @@ public class EmploymentDetails {
     @NotEmpty(message = "monthsInJob not null")
     private String monthsInJob;
 
-//    @NotNull
+    //    @NotNull
 //    @NotEmpty(message = "toDate not null")
     private String toDate;
 
-//    @NotNull
+    //    @NotNull
 //    @NotEmpty(message = "fromDate not null")
     private String fromDate;
 
@@ -90,4 +90,5 @@ public class EmploymentDetails {
             this.natureOfOccupation = "";
         }
     }
+
 }

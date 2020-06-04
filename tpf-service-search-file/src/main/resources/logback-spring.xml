@@ -13,14 +13,14 @@
 				{"level":"%level","message":"%message","time":"%date{ISO8601}","class": "%logger{36}"}
 			</pattern>
 		</layout>
-		<host>10.1.64.41</host>
+		<host>10.131.31.202</host>
 		<springProfile name="dev"><host>tpf-opensource-rabbitmq</host></springProfile>
 		<springProfile name="uat"><host>tpf-opensource-rabbitmq</host></springProfile>
 		<springProfile name="pro"><host>10.1.64.41</host></springProfile>
 		<port>5672</port>
-		<username>tpf-service-authentication</username>
-		<password>tpf-service-authentication</password>
-		<routingKeyPattern>tpf-service-logstash-authentication</routingKeyPattern>
+		<username>tpf-service-search-file</username>
+		<password>tpf-service-search-file</password>
+		<routingKeyPattern>tpf-service-logstash-search-file</routingKeyPattern>
 	</appender>
 	<root level="INFO">
 		<appender-ref ref="CONSOLE" />

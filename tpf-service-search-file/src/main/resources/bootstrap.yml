@@ -1,9 +1,9 @@
 spring:
   application:
-    name: tpf-service-authentication
+    name: tpf-service-search-file
   cloud:
     config:
-      uri: http://127.0.0.1:8888
+      uri: http://10.131.31.202:8888
 ---
 spring:
   profiles: dev
@@ -15,7 +15,7 @@ spring:
   profiles: uat
   cloud:
     config:
-      uri: http://10.1.66.27:8888
+      uri: http://tpf-service-config:8888
 ---
 spring:
   profiles: pro
