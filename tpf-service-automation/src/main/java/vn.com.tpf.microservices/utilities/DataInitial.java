@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.utilities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
+import vn.com.tpf.microservices.models.AutoField.ExistingCustomerDTO;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
@@ -738,6 +739,12 @@ public class DataInitial {
     public static Map<String, Object> getDataFrom_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("RequestAutomationSubmitFieldList", submitFieldDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_Existing_Customer(ExistingCustomerDTO existingCustomerDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("ExistingCustomerList", existingCustomerDTOList);
         return map;
     }
 }
