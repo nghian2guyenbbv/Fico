@@ -272,7 +272,7 @@ public class FV_FieldVerificationPage {
         await("inputAgencyElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> inputAgencyElement.isDisplayed());
 
-        inputAgencyElement.sendKeys("TPF Agency");
+        inputAgencyElement.sendKeys("TPAgency");
 
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
@@ -281,7 +281,7 @@ public class FV_FieldVerificationPage {
                 .until(() -> liAgencyElement.size() > 0);
 
         for (WebElement e : liAgencyElement) {
-            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals("TPF Agency")) {
+            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals("TPAgency")) {
                 e.click();
                 break;
             }
