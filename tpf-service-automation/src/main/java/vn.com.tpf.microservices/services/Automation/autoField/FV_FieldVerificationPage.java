@@ -110,6 +110,10 @@ public class FV_FieldVerificationPage {
     @CacheLookup
     private List<WebElement> liAgencyElement;
 
+    @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO')]//a")
+    @CacheLookup
+    private List<WebElement> liAgencyTagAElement;
+
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_field_investigation_entry_verification_agency')]")
     @CacheLookup
     private List<WebElement> textInputAgencyElement;
@@ -280,7 +284,7 @@ public class FV_FieldVerificationPage {
         await("liAgencyElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> liAgencyElement.size() > 0);
 
-        for (WebElement e : liAgencyElement) {
+        for (WebElement e : liAgencyTagAElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals("TPAgency")) {
                 e.click();
                 break;

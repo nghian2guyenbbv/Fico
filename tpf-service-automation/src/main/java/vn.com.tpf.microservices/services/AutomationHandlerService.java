@@ -614,7 +614,7 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-            stage = "EMPLOYMENT DETAILS";
+            stage = "ErunAutomation_UpdateInfo";
             // ========== EMPLOYMENT DETAILS =================
             await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
@@ -4949,10 +4949,18 @@ public class AutomationHandlerService {
             await("Not Existing Customer!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> fv_ExistingCustomerPage.getSearchCustomerTableElement().size() > 2);
 
-            await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> fv_ExistingCustomerPage.getSearchCustomerSelectElement().isDisplayed());
+            int tableSize = fv_ExistingCustomerPage.getSearchCustomerTableSizeElement().size();
 
-            fv_ExistingCustomerPage.getSearchCustomerSelectElement().click();
+            WebElement searchCustomerSelectElement = driver.findElement(new By.ByXPath("//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'example']//table[@id = 'searchData_IndividualCustomerTable']//tbody//tr["+tableSize+"]//td[contains(@class, 'select_individual')]//input[contains(@value,'Select')]"));
+
+            await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> searchCustomerSelectElement.isDisplayed());
+
+            searchCustomerSelectElement.click();
+
+            /*await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getSearchCustomerSelectElement().isDisplayed());
+            fv_ExistingCustomerPage.getSearchCustomerSelectElement().click();*/
 
             await("Customer Information displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> fv_ExistingCustomerPage.getCustomerInformationFormElement().isDisplayed());
@@ -4970,7 +4978,8 @@ public class AutomationHandlerService {
             neoCustNo = fv_ExistingCustomerPage.getPrimaryApplicantNeoCustIDInputElement().getAttribute("value");
             System.out.println("NEO CUST ID => " + neoCustNo);
             idNo = fv_ExistingCustomerPage.getPrimaryApplicantIdNumberInputElement().getAttribute("value");
-            System.out.println("ID Number => " + idNo);
+            String idNoo = idNo.substring(idNo.indexOf(":")+1).trim();
+            System.out.println("ID Number => " + idNoo);
             cifNo = fv_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
             System.out.println("CIF Number => " + cifNo);
             applicationId = fv_ExistingCustomerPage.getApplicantIdHeaderElement().getText();

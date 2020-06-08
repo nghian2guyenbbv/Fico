@@ -75,6 +75,10 @@ public class FV_ExistingCustomerPage {
     @CacheLookup
     private List<WebElement> searchCustomerTableElement;
 
+    @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'example']//table[@id = 'searchData_IndividualCustomerTable']//tbody//tr")
+    @CacheLookup
+    private List<WebElement> searchCustomerTableSizeElement;
+
     @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'example']//table[@id = 'searchData_IndividualCustomerTable']//tbody//tr//td[contains(@class, 'select_individual')]//input[contains(@value,'Select')]")
     @CacheLookup
     private WebElement searchCustomerSelectElement;
