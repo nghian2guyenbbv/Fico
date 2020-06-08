@@ -302,7 +302,7 @@ public class ConvertService {
 			phoneNumber.setPhoneNumber(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPhoneNumbers().stream().
 					filter(c -> c.getPhoneType().equals("Mobile Phone")).findAny().isPresent() ?
 					application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPhoneNumbers().stream()
-							.filter(c -> c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber() : "");
+							.filter(c -> c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber().replace("+84", "") : "");
 		}
 		phoneNumber.setCountryCode("VN");
 		phoneNumbersList.add(phoneNumber);
@@ -412,18 +412,19 @@ public class ConvertService {
 
 		//----------------------- REFERENCE ------------------------------------------
 		List<ReferenceDetails> referenceDetailsList=new ArrayList<ReferenceDetails>();
+		List<PhoneNumber> phoneNumbersListRef=new ArrayList<PhoneNumber>();
 		for (Reference fr: application.getReferences()) {
 				ReferenceDetails referenceDetails=new ReferenceDetails();
 				referenceDetails.setName(fr.getName());
 				referenceDetails.setRelationship(fr.getRelationship());
 
-				List<PhoneNumber> phoneNumbersListRef=new ArrayList<PhoneNumber>();
 				PhoneNumber phoneNumberRef=new PhoneNumber();
-				phoneNumber.setPhoneNumber(fr.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?fr.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"");
-				phoneNumber.setPhoneType("Mobile");
-				phoneNumber.setIsdCode("+84");
-				phoneNumber.setCountryCode("VN");
-				phoneNumbersList.add(phoneNumber);
+				phoneNumberRef.setPhoneNumber(fr.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?fr.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"");
+				phoneNumberRef.setPhoneType("Mobile");
+				phoneNumberRef.setIsdCode("+84");
+				phoneNumberRef.setCountryCode("VN");
+
+				phoneNumbersListRef.add(phoneNumberRef);
 
 				referenceDetails.setPhoneNumber(phoneNumbersList);
 				referenceDetailsList.add(referenceDetails);

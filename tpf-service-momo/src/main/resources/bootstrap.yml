@@ -4,21 +4,41 @@ spring:
   cloud:
     config:
       uri: http://10.131.31.202:8888
+      fail-fast: true
+      retry.initial-interval: 5000
+      retry.max-attempts: 100
+      retry.max-interval: 10000
+      retry.multiplier: 2
 ---
 spring:
   profiles: dev
   cloud:
     config:
       uri: http://tpf-service-config:8888
+      fail-fast: true
+      retry.initial-interval: 5000
+      retry.max-attempts: 100
+      retry.max-interval: 10000
+      retry.multiplier: 2
 ---
 spring:
   profiles: uat
   cloud:
     config:
       uri: http://10.1.66.27:8888
+      fail-fast: true
+      retry.initial-interval: 5000
+      retry.max-attempts: 100
+      retry.max-interval: 10000
+      retry.multiplier: 2
 ---
 spring:
   profiles: pro
   cloud:
     config:
       uri: http://10.1.64.41:8888
+      fail-fast: true
+      retry.initial-interval: 5000
+      retry.max-attempts: 100
+      retry.max-interval: 10000
+      retry.multiplier: 2
