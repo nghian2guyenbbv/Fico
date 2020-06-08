@@ -164,6 +164,7 @@ public class Mobile4csService {
                 data.put("loanStatus", dataSql.getString("loanStatus"));
                 data.put("dueDate", dataSql.getString("dueDate"));
                 data.put("effectiveInterestRate", dataSql.getString("effRate"));
+                data.put("beneficiaryAccount", dataSql.getString("benAcct"));
                 ArrayNode dataArrayNode = mapper.createArrayNode();
                 JSONArray parseDataClob = dataSql.getJSONArray("schedule");
                 for (Object o : parseDataClob) {
@@ -171,11 +172,11 @@ public class Mobile4csService {
                         JSONObject dataLoan = (JSONObject) o;
                         ObjectNode dataObject = mapper.createObjectNode();
                         dataObject.put("installment", dataLoan.getLong("instAmount"));
+                        dataObject.put("dueDate", dataLoan.getString("subDueDate"));
                         dataObject.put("emi", dataLoan.getLong("EMI"));
                         dataObject.put("principal", dataLoan.getLong("principal"));
                         dataObject.put("interest", dataLoan.getLong("interest"));
-                        dataObject.put("paidPrincipal ", dataLoan.getLong("paidPrincial"));
-                        dataObject.put("paidInterest ", dataLoan.getLong("paidInterest"));
+                        dataObject.put("remainingPrincipal", dataLoan.getLong("remainPrincipal"));
                         dataArrayNode.add(dataObject);
                     }
                 }
@@ -227,6 +228,7 @@ public class Mobile4csService {
                 data.put("workingPhoneNumber", "telePhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("telePhone")) +" "+ "mobiPhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("mobiPhone")));
                 data.put("referencePhoneNumber", getStringFromJsonArray(dataSql.getJSONArray("refPhone")));
                 data.put("emailAddress", dataSql.getString("email"));
+                data.put("nearestLoanAccountNumber", dataSql.getString("loanNo"));
                 data.put("zaloAddress", dataSql.getString("zalo"));
                 responseModel.setData(data);
             }
