@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Data
 @Builder
-public class ExitingCustomerDTO {
+public class ExistingCustomerDTO {
     @Id
     private String id;
     private int status=0;
@@ -20,4 +20,11 @@ public class ExitingCustomerDTO {
     private Date lastDate;
 
     private String neoCustID;
+    private String cifNumber;
+    private String idNumber;
+    private String reference_id;
+    private String project;
+    private String transaction_id;
+    private String automation_result;
+
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.openqa.selenium.By;
@@ -23,10 +24,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
-import vn.com.tpf.microservices.models.AutoField.MobilityFieldReponeDTO;
-import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
-import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
-import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.models.AutoField.*;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -280,6 +278,10 @@ public class AutomationHandlerService {
                 case "MOBILITY_quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project);
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_Existing_Customer":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
             }
 
@@ -612,7 +614,7 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-            stage = "EMPLOYMENT DETAILS";
+            stage = "ErunAutomation_UpdateInfo";
             // ========== EMPLOYMENT DETAILS =================
             await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
@@ -4850,5 +4852,173 @@ public class AutomationHandlerService {
 
         System.out.println("rabit:=>" + jsonNode.toString());
     }
+
+    //------------------------ END UPDATE RABBITMQ -----------------------------------------------------
+
+    //------------------------ EXISTING CUSTOMER -----------------------------------------------------
+    public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant start = Instant.now();
+        String stage = "";
+        String applicationId = "";
+        String neoCustNo = "";
+        String cifNo = "";
+        String idNo = "";
+        ExistingCustomerDTO existingCustomerDTO = ExistingCustomerDTO.builder().build();
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            existingCustomerDTO = (ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
+            log.info("{}", existingCustomerDTO);
+            //*************************** END GET DATA *********************//
+            System.out.println(stage + ": DONE");
+
+            stage = "LOGIN FINONE";
+
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            // ========== EXISTING CUSTOMER =================
+            stage = "EXISTING CUSTOMER";
+            FV_ExistingCustomerPage fv_ExistingCustomerPage = new FV_ExistingCustomerPage(driver);
+            fv_ExistingCustomerPage.getMenuApplicationElement().click();
+            fv_ExistingCustomerPage.getPersonalLoanElement().click();
+
+            await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getCreateCustomerElement().isDisplayed());
+
+            System.out.println("PERSONAL LOAN PAGE");
+
+            fv_ExistingCustomerPage.getIsExistCustomerRadioElement().click();
+
+            await("Search Existing Individual Customers With displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getExistingCustomerSearchFormElement().isDisplayed());
+
+            if(!Objects.isNull(existingCustomerDTO.getNeoCustID())){
+                await("Neo Cust ID Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> fv_ExistingCustomerPage.getNeoCustIDInputElement().isDisplayed());
+
+                fv_ExistingCustomerPage.getNeoCustIDInputElement().sendKeys(existingCustomerDTO.getNeoCustID());
+
+            }
+
+            if(!Objects.isNull(existingCustomerDTO.getCifNumber())){
+                await("CIF Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> fv_ExistingCustomerPage.getCifNumberInputElement().isDisplayed());
+
+                fv_ExistingCustomerPage.getCifNumberInputElement().sendKeys(existingCustomerDTO.getCifNumber());
+
+            }
+
+            if(!Objects.isNull(existingCustomerDTO.getIdNumber())){
+
+                fv_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
+
+                await("Identification Type Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> fv_ExistingCustomerPage.getIdentificationTypeUlElement().isDisplayed());
+
+                await("Identification Type Li loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> fv_ExistingCustomerPage.getIdentificationTypeLiElement().size() > 0);
+
+                for (WebElement e : fv_ExistingCustomerPage.getIdentificationTypeLiElement()) {
+                    if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Current National ID")) {
+                        e.click();
+                        break;
+                    }
+                }
+
+                await("ID Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> fv_ExistingCustomerPage.getIdNumberInputElement().isDisplayed());
+
+                fv_ExistingCustomerPage.getIdNumberInputElement().sendKeys(existingCustomerDTO.getIdNumber());
+
+            }
+
+            await("Search displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getSearchCustomerButtonElement().isDisplayed());
+
+            fv_ExistingCustomerPage.getSearchCustomerButtonElement().click();
+
+            await("Not Existing Customer!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getSearchCustomerTableElement().size() > 2);
+
+            int tableSize = fv_ExistingCustomerPage.getSearchCustomerTableSizeElement().size();
+
+            WebElement searchCustomerSelectElement = driver.findElement(new By.ByXPath("//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'example']//table[@id = 'searchData_IndividualCustomerTable']//tbody//tr["+tableSize+"]//td[contains(@class, 'select_individual')]//input[contains(@value,'Select')]"));
+
+            await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> searchCustomerSelectElement.isDisplayed());
+
+            searchCustomerSelectElement.click();
+
+            /*await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getSearchCustomerSelectElement().isDisplayed());
+            fv_ExistingCustomerPage.getSearchCustomerSelectElement().click();*/
+
+            await("Customer Information displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getCustomerInformationFormElement().isDisplayed());
+
+            await("Customer Information Save button displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getCustomerInformationSaveElement().isDisplayed());
+
+            fv_ExistingCustomerPage.getCustomerInformationSaveElement().click();
+
+            Utilities.captureScreenShot(driver);
+
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> fv_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
+
+            neoCustNo = fv_ExistingCustomerPage.getPrimaryApplicantNeoCustIDInputElement().getAttribute("value");
+            System.out.println("NEO CUST ID => " + neoCustNo);
+            idNo = fv_ExistingCustomerPage.getPrimaryApplicantIdNumberInputElement().getAttribute("value");
+            String idNoo = idNo.substring(idNo.indexOf(":")+1).trim();
+            System.out.println("ID Number => " + idNoo);
+            cifNo = fv_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
+            System.out.println("CIF Number => " + cifNo);
+            applicationId = fv_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+            System.out.println("APPID => " + applicationId);
+
+            // ========== END EXISTING CUSTOMER =================
+
+
+            System.out.println("Auto - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
+
+            responseModel.setProject(existingCustomerDTO.getProject());
+            responseModel.setReference_id(existingCustomerDTO.getReference_id());
+            responseModel.setTransaction_id(existingCustomerDTO.getTransaction_id());
+            responseModel.setApp_id(applicationId);
+            responseModel.setAutomation_result("EXISTING_CUSTOMER PASS");
+
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+
+            responseModel.setProject(existingCustomerDTO.getProject());
+            responseModel.setReference_id(existingCustomerDTO.getReference_id());
+            responseModel.setTransaction_id(existingCustomerDTO.getTransaction_id());
+            responseModel.setApp_id(applicationId);
+            responseModel.setAutomation_result("EXISTING_CUSTOMER FAILED" + " - " + e.getMessage());
+
+            System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            logout(driver,accountDTO.getUserName());
+//            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+
+    //------------------------ END EXISTING CUSTOMER -----------------------------------------------------
 
 }

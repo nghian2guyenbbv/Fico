@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
+import vn.com.tpf.microservices.models.AutoField.ExistingCustomerDTO;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
@@ -512,6 +513,34 @@ public class AutomationService {
 	}
 
 	//------------------------ END - SUBMIT_FIELD  -------------------------------
+
+	//------------------------ EXISTING_CUSTOMER -------------------------------------
+	public Map<String, Object> Existing_Customer(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		ExistingCustomerDTO existingCustomerDTOList = mapper.treeToValue(request.path("body"), ExistingCustomerDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_Existing_Customer(existingCustomerDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, existingCustomerDTOList);
+	}
+
+	private void runAutomation_Existing_Customer(ExistingCustomerDTO existingCustomerDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Existing_Customer(existingCustomerDTOList);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer","MOBILITY_FIELDS");
+
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//------------------------ END - EXISTING_CUSTOMER -------------------------------------
 
 	//------------------------ END - MOBILITY - FUNCTION -----------------------------------------
 }
