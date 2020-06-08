@@ -363,8 +363,8 @@ public class MobilityService {
 
 		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
-						Map.of("productCode", data.path("productCode").asText(), "schemeCode",
-								data.path("schemeCode").asText())));
+						Map.of("productCode", productCode, "schemeCode",
+								schemeCode)));
 
 		if (documentFinnOne.path("status").asInt() != 200)
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
