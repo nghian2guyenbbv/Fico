@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +11,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.DatatypeConfigurationException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -29,6 +34,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import vn.com.tpf.microservices.models.Automation.Application;
+import vn.com.tpf.microservices.models.Finnone.CreateApplicationRequest;
 import vn.com.tpf.microservices.models.Momo;
 import vn.com.tpf.microservices.models.ResponseMomoDisburse;
 import vn.com.tpf.microservices.models.ResponseMomoStatus;
@@ -60,6 +70,11 @@ public class MomoService {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+
+	@Autowired
+	RestTemplate restTemplate;
+
+	private final String urlEsbService = "https://tpfesbuat.tpb.vn/api/v2/f1/createApp";
 
 	@PostConstruct
 	private void init() {
@@ -258,9 +273,11 @@ public class MomoService {
 			} else {
 				ArrayNode photos = (ArrayNode) body.path("data").path("photos");
 				for (JsonNode photo : photos)
-					if (!photo.path("type").asText().matches("^(National ID Back|National ID Front|Selfie)$")
-							|| !photo.path("link").asText().matches(
-									"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\\/.*)?$"))
+//					if (!photo.path("type").asText().matches("^(National ID Back|National ID Front|Selfie)$")
+//							|| !photo.path("link").asText().matches(
+//									"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\\/.*)?$"))
+//						return error.get("photos");
+					if (!photo.path("type").asText().matches("^(National ID Back|National ID Front|Selfie)$"))
 						return error.get("photos");
 			}
 			if (field.equals("data.references") && (!body.path("data").path("references").isArray()
@@ -371,8 +388,57 @@ public class MomoService {
 
 		mongoTemplate.save(momo);
 
-		rabbitMQService.send("tpf-service-esb", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
-				"body", convertService.toAppFinnone(momo)));
+
+		ObjectNode momoParser=convertService.toAppFinnone(momo);
+
+		new Thread(() -> {
+
+			try {
+				CreateApplicationRequest createApplicationRequest = convertService
+						.toFin1API(momoParser);
+				log.info("data"+ mapper.convertValue(createApplicationRequest, JsonNode.class));
+				ResponseEntity EsbResult = sendToEsbService(createApplicationRequest);
+
+				if (EsbResult != null && EsbResult.getStatusCode().is2xxSuccessful()) {
+					JsonNode bodyRes = mapper.convertValue(EsbResult.getBody(), JsonNode.class);
+
+					if (!bodyRes.path("_responseDataFull").path("applicationNumber").asText().isEmpty()) {
+
+						//update lai con APP sau khi co APPID
+						Query query = Query.query(Criteria.where("momoLoanId").is(momo.getMomoLoanId()));
+						Update update = new Update().set("appId", bodyRes.path("app_id").asText())
+								.set("automationResult", bodyRes.path("automation_result").asText()).set("status", "PROCESSING");
+
+						Momo momoUp = mongoTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true), Momo.class);
+						if (momoUp == null) {
+							log.info("message", momo.getMomoLoanId() +  " : Momo Loan Id Not Found");
+							return;
+						}
+
+						rabbitMQService.send("tpf-service-app",
+								Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+										Map.of("project", "momo", "id", momo.getId()), "body", convertService.toAppDisplay(momo)));
+					}
+				}
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				log.info("try_catch"+e.getMessage());
+				e.printStackTrace();
+			} catch (DatatypeConfigurationException e) {
+				// TODO Auto-generated catch block
+				log.info("try_catch"+e.getMessage());
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+
+		//tat đi qua automation
+//		rabbitMQService.send("tpf-service-esb", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+//				"body",momoParser ));
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(momo)));
@@ -398,7 +464,6 @@ public class MomoService {
 				mapper.createObjectNode().put("message", "retry partner id " + momo.getMomoLoanId() + " success"));
 
 	}
-	
 	
 	public JsonNode updateAppId(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
@@ -688,6 +753,27 @@ public class MomoService {
 		}
 
 		return response(200, mapper.convertValue(listCancelled, JsonNode.class));
+	}
+
+	private ResponseEntity sendToEsbService(CreateApplicationRequest createApplicationRequest) {
+		final String url = urlEsbService;
+		ResponseEntity<JsonNode> result = null;
+		try {
+			log.info("url:"+url);
+			MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+			headers.add("clientId", "1");
+			headers.add("sign", "1");
+
+			headers.add("Content-Type", "application/json");
+			HttpEntity<?> request = new HttpEntity<>(createApplicationRequest, headers);
+			result = restTemplate.postForEntity(url, request, JsonNode.class);
+			log.info("Call F1:"+result.getStatusCodeValue());
+
+			return result;
+		} catch (Exception e) {
+			log.error("Esb api exception : " + e.getMessage());
+		}
+		return null;
 	}
 
 }
