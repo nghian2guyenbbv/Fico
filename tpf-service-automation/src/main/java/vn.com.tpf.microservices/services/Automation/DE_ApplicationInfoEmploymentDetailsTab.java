@@ -408,10 +408,7 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                 await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> modalMajorChangeElement.isDisplayed());
                 Utilities.captureScreenShot(_driver);
-
-//                btnMajorChangeElement.get(0).click();
-                JavascriptExecutor btnMajorChangeElement2 = (JavascriptExecutor)_driver;
-                btnMajorChangeElement2.executeScript("arguments[0].click();", btnMajorChangeElement);
+                btnMajorChangeElement.get(0).click();
 
                 Utilities.captureScreenShot(_driver);
             }
