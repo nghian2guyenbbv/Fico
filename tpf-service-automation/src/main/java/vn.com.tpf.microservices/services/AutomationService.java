@@ -535,7 +535,7 @@ public class AutomationService {
 	private void runAutomation_Existing_Customer(ExistingCustomerDTO existingCustomerDTOList) throws Exception {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Existing_Customer(existingCustomerDTOList);
-		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer","MOBILITY_FIELDS");
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer","MOBILITY_FIELD");
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
