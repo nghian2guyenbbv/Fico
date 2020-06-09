@@ -614,12 +614,17 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-            stage = "ErunAutomation_UpdateInfo";
+            stage = "EMPLOYMENT DETAILS";
             // ========== EMPLOYMENT DETAILS =================
             await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
 
+            System.out.println(stage + ": LOAD 01 ");
+
             DE_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
+
+            System.out.println(stage + ": LOAD 02 ");
+
             await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
 
