@@ -181,8 +181,12 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
 		}
 		System.out.println(preCheckResult.path("data"));
-		mobility.setPreChecks(Map.of("preCheck1",
-				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
+		HashSet<Object> hs = new HashSet<>();
+		hs.add(Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class)));
+
+		mobility.setPreChecks(Map.of("preCheck1", hs));
+//		mobility.setPreChecks(Map.of("preCheck1",
+//				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
 		mobility.setStage(STAGE_PRECHECK1_DONE);
 		mobility.setStatus(STATUS_PRE_APPROVAL);
 		mobilityTemplate.save(mobility);
