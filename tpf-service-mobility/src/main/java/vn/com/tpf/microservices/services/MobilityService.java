@@ -181,8 +181,12 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
 		}
 		System.out.println(preCheckResult.path("data"));
-		mobility.setPreChecks(Map.of("preCheck1",
-				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
+		HashSet<Object> hs = new HashSet<>();
+		hs.add(Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class)));
+
+		mobility.setPreChecks(Map.of("preCheck1", hs));
+//		mobility.setPreChecks(Map.of("preCheck1",
+//				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
 		mobility.setStage(STAGE_PRECHECK1_DONE);
 		mobility.setStatus(STATUS_PRE_APPROVAL);
 		mobilityTemplate.save(mobility);
@@ -405,12 +409,12 @@ public class MobilityService {
 				return utils.getJsonNodeResponse(499, body,
 						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
 			
-//			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
-//					.equals(document.path("documentMd5").asText().toLowerCase()))
-//				return utils.getJsonNodeResponse(499, body,
-//						mapper.createObjectNode().put("message",
-//								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
-//										uploadResult.path("md5").asText().toLowerCase())));
+			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+					.equals(document.path("documentMd5").asText().toLowerCase()))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message",
+								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+										uploadResult.path("md5").asText().toLowerCase())));
 			
 			HashMap<String, String> docUpload = new HashMap<>();
 			docUpload.put("documentCode", document.path("documentCode").asText());

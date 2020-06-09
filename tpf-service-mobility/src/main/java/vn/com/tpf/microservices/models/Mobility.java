@@ -2,6 +2,8 @@ package vn.com.tpf.microservices.models;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -59,8 +61,10 @@ public class Mobility {
 	private List<Object> filesUpload;
 	private String viewLastUpdated;
 	private String userCreatedQueue;
-	private Map<String, Object> preChecks;
-	private Map<String, Object> returns;
+	@Builder.Default
+	private Map<String, HashSet<Object>> preChecks = new HashMap<>();
+	@Builder.Default
+	private Map<String, HashSet<Object>> returns = new HashMap<>();
 	@CreatedDate
 	private Date createdAt;
 	@LastModifiedDate
