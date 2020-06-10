@@ -748,8 +748,8 @@ public class RepaymentService {
 		ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
 		ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
 		ficoReceiptPayment.setTransactionCurrencyCode("VND");
-		ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
-		ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+		ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+		ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(new Date(timestamp.getTime())));
 		ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
 		ficoReceiptPayment.setAutoAllocation("Y");
 		ficoReceiptPayment.setReceiptNo("");
