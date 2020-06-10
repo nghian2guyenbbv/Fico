@@ -199,13 +199,15 @@ public class RepaymentService {
 			request_id = requestModel.getRequest_id();
 //			date_time = requestModel.getDate_time();
 
+			Timestamp timestamp=new Timestamp(new Date().getTime());
+
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
 			}catch (Exception e) {
 				log.info("Error: " + e);
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setDate_time(timestamp);
 				responseModel.setResult_code(500);
 				responseModel.setMessage("Others error");
 				return Map.of("status", 200, "data", responseModel);
@@ -231,9 +233,11 @@ public class RepaymentService {
 					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
 					ficoTransPay.setTransactionId(requestModel.getData().getTransaction_id());
 					ficoTransPay.setAmount(requestModel.getData().getAmount());
-					ficoTransPay.setCreateDate(new Timestamp(new Date().getTime()));
+					ficoTransPay.setCreateDate(timestamp);
 
 					ficoTransPayDAO.save(ficoTransPay);
+
+					//CALL API LMS
 					new Thread(() -> {
 						FicoRepaymentModel ficoRepaymentModel = new FicoRepaymentModel();
 						ReceiptProcessingMO ficoReceiptPayment = new ReceiptProcessingMO();
@@ -243,8 +247,10 @@ public class RepaymentService {
 						}
 						if (requestModel.getData().getTransaction_id().startsWith("PY")){
 							ficoReceiptPayment.setSourceAccountNumber("45992855603");
+							ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
 						} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
 							ficoReceiptPayment.setSourceAccountNumber("45992855306");
+							ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
 						}
 						ReqHeader requestHeader = new ReqHeader();
 						requestHeader.setTenantId(505);
@@ -258,15 +264,15 @@ public class RepaymentService {
 						ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
 						ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
 						ficoReceiptPayment.setTransactionCurrencyCode("VND");
-						ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
-						ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+						ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+						ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(new Date(timestamp.getTime())));
 						ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
 						ficoReceiptPayment.setAutoAllocation("Y");
 						ficoReceiptPayment.setReceiptNo("");
 						ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
-						ficoReceiptPayment.setDepositDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+						ficoReceiptPayment.setDepositDate(simpleDateFormat.format(new Date(timestamp.getTime())));
 						ficoReceiptPayment.setDepositBankAccountNumber("519200003");
-						ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+						ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(new Date(timestamp.getTime())));
 						ficoReceiptPayment.setReceiptTransactionStatus("C");
 						ficoReceiptPayment.setProcessTillMaker(false);
 						ficoReceiptPayment.setRequestChannel("RECEIPT");
@@ -291,21 +297,23 @@ public class RepaymentService {
 						ResponseEntity<JsonNode> res = restTemplate.postForEntity(uri, body, JsonNode.class);
 						log.info("{}", res.getBody());
 					}).start();
+					//END CALL
+
 					responseModel.setRequest_id(requestModel.getRequest_id());
 					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setDate_time(timestamp);
 					responseModel.setResult_code(0);
 				}else{
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setDate_time(timestamp);
 					responseModel.setResult_code(2);
 					responseModel.setMessage("Not exits");
 				}
 			}else {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setDate_time(timestamp);
 				responseModel.setResult_code(2);
 				responseModel.setMessage("transaction_id already exists.");
 			}
