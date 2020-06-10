@@ -80,4 +80,7 @@ public class FicoReceiptPayment implements Serializable {
 
     @Column(name="request_channel")
     private String requestChannel;
+
+    @Column(name="receipt_payout_channel")
+    private String receiptPayoutChannel;
 }
