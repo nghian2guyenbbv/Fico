@@ -158,7 +158,7 @@ public class ConvertService {
 
 		String pattern = "dd/MM/yyyy";
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-
+         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
 		//
 		ApplicantInformation applicantInformation=new ApplicantInformation();
 
