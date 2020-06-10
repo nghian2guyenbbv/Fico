@@ -216,7 +216,7 @@ public class RepaymentService {
 			if (requestModel.getData().getAmount() <= 0){
                 responseModel.setRequest_id(requestModel.getRequest_id());
                 responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                responseModel.setDate_time(timestamp);
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Others error");
                 return Map.of("status", 200, "data", responseModel);
