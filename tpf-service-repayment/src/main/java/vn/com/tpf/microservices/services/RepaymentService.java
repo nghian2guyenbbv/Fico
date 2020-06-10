@@ -280,7 +280,7 @@ public class RepaymentService {
 						ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
 
 						// Save report receipt payment
-						saveReportReceiptPayment(requestModel);
+						saveReportReceiptPayment(requestModel,timestamp);
 
 						String urlReceiptLMS = urlAPI;
 						URI uri = null;
@@ -727,7 +727,7 @@ public class RepaymentService {
 	}
 
 	//---------------------- START FUNCTION SAVE REPORT -----------------
-	public void saveReportReceiptPayment(RequestModel requestModel){
+	public void saveReportReceiptPayment(RequestModel requestModel,Timestamp timestamp){
 		FicoReceiptPayment ficoReceiptPayment = new FicoReceiptPayment();
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
 		if (!requestModel.getData().getTransaction_id().isEmpty()){
@@ -735,8 +735,10 @@ public class RepaymentService {
 		}
 		if (requestModel.getData().getTransaction_id().startsWith("PY")){
 			ficoReceiptPayment.setSourceAccountNumber("45992855603");
+			ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
 		} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
 			ficoReceiptPayment.setSourceAccountNumber("45992855306");
+			ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
 		}
 		ficoReceiptPayment.setTenantId(505);
 		ficoReceiptPayment.setBranchId(5);
@@ -752,9 +754,9 @@ public class RepaymentService {
 		ficoReceiptPayment.setAutoAllocation("Y");
 		ficoReceiptPayment.setReceiptNo("");
 		ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
-		ficoReceiptPayment.setDepositDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+		ficoReceiptPayment.setDepositDate(simpleDateFormat.format(new Date(timestamp.getTime())));
 		ficoReceiptPayment.setDepositBankAccountNumber("519200003");
-		ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(requestModel.getData().getCreate_date()));
+		ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(new Date(timestamp.getTime())));
 		ficoReceiptPayment.setReceiptTransactionStatus("C");
 		ficoReceiptPayment.setProcessTillMaker("FALSE");
 		ficoReceiptPayment.setRequestChannel("RECEIPT");
