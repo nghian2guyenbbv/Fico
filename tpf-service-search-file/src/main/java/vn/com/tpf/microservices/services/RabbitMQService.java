@@ -32,7 +32,7 @@ public class RabbitMQService {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	private SearchFileFolderService searchFileFolderService;
+	private SearchFileService searchFileService;
 
 	@PostConstruct
 	private void init() {
@@ -84,7 +84,7 @@ public class RabbitMQService {
 
 			switch (request.path("func").asText()) {
 			case "getListPathFileByKeyword":
-				return response(message, payload, searchFileFolderService.getListPathFileByKeyword(request));
+				return response(message, payload, searchFileService.getListPathFileByKeyword(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
