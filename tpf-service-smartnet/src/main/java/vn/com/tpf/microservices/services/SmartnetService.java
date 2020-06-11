@@ -92,81 +92,91 @@ public class SmartnetService {
 	private ConvertService convertService;
 
 	public JsonNode getPreCheck1(JsonNode request) throws Exception {
-
 		JsonNode body = request.path("body");
-		if (body.path("data").isNull())
-			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
-		final JsonNode data = request.path("body").path("data");
-		final long leadId = data.path("leadId").asLong(0);
-		if (leadId == 0)
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.leadId not null"));
-		Smartnet smartnet = smartnetTemplate.findOne(Query.query(Criteria.where("leadId").is(leadId)), Smartnet.class);
-		if (smartnet != null)
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.leadId %s exits", leadId)));
-		if (data.path("firstName").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.firstName not blank"));
-		if (data.path("lastName").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.lastName not blank"));
-		if (!data.path("nationalId").asText().matches("^(?=(?:.{9}|.{12})$)[0-9]*$"))
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.nationalId not valid"));
-		if (!data.path("dateOfBirth").asText()
-				.matches("^([0-2][0-9]|(3)[0-1])(\\/)(((0)[0-9])|((1)[0-2]))(\\/)\\d{4}$"))
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.dateOfBirth not blank"));
-		if (data.path("dsaCode").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.dsaCode not blank"));
-		if (data.path("district").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.district not blank"));
-		if (data.path("city").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.city not blank"));
-		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getAddressFinnOne", "reference_id", body.path("reference_id"), "param",
-						Map.of("areaCode", data.path("district").asText())));
+		try
+		{
+			if (body.path("data").isNull())
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+			final JsonNode data = request.path("body").path("data");
+			final long leadId = data.path("leadId").asLong(0);
+			if (leadId == 0)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.leadId not null"));
+			Smartnet smartnet = smartnetTemplate.findOne(Query.query(Criteria.where("leadId").is(leadId)), Smartnet.class);
+			if (smartnet != null)
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.leadId %s exits", leadId)));
+			if (data.path("firstName").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.firstName not blank"));
+			if (data.path("lastName").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.lastName not blank"));
+			if (!data.path("nationalId").asText().matches("^(?=(?:.{9}|.{12})$)[0-9]*$"))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.nationalId not valid"));
+			if (!data.path("dateOfBirth").asText()
+					.matches("^([0-2][0-9]|(3)[0-1])(\\/)(((0)[0-9])|((1)[0-2]))(\\/)\\d{4}$"))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.dateOfBirth not blank"));
+			if (data.path("dsaCode").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.dsaCode not blank"));
+			if (data.path("district").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.district not blank"));
+			if (data.path("city").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.city not blank"));
+			JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "getAddressFinnOne", "reference_id", body.path("reference_id"), "param",
+							Map.of("areaCode", data.path("district").asText())));
 
-		if (address.path("status").asInt() != 200)
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.district not found"));
-		if (!address.path("data").path("postCode").asText().equals(data.path("city").asText()))
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.city not found"));
+			if (address.path("status").asInt() != 200)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.district not found"));
+			if (!address.path("data").path("postCode").asText().equals(data.path("city").asText()))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.city not found"));
 
-		smartnet = Smartnet.builder().leadId(leadId).firstName(data.path("firstName").asText())
-				.lastName(data.path("lastName").asText()).nationalId(data.path("nationalId").asText())
-				.dateOfBirth(data.path("dateOfBirth").asText()).dsaCode(data.path("dsaCode").asText())
-				.city(address.path("data").path("postCode").asText())
-				.cityFinnOne(address.path("data").path("cityName").asText())
-				.district(address.path("data").path("areaCode").asText())
-				.districtFinnOne(address.path("data").path("areaName").asText()).build();
+			smartnet = Smartnet.builder().leadId(leadId).firstName(data.path("firstName").asText())
+					.lastName(data.path("lastName").asText()).nationalId(data.path("nationalId").asText())
+					.dateOfBirth(data.path("dateOfBirth").asText()).dsaCode(data.path("dsaCode").asText())
+					.city(address.path("data").path("postCode").asText())
+					.cityFinnOne(address.path("data").path("cityName").asText())
+					.district(address.path("data").path("areaCode").asText())
+					.districtFinnOne(address.path("data").path("areaName").asText()).build();
 
-		JsonNode preCheckResult = rabbitMQService.sendAndReceive("tpf-service-esb",
-				Map.of("func", "getPrecheckList", "reference_id", body.path("reference_id"), "body",
-						Map.of("bankCardNumber", "", "dsaCode", data.path("dsaCode").asText(), "areaCode",
-								address.path("data").path("f1AreaCode").asText(), "nationalId",
-								data.path("nationalId").asText())));
-		if (preCheckResult.path("status").asInt(0) != 200) {
-			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
+			JsonNode preCheckResult = rabbitMQService.sendAndReceive("tpf-service-esb",
+					Map.of("func", "getPrecheckList", "reference_id", body.path("reference_id"), "body",
+							Map.of("bankCardNumber", "", "dsaCode", data.path("dsaCode").asText(), "areaCode",
+									address.path("data").path("f1AreaCode").asText(), "nationalId",
+									data.path("nationalId").asText())));
+			if (preCheckResult.path("status").asInt(0) != 200) {
+				return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
+			}
+			smartnet.setPreChecks(Map.of("preCheck1",
+					Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
+			smartnet.setStage(STAGE_PRECHECK1_DONE);
+			smartnet.setStatus(STATUS_PRE_APPROVAL);
+			smartnetTemplate.save(smartnet);
+
+			return utils.getJsonNodeResponse(0, body, preCheckResult.path("data"));
+
+		}catch (Exception e)
+		{
+			log.info("getPreCheck1:" + e.toString());
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "System error"));
 		}
-		smartnet.setPreChecks(Map.of("preCheck1",
-				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
-		smartnet.setStage(STAGE_PRECHECK1_DONE);
-		smartnet.setStatus(STATUS_PRE_APPROVAL);
-		smartnetTemplate.save(smartnet);
-
-		return utils.getJsonNodeResponse(0, body, preCheckResult.path("data"));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public JsonNode getPreCheck2(JsonNode request) throws Exception {
 
 		JsonNode body = request.path("body");
+		try
+		{
 		if (body.path("data").isNull())
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
 		final JsonNode data = request.path("body").path("data");
@@ -227,73 +237,87 @@ public class SmartnetService {
 		return utils.getJsonNodeResponse(0, body,
 				((ArrayNode) mapper.convertValue(smartnet.getPreChecks(), JsonNode.class).path("preCheck2")).get(0)
 						.path("data"));
+		}catch (Exception e)
+		{
+			log.info("getPreCheck2:" + e.toString());
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "System error"));
+		}
 	}
 
 	public JsonNode getAppInfo(JsonNode request) throws Exception {
 
 		JsonNode body = request.path("body");
-		if (body.path("data").isNull())
-			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
-		final JsonNode data = request.path("body").path("data");
-		final String appId = data.path("appId").asText();
-		if (appId.isBlank())
+		try{
+
+			if (body.path("data").isNull())
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+			final JsonNode data = request.path("body").path("data");
+			final String appId = data.path("appId").asText();
+			if (appId.isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.appId not null"));
+			Query query = Query.query(Criteria.where("appId").is(appId));
+			Smartnet smartnet = smartnetTemplate.findOne(query, Smartnet.class);
+			if (smartnet == null)
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
+
+			if (LIST_STATUS_COMPLETE.contains(smartnet.getStatus().toUpperCase().trim()))
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s",
+								appId, smartnet.getStatus().toUpperCase().trim())));
+			JsonNode item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
+
+			if (item.path("status").asInt() != 200)
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.appId %s waiting sync data", appId)));
+
+			Update update = new Update().set("updatedAt", new Date());
+			final boolean updateStageAndStatus = (smartnet.getViewLastUpdated() == null
+					|| !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()
+							.equals(smartnet.getViewLastUpdated().trim().toUpperCase()));
+			if (updateStageAndStatus)
+				update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase())
+						.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
+						.set("status", item.path("data").path(KEY_STATUS).asText().toUpperCase().trim());
+
+			if (!item.path("data").path(KEY_STAGE).asText().toUpperCase().trim().equals(STAGE_SALES_QUEUE))
+				update.set("userCreatedQueue", item.path("data").path(KEY_USER_NAME).asText());
+
+			if (updateStageAndStatus) {
+				Smartnet smartnetUpdated = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+						Smartnet.class);
+				if (smartnet.getStage().toUpperCase().trim()
+						.equals(item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
+						&& smartnet.getStatus().toUpperCase().trim()
+								.equals(item.path("data").path(KEY_STATUS).asText().toUpperCase().trim()))
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+									Map.of("project", "smartnet", "id", smartnet.getId()), "body",
+									convertService.toAppStageAndStatus(smartnetUpdated)));
+				else if (smartnet.getStage().toUpperCase().trim()
+						.equals(item.path("data").path(KEY_STAGE).asText().toUpperCase().trim()))
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+									Map.of("project", "smartnet", "id", smartnet.getId()), "body",
+									convertService.toAppStage(smartnetUpdated)));
+				else if (smartnet.getStatus().toUpperCase().trim()
+						.equals(item.path("data").path(KEY_STATUS).asText().toUpperCase().trim()))
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+									Map.of("project", "smartnet", "id", smartnet.getId()), "body",
+									convertService.toAppStatus(smartnetUpdated)));
+			}
+
+			((ObjectNode) item.path("data")).remove(KEY_USER_NAME);
+			return utils.getJsonNodeResponse(0, body, item.path("data"));
+		}catch (Exception e)
+		{
+			log.info("getAppInfo:" + e.toString());
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.appId not null"));
-		Query query = Query.query(Criteria.where("appId").is(appId));
-		Smartnet smartnet = smartnetTemplate.findOne(query, Smartnet.class);
-		if (smartnet == null)
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
-
-		if (LIST_STATUS_COMPLETE.contains(smartnet.getStatus().toUpperCase().trim()))
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s",
-							appId, smartnet.getStatus().toUpperCase().trim())));
-		JsonNode item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
-
-		if (item.path("status").asInt() != 200)
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s waiting sync data", appId)));
-
-		Update update = new Update().set("updatedAt", new Date());
-		final boolean updateStageAndStatus = (smartnet.getViewLastUpdated() == null
-				|| !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()
-						.equals(smartnet.getViewLastUpdated().trim().toUpperCase()));
-		if (updateStageAndStatus)
-			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase())
-					.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
-					.set("status", item.path("data").path(KEY_STATUS).asText().toUpperCase().trim());
-
-		if (!item.path("data").path(KEY_STAGE).asText().toUpperCase().trim().equals(STAGE_SALES_QUEUE))
-			update.set("userCreatedQueue", item.path("data").path(KEY_USER_NAME).asText());
-
-		if (updateStageAndStatus) {
-			Smartnet smartnetUpdated = smartnetTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Smartnet.class);
-			if (smartnet.getStage().toUpperCase().trim()
-					.equals(item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
-					&& smartnet.getStatus().toUpperCase().trim()
-							.equals(item.path("data").path(KEY_STATUS).asText().toUpperCase().trim()))
-				rabbitMQService.send("tpf-service-app",
-						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-								Map.of("project", "smartnet", "id", smartnet.getId()), "body",
-								convertService.toAppStageAndStatus(smartnetUpdated)));
-			else if (smartnet.getStage().toUpperCase().trim()
-					.equals(item.path("data").path(KEY_STAGE).asText().toUpperCase().trim()))
-				rabbitMQService.send("tpf-service-app",
-						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-								Map.of("project", "smartnet", "id", smartnet.getId()), "body",
-								convertService.toAppStage(smartnetUpdated)));
-			else if (smartnet.getStatus().toUpperCase().trim()
-					.equals(item.path("data").path(KEY_STATUS).asText().toUpperCase().trim()))
-				rabbitMQService.send("tpf-service-app",
-						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-								Map.of("project", "smartnet", "id", smartnet.getId()), "body",
-								convertService.toAppStatus(smartnetUpdated)));
 		}
-
-		((ObjectNode) item.path("data")).remove(KEY_USER_NAME);
-		return utils.getJsonNodeResponse(0, body, item.path("data"));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

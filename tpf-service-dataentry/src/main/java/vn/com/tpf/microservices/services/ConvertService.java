@@ -91,13 +91,12 @@ public class ConvertService {
 			optional.put("partnerName", application.getPartnerName());
 		}
 
-		try{
-			optional.put("reasonCancel", application.getReasonCancel());
-			optional.put("createdBy", application.getUserName());
-		} catch (Exception e) {
-		}
 
-//		optional.put("isHolding", application.isHolding());
+        try{
+            optional.put("reasonCancel", application.getReasonCancel());
+            optional.put("createdBy", application.getUserName());
+        } catch (Exception e) {
+        }
 
 		app.set("optional", optional);
 		return app;
