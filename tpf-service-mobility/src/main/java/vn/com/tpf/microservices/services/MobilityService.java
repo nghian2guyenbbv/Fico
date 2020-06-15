@@ -429,7 +429,7 @@ public class MobilityService {
 		}
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
-				.set("product", data.path("productCode").asText())
+				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
 				.set("filesUpload", filesUpload);
