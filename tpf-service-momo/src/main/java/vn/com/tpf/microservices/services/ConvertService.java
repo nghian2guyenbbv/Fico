@@ -412,8 +412,9 @@ public class ConvertService {
 
 		//----------------------- REFERENCE ------------------------------------------
 		List<ReferenceDetails> referenceDetailsList=new ArrayList<ReferenceDetails>();
-		List<PhoneNumber> phoneNumbersListRef=new ArrayList<PhoneNumber>();
+
 		for (Reference fr: application.getReferences()) {
+			    List<PhoneNumber> phoneNumbersListRef=new ArrayList<PhoneNumber>();
 				ReferenceDetails referenceDetails=new ReferenceDetails();
 				referenceDetails.setName(fr.getName());
 				referenceDetails.setRelationship(fr.getRelationship());
@@ -426,7 +427,7 @@ public class ConvertService {
 
 				phoneNumbersListRef.add(phoneNumberRef);
 
-				referenceDetails.setPhoneNumber(phoneNumbersList);
+				referenceDetails.setPhoneNumber(phoneNumbersListRef);
 				referenceDetailsList.add(referenceDetails);
 		}
 		//----------------------- END --------------------------------------------
