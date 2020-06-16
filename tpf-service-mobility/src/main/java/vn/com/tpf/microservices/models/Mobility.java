@@ -47,7 +47,7 @@ public class Mobility {
 	@Builder.Default
 	private String loanRequest = "10000000";
 	@Builder.Default
-	private String chanel = "DIRECT";
+	private String chanel = "ALTERNATE_CHANNEL";
 	@Builder.Default
 	private String branch = "SMARTNET";
 	private String scheme;
