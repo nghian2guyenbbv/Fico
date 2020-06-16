@@ -5,7 +5,6 @@ import lombok.Data;
 import javax.persistence.*;
 import java.io.Serializable;
 
-
 @Data
 @Entity
 @Table(name = "fico_receipt_pay", schema = "payoo")
@@ -80,4 +79,7 @@ public class FicoReceiptPayment implements Serializable {
 
     @Column(name="request_channel")
     private String requestChannel;
+
+    @Column(name="receipt_payout_channel")
+    private String receiptPayoutChannel;
 }

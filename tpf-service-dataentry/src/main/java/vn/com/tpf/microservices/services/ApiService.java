@@ -91,14 +91,12 @@ public class ApiService {
 //		restTemplate = new RestTemplate(factory);
 //		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
 
-
 		SimpleClientHttpRequestFactory scrfCall3P = new SimpleClientHttpRequestFactory();
 		scrfCall3P.setConnectTimeout(1000*180);
 		scrfCall3P.setReadTimeout(1000*180);
 		ClientHttpRequestFactory factoryCall3P = new BufferingClientHttpRequestFactory(scrfCall3P);
 		restTemplate = new RestTemplate(factoryCall3P);
 		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
-
 
 		SimpleClientHttpRequestFactory scrf = new SimpleClientHttpRequestFactory();
 		scrf.setConnectTimeout(1000*120);
