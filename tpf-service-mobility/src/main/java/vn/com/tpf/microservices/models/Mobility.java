@@ -47,7 +47,7 @@ public class Mobility {
 	@Builder.Default
 	private String loanRequest = "10000000";
 	@Builder.Default
-	private String chanel = "ALTERNATE_CHANNEL";
+	private String chanel = "DIRECT";
 	@Builder.Default
 	private String branch = "SMARTNET";
 	private String scheme;
@@ -61,10 +61,8 @@ public class Mobility {
 	private List<Object> filesUpload;
 	private String viewLastUpdated;
 	private String userCreatedQueue;
-	@Builder.Default
-	private Map<String, HashSet<Object>> preChecks = new HashMap<>();
-	@Builder.Default
-	private Map<String, HashSet<Object>> returns = new HashMap<>();
+    private Map<String, Object> preChecks;
+    private Map<String, Object> returns;
 	@CreatedDate
 	private Date createdAt;
 	@LastModifiedDate
