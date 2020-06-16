@@ -96,7 +96,7 @@ public class ApiService {
 		scrfCall3P.setReadTimeout(1000*180);
 		ClientHttpRequestFactory factoryCall3P = new BufferingClientHttpRequestFactory(scrfCall3P);
 		restTemplate = new RestTemplate(factoryCall3P);
-		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
+		restTemplate.setInterceptors(Arrays.asList(new HttpLogService())); 
 
 		SimpleClientHttpRequestFactory scrf = new SimpleClientHttpRequestFactory();
 		scrf.setConnectTimeout(1000*120);
