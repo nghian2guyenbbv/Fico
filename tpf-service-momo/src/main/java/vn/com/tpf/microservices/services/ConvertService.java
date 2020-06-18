@@ -494,7 +494,7 @@ public class ConvertService {
 
 		objectNode1.put("CardAgentCode",mapper.createObjectNode()
 				.put("newbankcardnumber","2222222222222222")
-				.put("salesagentcode","MM99999")
+				.put("salesagentcode","DS0001100")
 		);
 
 		objectNode1.put("OTH",mapper.createObjectNode()
