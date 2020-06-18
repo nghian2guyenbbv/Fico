@@ -96,7 +96,7 @@ public class ApiService {
 		scrfCall3P.setReadTimeout(1000*180);
 		ClientHttpRequestFactory factoryCall3P = new BufferingClientHttpRequestFactory(scrfCall3P);
 		restTemplate = new RestTemplate(factoryCall3P);
-		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
+		restTemplate.setInterceptors(Arrays.asList(new HttpLogService())); 
 
 		SimpleClientHttpRequestFactory scrf = new SimpleClientHttpRequestFactory();
 		scrf.setConnectTimeout(1000*120);
@@ -2242,6 +2242,23 @@ public class ApiService {
 		}
 	}
 
-
+    public JsonNode createLeadF1(String url, JsonNode application){
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("clientId", "1");
+        headers.add("sign", "1");
+        headers.add("Content-Type", "application/json");
+        HttpEntity<?> payload = new HttpEntity<>(application, headers);
+        log.info("{}", payload.toString());
+        ObjectNode result = mapper.createObjectNode();
+        try {
+            ResponseEntity<?> response = restTemplate.postForEntity(url, payload , JsonNode.class );
+            log.info("{}", response.toString());
+            result = mapper.convertValue(response.getBody(), ObjectNode.class);
+        }catch (Exception e){
+            result.put("errMsg", e.toString());
+            log.info("{}", e.toString());
+        }
+        return result;
+    }
 
 }
