@@ -741,10 +741,4 @@ public class DataInitial {
         map.put("RequestAutomationSubmitFieldList", submitFieldDTOList);
         return map;
     }
-
-    public static Map<String, Object> getDataFrom_Existing_Customer(ExistingCustomerDTO existingCustomerDTOList) throws JsonProcessingException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("ExistingCustomerList", existingCustomerDTOList);
-        return map;
-    }
 }
