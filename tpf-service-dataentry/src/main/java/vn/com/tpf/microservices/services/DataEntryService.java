@@ -1547,7 +1547,7 @@ public class DataEntryService {
 					}catch(Exception e){
 						log.info("{}", e.toString());
 					}
-				});
+				}).start();
 
 				Report report = new Report();
 				report.setQuickLeadId(data.getQuickLeadId());
@@ -4735,7 +4735,7 @@ public class DataEntryService {
 					return Map.of("status", 200, "data", "partnerId null");
 				}
 
-				if(request.path("response").path("responseCode").asInt() != 0){
+				if(request.path("response").path("responseData").path("responseCode").asInt() != 0){
 					Report report = new Report();
 					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
 					report.setFunction("QUICKLEAD");
