@@ -5,8 +5,11 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import vn.com.tpf.microservices.models.Document;
+import vn.com.tpf.microservices.models.LoanDetails;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -26,5 +29,8 @@ public class ExistingCustomerDTO {
     private String project;
     private String transaction_id;
     private String automation_result;
+
+    public LoanDetails loanDetails;
+    public List<Document> documents = null;
 
 }

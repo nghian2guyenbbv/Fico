@@ -31,6 +31,10 @@ public class FV_ExistingCustomerPage {
     @CacheLookup
     private WebElement personalLoanElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//span[contains(text(),'Applications')]")
+    @CacheLookup
+    private WebElement applicationElement;
+
     @FindBy(how = How.XPATH, using = "//div[@id = 'createCustDiv']//div[contains(@class,'applicant-search-screen')]")
     @CacheLookup
     private WebElement createCustomerElement;
@@ -110,6 +114,26 @@ public class FV_ExistingCustomerPage {
     @FindBy(how = How.XPATH, using = "//div[@id ='container-no-tpl']//div[contains(@class,'float-l m-r5')]//h4[@id='applicantIdHeader']//span")
     @CacheLookup
     private WebElement applicantIdHeaderElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @CacheLookup
+    private WebElement applicationsAssignedTextElement;
+
+    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
+    @CacheLookup
+    private List<WebElement> applicationsAssignedTableElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id='loanApplicationExistingParties']")
+    @CacheLookup
+    private WebElement loanApplicationExistingPartiesElement;
+
+    @FindBy(how = How.ID, using = "applicationChildTabs_loanInfo")
+    @CacheLookup
+    private WebElement tabLoanDetailsElement;
+
+    @FindBy(how = How.ID, using = "sourcingDetailsLiId")
+    @CacheLookup
+    private WebElement tabSourcingDetailsElement;
 
 
     public FV_ExistingCustomerPage(WebDriver driver) {
