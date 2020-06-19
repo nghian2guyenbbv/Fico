@@ -2248,15 +2248,15 @@ public class ApiService {
         headers.add("sign", "1");
         headers.add("Content-Type", "application/json");
         HttpEntity<?> payload = new HttpEntity<>(application, headers);
-        log.info("{}", payload.toString());
+        log.info("createLeadF1.payload {}", payload.toString());
         ObjectNode result = mapper.createObjectNode();
         try {
             ResponseEntity<?> response = restTemplate.postForEntity(url, payload , JsonNode.class );
-            log.info("{}", response.toString());
+            log.info("createLeadF1.response {}", response.toString());
             result = mapper.convertValue(response.getBody(), ObjectNode.class);
         }catch (Exception e){
             result.put("errMsg", e.toString());
-            log.info("{}", e.toString());
+            log.info("createLeadF1.Exception {}", e.toString());
         }
         return result;
     }

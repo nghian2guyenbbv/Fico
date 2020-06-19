@@ -12,9 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.models.Application;
+import vn.com.tpf.microservices.models.leadCreation.*;
 
-import java.text.SimpleDateFormat;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import java.math.BigDecimal;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 @Service
 public class ConvertService {
@@ -117,78 +121,90 @@ public class ConvertService {
 		log.info("{}", mapper.convertValue(application, JsonNode.class));
 		ObjectNode app = mapper.createObjectNode();
 		try {
-			/*-----------------personInfoType------------------ */
-			ArrayNode personInfoType = mapper.createArrayNode();
-			ObjectNode person = mapper.createObjectNode();
-			person.put("applicantType", application.getQuickLead().getCustomerType().toLowerCase());
-			person.put("firstName", application.getQuickLead().getFirstName().toUpperCase());
-			person.put("lastName", application.getQuickLead().getLastName().toUpperCase());
+			LeadCreationRequest leadCreationRequest = new LeadCreationRequest();
 
-			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			/*---------------------------------------------------personInfoType---------------------------------------------------- */
+			PersonInfo personInfo = new PersonInfo();
+			personInfo.setApplicantType(application.getQuickLead().getCustomerType().toLowerCase());
+			personInfo.setFirstName(application.getQuickLead().getFirstName().toUpperCase());
+			personInfo.setLastName(application.getQuickLead().getLastName().toUpperCase());
+
+
 			Date dateOfBirth = DateUtils.parseDate(application.getQuickLead().getDateOfBirth(), new String[]{"dd/MM/yyyy"});
-			person.put("dateOfBirth", df.format(dateOfBirth));
 
-			person.put("city", getDataF1Service.getCity(application.getQuickLead().getCity()));
-			personInfoType.add(person);
-			app.set("personInfoType", personInfoType);
+			GregorianCalendar cal = new GregorianCalendar();
+			cal.setTime(dateOfBirth);
+			personInfo.setDateOfBirth(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+			personInfo.setCity(getDataF1Service.getCity(application.getQuickLead().getCity()));
 
-			/*-----------------workAndIncome------------------ */
-			ObjectNode workAndIncome = mapper.createObjectNode();
-			workAndIncome.put("occupationType", getDataF1Service.getOccupationType(application.getQuickLead().getNatureOfOccupation()));
-			workAndIncome.put("natureOfOccuptaion", "Unemployed");
+			/*---------------------------------------------------workAndIncome---------------------------------------------------- */
+			WorkAndIncomeType workAndIncomeType = new WorkAndIncomeType();
+			workAndIncomeType.setOccupationType(getDataF1Service.getOccupationType(application.getQuickLead().getNatureOfOccupation()));
+			workAndIncomeType.setNatureOfOccuptaion("Unemployed");
+			personInfo.setWorkAndIncome(workAndIncomeType);
 
-			app.set("workAndIncome", workAndIncome);
+			leadCreationRequest.getPersonInfoType().add(personInfo);
 
-			/*-----------------productProcessor------------------ */
-			app.put("productProcessor", "mCAS");
+			/*---------------------------------------------------productProcessor---------------------------------------------------- */
+			leadCreationRequest.setProductProcessor("mCAS");
 
-			/*-----------------documents------------------ */
-			ArrayNode documents = mapper.createArrayNode();
+			/*-----------------------------------------------------documents------------------------------------------------------ */
 			application.getQuickLead().getDocuments().stream().forEach(qlDocument -> {
-				ObjectNode document = mapper.createObjectNode();
-				document.put("referenceType", "Customer");
-				document.put("entityType", application.getQuickLead().getFirstName() + application.getQuickLead().getLastName());
-				document.put("documentName", qlDocument.getType());
-				document.put("recievingDate", df.format(new Date()));
-				document.put("remarks", "Document received");
+				Documents documents = new Documents();
+				documents.setReferenceType("Customer");
+				documents.setEntityType(application.getQuickLead().getFirstName().toUpperCase() + " " + application.getQuickLead().getLastName().toUpperCase());
+				documents.setDocumentName(qlDocument.getType());
 
-				ObjectNode attachmentDetails = mapper.createObjectNode();
-				attachmentDetails.put("attachedDocName", qlDocument.getOriginalname());
-				attachmentDetails.put("attachedDocument", qlDocument.getFilename());
-				document.set("attachmentDetails", attachmentDetails);
-				documents.add(document);
+				cal.setTime(new Date());
+				try {
+					documents.setRecievingDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+				} catch (DatatypeConfigurationException e) {
+					log.info("{}", e.toString());
+				}
+
+				documents.setRemarks("Document received");
+
+				AttachmentDetails attachmentDetails = new AttachmentDetails();
+				attachmentDetails.setAttachedDocName(qlDocument.getOriginalname());
+				attachmentDetails.setAttachedDocument(qlDocument.getFilename());
+				documents.setAttachmentDetails(attachmentDetails);
+				leadCreationRequest.getDocuments().add(documents);
 			});
-			app.set("documents", documents);
 
-			/*-----------------sourcingDetails------------------ */
-			ObjectNode sourcingDetails = mapper.createObjectNode();
-			sourcingDetails.put("sourcingChannel", getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
-			app.set("sourcingDetails", sourcingDetails);
+			/*---------------------------------------------------sourcingDetails---------------------------------------------------- */
+			SourcingDetails sourcingDetails = new SourcingDetails();
+			sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
+			leadCreationRequest.setSourcingDetails(sourcingDetails);
 
-			/*-----------------loanInformation------------------ */
-			ObjectNode loanInformation = mapper.createObjectNode();
+			/*---------------------------------------------------loanInformation---------------------------------------------------- */
+			LoanInformation loanInformation = new LoanInformation();
+			loanInformation.setProductType(getDataF1Service.getProductType());
+			loanInformation.setLoanProduct(getDataF1Service.getLoanProduct(application.getQuickLead().getSchemeCode()));
+			loanInformation.setScheme(getDataF1Service.getScheme(application.getQuickLead().getSchemeCode()));
+			AmountField amountField = new AmountField();
+			amountField.setValue(BigDecimal.valueOf(Long.valueOf(application.getQuickLead().getLoanAmountRequested())));
+			leadCreationRequest.setLoanInformation(loanInformation);
 
-			loanInformation.put("productType", getDataF1Service.getProductType());
-			loanInformation.put("loanProduct", getDataF1Service.getLoanProduct(application.getQuickLead().getSchemeCode()));
-			loanInformation.put("scheme", getDataF1Service.getScheme(application.getQuickLead().getSchemeCode()));
-			loanInformation.set("loanAmountRequested",
-					mapper.createObjectNode().put("currencyCode", "VND").put("value", Long.valueOf(application.getQuickLead().getLoanAmountRequested())));
-			app.set("loanInformation", loanInformation);
+			/*---------------------------------------------------communicationDetails---------------------------------------------------- */
+			CommunicationDetails communicationDetails = new CommunicationDetails();
+			communicationDetails.setModeOfCommunication(application.getQuickLead().getPreferredModeOfCommunication());
+			communicationDetails.setLeadStatus(getDataF1Service.getLeadStatus(application.getQuickLead().getLeadStatus()));
+			communicationDetails.setAddComment(application.getQuickLead().getCommunicationTranscript());
+			communicationDetails.setContactedBy("System");
+			cal.setTime(new Date());
+			communicationDetails.setDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+			leadCreationRequest.setCommunicationDetails(communicationDetails);
 
-			/*-----------------communicationDetails------------------ */
-			ObjectNode communicationDetails = mapper.createObjectNode();
-			communicationDetails.put("modeOfCommunication", application.getQuickLead().getPreferredModeOfCommunication());
-			communicationDetails.put("leadStatus", getDataF1Service.getLeadStatus(application.getQuickLead().getLeadStatus()));
-			communicationDetails.put("addComment", application.getQuickLead().getCommunicationTranscript());
-			communicationDetails.put("contactedBy", "System");
-			communicationDetails.put("date", df.format(new Date()));
-			app.set("communicationDetails", communicationDetails);
+			/*---------------------------------------------------MoveToNextStageFlag---------------------------------------------------- */
+			leadCreationRequest.setMoveToNextStageFlag(true);
 
-			app.put("moveToNextStageFlag", true);
+			/*---------------------------------------------------UserName---------------------------------------------------- */
+			leadCreationRequest.setUserName("System");
 
-			app.put("userName", "System");
+			/*---------------------------------------------------Branchcode---------------------------------------------------- */
+			leadCreationRequest.setBranchcode(getDataF1Service.getBranchCode(application.getQuickLead().getSourcingBranch()));
 
-			app.put("branchcode", getDataF1Service.getBranchCode(application.getQuickLead().getSourcingBranch()));
+			app = mapper.convertValue(leadCreationRequest, ObjectNode.class);
 		}catch (Exception e){
 			log.info("{}", e.toString());
 		}

@@ -1539,13 +1539,13 @@ public class DataEntryService {
 
 						JsonNode response = apiService.createLeadF1(urlCreateLead, convertService.toApiF1(appData.get(0)));
 						if(response.hasNonNull("errMsg")){
-							log.info("{}", response);
+							log.info("quickLead.response.apiService.createLeadF1 {}", response);
 						}else{
 							result.set("response", response);
 							updateAfterQuickLeadF1(result);
 						}
 					}catch(Exception e){
-						log.info("{}", e.toString());
+						log.info("quickLead.thread.apiService.createLeadF1.Exception {}", e.toString());
 					}
 				}).start();
 
@@ -4794,29 +4794,29 @@ public class DataEntryService {
 						}
 					}
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
-							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
-
-					Map partner = this.getPartner(partnerId);
-					if(StringUtils.isEmpty(partner.get("data"))){
-						return Map.of("result_code", 3, "message","Not found partner");
-					}
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
-
-					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-//						apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
-					} else if(partnerId.equals("2")){
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						if(StringUtils.isEmpty(tokenPartner)){
-							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
-						}
-						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-					}
+//					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+//							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
+//
+//					Map partner = this.getPartner(partnerId);
+//					if(StringUtils.isEmpty(partner.get("data"))){
+//						return Map.of("result_code", 3, "message","Not found partner");
+//					}
+//					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+//					String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
+//
+//					if(partnerId.equals("1")){
+//						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+////						apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
+//					} else if(partnerId.equals("2")){
+//						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+//						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+//						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+//						if(StringUtils.isEmpty(tokenPartner)){
+//							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+//						}
+//						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+//					}
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
