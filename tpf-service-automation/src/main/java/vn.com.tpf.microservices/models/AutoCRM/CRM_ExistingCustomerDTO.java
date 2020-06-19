@@ -1,10 +1,11 @@
-package vn.com.tpf.microservices.models.AutoField;
+package vn.com.tpf.microservices.models.AutoCRM;
 
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import vn.com.tpf.microservices.models.Automation.DocumentDTO;
 import vn.com.tpf.microservices.models.Document;
 import vn.com.tpf.microservices.models.LoanDetails;
 
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ExistingCustomerDTO {
+public class CRM_ExistingCustomerDTO {
     @Id
     private String id;
     private int status=0;
@@ -30,7 +31,7 @@ public class ExistingCustomerDTO {
     private String transaction_id;
     private String automation_result;
 
-    public LoanDetails loanDetails;
-    public List<Document> documents = null;
+    public CRM_LoanDetailsDTO loanDetails;
+    public List<DocumentDTO> documents = null;
 
 }

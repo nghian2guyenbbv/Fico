@@ -3,10 +3,8 @@ package vn.com.tpf.microservices.utilities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
-import vn.com.tpf.microservices.models.AutoField.ExistingCustomerDTO;
+import vn.com.tpf.microservices.models.AutoCRM.CRM_ExistingCustomerDTO;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
-import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
-import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -742,7 +740,7 @@ public class DataInitial {
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_Existing_Customer(ExistingCustomerDTO existingCustomerDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_Existing_Customer(CRM_ExistingCustomerDTO existingCustomerDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("ExistingCustomerList", existingCustomerDTOList);
         return map;

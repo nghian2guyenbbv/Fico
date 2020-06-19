@@ -310,7 +310,7 @@ public class FV_FieldInvestigationVerificationPage {
 
         //====================================
         System.setProperty("java.awt.headless", "false");
-        /*int i = 0;
+        int i = 0;
         stage = "UPLOAD FILE";
         System.out.println(stage + ": START");
         for (SubmitFieldAttachmentDTO attachmentFileList : submitFieldDTO.getAttachmentField()) {
@@ -335,7 +335,7 @@ public class FV_FieldInvestigationVerificationPage {
 
             if (file.exists()) {
                 String docUrl = file.getAbsolutePath();
-                System.out.println("paht;" + docUrl);
+                System.out.println("PATH:" + docUrl);
                 Thread.sleep(2000);
 
                 attachmentsButtonUpload.sendKeys(docUrl);
@@ -346,7 +346,7 @@ public class FV_FieldInvestigationVerificationPage {
             i++;
 
         }
-        System.out.println(stage + ": DONE");*/
+        System.out.println(stage + ": DONE");
         //========================
 
 //        noOfAttemptsInput.sendKeys(fieldList.getNoOfAttempts());
