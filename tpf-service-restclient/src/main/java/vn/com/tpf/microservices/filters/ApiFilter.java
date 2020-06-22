@@ -7,15 +7,18 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -76,15 +79,12 @@ public class ApiFilter implements Filter {
 			if (data.isEmpty()) {
 				chain.doFilter(request, response);
 			} else {
-				JsonNode body = mapper.readTree(data);
 //			Duration duration = DurationDateTime(body.path("date_time").asText());
 //			if (duration.getSeconds() < 150) {
 				try {
-					log.info("{}", body.toString());
 					req.updateInputStream(data.getBytes());
 					chain.doFilter(req, res);
 //					resp = (ObjectNode) mapper.readTree(res.getContent());
-
 					if (res.getHeader("Content-Disposition") == null
 							|| res.getHeader("Content-Disposition").isEmpty()) {
 						try {

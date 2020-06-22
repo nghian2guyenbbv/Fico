@@ -161,24 +161,24 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getBranchByUser(request, info.path("data")));
 				case "firstCheck":
 					return response(message, payload, dataEntryService.firstCheck(request, token));
-				case "quickLead":
-					return response(message, payload, dataEntryService.quickLead(request, token));
+				case "old_quickLead":
+					return response(message, payload, dataEntryService.oldQuickLead(request, token));
 				case "sendApp":
 					return response(message, payload, dataEntryService.sendApp(request, token));
 				case "updateApp":
 					return response(message, payload, dataEntryService.updateApp(request, token));
-				case "commentApp":
-					return response(message, payload, dataEntryService.commentApp(request, token));
+				case "old_commentApp":
+					return response(message, payload, dataEntryService.oldCommentApp(request, token));
 				case "cancelApp":
 					return response(message, payload, dataEntryService.updateStatus(request, token));
 				case "uploadFile":
 					return response(message, payload, dataEntryService.uploadFile(request, token));
-				case "updateAutomation":
-					return response(message, payload, dataEntryService.updateAutomation(request, token));
-				case "updateFullApp":
-					return response(message, payload, dataEntryService.updateFullApp(request, token));
-				case "updateAppError":
-					return response(message, payload, dataEntryService.updateAppError(request, token));
+				case "old_updateAutomation":
+					return response(message, payload, dataEntryService.oldUpdateAutomation(request, token));
+				case "old_updateFullApp":
+					return response(message, payload, dataEntryService.oldUpdateFullApp(request, token));
+				case "old_updateAppError":
+					return response(message, payload, dataEntryService.oldUpdateAppError(request, token));
 				case "uploadDigiTex":
 					return response(message, payload, dataEntryService.uploadDigiTex(request, token));
 				case "getTATReport":
@@ -191,6 +191,24 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getListStatus(request));
 				case "getSearchReport":
 					return response(message, payload, dataEntryService.getSearchReport(request,token));
+				case "getPartner":
+					return response(message, payload, dataEntryService.getPartner(request,token));
+				case "quickLead":
+					return response(message, payload, dataEntryService.quickLead(request, token));
+				case "commentApp":
+					return response(message, payload, dataEntryService.commentApp(request, token));
+				case "updateAutomation":
+					return response(message, payload, dataEntryService.updateAutomation(request, token));
+				case "updateAppError":
+					return response(message, payload, dataEntryService.updateAppError(request, token));
+				case "updateFullApp":
+					return response(message, payload, dataEntryService.updateFullApp(request, token));
+				case "uploadPartner":
+					return response(message, payload, dataEntryService.uploadPartner(request, token));
+				case "getTokenSaigonBpo":
+					return response(message, payload, dataEntryService.getTokenSaigonBpo(request, token));
+				case "getAppByQuickLeadId":
+					return response(message, payload, dataEntryService.getAppByQuickLeadId(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

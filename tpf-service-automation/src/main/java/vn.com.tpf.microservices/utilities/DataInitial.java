@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.Automation.*;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
+import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 
 import java.util.ArrayList;
@@ -678,6 +680,18 @@ public class DataInitial {
     public static Map<String, Object> getDataFromDE_AutoAssign(List<AutoAssignDTO> autoAssignDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("AutoAssignList", autoAssignDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFromDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("DEResponseQueryList", deResponseQueryDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFromDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("DESaleQueueList", deSaleQueueDTOList);
         return map;
     }
 }

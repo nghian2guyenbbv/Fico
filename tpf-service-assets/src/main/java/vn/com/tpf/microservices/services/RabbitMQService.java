@@ -31,9 +31,21 @@ public class RabbitMQService {
 
 	@Autowired
 	private AddressService addressService;
-
+	
+	@Autowired
+	private DocumentFinnOneService documentFinnOneService;
+	
+	@Autowired
+	private AddressFinnOneService addressFinnOneService;
+	
+	@Autowired
+	private FieldsFinnOneService fieldsFinnOneService;
+	
 	@Autowired
 	private PGPService pgpService;
+
+	@Autowired
+	private PartnerService partnerService;
 
 	@PostConstruct
 	private void init() {
@@ -76,6 +88,8 @@ public class RabbitMQService {
 
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
+		
+		
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
@@ -86,6 +100,16 @@ public class RabbitMQService {
 				return response(message, payload, pgpService.pgpDecrypt(request));
 			case "getAddress":
 				return response(message, payload, addressService.getAddress(request));
+			case "getAddressFinnOne":
+				return response(message, payload, addressFinnOneService.getAddress(request));
+			case "getListDocuments":
+				return response(message, payload, documentFinnOneService.getListDocuments(request));
+			case "getPartner":
+				return response(message, payload, partnerService.getPartner(request));
+			case "getListFinnOneFileds":
+				return response(message, payload, fieldsFinnOneService.getListFinnOneFileds(request));
+			case "updateStatus1Partner":
+				return response(message, payload, partnerService.updateStatus1Partner(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

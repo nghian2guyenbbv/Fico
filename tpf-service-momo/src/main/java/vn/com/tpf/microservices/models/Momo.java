@@ -13,21 +13,25 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.Builder;
 import lombok.Data;
+
+
 
 @Data
 @Document
+@Builder
 @JsonInclude(Include.NON_NULL)
 public class Momo {
 
 	@Id
 	private String id;
 
-	@Indexed
+	@Indexed(unique = false)
 	private String appId;
 	@Indexed(unique = true, sparse = true)
 	private String momoLoanId;
-	@Indexed
+	@Indexed(unique = false)
 	private String phoneNumber;
 	private String productCode;
 	private String firstName;
@@ -60,7 +64,11 @@ public class Momo {
 	private boolean agree2;
 	private boolean agree3;
 	private boolean agree4;
+
+	private Object preChecks;
+	@Builder.Default
 	private Set<Photo> photos = new HashSet<>();
+	@Builder.Default
 	private Set<Reference> references = new HashSet<>();
 
 	@CreatedDate

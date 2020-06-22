@@ -34,7 +34,7 @@ public class RabbitMQService {
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
+		rabbitTemplate.setReplyTimeout(60000);
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -79,10 +79,20 @@ public class RabbitMQService {
 			switch (request.path("func").asText()) {
 			case "createApp":
 				return response(message, payload, appService.createApp(request));
+			case "createQuickLeadApp":
+				return response(message, payload, appService.createQuickLeadApp(request));
+			case "waiveField":
+				return response(message, payload, appService.waiveField(request));
+			case "submitField":
+				return response(message, payload, appService.submitField(request));
 			case "updateApp":
 				return response(message, payload, appService.updateApp(request));
 			case "updateAutomation":
 				return response(message, payload, appService.updateAutomation(request));
+			case "deResponseQuery":
+				return response(message, payload, appService.deResponseQuery(request));
+			case "deSaleQueue":
+				return response(message, payload, appService.deSaleQueue(request));
 			case "getReason":
 				return response(message, payload, appService.getReason(request));
 			case "getLoan":
@@ -90,7 +100,7 @@ public class RabbitMQService {
 			case "getCheckList":
 				return response(message, payload, appService.getCheckList(request));
 			default:
-				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+				return response(message, payload, appService.sendFinnOne(request));
 			}
 
 		} catch (IllegalArgumentException e) {

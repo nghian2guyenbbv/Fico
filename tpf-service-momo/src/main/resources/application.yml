@@ -1,0 +1,10 @@
+spring:
+  datasource:
+#    jdbc-url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
+#    username: ServiceApp
+#    password: UATServiceApp#Test2019#
+#    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
+    username: ServiceApp
+    password: UATServiceApp#Test2019#
+    driver-class-name: oracle.jdbc.OracleDriver

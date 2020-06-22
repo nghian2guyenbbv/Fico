@@ -145,4 +145,33 @@ public class RepaymentController {
 //				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 //	}
 
+	@PostMapping("/repayment/vn-post/add-payment")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root','tpf-service-momo','3p-service-momo')")
+	public ResponseEntity<?> createVNPOST(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "customers_pay_vnPost");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-repayment", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@GetMapping("/repayment/vn-post")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-repayment','tpf-service-root','tpf-service-momo','3p-service-momo')")
+	public ResponseEntity<?> readsVNPOST(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getCustomers_vnPost");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-repayment", request);
+
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
 }

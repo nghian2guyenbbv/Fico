@@ -117,8 +117,10 @@ public class PGPHelper {
 		throw new IllegalArgumentException("secret key for message not found.");
 	}
 
+	@SuppressWarnings("deprecation")
 	private PGPSignatureGenerator createSignatureGenerator() throws Exception {
 		if (signatureGenerator == null) {
+
 			PGPPrivateKey pgpPrivKey = secretKey.extractPrivateKey(password, "BC");
 			PGPPublicKey internalPublicKey = secretKey.getPublicKey();
 			PGPSignatureGenerator generator = new PGPSignatureGenerator(internalPublicKey.getAlgorithm(),
@@ -136,6 +138,7 @@ public class PGPHelper {
 		return signatureGenerator;
 	}
 
+	@SuppressWarnings("deprecation")
 	private PGPPrivateKey findSecretKey(long keyID) throws Exception {
 		PGPSecretKey pgpSecKey = pgpSec.getSecretKey(keyID);
 		if (pgpSecKey == null) {
@@ -160,9 +163,11 @@ public class PGPHelper {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void encryptAndSign(byte[] data, OutputStream out) {
 		try {
 			out = new ArmoredOutputStream(out);
+			@SuppressWarnings("deprecation")
 			PGPEncryptedDataGenerator encryptedDataGenerator = new PGPEncryptedDataGenerator(PGPEncryptedDataGenerator.CAST5,
 					new SecureRandom(), "BC");
 			encryptedDataGenerator.addMethod(encryptionPublicKey);
@@ -195,7 +200,7 @@ public class PGPHelper {
 		}
 	}
 
-	@SuppressWarnings("resource")
+	@SuppressWarnings({ "resource", "deprecation" })
 	public void decryptAndVerifySignature(byte[] encryptData, OutputStream decryptData) throws Exception {
 		InputStream bais = new ByteArrayInputStream(encryptData);
 		bais = PGPUtil.getDecoderStream(bais);
@@ -213,6 +218,7 @@ public class PGPHelper {
 		if (encryptedData == null || privateKey == null) {
 			throw new IllegalArgumentException("secret key for message not found.");
 		}
+		@SuppressWarnings("deprecation")
 		InputStream clear = encryptedData.getDataStream(privateKey, "BC");
 		PGPObjectFactory clearObjectFactory = new PGPObjectFactory(clear);
 		Object message = clearObjectFactory.nextObject();
