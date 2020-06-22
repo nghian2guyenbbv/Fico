@@ -37,7 +37,8 @@
 		<module>tpf-service-repayment</module>
 		<module>tpf-service-dataentry</module>
 		<module>tpf-service-automation</module>
-	</modules>
+        <module>tpf-service-mobile4cs</module>
+    </modules>
 
 
 	<dependencies>
