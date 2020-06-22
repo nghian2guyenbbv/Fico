@@ -1,6 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -22,22 +21,20 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import vn.com.tpf.microservices.models.Mobility;
-import vn.com.tpf.microservices.models.MobilityField;
-import vn.com.tpf.microservices.models.MobilityFieldKH;
-import vn.com.tpf.microservices.models.MobilityFinnOneFiled;
-import vn.com.tpf.microservices.models.MobilityWaiveField;
+import vn.com.tpf.microservices.models.Crm;
+import vn.com.tpf.microservices.models.CrmField;
+import vn.com.tpf.microservices.models.CrmWaiveField;
+import vn.com.tpf.microservices.models.CrmFieldKH;
 import vn.com.tpf.microservices.utils.Utils;
 
 @Service
-public class MobilityService {
+public class CrmService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -50,13 +47,6 @@ public class MobilityService {
 	private final List<String> LIST_STATUS_COMPLETE = Arrays.asList("Cancellation".toUpperCase().trim(),
 			"Rejection".toUpperCase().trim());
 	private final String STAGE_QUICKLEAD_FAILED_AUTOMATION = "QUICKLEAD_FAILED_AUTOMATION";
-
-	private final String AUTOMATION_SUBMIT_RUN_FIELD = "SUBMIT_RUN_FIELD";
-	private final String AUTOMATION_SUBMIT_FAILED_FIELD = "SUBMIT_FAILED_FIELD";
-	private final String AUTOMATION_SUBMIT_PASS_FIELD = "SUBMIT_PASS_FIELD";
-
-	private final String STAGE_SUBMIT_FIELD_RUN = "SUBMIT_RUN_FIELD";
-	private final String STAGE_SUBMIT_FIELD_FAILED = "SUBMIT_FAILED_FIELD";
 
 	private final String AUTOMATION_QUICKLEAD_PASS = "QUICKLEAD_PASS";
 	private final String AUTOMATION_QUICKLEAD_FAILED = "QUICKLEAD_FAILED";
@@ -82,7 +72,6 @@ public class MobilityService {
 	private final String STATUS_SUBMIT = "PRE_APPROVAL";
 
 	private final String STATUS_RESUBMITING = "RESPONSE_QUERY_UPLOADING";
-//	private final String STATUS_RESUBMIT_FAILED = "RESPONSE_QUERY_FAILED_AUTOMATION";
 
 	private final String KEY_LAST_UPDATE_DATE = "lastUpdateDate";
 	private final String KEY_USER_NAME = "userName";
@@ -107,13 +96,13 @@ public class MobilityService {
 	private RabbitMQService rabbitMQService;
 
 	@Autowired
-	private MongoTemplate mobilityTemplate;
+	private MongoTemplate crmTemplate;
 
 	@Autowired
-	private MongoTemplate mobilitywaivefieldTemplate;
+	private MongoTemplate crmwaivefieldTemplate;
 
 	@Autowired
-	private MongoTemplate mobilityfieldTemplate;
+	private MongoTemplate crmfieldTemplate;
 
 	@Autowired
 	private ConvertService convertService;
@@ -128,8 +117,8 @@ public class MobilityService {
 		if (leadId == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.leadId not null"));
-		Mobility mobility = mobilityTemplate.findOne(Query.query(Criteria.where("leadId").is(leadId)), Mobility.class);
-		if (mobility != null)
+		Crm crm = crmTemplate.findOne(Query.query(Criteria.where("leadId").is(leadId)), Crm.class);
+		if (crm != null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.leadId %s exits", leadId)));
 		if (data.path("firstName").asText().isBlank())
@@ -164,7 +153,7 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.city not found"));
 
-		mobility = Mobility.builder().leadId(leadId).firstName(data.path("firstName").asText())
+		crm = Crm.builder().leadId(leadId).firstName(data.path("firstName").asText())
 				.lastName(data.path("lastName").asText()).nationalId(data.path("nationalId").asText())
 				.dateOfBirth(data.path("dateOfBirth").asText()).dsaCode(data.path("dsaCode").asText())
 				.city(address.path("data").path("postCode").asText())
@@ -183,11 +172,11 @@ public class MobilityService {
 		System.out.println(preCheckResult.path("data"));
 		
 
-		mobility.setPreChecks(Map.of("preCheck1",
+		crm.setPreChecks(Map.of("preCheck1",
 				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
-		mobility.setStage(STAGE_PRECHECK1_DONE);
-		mobility.setStatus(STATUS_PRE_APPROVAL);
-		mobilityTemplate.save(mobility);
+		crm.setStage(STAGE_PRECHECK1_DONE);
+		crm.setStatus(STATUS_PRE_APPROVAL);
+		crmTemplate.save(crm);
 		return utils.getJsonNodeResponse(0, body, preCheckResult.path("data"));
 	}
 
@@ -208,11 +197,11 @@ public class MobilityService {
 					mapper.createObjectNode().put("message", "data.bankCardNumber not valid"));
 
 		Query query = Query.query(Criteria.where("leadId").is(leadId));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.leadId %s not exits", leadId)));
-		JsonNode precheks = mapper.convertValue(mobility.getPreChecks(), JsonNode.class);
+		JsonNode precheks = mapper.convertValue(crm.getPreChecks(), JsonNode.class);
 
 		if (!precheks.hasNonNull("preCheck1") || precheks.path("preCheck1").path("data").path("result").asInt() != 0)
 			return utils.getJsonNodeResponse(1, body,
@@ -229,7 +218,7 @@ public class MobilityService {
 		JsonNode preCheckResult = rabbitMQService.sendAndReceive("tpf-service-esb",
 				Map.of("func", "getPrecheckList", "reference_id", body.path("reference_id"), "body",
 						Map.of("bankCardNumber", data.path("bankCardNumber").asText(), "dsaCode", "", "areaCode", "",
-								"nationalId", mobility.getNationalId())));
+								"nationalId", crm.getNationalId())));
 		if (preCheckResult.path("status").asInt(0) != 200)
 			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
 
@@ -250,10 +239,10 @@ public class MobilityService {
 			update.set("stage", STAGE_PRECHECK2_DONE);
 		else
 			update.set("stage", STAGE_PRECHECK2_CHECIKING);
-		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				Mobility.class);
+		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Crm.class);
 		return utils.getJsonNodeResponse(0, body,
-				((ArrayNode) mapper.convertValue(mobility.getPreChecks(), JsonNode.class).path("preCheck2")).get(0)
+				((ArrayNode) mapper.convertValue(crm.getPreChecks(), JsonNode.class).path("preCheck2")).get(0)
 						.path("data"));
 	}
 
@@ -268,15 +257,15 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.appId not null"));
 		Query query = Query.query(Criteria.where("appId").is(appId));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
 
-		if (LIST_STATUS_COMPLETE.contains(mobility.getStatus().toUpperCase().trim()))
+		if (LIST_STATUS_COMPLETE.contains(crm.getStatus().toUpperCase().trim()))
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s",
-							appId, mobility.getStatus().toUpperCase().trim())));
+							appId, crm.getStatus().toUpperCase().trim())));
 		JsonNode item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
 
 		if (item.path("status").asInt() != 200)
@@ -284,9 +273,9 @@ public class MobilityService {
 					mapper.createObjectNode().put("message", String.format("data.appId %s waiting sync data", appId)));
 
 		Update update = new Update().set("updatedAt", new Date());
-		final boolean updateStageAndStatus = (mobility.getViewLastUpdated() == null
+		final boolean updateStageAndStatus = (crm.getViewLastUpdated() == null
 				|| !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()
-						.equals(mobility.getViewLastUpdated().trim().toUpperCase()));
+						.equals(crm.getViewLastUpdated().trim().toUpperCase()));
 		if (updateStageAndStatus)
 			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase())
 					.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
@@ -296,12 +285,12 @@ public class MobilityService {
 			update.set("userCreatedQueue", item.path("data").path(KEY_USER_NAME).asText());
 
 		if (updateStageAndStatus) {
-			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Mobility.class);
+			crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+					Crm.class);
 			rabbitMQService.send("tpf-service-app",
 					Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-							Map.of("project", "mobility", "id", mobility.getId()), "body",
-							convertService.toAppStatus(mobility)));
+							Map.of("project", "crm", "id", crm.getId()), "body",
+							convertService.toAppStatus(crm)));
 		}
 		((ObjectNode) item.path("data")).remove(KEY_USER_NAME);
 
@@ -337,17 +326,17 @@ public class MobilityService {
 					mapper.createObjectNode().put("message", "data.documents array required"));
 
 		Query query = Query.query(Criteria.where("leadId").is(leadId));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 					String.format("data.leadId %s not exits", data.path("leadId").asInt())));
 
-		if (mobility.getStage().equals(STAGE_PRECHECK1_DONE))
+		if (crm.getStage().equals(STAGE_PRECHECK1_DONE))
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 					String.format("data.leadId %s precheck2 not exits", data.path("leadId").asInt())));
 
-		if (mobility.getStage().equals(STAGE_PRECHECK2_CHECIKING)) {
-			JsonNode lastPreCheck2 = mapper.convertValue(mobility.getPreChecks().get("preCheck2"), ArrayNode.class)
+		if (crm.getStage().equals(STAGE_PRECHECK2_CHECIKING)) {
+			JsonNode lastPreCheck2 = mapper.convertValue(crm.getPreChecks().get("preCheck2"), ArrayNode.class)
 					.get(0);
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message",
@@ -356,17 +345,17 @@ public class MobilityService {
 									lastPreCheck2.path("data").path("description").asText())));
 		}
 
-		if (mobility.getStage().equals(STAGE_UPLOADED) || mobility.getFilesUpload() != null)
+		if (crm.getStage().equals(STAGE_UPLOADED) || crm.getFilesUpload() != null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.leadId %s uploaded document at %s ",
-							data.path("leadId").asInt(), mobility.getUpdatedAt())));
+							data.path("leadId").asInt(), crm.getUpdatedAt())));
 		final String productCode = data.path("productCode").asText().replace(" ", "_").trim().toLowerCase();
 		final String schemeCode = data.path("schemeCode").asText().replace(" ", "_").trim().toLowerCase();
 
 		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
-						Map.of("productCode", productCode, "schemeCode",
-								schemeCode)));
+						Map.of("productCode", data.path("productCode").asText(), "schemeCode",
+								data.path("schemeCode").asText())));
 
 		if (documentFinnOne.path("status").asInt() != 200)
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
@@ -431,14 +420,14 @@ public class MobilityService {
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
 				.set("filesUpload", filesUpload);
-		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				Mobility.class);
+		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Crm.class);
 
 		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
-				convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+				convertService.toAppFinnone(crm).put("reference_id", body.path("reference_id").asText())));
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
-				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
+				"body", convertService.toAppDisplay(crm).put("reference_id", body.path("reference_id").asText())));
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
@@ -457,7 +446,7 @@ public class MobilityService {
 		case "transaction_submit_field":
 			return updateAutomationSubmitField(request);
 		default:
-			return updateAutomationMobility(request);
+			return updateAutomationCrm(request);
 		}
 	}
 
@@ -481,10 +470,10 @@ public class MobilityService {
 
 			Query query = Query.query(Criteria.where("appId").is(app.path("appId").asText()));
 
-			MobilityWaiveField mobilityWaiveField = mobilitywaivefieldTemplate.findOne(query, MobilityWaiveField.class);
-			if (mobilityWaiveField == null)
+			CrmWaiveField crmWaiveField = crmwaivefieldTemplate.findOne(query, CrmWaiveField.class);
+			if (crmWaiveField == null)
 				return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
-						String.format("id %s mobilityWaiveField not exits", app.path("appId").asText())));
+						String.format("id %s crmWaiveField not exits", app.path("appId").asText())));
 
 			HashMap<String, Object> automationResultObject = new HashMap<>();
 
@@ -492,7 +481,7 @@ public class MobilityService {
 
 			automationResultObject.put("automationResult", automationResult);
 
-			LinkedList<Map> automationResultsNew = mapper.convertValue(mobilityWaiveField.getAutomationResults(),
+			LinkedList<Map> automationResultsNew = mapper.convertValue(crmWaiveField.getAutomationResults(),
 					LinkedList.class);
 			if (automationResultsNew == null)
 				automationResultsNew = new LinkedList<Map>();
@@ -500,13 +489,13 @@ public class MobilityService {
 			Update update = new Update().set("updatedAt", new Date());
 			update.set("automationResults", automationResultsNew);
 
-			mobilityWaiveField = mobilitywaivefieldTemplate.findAndModify(query, update,
-					new FindAndModifyOptions().returnNew(true), MobilityWaiveField.class);
+			crmWaiveField = crmwaivefieldTemplate.findAndModify(query, update,
+					new FindAndModifyOptions().returnNew(true), CrmWaiveField.class);
 			if (!automationResult.isBlank())
 				rabbitMQService.send("tpf-service-app",
 						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-								Map.of("project", "mobility", "id", mobilityWaiveField.getId()), "body",
-								convertService.toAppAutomationField(mobilityWaiveField)));
+								Map.of("project", "crm", "id", crmWaiveField.getId()), "body",
+								convertService.toAppAutomationField(crmWaiveField)));
 		}
 
 		return utils.getJsonNodeResponse(0, request, null);
@@ -532,8 +521,8 @@ public class MobilityService {
 
 			Query query = Query.query(Criteria.where("appId").is(app.path("appId").asText()));
 
-			MobilityField mobilityfield = mobilityfieldTemplate.findOne(query, MobilityField.class);
-			if (mobilityfield == null)
+			CrmField crmfield = crmfieldTemplate.findOne(query, CrmField.class);
+			if (crmfield == null)
 				return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
 						String.format("id %s not exits", app.path("appId").asText())));
 
@@ -543,7 +532,7 @@ public class MobilityService {
 
 			automationResultObject.put("automationResult", automationResult);
 
-			LinkedList<Map> automationResultsNew = mapper.convertValue(mobilityfield.getAutomationResults(),
+			LinkedList<Map> automationResultsNew = mapper.convertValue(crmfield.getAutomationResults(),
 					LinkedList.class);
 			if (automationResultsNew == null)
 				automationResultsNew = new LinkedList<Map>();
@@ -551,20 +540,20 @@ public class MobilityService {
 			Update update = new Update().set("updatedAt", new Date());
 			update.set("automationResults", automationResultsNew);
 
-			mobilityfield = mobilityfieldTemplate.findAndModify(query, update,
-					new FindAndModifyOptions().returnNew(true), MobilityField.class);
+			crmfield = crmfieldTemplate.findAndModify(query, update,
+					new FindAndModifyOptions().returnNew(true), CrmField.class);
 			if (!automationResult.isBlank())
 				rabbitMQService.send("tpf-service-app",
 						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-								Map.of("project", "mobility", "id", mobilityfield.getId()), "body",
-								convertService.toAppAutomationSubmitField(mobilityfield)));
+								Map.of("project", "crm", "id", crmfield.getId()), "body",
+								convertService.toAppAutomationSubmitField(crmfield)));
 		}
 
 		return utils.getJsonNodeResponse(0, request, null);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public JsonNode updateAutomationMobility(JsonNode request) throws Exception {
+	public JsonNode updateAutomationCrm(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		if (body.path("app_id").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
@@ -576,10 +565,10 @@ public class MobilityService {
 		boolean updateStatus = false;
 
 		Query query = Query.query(Criteria.where("_id").is(body.path("transaction_id").asText()));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
 			return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
-					String.format("id %s mobility not exits", body.path("transaction_id").asText())));
+					String.format("id %s crm not exits", body.path("transaction_id").asText())));
 
 		HashMap<String, Object> automationResultObject = new HashMap<>();
 
@@ -587,7 +576,7 @@ public class MobilityService {
 
 		automationResultObject.put("automationResult", automationResult);
 
-		LinkedList<Map> automationResultsNew = mapper.convertValue(mobility.getAutomationResults(), LinkedList.class);
+		LinkedList<Map> automationResultsNew = mapper.convertValue(crm.getAutomationResults(), LinkedList.class);
 		if (automationResultsNew == null)
 			automationResultsNew = new LinkedList<Map>();
 		automationResultsNew.push(automationResultObject);
@@ -597,15 +586,15 @@ public class MobilityService {
 		if (automationResult.contains(AUTOMATION_QUICKLEAD_PASS)) {
 			update.set("appId", body.path("app_id").asText());
 			update.set("stage", STAGE_LEAD_DETAILS);
-			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Mobility.class);
-			final Mobility mobilitySender = Mobility.builder().leadId(mobility.getLeadId()).appId(mobility.getAppId())
+			crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+					Crm.class);
+			final Crm crmSender = Crm.builder().leadId(crm.getLeadId()).appId(crm.getAppId())
 					.build();
 			new Thread(() -> {
 				try {
 					int sendCount = 0;
 					do {
-						JsonNode result = apiService.pushAppIdOfLeadId(mobilitySender,
+						JsonNode result = apiService.pushAppIdOfLeadId(crmSender,
 								request.path("reference_id").asText());
 						if (result.path("resultCode").asText().equals("200")) {
 							return;
@@ -624,13 +613,13 @@ public class MobilityService {
 		}
 
 		if (automationResult.contains(AUTOMATION_RETURNQUERY_PASS)) {
-			JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
+			JsonNode returns = mapper.convertValue(crm.getReturns(), JsonNode.class);
 
 			if (returns.hasNonNull("returnQueries")
 					&& (mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
 							.asBoolean())
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-						String.format("data.appId %s returnQuery is complete", mobility.getAppId())));
+						String.format("data.appId %s returnQuery is complete", crm.getAppId())));
 
 			LinkedList<Map> returnQueriesNew = mapper.convertValue(
 					mapper.convertValue(returns.path("returnQueries"), ArrayNode.class), LinkedList.class);
@@ -648,13 +637,13 @@ public class MobilityService {
 			update.set("stage", STAGE_RAISE_QUERY_FAILED);
 
 		if (automationResult.contains(AUTOMATION_SALEQUEUE_PASS)) {
-			JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
+			JsonNode returns = mapper.convertValue(crm.getReturns(), JsonNode.class);
 
 			if (returns.hasNonNull("returnQueues")
 					&& (mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)).get(0).path("isComplete")
 							.asBoolean())
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-						String.format("data.appId %s returnQueue is complete", mobility.getAppId())));
+						String.format("data.appId %s returnQueue is complete", crm.getAppId())));
 
 			LinkedList<Map> returnQueuesNew = mapper
 					.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
@@ -665,7 +654,7 @@ public class MobilityService {
 			update.set("updatedAt", new Date());
 			update.set("returns.returnQueues", returnQueuesNew);
 
-			final String currentStage = mobility.getStage();
+			final String currentStage = crm.getStage();
 			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA)
 					|| currentStage.equals(STAGE_SALES_QUEUE_HAS_ACCA_FAILED))
 				update.set("stage", STAGE_LEAD_DETAILS);
@@ -674,20 +663,20 @@ public class MobilityService {
 		}
 
 		if (automationResult.contains(AUTOMATION_SALEQUEUE_FAILED)) {
-			final String currentStage = mobility.getStage();
+			final String currentStage = crm.getStage();
 			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA))
 				update.set("stage", STAGE_SALES_QUEUE_HAS_ACCA_FAILED);
 			if (currentStage.equals(STAGE_SALES_QUEUE_UPLOADING))
 				update.set("stage", STAGE_SALES_QUEUE_FAILED);
 		}
 
-		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				Mobility.class);
+		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Crm.class);
 		if (!automationResult.isBlank())
 			rabbitMQService.send("tpf-service-app",
 					Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-							Map.of("project", "mobility", "id", mobility.getId()), "body",
-							convertService.toAppAutomation(mobility, updateStatus)));
+							Map.of("project", "crm", "id", crm.getId()), "body",
+							convertService.toAppAutomation(crm, updateStatus)));
 		return utils.getJsonNodeResponse(0, request, null);
 	}
 
@@ -719,19 +708,19 @@ public class MobilityService {
 					String.format("data.document.documentCode required %s", DOCUMENT_CODE_ACCA)));
 
 		Query query = Query.query(Criteria.where("appId").is(appId));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
 
-		if (!mobility.getStatus().equals(STATUS_T_RETURN))
+		if (!crm.getStatus().equals(STATUS_T_RETURN))
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message",
 							String.format("data.appId %s not request resubmit query. current stage %s status %s", appId,
-									mobility.getStage(), mobility.getStatus())));
+									crm.getStage(), crm.getStatus())));
 
-		final String productCode = mobility.getProduct().replace(" ", "_").trim().toLowerCase();
-		final String schemeCode = mobility.getScheme().replace(" ", "_").trim().toLowerCase();
+		final String productCode = crm.getProduct().replace(" ", "_").trim().toLowerCase();
+		final String schemeCode = crm.getScheme().replace(" ", "_").trim().toLowerCase();
 
 		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
@@ -742,12 +731,12 @@ public class MobilityService {
 					String.format("%s %s not found", productCode, schemeCode)));
 
 		HashMap<String, Object> returnQuery = new HashMap<>();
-		JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
+		JsonNode returns = mapper.convertValue(crm.getReturns(), JsonNode.class);
 		if (returns.hasNonNull("returnQueries")
 				&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
 						.asBoolean())
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-					String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
+					String.format("data.appId %s returnQuery not complete", crm.getAppId())));
 
 		JsonNode document = data.path("document");
 		if (document != null) {
@@ -798,16 +787,16 @@ public class MobilityService {
 			update.set("returns", Map.of("returnQueries", returnQueriesNew));
 		update.set("status", STATUS_RESUBMITING);
 
-		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				Mobility.class);
+		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Crm.class);
 
 		rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
-				convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+				convertService.toReturnQueryFinnone(crm).put("reference_id", body.path("reference_id").asText())));
 
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-						Map.of("project", "mobility", "id", mobility.getId()), "body",
-						convertService.toAppStatus(mobility)));
+						Map.of("project", "crm", "id", crm.getId()), "body",
+						convertService.toAppStatus(crm)));
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
@@ -853,19 +842,19 @@ public class MobilityService {
 		}
 
 		Query query = Query.query(Criteria.where("appId").is(appId));
-		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
-		if (mobility == null)
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
 
-		if (!mobility.getStage().equals(STAGE_SALES_QUEUE))
+		if (!crm.getStage().equals(STAGE_SALES_QUEUE))
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message",
 							String.format("data.appId %s not request resubmit queue. current stage %s status %s", appId,
-									mobility.getStage(), mobility.getStatus())));
+									crm.getStage(), crm.getStatus())));
 
-		final String productCode = mobility.getProduct().replace(" ", "_").trim().toLowerCase();
-		final String schemeCode = mobility.getScheme().replace(" ", "_").trim().toLowerCase();
+		final String productCode = crm.getProduct().replace(" ", "_").trim().toLowerCase();
+		final String schemeCode = crm.getScheme().replace(" ", "_").trim().toLowerCase();
 
 		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
@@ -875,11 +864,11 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
 					String.format("%s %s not found", productCode, schemeCode)));
 
-		JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
+		JsonNode returns = mapper.convertValue(crm.getReturns(), JsonNode.class);
 		if (returns.hasNonNull("returnQueues") && !(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class))
 				.get(0).path("isComplete").asBoolean())
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-					String.format("data.appId %s returnQueue not complete", mobility.getAppId())));
+					String.format("data.appId %s returnQueue not complete", crm.getAppId())));
 
 		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
 		HashMap<String, Object> returnQueue = new HashMap<>();
@@ -946,16 +935,16 @@ public class MobilityService {
 		else
 			update.set("stage", STAGE_SALES_QUEUE_UPLOADING);
 
-		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				Mobility.class);
+		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Crm.class);
 
 		rabbitMQService.send("tpf-service-esb", Map.of("func", "deSaleQueue", "body",
-				convertService.toSaleQueueFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+				convertService.toSaleQueueFinnone(crm).put("reference_id", body.path("reference_id").asText())));
 
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-						Map.of("project", "mobility", "id", mobility.getId()), "body",
-						convertService.toAppStage(mobility)));
+						Map.of("project", "crm", "id", crm.getId()), "body",
+						convertService.toAppStage(crm)));
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
@@ -965,7 +954,7 @@ public class MobilityService {
 		if (apps.isNull())
 			return utils.getJsonNodeResponse(499, request.path("body").path("data"),
 					mapper.createObjectNode().put("message", "data not null"));
-		ArrayList<MobilityField> mobilityFields = new ArrayList<MobilityField>();
+		ArrayList<CrmField> crmFields = new ArrayList<CrmField>();
 		Set<String> set = new HashSet<String>();
 		for (JsonNode app : apps) {
 			if (set.add(app.path("appId").asText()) == false) {
@@ -989,35 +978,35 @@ public class MobilityService {
 				return utils.getJsonNodeResponse(499, app,
 						mapper.createObjectNode().put("message", "data.fieldType not valid"));
 			}
-			MobilityField mobilityF = mapper.convertValue(app, MobilityField.class);
+			CrmField crmF = mapper.convertValue(app, CrmField.class);
 
 //			mobilityF =	MobilityField.builder().appId(appId).build();
 
-			mobilityFields.add(mobilityF);
+			crmFields.add(crmF);
 		}
 
 		JsonNode getDataFieldsDB = rabbitMQService.sendAndReceive("tpf-service-finnone", Map.of("func", "getDataFields",
-				"reference_id", request.path("body").path("reference_id"), "body", Map.of("apps", mobilityFields)));
+				"reference_id", request.path("body").path("reference_id"), "body", Map.of("apps", crmFields)));
 
 		if (getDataFieldsDB.path("status").asInt(0) != 200) {
 			return utils.getJsonNodeResponse(1, request.path("body"), getDataFieldsDB.path("data"));
 		}
 
-		ArrayList<MobilityFieldKH> mobilityfieldSender = new ArrayList<MobilityFieldKH>();
+		ArrayList<CrmFieldKH> crmfieldSender = new ArrayList<CrmFieldKH>();
 
 		if (getDataFieldsDB.path("data").isArray()) {
 			for (JsonNode item : getDataFieldsDB.path("data")) {
-				for (MobilityField mobilityField : mobilityFields) {
-					if (mobilityField.getAppId().equals(item.path("appId").asText())) {
-						MobilityField convert = mapper.convertValue(item, MobilityField.class);
-						convert.setComment(mobilityField.getComment());
-						convert.setKycNotes(mobilityField.getKycNotes());
-						convert.setFieldType(mobilityField.getFieldType());
+				for (CrmField crmField : crmFields) {
+					if (crmField.getAppId().equals(item.path("appId").asText())) {
+						CrmField convert = mapper.convertValue(item, CrmField.class);
+						convert.setComment(crmField.getComment());
+						convert.setKycNotes(crmField.getKycNotes());
+						convert.setFieldType(crmField.getFieldType());
 						if ((convert.getAppStage().toUpperCase().equals("FII"))) {
 							Query queryMon = Query.query(Criteria.where("appId").is(convert.getAppId()));
-							MobilityField mobilityfieldMon = mobilityTemplate.findOne(queryMon, MobilityField.class);
+							CrmField crmfieldMon = crmTemplate.findOne(queryMon, CrmField.class);
 							Update update = new Update();
-							if (mobilityfieldMon != null) {
+							if (crmfieldMon != null) {
 								update.set("fullName", convert.getFullName());
 								update.set("phone", convert.getPhone());
 								update.set("dateOfBirth", convert.getDateOfBirth());
@@ -1041,28 +1030,28 @@ public class MobilityService {
 								update.set("appStage", convert.getAppStage());
 								update.set("appStatus", convert.getAppStatus());
 								update.set("updatedAt", new Date());
-								mobilityfieldMon = mobilityfieldTemplate.findAndModify(queryMon, update,
-										new FindAndModifyOptions().returnNew(true), MobilityField.class);
+								crmfieldMon = crmfieldTemplate.findAndModify(queryMon, update,
+										new FindAndModifyOptions().returnNew(true), CrmField.class);
 
-								MobilityField mobilityfieldUpdate = mobilityTemplate.findOne(queryMon,
-										MobilityField.class);
+								CrmField crmfieldUpdate = crmTemplate.findOne(queryMon,
+										CrmField.class);
 
 								rabbitMQService.send("tpf-service-app", Map.of("func", "updateApp", "reference_id",
 										request.path("reference_id"), "param",
-										Map.of("project", "mobility", "id", mobilityfieldUpdate.getId()), "body",
-										convertService.toAppAutomationSubmitField(mobilityfieldUpdate)));
+										Map.of("project", "crm", "id", crmfieldUpdate.getId()), "body",
+										convertService.toAppAutomationSubmitField(crmfieldUpdate)));
 							} else {
-								mobilityfieldTemplate.save(convert);
+								crmfieldTemplate.save(convert);
 								Query queryCreate = Query.query(Criteria.where("appId").is(convert.getAppId()));
-								MobilityField mobilityfieldCreate = mobilityTemplate.findOne(queryCreate,
-										MobilityField.class);
+								CrmField crmfieldCreate = crmTemplate.findOne(queryCreate,
+										CrmField.class);
 								rabbitMQService.send("tpf-service-app",
 										Map.of("func", "createApp", "reference_id",
 												request.path("body").path("reference_id"), "body",
-												convertService.toAppDisplay(mobilityfieldCreate).put("reference_id",
+												convertService.toAppDisplay(crmfieldCreate).put("reference_id",
 														request.path("body").path("reference_id").asText())));
-								MobilityFieldKH convertKH = mapper.convertValue(convert, MobilityFieldKH.class);
-								mobilityfieldSender.add(convertKH);
+								CrmFieldKH convertKH = mapper.convertValue(convert, CrmFieldKH.class);
+								crmfieldSender.add(convertKH);
 
 							}
 
@@ -1072,12 +1061,12 @@ public class MobilityService {
 			}
 		}
 
-		if (mobilityfieldSender.size() > 0) {
+		if (crmfieldSender.size() > 0) {
 			new Thread(() -> {
 				try {
 					int sendCount = 0;
 					do {
-						ArrayNode array = mapper.convertValue(mobilityfieldSender, ArrayNode.class);
+						ArrayNode array = mapper.convertValue(crmfieldSender, ArrayNode.class);
 						JsonNode result = apiService.pushCeateFieldEsb(array,
 								request.path("body").path("request_id").asText());
 						if (result.path("resultCode").asText().equals("200")) {
@@ -1104,7 +1093,7 @@ public class MobilityService {
 				|| mapper.convertValue(request.path("body").path("data"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, request.path("body"),
 					mapper.createObjectNode().put("message", "data array required"));
-		ArrayNode mobilityWaiveFields = JsonNodeFactory.instance.arrayNode();
+		ArrayNode crmWaiveFields = JsonNodeFactory.instance.arrayNode();
 		Set<JsonNode> set = new HashSet<JsonNode>();
 		for (JsonNode app : apps) {
 			if (set.add(app) == false) {
@@ -1119,18 +1108,18 @@ public class MobilityService {
 			if (appId.isBlank())
 				return utils.getJsonNodeResponse(499, app,
 						mapper.createObjectNode().put("message", "data.appId not null"));
-			MobilityWaiveField mobilityWaiveField = mapper.convertValue(app, MobilityWaiveField.class);
+			CrmWaiveField crmWaiveField = mapper.convertValue(app, CrmWaiveField.class);
 
-			Query queryMon = Query.query(Criteria.where("appId").is(mobilityWaiveField.getAppId()));
-			MobilityWaiveField mobilityWaiveFieldMon = mobilitywaivefieldTemplate.findOne(queryMon,
-					MobilityWaiveField.class);
+			Query queryMon = Query.query(Criteria.where("appId").is(crmWaiveField.getAppId()));
+			CrmWaiveField crmWaiveFieldMon = crmwaivefieldTemplate.findOne(queryMon,
+					CrmWaiveField.class);
 
-			mobilityWaiveField.setProject("mobility");
-			mobilityWaiveFields.add(convertService.toESBMobilityWaiveField(mobilityWaiveField));
-			if (mobilityWaiveFieldMon != null) {
+			crmWaiveField.setProject("crm");
+			crmWaiveFields.add(convertService.toESBCrmWaiveField(crmWaiveField));
+			if (crmWaiveFieldMon != null) {
 				Update update = new Update();
-				if (mobilityWaiveFieldMon.getAutomationResults() != null) {
-					var check_Automation = mapper.convertValue(mobilityWaiveFieldMon.getAutomationResults().get(0),
+				if (crmWaiveFieldMon.getAutomationResults() != null) {
+					var check_Automation = mapper.convertValue(crmWaiveFieldMon.getAutomationResults().get(0),
 							JsonNode.class);
 					var autoRun = (check_Automation.path("automationResult").asText().equals("WAIVE_FIELD_RUN"));
 					if (check_Automation != null && autoRun) {
@@ -1147,17 +1136,17 @@ public class MobilityService {
 
 				}
 				update.set("updatedAt", new Date());
-				mobilityWaiveFieldMon = mobilitywaivefieldTemplate.findAndModify(queryMon, update,
-						new FindAndModifyOptions().returnNew(true), MobilityWaiveField.class);
+				crmWaiveFieldMon = crmwaivefieldTemplate.findAndModify(queryMon, update,
+						new FindAndModifyOptions().returnNew(true), CrmWaiveField.class);
 
-				Query queryUpdate = Query.query(Criteria.where("appId").is(mobilityWaiveField.getAppId()));
-				MobilityWaiveField mobilityWaiveFieldUpdate = mobilitywaivefieldTemplate.findOne(queryUpdate,
-						MobilityWaiveField.class);
+				Query queryUpdate = Query.query(Criteria.where("appId").is(crmWaiveField.getAppId()));
+				CrmWaiveField crmWaiveFieldUpdate = crmwaivefieldTemplate.findOne(queryUpdate,
+						CrmWaiveField.class);
 
 				rabbitMQService.send("tpf-service-app",
 						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-								Map.of("project", "mobility", "id", mobilityWaiveFieldUpdate.getId()), "body",
-								convertService.toAppAutomationField(mobilityWaiveFieldUpdate)));
+								Map.of("project", "crm", "id", crmWaiveFieldUpdate.getId()), "body",
+								convertService.toAppAutomationField(crmWaiveFieldUpdate)));
 
 			} else {
 				HashMap<String, Object> automationResult = new HashMap<>();
@@ -1165,17 +1154,17 @@ public class MobilityService {
 				automationResult.put("automationResult", "WAIVE_FIELD_RUN");
 				List<Object> list = new ArrayList<>();
 				list.add(automationResult);
-				mobilityWaiveField.setAutomationResults(list);
+				crmWaiveField.setAutomationResults(list);
 
-				mobilitywaivefieldTemplate.save(mobilityWaiveField);
+				crmwaivefieldTemplate.save(crmWaiveField);
 
-				Query queryCreate = Query.query(Criteria.where("appId").is(mobilityWaiveField.getAppId()));
+				Query queryCreate = Query.query(Criteria.where("appId").is(crmWaiveField.getAppId()));
 
-				MobilityWaiveField mobilityWaiveFieldCreate = mobilitywaivefieldTemplate.findOne(queryCreate,
-						MobilityWaiveField.class);
+				CrmWaiveField crmWaiveFieldCreate = crmwaivefieldTemplate.findOne(queryCreate,
+						CrmWaiveField.class);
 				rabbitMQService.send("tpf-service-app",
 						Map.of("func", "createApp", "reference_id", request.path("body").path("reference_id"), "body",
-								convertService.toAppDisplay(mobilityWaiveFieldCreate).put("reference_id",
+								convertService.toAppDisplay(crmWaiveFieldCreate).put("reference_id",
 										request.path("body").path("reference_id").asText())));
 			}
 
@@ -1184,9 +1173,9 @@ public class MobilityService {
 		HashMap<String, Object> requestSend = new HashMap<>();
 		requestSend.put("func", "waiveField");
 		ObjectNode body = mapper.createObjectNode();
-		body.put("project", "mobility");
+		body.put("project", "crm");
 		body.put("transaction_id", "transaction_waive_field");
-		body.set("data", mobilityWaiveFields);
+		body.set("data", crmWaiveFields);
 		requestSend.put("body", body);
 		requestSend.put("reference_id", request.path("body").path("reference_id"));
 		rabbitMQService.send("tpf-service-esb", requestSend);
@@ -1205,20 +1194,20 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.appId not null"));
 		Query query = Query.query(Criteria.where("appId").is(appId));
-		MobilityField mobilityfield = mobilityfieldTemplate.findOne(query, MobilityField.class);
-		if (mobilityfield == null)
+		CrmField crmfield = crmfieldTemplate.findOne(query, CrmField.class);
+		if (crmfield == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
-		if (mobilityfield.getAutomationResults() != null && mobilityfield.getAutomationResults().size() > 0) {
-			var check_Automation = mapper.convertValue(mobilityfield.getAutomationResults().get(0), JsonNode.class);
+		if (crmfield.getAutomationResults() != null && crmfield.getAutomationResults().size() > 0) {
+			var check_Automation = mapper.convertValue(crmfield.getAutomationResults().get(0), JsonNode.class);
 			var autoRun = (check_Automation.path("automationResult").asText().equals("WAIVE_FIELD_RUN"));
 
 			if (autoRun)
 				return utils.getJsonNodeResponse(1, body,
 						mapper.createObjectNode().put("message", String.format("data.appId %s UPLOADING", appId)));
 		}
-		if ((mobilityfield.getAppStage() != null && mobilityfield.getAppStage().equals(STAGE_SUBMIT))
-				|| (mobilityfield.getAppStatus() != null && mobilityfield.getAppStatus().equals(STATUS_SUBMIT)))
+		if ((crmfield.getAppStage() != null && crmfield.getAppStage().equals(STAGE_SUBMIT))
+				|| (crmfield.getAppStatus() != null && crmfield.getAppStatus().equals(STATUS_SUBMIT)))
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s UPLOADING", appId)));
 
@@ -1287,12 +1276,12 @@ public class MobilityService {
 						mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
 		}
 
-		ArrayList<JsonNode> mobilityFields = new ArrayList<JsonNode>();
+		ArrayList<JsonNode> crmFields = new ArrayList<JsonNode>();
 
-		mobilityFields.add(mapper.createObjectNode().put("appId", appId));
+		crmFields.add(mapper.createObjectNode().put("appId", appId));
 
 		JsonNode getDataFieldsDB = rabbitMQService.sendAndReceive("tpf-service-finnone", Map.of("func", "getDataFields",
-				"reference_id", request.path("body").path("reference_id"), "body", Map.of("apps", mobilityFields)));
+				"reference_id", request.path("body").path("reference_id"), "body", Map.of("apps", crmFields)));
 
 		if (getDataFieldsDB.path("status").asInt(0) != 200) {
 			return utils.getJsonNodeResponse(1, request.path("body"), getDataFieldsDB.path("data"));
@@ -1300,8 +1289,8 @@ public class MobilityService {
 
 		if (getDataFieldsDB.path("data").isArray()) {
 			for (JsonNode item : getDataFieldsDB.path("data")) {
-				if (mobilityfield.getAppId().equals(item.path("appId").asText())) {
-					MobilityField check = mapper.convertValue(item, MobilityField.class);
+				if (crmfield.getAppId().equals(item.path("appId").asText())) {
+					CrmField check = mapper.convertValue(item, CrmField.class);
 					if (!(check.getAppStage().toUpperCase().equals("FII"))) {
 
 						return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
@@ -1473,40 +1462,40 @@ public class MobilityService {
 				.set("remarksDecisionFiv", data.path("remarksDecisionFiv").asText()).set("appStatus", STATUS_SUBMIT)
 				.set("appStage", STAGE_SUBMIT);
 
-		mobilityfield = mobilityfieldTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				MobilityField.class);
+		crmfield = crmfieldTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				CrmField.class);
 
-		MobilityField mobilityfieldUpdate = mobilityfieldTemplate.findOne(query, MobilityField.class);
+		CrmField crmfieldUpdate = crmfieldTemplate.findOne(query, CrmField.class);
 
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-						Map.of("project", "mobility", "id", mobilityfieldUpdate.getId()), "body",
-						convertService.toAppAutomationSubmitField(mobilityfieldUpdate)));
+						Map.of("project", "crm", "id", crmfieldUpdate.getId()), "body",
+						convertService.toAppAutomationSubmitField(crmfieldUpdate)));
 
-		ArrayNode mobilitySubmitFields = JsonNodeFactory.instance.arrayNode();
+		ArrayNode crmSubmitFields = JsonNodeFactory.instance.arrayNode();
 
-		ObjectNode mobilityObjectNode = mapper.createObjectNode();
-		mobilityObjectNode.put("appId", mobilityfield.getAppId());
-		mobilityObjectNode.put("phoneConfirmed", mobilityfield.getPhoneConfirmed());
-		mobilityObjectNode.put("resultHomeVisit", mobilityfield.getResultHomeVisit());
-		mobilityObjectNode.put("resultOfficeVisit", mobilityfield.getResultOfficeVisit());
-		mobilityObjectNode.put("result2ndHomeVisit", mobilityfield.getResult2ndHomeVisit());
-		mobilityObjectNode.set("attachmentField", filesUploadSender);
-		mobilityObjectNode.put("timeOfVisit", mobilityfield.getTimeOfVisit());
-		mobilityObjectNode.put("verificationDate", mobilityfield.getVerificationDate());
-		mobilityObjectNode.put("remarksDecisionFiv", mobilityfield.getRemarksDecisionFiv());
-		mobilityObjectNode.put("remarksDecisionFic", mobilityfield.getRemarksDecisionFic());
-		mobilityObjectNode.put("resonDecisionFic", mobilityfield.getResonDecisionFic());
+		ObjectNode crmObjectNode = mapper.createObjectNode();
+		crmObjectNode.put("appId", crmfield.getAppId());
+		crmObjectNode.put("phoneConfirmed", crmfield.getPhoneConfirmed());
+		crmObjectNode.put("resultHomeVisit", crmfield.getResultHomeVisit());
+		crmObjectNode.put("resultOfficeVisit", crmfield.getResultOfficeVisit());
+		crmObjectNode.put("result2ndHomeVisit", crmfield.getResult2ndHomeVisit());
+		crmObjectNode.set("attachmentField", filesUploadSender);
+		crmObjectNode.put("timeOfVisit", crmfield.getTimeOfVisit());
+		crmObjectNode.put("verificationDate", crmfield.getVerificationDate());
+		crmObjectNode.put("remarksDecisionFiv", crmfield.getRemarksDecisionFiv());
+		crmObjectNode.put("remarksDecisionFic", crmfield.getRemarksDecisionFic());
+		crmObjectNode.put("resonDecisionFic", crmfield.getResonDecisionFic());
 
-		mobilitySubmitFields.add(mobilityObjectNode);
+		crmSubmitFields.add(crmObjectNode);
 
 		HashMap<String, Object> requestSend = new HashMap<>();
 
 		requestSend.put("func", "submitField");
 		ObjectNode bodySender = mapper.createObjectNode();
-		bodySender.put("project", "mobility");
+		bodySender.put("project", "crm");
 		bodySender.put("transaction_id", "transaction_submit_field");
-		bodySender.set("data", mobilitySubmitFields);
+		bodySender.set("data", crmSubmitFields);
 		requestSend.put("body", bodySender);
 		requestSend.put("reference_id", request.path("body").path("reference_id"));
 

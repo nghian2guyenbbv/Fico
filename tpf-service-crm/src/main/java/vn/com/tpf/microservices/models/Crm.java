@@ -2,8 +2,6 @@ package vn.com.tpf.microservices.models;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +23,7 @@ import lombok.Data;
 @Builder
 @JsonInclude(Include.NON_NULL)
 
-public class Mobility {
+public class Crm {
 	@Id
 	private String id;
 	@Indexed
