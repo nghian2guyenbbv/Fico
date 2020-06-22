@@ -41,7 +41,7 @@ public class AttachmentDetails {
     protected String attachedDocName;
     @XmlElement(namespace = "http://www.nucleus.com/schemas/integration/leadCreationService", required = true)
     @XmlMimeType("application/octet-stream")
-    protected String attachedDocument;
+    protected byte[] attachedDocument;
     @XmlElement(namespace = "http://www.nucleus.com/schemas/integration/leadCreationService")
     protected GeoTagging geoTagging;
 
@@ -77,7 +77,7 @@ public class AttachmentDetails {
      *     {@link DataHandler }
      *     
      */
-    public String getAttachedDocument() {
+    public byte[] getAttachedDocument() {
         return attachedDocument;
     }
 
@@ -89,7 +89,7 @@ public class AttachmentDetails {
      *     {@link DataHandler }
      *     
      */
-    public void setAttachedDocument(String value) {
+    public void setAttachedDocument(byte[] value) {
         this.attachedDocument = value;
     }
 

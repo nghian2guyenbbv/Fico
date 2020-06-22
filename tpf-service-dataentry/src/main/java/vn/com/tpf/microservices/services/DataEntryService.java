@@ -1482,85 +1482,120 @@ public class DataEntryService {
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
 
 			if (checkExist.size() > 0){
-				if(!request.path("body").path("data").path("partnerId").isTextual()){
-					return Map.of("status", 200, "data", "partnerId not found");
-				}
-				Query queryUpdate = new Query();
-				queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null).and("status").is("UPLOADFILE"));
+				if (request.path("body").path("data").path("retry").textValue() != null && request.path("body").path("data").path("retry").equals("") != true &&
+						request.path("body").path("data").path("retry").textValue().equals("") != true) {
+					Query queryGetApp = new Query();
+					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null).and("status").is("AUTO_QL_FAIL"));
+					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-				Update update = new Update();
-				update.set("quickLead.quickLeadId", data.getQuickLeadId());
-				update.set("quickLead.identificationNumber", data.getIdentificationNumber());
-				update.set("quickLead.productTypeCode", data.getProductTypeCode());
-				update.set("quickLead.customerType", data.getCustomerType());
-				update.set("quickLead.productCode", data.getProductCode());
-				update.set("quickLead.loanAmountRequested", data.getLoanAmountRequested());
-				update.set("quickLead.firstName", data.getFirstName());
-				update.set("quickLead.lastName", data.getLastName());
-				update.set("quickLead.city", data.getCity());
-				update.set("quickLead.sourcingChannel", data.getSourcingChannel());
-				update.set("quickLead.dateOfBirth", data.getDateOfBirth());
-				update.set("quickLead.sourcingBranch", data.getSourcingBranch());
-				update.set("quickLead.natureOfOccupation", data.getNatureOfOccupation());
-				update.set("quickLead.schemeCode", data.getSchemeCode());
-				update.set("quickLead.comment", data.getComment());
-				update.set("quickLead.preferredModeOfCommunication", data.getPreferredModeOfCommunication());
-				update.set("quickLead.leadStatus", data.getLeadStatus());
-				update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
-				update.set("quickLead.$.documents", data.getDocuments());
-				update.set("status", "NEW");
-				update.set("lastModifiedDate", new Date());
+					Update update = new Update();
+					update.set("status", "NEW");
+					update.set("lastModifiedDate", new Date());
+					Application resultUpdate = mongoTemplate.findAndModify(queryGetApp, update, Application.class);
 
-				update.set("partnerId", data.getPartnerId());
-				Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
-				if (resultUpdate == null){
-					responseModel.setRequest_id(requestId);
-					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code("1");
-					responseModel.setMessage("applicationId is exist!");
+					if (resultUpdate == null){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is exist!");
 
-					return Map.of("status", 200, "data", responseModel);
-				}
+						return Map.of("status", 200, "data", responseModel);
+					}
+
+					Query queryGetApp2 = new Query();
+					queryGetApp2.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+					List<Application> appDataFull = mongoTemplate.find(queryGetApp2, Application.class);
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "updateApp","reference_id", referenceId,
+									"param", Map.of("project", "dataentry", "id", appDataFull.get(0).getId()), "body", convertService.toAppDisplay(appDataFull.get(0))));
+
+					rabbitMQService.send(queueAutoSGB,
+							Map.of("func", "quickLeadApp","body",
+									appData.get(0)));
+
+				}else {
+					if(!request.path("body").path("data").path("partnerId").isTextual()){
+						return Map.of("status", 200, "data", "partnerId not found");
+					}
+					Query queryUpdate = new Query();
+					queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("applicationId").not().ne(null).and("status").is("UPLOADFILE"));
+
+					Update update = new Update();
+					update.set("quickLead.quickLeadId", data.getQuickLeadId());
+					update.set("quickLead.identificationNumber", data.getIdentificationNumber());
+					update.set("quickLead.productTypeCode", data.getProductTypeCode());
+					update.set("quickLead.customerType", data.getCustomerType());
+					update.set("quickLead.productCode", data.getProductCode());
+					update.set("quickLead.loanAmountRequested", data.getLoanAmountRequested());
+					update.set("quickLead.firstName", data.getFirstName());
+					update.set("quickLead.lastName", data.getLastName());
+					update.set("quickLead.city", data.getCity());
+					update.set("quickLead.sourcingChannel", data.getSourcingChannel());
+					update.set("quickLead.dateOfBirth", data.getDateOfBirth());
+					update.set("quickLead.sourcingBranch", data.getSourcingBranch());
+					update.set("quickLead.natureOfOccupation", data.getNatureOfOccupation());
+					update.set("quickLead.schemeCode", data.getSchemeCode());
+					update.set("quickLead.comment", data.getComment());
+					update.set("quickLead.preferredModeOfCommunication", data.getPreferredModeOfCommunication());
+					update.set("quickLead.leadStatus", data.getLeadStatus());
+					update.set("quickLead.communicationTranscript", data.getCommunicationTranscript());
+					update.set("quickLead.$.documents", data.getDocuments());
+					update.set("status", "NEW");
+					update.set("lastModifiedDate", new Date());
+
+					update.set("partnerId", data.getPartnerId());
+					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+					if (resultUpdate == null){
+						responseModel.setRequest_id(requestId);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code("1");
+						responseModel.setMessage("applicationId is exist!");
+
+						return Map.of("status", 200, "data", responseModel);
+					}
 
 //				--automation QuickLead--
-				Query queryGetApp = new Query();
-				queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
-				List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
+					Query queryGetApp = new Query();
+					queryGetApp.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
+					List<Application> appData = mongoTemplate.find(queryGetApp, Application.class);
 
-				rabbitMQService.send("tpf-service-app",
-						Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
+					rabbitMQService.send("tpf-service-app",
+							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
-				new Thread(() -> {
-					try{
-						ObjectNode result = mapper.createObjectNode();
-						result.put("request_id", request.path("body").path("request_id").textValue());
-						result.set("app", mapper.convertValue(appData.get(0), JsonNode.class));
 
-						JsonNode response = apiService.createLeadF1(urlCreateLead, convertService.toApiF1(appData.get(0)));
-						if(response.hasNonNull("errMsg")){
-							log.info("quickLead.response.apiService.createLeadF1 {}", response);
-						}else{
-							result.set("response", response);
-							updateAfterQuickLeadF1(result);
+					new Thread(() -> {
+						try{
+							ObjectNode result = mapper.createObjectNode();
+							result.put("request_id", request.path("body").path("request_id").textValue());
+							result.set("app", mapper.convertValue(appData.get(0), JsonNode.class));
+
+							JsonNode response = apiService.createLeadF1(urlCreateLead, convertService.toApiF1(appData.get(0)));
+							if(response.hasNonNull("errMsg")){
+								log.info("quickLead.response.apiService.createLeadF1 {}", response.path("errMsg"));
+							}else{
+								result.set("response", response);
+								updateAfterQuickLeadF1(result);
+							}
+						}catch(Exception e){
+							log.info("quickLead.thread.apiService.createLeadF1.Exception {}", e.toString());
 						}
-					}catch(Exception e){
-						log.info("quickLead.thread.apiService.createLeadF1.Exception {}", e.toString());
-					}
-				}).start();
+					}).start();
 
-				Report report = new Report();
-				report.setQuickLeadId(data.getQuickLeadId());
-				report.setApplicationId(request.path("body").path("applicationId").textValue());
-				report.setFunction("QUICKLEAD");
-				report.setStatus("NEW");
-				report.setCreatedBy(token.path("user_name").textValue());
-				report.setCreatedDate(new Date());
+					Report report = new Report();
+					report.setQuickLeadId(data.getQuickLeadId());
+					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setFunction("QUICKLEAD");
+					report.setStatus("NEW");
+					report.setCreatedBy(token.path("user_name").textValue());
+					report.setCreatedDate(new Date());
 
-				report.setPartnerId(resultUpdate.getPartnerId());
-				report.setPartnerName(resultUpdate.getPartnerName());
+					report.setPartnerId(resultUpdate.getPartnerId());
+					report.setPartnerName(resultUpdate.getPartnerName());
 
-				mongoTemplate.save(report);
+					mongoTemplate.save(report);
+				}
 
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -4737,7 +4772,7 @@ public class DataEntryService {
 
 				if(request.path("response").path("responseData").path("responseCode").asInt() != 0){
 					Report report = new Report();
-					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
+					report.setQuickLeadId(request.path("app").path("quickLeadId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("AUTO_QL_FAIL");
 					report.setCreatedBy("AUTOMATION");
@@ -4776,7 +4811,7 @@ public class DataEntryService {
 					}
 
 					Update update = new Update();
-					update.set("applicationId", request.path("response").path("applicationNumber").textValue());
+					update.set("applicationId", request.path("response").path("responseData").path("applicationNumber").textValue());
 					update.set("status", "PROCESSING");
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
@@ -4824,8 +4859,8 @@ public class DataEntryService {
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
 					Report report = new Report();
-					report.setQuickLeadId(request.path("body").path("quickLeadId").textValue());
-					report.setApplicationId(request.path("body").path("applicationId").textValue());
+					report.setQuickLeadId(request.path("app").path("quickLeadId").textValue());
+					report.setApplicationId(request.path("app").path("applicationId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("PROCESSING");
 					report.setCreatedBy("AUTOMATION");
