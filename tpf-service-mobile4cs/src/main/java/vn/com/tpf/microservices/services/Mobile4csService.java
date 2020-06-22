@@ -110,6 +110,7 @@ public class Mobile4csService {
                         data.put("dueDate", dataLoan.getString("loanDueDate"));
                         data.put("nextInstallmentAmount", dataLoan.getLong("loanInstalAmount"));
                         data.put("maturityDate", dataLoan.getString("loanMaturity"));
+                        data.put("repaymentAmount", dataLoan.getLong("loanRepayment"));
                         dataArrayNode.add(data);
                     }
                 }
@@ -165,9 +166,9 @@ public class Mobile4csService {
                 data.put("dueDate", dataSql.getString("dueDate"));
                 data.put("effectiveInterestRate", dataSql.getString("effRate"));
                 data.put("beneficiaryAccount", dataSql.getString("benAcct"));
-                ArrayNode dataArrayNode = mapper.createArrayNode();
-                JSONArray parseDataClob = dataSql.getJSONArray("schedule");
-                for (Object o : parseDataClob) {
+                ArrayNode dataScheduleNode = mapper.createArrayNode();
+                JSONArray scheduleArr = dataSql.getJSONArray("schedule");
+                for (Object o : scheduleArr) {
                     if (o instanceof JSONObject) {
                         JSONObject dataLoan = (JSONObject) o;
                         ObjectNode dataObject = mapper.createObjectNode();
@@ -177,10 +178,29 @@ public class Mobile4csService {
                         dataObject.put("principal", dataLoan.getLong("principal"));
                         dataObject.put("interest", dataLoan.getLong("interest"));
                         dataObject.put("remainingPrincipal", dataLoan.getLong("remainPrincipal"));
-                        dataArrayNode.add(dataObject);
+                        dataScheduleNode.add(dataObject);
                     }
                 }
-                data.put("schedule", dataArrayNode);
+                data.put("schedule", dataScheduleNode);
+
+                ArrayNode dataPaidNode = mapper.createArrayNode();
+                JSONArray paidArr = dataSql.getJSONArray("paid");
+                for (Object o : paidArr) {
+                    if (o instanceof JSONObject) {
+                        JSONObject dataLoan = (JSONObject) o;
+                        ObjectNode dataObject = mapper.createObjectNode();
+                        dataObject.put("installment", dataLoan.getLong("installment"));
+                        dataObject.put("dueDate", dataLoan.getString("dueDate"));
+                        dataObject.put("payDate", dataLoan.getString("payDate"));
+                        dataObject.put("paidPrincipal", dataLoan.getLong("paidPrincipal"));
+                        dataObject.put("paidInterest", dataLoan.getLong("paidInterest"));
+                        dataObject.put("overduePrincipal", dataLoan.getLong("overduePrincipal"));
+                        dataObject.put("overdueInterest", dataLoan.getLong("overdueInterest"));
+                        dataObject.put("paidFee", dataLoan.getLong("paidFee"));
+                        dataPaidNode.add(dataObject);
+                    }
+                }
+                data.put("paid", dataPaidNode);
                 responseModel.setData(data);
             }
 
@@ -229,6 +249,7 @@ public class Mobile4csService {
                 data.put("referencePhoneNumber", getStringFromJsonArray(dataSql.getJSONArray("refPhone")));
                 data.put("emailAddress", dataSql.getString("email"));
                 data.put("nearestLoanAccountNumber", dataSql.getString("loanNo"));
+                data.put("branch", dataSql.getString("branch"));
                 data.put("zaloAddress", dataSql.getString("zalo"));
                 responseModel.setData(data);
             }

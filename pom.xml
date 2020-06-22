@@ -39,6 +39,7 @@
 		<module>tpf-service-automation</module>
 		<module>tpf-service-smartnet</module>
         <module>tpf-service-search-file</module>
+        <module>tpf-service-mobile4cs</module>
     </modules>
 
 
