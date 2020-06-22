@@ -321,6 +321,9 @@ public class CrmService {
 		if (data.path("schemeCode").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.schemeCode not blank"));
+		if (data.path("custId").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.custId not blank"));
 		if (!data.hasNonNull("documents") || mapper.convertValue(data.path("documents"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.documents array required"));
@@ -419,11 +422,14 @@ public class CrmService {
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
-				.set("filesUpload", filesUpload);
+				.set("filesUpload", filesUpload)
+				.set("neoCustID", data.path("custId").asText())
+				.set("cifNumber", "null")
+				.set("idNumber", "null");
 		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Crm.class);
 
-		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadAppWithCustId", "body",
 				convertService.toAppFinnone(crm).put("reference_id", body.path("reference_id").asText())));
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
