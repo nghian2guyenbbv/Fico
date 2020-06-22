@@ -191,7 +191,7 @@ public class Mobile4csService {
                         ObjectNode dataObject = mapper.createObjectNode();
                         dataObject.put("installment", dataLoan.getLong("installment"));
                         dataObject.put("dueDate", dataLoan.getString("dueDate"));
-                        dataObject.put("payDate", dataLoan.getLong("payDate"));
+                        dataObject.put("payDate", dataLoan.getString("payDate"));
                         dataObject.put("paidPrincipal", dataLoan.getLong("paidPrincipal"));
                         dataObject.put("paidInterest", dataLoan.getLong("paidInterest"));
                         dataObject.put("overduePrincipal", dataLoan.getLong("overduePrincipal"));
