@@ -110,7 +110,7 @@ public class Mobile4csService {
                         data.put("dueDate", dataLoan.getString("loanDueDate"));
                         data.put("nextInstallmentAmount", dataLoan.getLong("loanInstalAmount"));
                         data.put("maturityDate", dataLoan.getString("loanMaturity"));
-                        data.put("repaymentAmount", dataLoan.getString("loanRepayment"));
+                        data.put("repaymentAmount", dataLoan.getLong("loanRepayment"));
                         dataArrayNode.add(data);
                     }
                 }
