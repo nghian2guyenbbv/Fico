@@ -9,14 +9,18 @@ import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.Application;
 import vn.com.tpf.microservices.models.leadCreation.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -30,6 +34,12 @@ public class ConvertService {
 
 	@Autowired
 	private GetDataF1Service getDataF1Service;
+
+	@Autowired
+	private RestTemplate restTemplate;
+
+	@Value("${spring.url.uploadfile}")
+	private String urlUploadfile;
 
 	public ObjectNode toAppDisplay(Application application) {
 		ObjectNode app = mapper.createObjectNode();
@@ -117,9 +127,8 @@ public class ConvertService {
 		return app;
 	}
 
-	public ObjectNode toApiF1(Application application) {
-		log.info("{}", mapper.convertValue(application, JsonNode.class));
-		ObjectNode app = mapper.createObjectNode();
+	public JsonNode toApiF1(Application application) {
+		JsonNode app = mapper.createObjectNode();
 		try {
 			LeadCreationRequest leadCreationRequest = new LeadCreationRequest();
 
@@ -131,8 +140,8 @@ public class ConvertService {
 			/*-------------------------dummy-------------------------*/
 			personInfo.setLeadApplicantId("");
 			personInfo.setApplicantRole("");
-			personInfo.setMobilePhoneNumber("");
-			personInfo.setMobilePhoneIsdCode("");
+			personInfo.setMobilePhoneNumber("123456789");
+			personInfo.setMobilePhoneIsdCode("84");
 			personInfo.setBorrowerType("");
 			personInfo.setFieldPerInfo1("");
 			personInfo.setFieldPerInfo2("");
@@ -211,7 +220,15 @@ public class ConvertService {
 
 				AttachmentDetails attachmentDetails = new AttachmentDetails();
 				attachmentDetails.setAttachedDocName(qlDocument.getOriginalname());
-				attachmentDetails.setAttachedDocument(qlDocument.getFilename());
+
+				HttpHeaders headers = new HttpHeaders();
+				headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+				HttpEntity<String> entity = new HttpEntity<>(headers);
+
+				ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + "/" + qlDocument.getFilename(), HttpMethod.GET, entity, byte[].class);
+
+				attachmentDetails.setAttachedDocument(response.getBody());
+
 				documents.setAttachmentDetails(attachmentDetails);
 				leadCreationRequest.getDocuments().add(documents);
 			});
@@ -261,7 +278,7 @@ public class ConvertService {
 
 			/*---------------------------------------------------communicationDetails---------------------------------------------------- */
 			CommunicationDetails communicationDetails = new CommunicationDetails();
-			communicationDetails.setModeOfCommunication(application.getQuickLead().getPreferredModeOfCommunication());
+			communicationDetails.setModeOfCommunication("PHONE");
 			communicationDetails.setLeadStatus(getDataF1Service.getLeadStatus(application.getQuickLead().getLeadStatus()));
 			communicationDetails.setAddComment(application.getQuickLead().getCommunicationTranscript());
 			communicationDetails.setContactedBy("System");
@@ -269,16 +286,13 @@ public class ConvertService {
 			communicationDetails.setDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
 
 			/*-------------------------dummy-------------------------*/
-			communicationDetails.setPhoneNumber("");
-			communicationDetails.setNotificationType("");
+			communicationDetails.setPhoneNumber("others");
+			communicationDetails.setNotificationType("TP_SMS");
 
 			leadCreationRequest.setCommunicationDetails(communicationDetails);
 
 			/*---------------------------------------------------MoveToNextStageFlag---------------------------------------------------- */
 			leadCreationRequest.setMoveToNextStageFlag(true);
-
-			/*---------------------------------------------------UserName---------------------------------------------------- */
-			leadCreationRequest.setUserName("System");
 
 			/*---------------------------------------------------Branchcode---------------------------------------------------- */
 			leadCreationRequest.setBranchcode(getDataF1Service.getBranchCode(application.getQuickLead().getSourcingBranch()));
@@ -290,7 +304,7 @@ public class ConvertService {
 			leadCreationRequest.setPromoCode("");
 			leadCreationRequest.setRelationship("");
 
-			app = mapper.convertValue(leadCreationRequest, ObjectNode.class);
+			app = mapper.convertValue(leadCreationRequest, JsonNode.class);
 		}catch (Exception e){
 			log.info("{}", e.toString());
 		}
