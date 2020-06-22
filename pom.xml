@@ -37,7 +37,9 @@
 		<module>tpf-service-repayment</module>
 		<module>tpf-service-dataentry</module>
 		<module>tpf-service-automation</module>
+		<module>tpf-service-crm</module>
 		<module>tpf-service-smartnet</module>
+		<module>tpf-service-mobility</module>
 </modules>
 
 
