@@ -1,6 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -30,11 +29,10 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.com.tpf.microservices.models.*;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -2249,16 +2247,19 @@ public class ApiService {
         headers.add("Content-Type", "application/json");
         HttpEntity<?> payload = new HttpEntity<>(application, headers);
         log.info("createLeadF1.payload {}", payload.toString());
-        ObjectNode result = mapper.createObjectNode();
         try {
-            ResponseEntity<?> response = restTemplate.postForEntity(url, payload , JsonNode.class );
-            log.info("createLeadF1.response {}", response.toString());
-            result = mapper.convertValue(response.getBody(), ObjectNode.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, payload , String.class);
+			log.info("response.body {}", response.getBody());
+			String bodyString = response.getBody();
+			if(StringUtils.hasLength(bodyString)){
+				bodyString = bodyString.replaceAll("\u00A0", "");
+			}
+            JsonNode result = mapper.readTree(bodyString);
+			return result;
         }catch (Exception e){
-            result.put("errMsg", e.toString());
             log.info("createLeadF1.Exception {}", e.toString());
+			return mapper.createObjectNode().put("errMsg", e.toString());
         }
-        return result;
     }
 
 }
