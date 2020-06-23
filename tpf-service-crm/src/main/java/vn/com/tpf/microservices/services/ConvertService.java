@@ -159,6 +159,10 @@ public class ConvertService {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "crm");
 		app.put("quickLeadId", crm.getId());
+		app.put("neoCustID", crm.getNeoCustID());
+		app.put("cifNumber", crm.getCifNumber());
+		app.put("idNumber", crm.getIdNumber());
+		
 		ObjectNode quickLead = mapper.createObjectNode();
 		quickLead.put("identificationNumber", crm.getNationalId());
 		quickLead.put("productTypeCode", ProductTypeCode);
@@ -177,9 +181,6 @@ public class ConvertService {
 		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
 		quickLead.put("leadStatus", LeadStatus);
 		quickLead.put("communicationTranscript", CommunicationTranscript);
-		quickLead.put("neoCustID", crm.getNeoCustID());
-		quickLead.put("cifNumber", crm.getCifNumber());
-		quickLead.put("idNumber", crm.getIdNumber());
 
 		ArrayNode documents = mapper.createArrayNode();
 
