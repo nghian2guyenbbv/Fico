@@ -5,27 +5,40 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.dao.FicoCustomerDAO;
 import vn.com.tpf.microservices.dao.FicoImportPayooDAO;
+import vn.com.tpf.microservices.dao.FicoReceiptPaymentDAO;
 import vn.com.tpf.microservices.dao.FicoTransPayDAO;
 import vn.com.tpf.microservices.models.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -55,11 +68,16 @@ public class RepaymentService {
 	private FicoImportPayooDAO ficoImportPayooDAO;
 
 	@Autowired
+	private FicoReceiptPaymentDAO ficoReceiptPaymentDAO;
+
+	@Autowired
 	private TransactionTemplate transactionTemplate;
 
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	@Value("${spring.hostRequest.url}")
+	private String urlAPI;
 
 	@SuppressWarnings("unchecked")
 
@@ -183,13 +201,15 @@ public class RepaymentService {
 			request_id = requestModel.getRequest_id();
 //			date_time = requestModel.getDate_time();
 
+			Timestamp timestamp=new Timestamp(DateUtils.addMonths(new Date(),6).getTime());
+
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
 			}catch (Exception e) {
 				log.info("Error: " + e);
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setDate_time(timestamp);
 				responseModel.setResult_code(500);
 				responseModel.setMessage("Others error");
 				return Map.of("status", 200, "data", responseModel);
@@ -198,7 +218,7 @@ public class RepaymentService {
 			if (requestModel.getData().getAmount() <= 0){
                 responseModel.setRequest_id(requestModel.getRequest_id());
                 responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+                responseModel.setDate_time(timestamp);
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Others error");
                 return Map.of("status", 200, "data", responseModel);
@@ -215,25 +235,87 @@ public class RepaymentService {
 					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
 					ficoTransPay.setTransactionId(requestModel.getData().getTransaction_id());
 					ficoTransPay.setAmount(requestModel.getData().getAmount());
-					ficoTransPay.setCreateDate(new Timestamp(new Date().getTime()));
+					ficoTransPay.setCreateDate(timestamp);
 
 					ficoTransPayDAO.save(ficoTransPay);
 
+					//CALL API LMS
+					new Thread(() -> {
+						FicoRepaymentModel ficoRepaymentModel = new FicoRepaymentModel();
+						ReceiptProcessingMO ficoReceiptPayment = new ReceiptProcessingMO();
+						SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+						if (!requestModel.getData().getTransaction_id().isEmpty()){
+							ficoReceiptPayment.setInstrumentReferenceNumber(requestModel.getData().getTransaction_id());
+						}
+						if (requestModel.getData().getTransaction_id().startsWith("PY")){
+							ficoReceiptPayment.setSourceAccountNumber("45992855603");
+							ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
+						} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
+							ficoReceiptPayment.setSourceAccountNumber("45992855306");
+							ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
+						}
+						ReqHeader requestHeader = new ReqHeader();
+						requestHeader.setTenantId(505);
+						UserDetail userDetail = new UserDetail();
+						userDetail.setBranchId(5);
+						userDetail.setUserCode("system");
+						requestHeader.setUserDetail(userDetail);
+						ficoReceiptPayment.setRequestHeader(requestHeader);
+						ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
+						ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
+						ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
+						ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+						ficoReceiptPayment.setTransactionCurrencyCode("VND");
+						ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+						ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+						ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
+						ficoReceiptPayment.setAutoAllocation("Y");
+						ficoReceiptPayment.setReceiptNo("");
+						ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
+						ficoReceiptPayment.setDepositDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+						ficoReceiptPayment.setDepositBankAccountNumber("519200003");
+						ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+						ficoReceiptPayment.setReceiptTransactionStatus("C");
+						ficoReceiptPayment.setProcessTillMaker(false);
+						ficoReceiptPayment.setRequestChannel("RECEIPT");
+						ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
+
+						// Save report receipt payment
+						saveReportReceiptPayment(requestModel,timestamp);
+
+						String urlReceiptLMS = urlAPI;
+						URI uri = null;
+						try {
+							uri = new URI(urlAPI);
+						} catch (URISyntaxException e) {
+							e.printStackTrace();
+						}
+						RestTemplate restTemplate = new RestTemplate();
+						MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+						headers.add("clientId", "1");
+						headers.add("sign", "1");
+						headers.add("Content-Type", "application/json");
+						HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
+						ResponseEntity<JsonNode> res = restTemplate.postForEntity(uri, body, JsonNode.class);
+						log.info("{}", res.getBody());
+					}).start();
+					//END CALL
+
 					responseModel.setRequest_id(requestModel.getRequest_id());
 					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setDate_time(timestamp);
 					responseModel.setResult_code(0);
 				}else{
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setDate_time(timestamp);
 					responseModel.setResult_code(2);
 					responseModel.setMessage("Not exits");
 				}
 			}else {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setDate_time(timestamp);
 				responseModel.setResult_code(2);
 				responseModel.setMessage("transaction_id already exists.");
 			}
@@ -437,7 +519,7 @@ public class RepaymentService {
 				@Override
 				public void execute(Connection connection) throws SQLException {
 					//connection, finally!
-					String storeProc = String.format("CALL payoo.sp_ora_data_net_amount();");
+					String storeProc = String.format("CALL payoo.sp_ora_data_net_amount_by_user();");
 					try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
 						int resuk=stmt.executeUpdate();
 						log.info("Found : " + resuk + "result");
@@ -462,4 +544,225 @@ public class RepaymentService {
 	}
 
 	//---------------------- END FUNCTION IMPORT -----------------
+
+	public Map<String, Object> getCustomers_vnPost(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			List<FicoCustomer> ficoCustomerList = null;
+
+			Assert.notNull(request.get("body"), "no body");
+			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			request_id = requestModel.getRequest_id();
+
+			try{
+				OffsetDateTime.parse(requestModel.getDate_time());
+			}catch (Exception e) {
+				log.info("Error: " + e);
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Input date_time is invalid format");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			String inputValue = requestModel.getData().getSearch_value();
+
+			if(StringUtils.isEmpty(requestModel.getData().getSearch_value())
+					|| requestModel.getData().getSearch_value().toUpperCase().contains("NULL")){
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Input search_value is null, empty or contains 'NULL' ");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			if(isValidIdNumer(inputValue)) {
+				ficoCustomerList = ficoCustomerDAO.findByIdentificationNumber(inputValue);
+			}else{
+				ficoCustomerList = ficoCustomerDAO.findByLoanAccountNo(inputValue);
+			}
+			if(ficoCustomerList.size() == 0) {
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
+				responseModel.setMessage("Customer does not exist");
+			}else {
+				ficoCustomerList.forEach(ficoCustomer -> {
+					if(!ficoCustomer.isLoanActive()){
+						ficoCustomer.setNetAmount(0);
+					}else if(ficoCustomer.getNetAmount() <= 0){
+						ficoCustomer.setNetAmount(ficoCustomer.getInstallmentAmount());
+					}
+				});
+
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(0);
+				responseModel.setData(ficoCustomerList);
+			}
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(96);
+			responseModel.setMessage("System error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> customers_pay_vnPost(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			Assert.notNull(request.get("body"), "no body");
+			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			FicoTransPay ficoTransPay = new FicoTransPay();
+			request_id = requestModel.getRequest_id();
+
+			try{
+				OffsetDateTime.parse(requestModel.getDate_time());
+			}catch (Exception e) {
+				log.info("Error: " + e);
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Input date_time is invalid format");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			String errMsg = "";
+			if(requestModel.getData() == null){
+				errMsg = "Can not parse input data. ";
+			}
+			if (requestModel.getData().getAmount() <= 0){
+				errMsg += "Input amount is equal or less than 0. ";
+			}
+			if(StringUtils.isEmpty(requestModel.getData().getTransaction_id())
+					|| requestModel.getData().getTransaction_id().toUpperCase().contains("NULL")){
+				errMsg += "Input transaction_id is null, empty or contains 'NULL'. ";
+			}
+			if(StringUtils.isEmpty(requestModel.getData().getIdentification_number())
+					|| requestModel.getData().getIdentification_number().toUpperCase().contains("NULL")){
+				errMsg += "Input identification_number is null, empty or contains 'NULL'. ";
+			}
+			if(StringUtils.isEmpty(requestModel.getData().getLoan_account_no())
+					|| requestModel.getData().getLoan_account_no().toUpperCase().contains("NULL")){
+				errMsg += "Input loan_account_no is null, empty or contains 'NULL'. ";
+			}
+
+			if(!StringUtils.isEmpty(errMsg)){
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage(errMsg);
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			FicoTransPay getByTransactionId = ficoTransPayDAO.findByTransactionId(requestModel.getData().getTransaction_id());
+			if (getByTransactionId == null) {
+				FicoCustomer ficoLoanId = ficoCustomerDAO.findByLoanId(requestModel.getData().getLoan_id());
+				List<FicoCustomer> ficoLoanAcct = ficoCustomerDAO.findByLoanAccountNo(requestModel.getData().getLoan_account_no());
+
+				if (ficoLoanId != null && ficoLoanAcct.size() > 0){
+					if(ficoLoanId.getIdentificationNumber() != null && requestModel.getData().getIdentification_number() != null
+							&& !ficoLoanId.getIdentificationNumber().equals(requestModel.getData().getIdentification_number())){
+						responseModel.setRequest_id(requestModel.getRequest_id());
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(2);
+						responseModel.setMessage("Input identification_number does not match loan");
+						return Map.of("status", 200, "data", responseModel);
+					}
+
+					ficoTransPay.setLoanId(requestModel.getData().getLoan_id());
+					ficoTransPay.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+					ficoTransPay.setIdentificationNumber(requestModel.getData().getIdentification_number());
+					ficoTransPay.setTransactionId(requestModel.getData().getTransaction_id());
+					ficoTransPay.setAmount(requestModel.getData().getAmount());
+					ficoTransPay.setCreateDate(new Timestamp(new Date().getTime()));
+
+					ficoTransPayDAO.save(ficoTransPay);
+
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
+				}else{
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(2);
+					responseModel.setMessage("Customer does not exist");
+				}
+			}else {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(2);
+				responseModel.setMessage("Transaction existed");
+			}
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(96);
+			responseModel.setMessage("System error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	//---------------------- START FUNCTION SAVE REPORT -----------------
+	public void saveReportReceiptPayment(RequestModel requestModel,Timestamp timestamp){
+		FicoReceiptPayment ficoReceiptPayment = new FicoReceiptPayment();
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		if (!requestModel.getData().getTransaction_id().isEmpty()){
+			ficoReceiptPayment.setInstrumentReferenceNumber(requestModel.getData().getTransaction_id());
+		}
+		if (requestModel.getData().getTransaction_id().startsWith("PY")){
+			ficoReceiptPayment.setSourceAccountNumber("45992855603");
+			ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
+		} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
+			ficoReceiptPayment.setSourceAccountNumber("45992855306");
+			ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
+		}
+		ficoReceiptPayment.setTenantId(505);
+		ficoReceiptPayment.setBranchId(5);
+		ficoReceiptPayment.setUserCode("system");
+		ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
+		ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
+		ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
+		ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+		ficoReceiptPayment.setTransactionCurrencyCode("VND");
+		ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+		ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+		ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
+		ficoReceiptPayment.setAutoAllocation("Y");
+		ficoReceiptPayment.setReceiptNo("");
+		ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
+		ficoReceiptPayment.setDepositDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+		ficoReceiptPayment.setDepositBankAccountNumber("519200003");
+		ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+		ficoReceiptPayment.setReceiptTransactionStatus("C");
+		ficoReceiptPayment.setProcessTillMaker("FALSE");
+		ficoReceiptPayment.setRequestChannel("RECEIPT");
+		ficoReceiptPaymentDAO.save(ficoReceiptPayment);
+	}
+	//---------------------- END FUNCTION SAVE REPORT -----------------
+
 }

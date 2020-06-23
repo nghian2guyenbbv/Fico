@@ -52,9 +52,9 @@ public class Fpt {
 	private Set<Photo> photos;
 	private Set<ProductDetail> productDetails;
 	private Set<Reference> references;
-	private Set<DocPostApproved> docPostApproved;
-	//private Set<Comment> comments;
+
 	private Set<Supplement> supplement;
+	private Set<DocPostApproved> docPostApproved;
 
 	@CreatedDate
 	private Date createdAt;

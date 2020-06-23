@@ -23,7 +23,7 @@ public class MomoController {
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
-	@PostMapping("/momo")
+	@PostMapping("/momo/fullLead")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-momo','3p-service-momo')")
 	public ResponseEntity<?> createMomo(@RequestBody ObjectNode body) throws Exception {
 		body.put("reference_id", UUID.randomUUID().toString());
@@ -33,7 +33,18 @@ public class MomoController {
 		ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-momo", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
-	
+
+	@PostMapping("/momo/quickCheck")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-momo','3p-service-momo')")
+	public ResponseEntity<?> preCheckMomo(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "preCheckMomo");
+		request.put("body", body);
+		ObjectNode response = (ObjectNode) rabbitMQService.sendAndReceive("tpf-service-momo", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
 	@PostMapping("/momo/getListCancelled")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-momo','3p-service-momo')")
 	public ResponseEntity<?> getListCancelled(@RequestBody ObjectNode body) throws Exception {

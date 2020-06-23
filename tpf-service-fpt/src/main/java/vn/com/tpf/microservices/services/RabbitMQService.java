@@ -91,8 +91,8 @@ public class RabbitMQService {
 					return response(message,payload,fptService.updatedappid(request));
 				case "addCommentFromFpt":
 					return response(message, payload,fptService.addCommentFromFpt(request));
-//				case "addCommentFromTpBank":
-//					return response(message, payload,fptService.addCommentFromTpBank(request));
+				case "addCommentFromTpBank":
+					return response(message, payload,fptService.addCommentFromTpBank(request));
 		
 //			case "getDetail":
 //				return response(message, payload, fptService.getDetail(request));

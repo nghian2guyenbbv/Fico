@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import vn.com.tpf.microservices.models.Comment;
 import vn.com.tpf.microservices.models.DocPostApproved;
 import vn.com.tpf.microservices.models.Fpt;
-
+import vn.com.tpf.microservices.models.Subcode;
 import vn.com.tpf.microservices.models.Supplement;
 
 @Service
@@ -404,113 +404,113 @@ public class FptService {
 		return response(200, mapper.convertValue(fpt, JsonNode.class));
 	}
 
-//	public JsonNode addCommentFromTpBank(JsonNode request) throws Exception {
-//
-//		Query query = new Query();
-//		Query querysupllement = new Query();
-//		Query queryreturned = new Query();
-//		JsonNode body = request.path("body");
-//		String cus_id = body.path("cus_id").asText();
-//		String type = body.path("type").asText();
-//		JsonNode comments = body.path("comments");
-//		if (cus_id.isEmpty()) {
-//			return response(404, mapper.createObjectNode().put("message", "Not Found cus_id"));
-//		}
-//		if (!type.matches("^(Returned|Supplement)$")) {
-//			return response(404, mapper.createObjectNode().put("message", "Error type"));
-//		}
-//		if (comments.size() == 0) {
-//			return response(404, mapper.createObjectNode().put("message", "Error Not Comment"));
-//		}
-//
-//		Fpt fpt = mongoTemplate.findOne(query.addCriteria(Criteria.where("custId").is(cus_id)), Fpt.class);
-//
-//		if (fpt == null) {
-//			return response(404, mapper.createObjectNode().put("message", "Not Found customer"));
-//		}
-//
-//		if (!fpt.getStatus().equals("PROCESSING")) {
-//			return response(404,
-//					mapper.createObjectNode().put("message", "Can not updated comment because Status is RETURNED"));
-//		}
-//		List<Comment> CommentReturned = mongoTemplate.find(queryreturned, Comment.class);
-//		queryreturned.addCriteria(Criteria.where("type").is("returned"));
-//		List<String> CodeReturned = new ArrayList<String>();
-//		for (Comment comment : CommentReturned) {
-//			for (Subcode subcode : comment.getSubcode()) {
-//				CodeReturned.add(subcode.getCode());
-//			}
-//		}
-//
-//		querysupllement.addCriteria(Criteria.where("type").is("supplement"));
-//		List<Comment> CommentSuplement = mongoTemplate.find(querysupllement, Comment.class);
-//
-//		List<String> CodeSupplement = new ArrayList<String>();
-//		for (Comment comment : CommentSuplement) {
-//			for (Subcode subcode : comment.getSubcode()) {
-//				CodeSupplement.add(subcode.getCode());
-//			}
-//		}
-//
-//		Set<Supplement> setcomments = new HashSet<Supplement>();
-//
-//		if (type.equals("Supplement")) {
-//
-//			if (comments.isArray()) {
-//				for (JsonNode jsonNode : comments) {
-//					String code = jsonNode.get("code").asText();
-//					String commentTpBank = jsonNode.get("comment").asText();
-//					if (CodeSupplement.contains(code)) {
-//						Supplement supplement = new Supplement();
-//						long millis = System.currentTimeMillis();
-//						java.util.Date date = new java.util.Date(millis);
-//						supplement.SupplemenTPBank(code, commentTpBank, "Supplement", date);
-//						setcomments.add(supplement);
-//					}
-//				}
-//			}
-//		} else if (type.equals("Returned")) {
-//
-//			if (comments.isArray()) {
-//				for (JsonNode jsonNode : comments) {
-//					String code = jsonNode.get("code").asText();
-//					String commentTpBank = jsonNode.get("comment").asText();
-//					if (CodeReturned.contains(code)) {
-//						Supplement supplement = new Supplement();
-//						long millis = System.currentTimeMillis();
-//						java.util.Date date = new java.util.Date(millis);
-//						supplement.SupplemenTPBank(code, commentTpBank, "Returned", date);
-//						setcomments.add(supplement);
-//					}
-//				}
-//			}
-//		} else {
-//			return response(404, mapper.createObjectNode().put("message", "Not Found Type comment"));
-//		}
-//
-//		if (setcomments.size() == 0) {
-//			return response(404, mapper.createObjectNode().put("message", "Code Not Found"));
-//		}
-//
-//		if (fpt.getSupplement() != null) {
-//			Set<Supplement> setsupplementsDB = (Set<Supplement>) fpt.getSupplement().stream()
-//					.collect(Collectors.toSet());
-//
-//			boolean MergSet = setcomments.addAll(setsupplementsDB);
-//
-//			if (MergSet == false) {
-//				return response(404, mapper.createObjectNode().put("message", "Not Merging"));
-//			}
-//		}
-//
-//		Update update = new Update();
-//		update.set("status", "RETURNED");
-//		update.set("Supplement", setcomments);
-//		mongoTemplate.updateFirst(query, update, Fpt.class);
-//
-//		return response(200, mapper.convertValue(fpt, JsonNode.class));
-//
-//	}
+	public JsonNode addCommentFromTpBank(JsonNode request) throws Exception {
+
+		Query query = new Query();
+		Query queryreturned = new Query();
+		Query querysupllement = new Query();
+		Update update = new Update();
+		JsonNode body = request.path("body");
+		String cus_id = body.path("cus_id").asText();
+		String type = body.path("type").asText();
+		JsonNode comments = body.path("comments");
+		if (cus_id.isEmpty()) {
+			return response(404, mapper.createObjectNode().put("message", "Not Found cus_id"));
+		}
+		if (!type.matches("^(Returned|Supplement)$")) {
+			return response(404, mapper.createObjectNode().put("message", "Error type"));
+		}
+		if (comments.size() == 0) {
+			return response(404, mapper.createObjectNode().put("message", "Error Not Comment"));
+		}
+
+		Fpt fpt = mongoTemplate.findOne(query.addCriteria(Criteria.where("custId").is(cus_id)), Fpt.class);
+
+		if (fpt == null) {
+			return response(404, mapper.createObjectNode().put("message", "Not Found customer"));
+		}
+
+		if (!fpt.getStatus().equals("PROCESSING")) {
+			return response(404,
+					mapper.createObjectNode().put("message", "Can not updated comment because Status is RETURNED"));
+		}
+		queryreturned.addCriteria(Criteria.where("type").is("returned"));
+		List<Comment> CommentReturned = mongoTemplate.find(queryreturned, Comment.class);
+		List<String> CodeReturned = new ArrayList<String>();
+		for (Comment comment : CommentReturned) {
+			for (Subcode subcode : comment.getSubcode()) {
+				CodeReturned.add(subcode.getCode());
+			}
+		}
+
+		querysupllement.addCriteria(Criteria.where("type").is("supplement"));
+		List<Comment> CommentSuplement = mongoTemplate.find(querysupllement, Comment.class);
+
+		List<String> CodeSupplement = new ArrayList<String>();
+		for (Comment comment : CommentSuplement) {
+			for (Subcode subcode : comment.getSubcode()) {
+				CodeSupplement.add(subcode.getCode());
+			}
+		}
+
+		Set<Supplement> setcomments = new HashSet<Supplement>();
+
+		if (type.equals("Supplement")) {
+
+			if (comments.isArray()) {
+				for (JsonNode jsonNode : comments) {
+					String code = jsonNode.get("code").asText();
+					String commentTpBank = jsonNode.get("comment").asText();
+					if (CodeSupplement.contains(code)) {
+						Supplement supplement = new Supplement();
+						long millis = System.currentTimeMillis();
+						java.util.Date date = new java.util.Date(millis);
+						supplement.SupplemenTPBank(code, commentTpBank, "Supplement", date);
+						setcomments.add(supplement);
+					}
+				}
+			}
+		} else if (type.equals("Returned")) {
+
+			if (comments.isArray()) {
+				for (JsonNode jsonNode : comments) {
+					String code = jsonNode.get("code").asText();
+					String commentTpBank = jsonNode.get("comment").asText();
+					if (CodeReturned.contains(code)) {
+						Supplement supplement = new Supplement();
+						long millis = System.currentTimeMillis();
+						java.util.Date date = new java.util.Date(millis);
+						supplement.SupplemenTPBank(code, commentTpBank, "Returned", date);
+						setcomments.add(supplement);
+					}
+				}
+			}
+		} else {
+			return response(404, mapper.createObjectNode().put("message", "Not Found Type comment"));
+		}
+
+		if (setcomments.size() == 0) {
+			return response(404, mapper.createObjectNode().put("message", "Code Not Found"));
+		}
+
+		if (fpt.getSupplement() != null) {
+			Set<Supplement> setsupplementsDB = (Set<Supplement>) fpt.getSupplement().stream()
+					.collect(Collectors.toSet());
+
+			boolean MergSet = setcomments.addAll(setsupplementsDB);
+
+			if (MergSet == false) {
+				return response(404, mapper.createObjectNode().put("message", "Not Merging"));
+			}
+		}
+
+		update.set("status", "RETURNED");
+		update.set("Supplement", setcomments);
+		mongoTemplate.updateFirst(query, update, Fpt.class);
+
+		return response(200, mapper.convertValue(fpt, JsonNode.class));
+
+	}
 
 	public JsonNode adddocPostApproved(JsonNode request) throws Exception {
 
@@ -579,7 +579,7 @@ public class FptService {
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(fpt)));
 
-		return response(200, mapper.createObjectNode().put("message", "retry partner id " + fpt.getAppId() + " success"));
+		return response(0, mapper.createObjectNode().put("message", "retry partner id " + fpt.getAppId() + " success"));
 
 	}
 
