@@ -12,6 +12,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.Select;
+import vn.com.tpf.microservices.models.AutoCRM.CRM_DocumentsDTO;
 import vn.com.tpf.microservices.models.Automation.DocumentDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -113,7 +114,7 @@ public class CRM_DocumentsPage {
         }
     }
 
-    public void updateData(List<DocumentDTO> documentDTOS, String downLoadFileURL) throws IOException, InterruptedException {
+    public void updateData(List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL) throws IOException, InterruptedException {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
@@ -125,9 +126,9 @@ public class CRM_DocumentsPage {
         int index = 0;
 
         List<String> updateField=new ArrayList<>();
-        for(DocumentDTO documentDTO:documentDTOS){
-            updateField.add(FilenameUtils.removeExtension(documentDTO.originalname));
-            System.out.println("PATH:" + FilenameUtils.removeExtension(documentDTO.originalname));
+        for(CRM_DocumentsDTO documentDTO:documentDTOS){
+            updateField.add(FilenameUtils.removeExtension(documentDTO.originalName));
+            System.out.println("PATH:" + FilenameUtils.removeExtension(documentDTO.originalName));
         }
 
         Utilities.captureScreenShot(_driver);
@@ -138,14 +139,14 @@ public class CRM_DocumentsPage {
             if (updateField.contains(docName)) {
 
                 //do type truyen sang null
-                DocumentDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalname.contains(docName)).findAny().orElse(null);
+                CRM_DocumentsDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalName.contains(docName)).findAny().orElse(null);
                 if(documentDTO!=null){
 
                     //bo sung get ext file
-                    String ext= FilenameUtils.getExtension(documentDTO.getFilename());
+                    String ext= FilenameUtils.getExtension(documentDTO.getFileName());
 
                     toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
-                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFileName(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();

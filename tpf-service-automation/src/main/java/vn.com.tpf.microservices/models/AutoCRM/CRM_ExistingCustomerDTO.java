@@ -5,9 +5,6 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
-import vn.com.tpf.microservices.models.Automation.DocumentDTO;
-import vn.com.tpf.microservices.models.Document;
-import vn.com.tpf.microservices.models.LoanDetails;
 
 import java.util.Date;
 import java.util.List;
@@ -30,8 +27,12 @@ public class CRM_ExistingCustomerDTO {
     private String project;
     private String transaction_id;
     private String automation_result;
+    private String comment;
 
+    public CRM_ApplicationInformationsDTO applicationInformation;
     public CRM_LoanDetailsDTO loanDetails;
-    public List<DocumentDTO> documents = null;
+    public List<CRM_DocumentsDTO> documents = null;
+    public List<CRM_ReferencesDTO> references = null;
+    public List<CRM_DynamicFormDTO> dynamicForm = null;
 
 }

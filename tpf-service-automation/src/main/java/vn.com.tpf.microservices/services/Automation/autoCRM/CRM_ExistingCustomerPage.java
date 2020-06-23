@@ -109,29 +109,9 @@ public class CRM_ExistingCustomerPage {
     @CacheLookup
     private WebElement applicantIdHeaderElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @FindBy(how = How.ID, using = "edit-customer-inDetail_0")
     @CacheLookup
-    private WebElement applicationsAssignedTextElement;
-
-    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
-    @CacheLookup
-    private List<WebElement> applicationsAssignedTableElement;
-
-    @FindBy(how = How.XPATH, using = "//div[@id='loanApplicationExistingParties']")
-    @CacheLookup
-    private WebElement loanApplicationExistingPartiesElement;
-
-    @FindBy(how = How.ID, using = "applicationChildTabs_loanInfo")
-    @CacheLookup
-    private WebElement tabLoanDetailsElement;
-
-    @FindBy(how = How.ID, using = "sourcingDetailsLiId")
-    @CacheLookup
-    private WebElement tabSourcingDetailsElement;
-
-    @FindBy(how = How.ID, using = "move_to_next_stage")
-    @CacheLookup
-    private WebElement btnMoveToNextStageElement;
+    private WebElement editCustomerExistCustomerElement;
 
 
     public CRM_ExistingCustomerPage(WebDriver driver) {

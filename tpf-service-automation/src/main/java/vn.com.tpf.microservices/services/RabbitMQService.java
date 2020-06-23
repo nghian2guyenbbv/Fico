@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -145,6 +146,13 @@ public class RabbitMQService {
 				}
 				else if (project.equals("mobility")){
 					return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
+				}else if (project.equals("crm")){
+					String checkCustID = request.path("body").path("neoCustID").asText();
+					if (!StringUtils.isEmpty(checkCustID) || !"null".equals(checkCustID.toLowerCase())){
+						return response(message, payload, automationService.CRM_quickLeadAppWithCustID(request));
+					}else{
+						return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
+					}
 				}
 				else
 				{
