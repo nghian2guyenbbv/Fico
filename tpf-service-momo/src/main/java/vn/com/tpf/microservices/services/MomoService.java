@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.Automation.Application;
 import vn.com.tpf.microservices.models.Finnone.CreateApplicationRequest;
@@ -694,10 +695,19 @@ public class MomoService {
 				CreateApplicationRequest createApplicationRequest = convertService
 						.toFin1API(momoParser);
 				log.info("data"+ mapper.convertValue(createApplicationRequest, JsonNode.class));
-				ResponseEntity EsbResult = sendToEsbService(createApplicationRequest);
+				ResponseEntity<String> EsbResult = sendToEsbService(createApplicationRequest);
 
 				if (EsbResult != null && EsbResult.getStatusCode().is2xxSuccessful()) {
-					JsonNode bodyRes = mapper.convertValue(EsbResult.getBody(), JsonNode.class);
+
+					String bodyString = EsbResult.getBody();
+					if(StringUtils.hasLength(bodyString)){
+						bodyString = bodyString.replaceAll("\u00A0", "");
+					}
+
+					//JsonNode bodyRes = mapper.convertValue(EsbResult.getBody(), JsonNode.class);
+
+					JsonNode bodyRes = mapper.convertValue(bodyString, JsonNode.class);
+
 
 					if (!bodyRes.path("_responseDataFull").path("applicationNumber").asText().isEmpty()) {
 
