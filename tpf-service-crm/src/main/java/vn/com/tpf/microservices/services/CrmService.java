@@ -424,8 +424,8 @@ public class CrmService {
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
 				.set("filesUpload", filesUpload)
 				.set("neoCustID", data.path("custId").asText())
-				.set("cifNumber", "null")
-				.set("idNumber", "null");
+				.set("cifNumber", data.path("cifNumber").asText())
+				.set("idNumber", data.path("idNumber").asText());
 		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Crm.class);
 
