@@ -65,6 +65,9 @@ public class Crm {
 	private Date createdAt;
 	@LastModifiedDate
 	private Date updatedAt;
+	private String neoCustID;
+	private String cifNumber ;
+	private String idNumber;
 }
 
 

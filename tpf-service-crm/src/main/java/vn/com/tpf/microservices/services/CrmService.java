@@ -298,6 +298,147 @@ public class CrmService {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public JsonNode addDocumentsWithCustId(JsonNode request) throws Exception {
+
+		JsonNode body = request.path("body");
+		if (body.path("data").isNull())
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+		final JsonNode data = request.path("body").path("data");
+
+		final long leadId = data.path("leadId").asLong(0);
+
+		if (data.path("branch").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.branch not null"));
+
+		if (data.path("chanel").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.chanel not null"));
+
+		if (data.path("productCode").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.productCode not blank"));
+		if (data.path("schemeCode").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.schemeCode not blank"));
+		if (data.path("custId").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.custId not blank"));
+		if (!data.hasNonNull("documents") || mapper.convertValue(data.path("documents"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.documents array required"));
+
+		Query query = Query.query(Criteria.where("leadId").is(leadId));
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.leadId %s not exits", data.path("leadId").asInt())));
+
+		if (crm.getStage().equals(STAGE_PRECHECK1_DONE))
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.leadId %s precheck2 not exits", data.path("leadId").asInt())));
+
+		if (crm.getStage().equals(STAGE_PRECHECK2_CHECIKING)) {
+			JsonNode lastPreCheck2 = mapper.convertValue(crm.getPreChecks().get("preCheck2"), ArrayNode.class)
+					.get(0);
+			return utils.getJsonNodeResponse(1, body,
+					mapper.createObjectNode().put("message",
+							String.format("data.leadId %s precheck2 %s  %s", data.path("leadId").asInt(),
+									lastPreCheck2.path("bankCardNumber").asText(),
+									lastPreCheck2.path("data").path("description").asText())));
+		}
+
+		if (crm.getStage().equals(STAGE_UPLOADED) || crm.getFilesUpload() != null)
+			return utils.getJsonNodeResponse(1, body,
+					mapper.createObjectNode().put("message", String.format("data.leadId %s uploaded document at %s ",
+							data.path("leadId").asInt(), crm.getUpdatedAt())));
+		final String productCode = data.path("productCode").asText().replace(" ", "_").trim().toLowerCase();
+		final String schemeCode = data.path("schemeCode").asText().replace(" ", "_").trim().toLowerCase();
+
+		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
+						Map.of("productCode", data.path("productCode").asText(), "schemeCode",
+								data.path("schemeCode").asText())));
+
+		if (documentFinnOne.path("status").asInt() != 200)
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+					String.format("%s %s not found", productCode, schemeCode)));
+
+		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
+		ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+		for (int index = 0; index < documents.size(); index++) {
+			if (documents.get(index).path("documentMd5").asText().isBlank()
+					|| documents.get(index).path("documentCode").asText().isBlank()
+					|| documents.get(index).path("documentFileExtension").asText().isBlank()
+					|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+			if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+						String.format("%s not found", documents.get(index).path("documentCode").asText())));
+			ObjectNode document = ((ObjectNode) documentsDb.path(documents.get(index).path("documentCode").asText()));
+
+			document.put("required", false);
+			if (document.hasNonNull("documentsReplace")) {
+				List<String> documentsReplace = mapper.convertValue(document.path("documentsReplace"), List.class);
+				for (String docReplace : documentsReplace)
+					if (documentsDb.hasNonNull(docReplace))
+						((ObjectNode) documentsDb.path(docReplace)).put("required", false);
+			}
+		}
+
+		for (JsonNode document : documentsDb)
+			if (document.path("required").asBoolean())
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+						String.format("document %s required", document.path("code").asText())));
+		List<HashMap> filesUpload = new ArrayList<HashMap>();
+		for (JsonNode document : documents) {
+			JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+			JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+			if (uploadResult.path("resultCode").asInt() != 200)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+			
+			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+					.equals(document.path("documentMd5").asText().toLowerCase()))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message",
+								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+										uploadResult.path("md5").asText().toLowerCase())));
+			
+			HashMap<String, String> docUpload = new HashMap<>();
+			docUpload.put("documentCode", document.path("documentCode").asText());
+			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+			docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+			docUpload.put("documentMd5", document.path("documentMd5").asText());
+			docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+			docUpload.put("originalname", document.path("documentCode").asText().concat(".")
+					.concat(document.path("documentFileExtension").asText()));
+			docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+			filesUpload.add(docUpload);
+		}
+		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
+				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
+				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
+				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
+				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
+				.set("filesUpload", filesUpload)
+				.set("neoCustID", data.path("custId").asText())
+				.set("cifNumber", "null")
+				.set("idNumber", "null");
+		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Crm.class);
+
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadAppWithCustId", "body",
+				convertService.toAppFinnone(crm).put("reference_id", body.path("reference_id").asText())));
+
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppDisplay(crm).put("reference_id", body.path("reference_id").asText())));
+
+		return utils.getJsonNodeResponse(0, body, null);
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public JsonNode addDocuments(JsonNode request) throws Exception {
 
 		JsonNode body = request.path("body");

@@ -70,6 +70,17 @@ public class CrmController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 	
+	@PostMapping("/crm/addDocumentsWithCustId")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-smartnet')")
+	ResponseEntity<?> addDocumentsWithCustId(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "addDocumentsWithCustId");
+		request.put("body", body);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-crm", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+	
 	@PostMapping("/crm/returnQuery")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-smartnet')")
 	public ResponseEntity<?> returnQuery(@RequestBody ObjectNode body) throws Exception {

@@ -177,6 +177,9 @@ public class ConvertService {
 		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
 		quickLead.put("leadStatus", LeadStatus);
 		quickLead.put("communicationTranscript", CommunicationTranscript);
+		quickLead.put("neoCustID", crm.getNeoCustID());
+		quickLead.put("cifNumber", crm.getCifNumber());
+		quickLead.put("idNumber", crm.getIdNumber());
 
 		ArrayNode documents = mapper.createArrayNode();
 
