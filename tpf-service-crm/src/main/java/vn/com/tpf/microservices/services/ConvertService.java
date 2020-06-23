@@ -159,6 +159,10 @@ public class ConvertService {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("project", "crm");
 		app.put("quickLeadId", crm.getId());
+		app.put("neoCustID", crm.getNeoCustID());
+		app.put("cifNumber", crm.getCifNumber());
+		app.put("idNumber", crm.getIdNumber());
+		
 		ObjectNode quickLead = mapper.createObjectNode();
 		quickLead.put("identificationNumber", crm.getNationalId());
 		quickLead.put("productTypeCode", ProductTypeCode);

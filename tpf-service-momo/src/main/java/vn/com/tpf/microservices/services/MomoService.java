@@ -709,7 +709,7 @@ public class MomoService {
 					JsonNode bodyRes = mapper.convertValue(bodyString, JsonNode.class);
 
 
-					if (!bodyRes.path("_responseDataFull").path("applicationNumber").asText().isEmpty()) {
+					if (!bodyRes.path("responseData").path("applicationNumber").asText().isEmpty()) {
 
 						//update lai con APP sau khi co APPID
 						Query query = Query.query(Criteria.where("momoLoanId").is(momo.getMomoLoanId()));
