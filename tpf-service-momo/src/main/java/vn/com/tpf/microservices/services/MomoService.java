@@ -757,7 +757,7 @@ public class MomoService {
 
 	private ResponseEntity sendToEsbService(CreateApplicationRequest createApplicationRequest) {
 		final String url = urlEsbService;
-		ResponseEntity<JsonNode> result = null;
+		ResponseEntity<String> result = null;
 		try {
 			log.info("url:"+url);
 			MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
@@ -766,8 +766,8 @@ public class MomoService {
 
 			headers.add("Content-Type", "application/json");
 			HttpEntity<?> request = new HttpEntity<>(createApplicationRequest, headers);
-			result = restTemplate.postForEntity(url, request, JsonNode.class);
-			log.info("Call F1:"+result.getStatusCodeValue());
+			result = restTemplate.postForEntity(url, request, String.class);
+			log.info("Call F1 :"+result.getStatusCodeValue()  +"-"+ result.getBody());
 
 			return result;
 		} catch (Exception e) {
