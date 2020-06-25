@@ -295,7 +295,7 @@ public class RepaymentService {
 						headers.add("sign", "1");
 						headers.add("Content-Type", "application/json");
 						HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
-						ResponseEntity<JsonNode> res = restTemplate.postForEntity(uri, body, JsonNode.class);
+						ResponseEntity<String> res = restTemplate.postForEntity(uri, body, String.class);
 						log.info("{}", res.getBody());
 					}).start();
 					//END CALL
