@@ -122,6 +122,26 @@ public class RabbitMQService {
 		return null;
 	}
 
+	public Message response(Message message, byte[] payload, Object object, boolean isWriteLog) throws Exception {
+		ObjectNode dataLog = mapper.createObjectNode();
+		dataLog.put("type", "[==RABBITMQ-LOG==]");
+		dataLog.set("result", mapper.convertValue(object, JsonNode.class));
+		try {
+			dataLog.set("payload", mapper.readTree(new String(payload, "UTF-8")));
+		} catch (Exception e) {
+			dataLog.put("payload", new String(payload, "UTF-8"));
+		}
+		if(isWriteLog){
+			log.info("{}", dataLog);
+		}
+		log.info("{}", dataLog);
+		if (message.getMessageProperties().getReplyTo() != null) {
+			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
+		}
+
+		return null;
+	}
+
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
@@ -208,7 +228,7 @@ public class RabbitMQService {
 				case "getTokenSaigonBpo":
 					return response(message, payload, dataEntryService.getTokenSaigonBpo(request, token));
 				case "getAppByQuickLeadId":
-					return response(message, payload, dataEntryService.getAppByQuickLeadId(request));
+					return response(message, payload, dataEntryService.getAppByQuickLeadId(request), false);
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
