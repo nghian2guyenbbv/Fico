@@ -1,27 +1,21 @@
-package vn.com.tpf.microservices.services.Automation.autoField;
+package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import lombok.Getter;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
-import vn.com.tpf.microservices.models.AutoField.ExistingCustomerDTO;
-import vn.com.tpf.microservices.utilities.Constant;
-import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 
 
 @Getter
-public class FV_ExistingCustomerPage {
+public class CRM_ExistingCustomerPage {
     private WebDriver _driver;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
@@ -30,6 +24,10 @@ public class FV_ExistingCustomerPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//a[contains(text(),'Personal Loan  ')]")
     @CacheLookup
     private WebElement personalLoanElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//span[contains(text(),'Applications')]")
+    @CacheLookup
+    private WebElement applicationElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'createCustDiv']//div[contains(@class,'applicant-search-screen')]")
     @CacheLookup
@@ -111,8 +109,12 @@ public class FV_ExistingCustomerPage {
     @CacheLookup
     private WebElement applicantIdHeaderElement;
 
+    @FindBy(how = How.ID, using = "edit-customer-inDetail_0")
+    @CacheLookup
+    private WebElement editCustomerExistCustomerElement;
 
-    public FV_ExistingCustomerPage(WebDriver driver) {
+
+    public CRM_ExistingCustomerPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
