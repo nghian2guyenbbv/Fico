@@ -15,11 +15,11 @@ public class CRM_LoanDetailsPage {
     @CacheLookup
     private WebElement tabLoanDetailsElement;
 
-    private CRM_LoanDetailsSourcingDetailsTabPage loanDetailsSourcingDetailsTab;
+    private CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab;
 
     public CRM_LoanDetailsPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
-        loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTabPage(driver);
+        loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
     }
 
 }

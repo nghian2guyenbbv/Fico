@@ -140,11 +140,9 @@ public class DE_DocumentsPage {
 
         List<String> updateField=new ArrayList<>();
         for(DocumentDTO documentDTO:documentDTOS){
-            //updateField.add(documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
             updateField.add(FilenameUtils.removeExtension(documentDTO.originalname));
 
-            //System.out.println("name;" + documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
-            System.out.println("name;" + FilenameUtils.removeExtension(documentDTO.originalname));
+            System.out.println("NAME:" + FilenameUtils.removeExtension(documentDTO.originalname));
         }
 
 //        List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book",
@@ -170,7 +168,7 @@ public class DE_DocumentsPage {
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();
-                        System.out.println("paht;" + photoUrl);
+                        System.out.println("PATH:" + photoUrl);
                         // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 

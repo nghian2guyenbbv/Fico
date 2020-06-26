@@ -86,32 +86,61 @@ public class CRM_DocumentsPage {
         PageFactory.initElements(driver, this);
     }
 
-    public void setData(String photoUrl) throws IOException {
-
+    public void setData(List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL) throws IOException, InterruptedException {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-        String fromFile = "https://calllogoutside.fptshop.com.vn/Uploads/FileAttachs/TPBank/20190702/CMND_20190702081038_20190702074647_25332.jpg";
-        String toFile = Constant.SCREENSHOT_PRE_PATH + "download_finnone.png" ;
-        FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
+        await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
 
-        File file =new File(toFile);
-        photoUrl=file.getAbsolutePath();
-        System.out.println("Exist:" + file.exists());
-
-        System.out.println("Exist:" + file.getAbsolutePath());
+        String fromFile = downLoadFileURL;
+        System.out.println("URLdownload: " + fromFile);
 
         int index = 0;
-        List<String> requiredFiled = Arrays.asList("TPF_ID Card", "TPF_Customer Photograph", "TPF_Employee_Card", "TPF_Family Book"); //
-        for(WebElement element : lendingTrElement) {
+        List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card","TPF_Notarization of ID card","TPF_Family Book","TPF_Notarization of Family Book",
+                "TPF_Customer Photograph","TPF_Health Insurance Card","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
+                "TPF_Employer Confirmation","TPF_Labor Contract","TPF_Salary slip",
+                "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac",
+                "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills","TPF_Confirm_student_infomation", "TPF_Confirm_student_Infomation",
+                "TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
+                "TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card","TPF_Collab document","TPF_Credit contract documentations",
+                "TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon","TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
+                "TPF_Transcript","TPF_Representatives "); //
+        Utilities.captureScreenShot(_driver);
+
+        for (WebElement element : docNameElement) {
             final int _tempIndex = index;
-            if (requiredFiled.contains(element.getAttribute("data-documentcode"))) {
-                new Select(lendingStatusElement.get(index)).selectByVisibleText("Received");
-                await("Load lendingPhotoContainerElement Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() ->  lendingPhotoContainerElement.get(_tempIndex).isDisplayed());
-                lendingPhotoElement.get(_tempIndex).sendKeys(photoUrl);
-                Utilities.captureScreenShot(_driver);
+            String docName = element.getText();
+            //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
+            String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+            if (requiredFiled.contains(docName)) {
+
+                CRM_DocumentsDTO doc=documentDTOS.stream().filter(q->q.getType().equals(docName)).findAny().orElse(null);
+
+                if(doc!=null)
+                {
+                    //bo sung get ext file
+                    String ext=FilenameUtils.getExtension(doc.getFileName());
+
+                    toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
+
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFileName(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    File file = new File(toFile);
+                    if(file.exists()) {
+                        //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
+                        String photoUrl = file.getAbsolutePath();
+                        System.out.println("PATH:" + photoUrl);
+                        // Added sleep to make you see the difference.
+                        Thread.sleep(2000);
+
+                        photoElement.get(_tempIndex).sendKeys(photoUrl);
+                        Utilities.captureScreenShot(_driver);
+                    }
+                }
             }
             index++;
         }
+
+        Utilities.captureScreenShot(_driver);
+
     }
 
     public void updateData(List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL) throws IOException, InterruptedException {
@@ -119,18 +148,26 @@ public class CRM_DocumentsPage {
         await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
 
+        //String fromFile = "http://192.168.0.203:3001/v1/file/";
         String fromFile = downLoadFileURL;
         String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+        //do index=0 la 1 element khac
         System.out.println("update doc - URLdownload: " + fromFile);
 
         int index = 0;
 
         List<String> updateField=new ArrayList<>();
         for(CRM_DocumentsDTO documentDTO:documentDTOS){
+            //updateField.add(documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
             updateField.add(FilenameUtils.removeExtension(documentDTO.originalName));
-            System.out.println("PATH:" + FilenameUtils.removeExtension(documentDTO.originalName));
+
+            //System.out.println("name;" + documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
+            System.out.println("name;" + FilenameUtils.removeExtension(documentDTO.originalName));
         }
 
+//        List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book",
+//                "TPF_Customer Photograph","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
+//                "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac"); //
         Utilities.captureScreenShot(_driver);
 
         for (WebElement element : docNameElement) {
@@ -146,6 +183,7 @@ public class CRM_DocumentsPage {
                     String ext= FilenameUtils.getExtension(documentDTO.getFileName());
 
                     toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
+                    //File file = new File(toFile + documentDTO.getFilename());
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFileName(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
@@ -155,6 +193,7 @@ public class CRM_DocumentsPage {
                         Thread.sleep(2000);
 
                         photoElement.get(_tempIndex).sendKeys(photoUrl);//
+                        //System.out.println("up oki");
                         // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 

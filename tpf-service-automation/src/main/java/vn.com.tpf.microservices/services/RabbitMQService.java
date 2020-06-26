@@ -147,11 +147,13 @@ public class RabbitMQService {
 				else if (project.equals("mobility")){
 					return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
 				}else if (project.equals("crm")){
-					String checkCustID = request.path("body").path("neoCustID").asText();
-					if (!StringUtils.isEmpty(checkCustID) || !"null".equals(checkCustID.toLowerCase())){
-						return response(message, payload, automationService.CRM_quickLeadAppWithCustID(request));
-					}else{
+					String checkCustID = request.path("body").path("neoCustID").textValue();
+					String checkCifNumber = request.path("body").path("cifNumber").textValue();
+					String checkIdNumber = request.path("body").path("idNumber").textValue();
+					if (StringUtils.isEmpty(checkCustID) && StringUtils.isEmpty(checkCifNumber) && StringUtils.isEmpty(checkIdNumber)){
 						return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
+					}else{
+						return response(message, payload, automationService.CRM_quickLeadAppWithCustID(request));
 					}
 				}
 				else

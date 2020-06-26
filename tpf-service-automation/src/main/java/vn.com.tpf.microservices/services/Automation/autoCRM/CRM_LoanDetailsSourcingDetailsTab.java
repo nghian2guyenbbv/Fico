@@ -2,7 +2,6 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -92,9 +91,8 @@ public class CRM_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private WebElement rateElement;
 
-    @FindBy(how = How.ID, using = "sourcingRM")
+    @FindBy(how = How.ID, using = "sourcingRM_chzn")
     @CacheLookup
-//    @FindBy(how = How.XPATH, using = "//div[@id = 'sourcingRM_chzn']")
     private WebElement salesAgentCodeElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'sourcingRM_chzn_o_')]")
@@ -144,7 +142,6 @@ public class CRM_LoanDetailsSourcingDetailsTab {
 
             await("branchContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchContainerElement.isDisplayed());
-//        branchOptionElement.get(0).click();
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchOptionElement.size() > 0);
             for(WebElement e: branchOptionElement) {
@@ -204,5 +201,4 @@ public class CRM_LoanDetailsSourcingDetailsTab {
                 .until(() -> salesAgentCodeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getSaleAgentCode(), salesAgentCodeOptionElement);
     }
-
 }

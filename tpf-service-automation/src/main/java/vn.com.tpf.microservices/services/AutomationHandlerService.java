@@ -4904,44 +4904,46 @@ public class AutomationHandlerService {
             await("Search Existing Individual Customers With displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getExistingCustomerSearchFormElement().isDisplayed());
 
-            if(!Objects.isNull(existingCustomerDTO.getNeoCustID()) || !"null".equals(existingCustomerDTO.getNeoCustID().toLowerCase())){
-                await("Neo Cust ID Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getNeoCustIDInputElement().isDisplayed());
+            if(!Objects.isNull(existingCustomerDTO.getNeoCustID())){
+                if(!"null".equals(existingCustomerDTO.getNeoCustID().toLowerCase())){
+                    await("Neo Cust ID Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> crm_ExistingCustomerPage.getNeoCustIDInputElement().isDisplayed());
 
-                crm_ExistingCustomerPage.getNeoCustIDInputElement().sendKeys(existingCustomerDTO.getNeoCustID());
-
-            }
-
-            if(!Objects.isNull(existingCustomerDTO.getCifNumber()) || !"null".equals(existingCustomerDTO.getCifNumber().toLowerCase())){
-                await("CIF Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getCifNumberInputElement().isDisplayed());
-
-                crm_ExistingCustomerPage.getCifNumberInputElement().sendKeys(existingCustomerDTO.getCifNumber());
-
-            }
-
-            if(!Objects.isNull(existingCustomerDTO.getIdNumber()) || !"null".equals(existingCustomerDTO.getIdNumber().toLowerCase())){
-
-                crm_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
-
-                await("Identification Type Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getIdentificationTypeUlElement().isDisplayed());
-
-                await("Identification Type Li loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getIdentificationTypeLiElement().size() > 0);
-
-                for (WebElement e : crm_ExistingCustomerPage.getIdentificationTypeLiElement()) {
-                    if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Current National ID")) {
-                        e.click();
-                        break;
-                    }
+                    crm_ExistingCustomerPage.getNeoCustIDInputElement().sendKeys(existingCustomerDTO.getNeoCustID());
                 }
+            }
 
-                await("ID Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getIdNumberInputElement().isDisplayed());
+            if(!Objects.isNull(existingCustomerDTO.getCifNumber())){
+                if (!"null".equals(existingCustomerDTO.getCifNumber().toLowerCase())){
+                    await("CIF Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> crm_ExistingCustomerPage.getCifNumberInputElement().isDisplayed());
 
-                crm_ExistingCustomerPage.getIdNumberInputElement().sendKeys(existingCustomerDTO.getIdNumber());
+                    crm_ExistingCustomerPage.getCifNumberInputElement().sendKeys(existingCustomerDTO.getCifNumber());
+                }
+            }
 
+            if(!Objects.isNull(existingCustomerDTO.getIdNumber())){
+                if (!"null".equals(existingCustomerDTO.getIdNumber().toLowerCase())){
+                    crm_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
+
+                    await("Identification Type Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> crm_ExistingCustomerPage.getIdentificationTypeUlElement().isDisplayed());
+
+                    await("Identification Type Li loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> crm_ExistingCustomerPage.getIdentificationTypeLiElement().size() > 0);
+
+                    for (WebElement e : crm_ExistingCustomerPage.getIdentificationTypeLiElement()) {
+                        if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Current National ID")) {
+                            e.click();
+                            break;
+                        }
+                    }
+
+                    await("ID Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> crm_ExistingCustomerPage.getIdNumberInputElement().isDisplayed());
+
+                    crm_ExistingCustomerPage.getIdNumberInputElement().sendKeys(existingCustomerDTO.getIdNumber());
+                }
             }
 
             await("Search displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -4998,7 +5000,7 @@ public class AutomationHandlerService {
 
             responseModel.setProject(existingCustomerDTO.getProject());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
-            responseModel.setTransaction_id(existingCustomerDTO.getTransaction_id());
+            responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("QUICKLEAD PASS");
 
@@ -5008,7 +5010,7 @@ public class AutomationHandlerService {
 
             responseModel.setProject(existingCustomerDTO.getProject());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
-            responseModel.setTransaction_id(existingCustomerDTO.getTransaction_id());
+            responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + e.getMessage());
 
@@ -5251,7 +5253,7 @@ public class AutomationHandlerService {
                 await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getLendingTrElement().size() > 0);
 
-                documentsPage.updateData(documentDTOS, downdloadFileURL);
+                documentsPage.setData(documentDTOS, downdloadFileURL);
                 Utilities.captureScreenShot(driver);
                 documentsPage.getBtnSubmitElement().click();
             }
