@@ -786,6 +786,18 @@ public class DataInitial {
         ////*********COMMUNICATIONDETAILS
         CRM_CommunicationDetailsDTO communicationDetails=existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getCommunicationDetails();
 
+        //Family
+        List<CRM_FamilyDTO> familyDTOs = new ArrayList<>();
+        for (CRM_FamilyListDTO family : existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getFamily()) {
+            CRM_FamilyDTO familyDTO = CRM_FamilyDTO.builder()
+                    .relationshipType(family.getRelationship())
+                    .memberName(family.getMemberName())
+                    .phoneNumber(family.getPhoneNumber())
+                    .educationStatus("")
+                    .comName("").build();
+            familyDTOs.add(familyDTO);
+        }
+
         ////*********EMPLOYMENT DETAIL
         CRM_EmploymentDetailsDTO employmentDetails = existingCustomerDTOList.getApplicationInformation().getEmploymentDetails();
         CRM_EmploymentDetailsListDTO employmentDTO = CRM_EmploymentDetailsListDTO.builder()
@@ -820,6 +832,7 @@ public class DataInitial {
                 .identification(identificationDTOs)
                 .address(addressDTOs)
                 .email(existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
+                .family(familyDTOs)
                 .communicationDetails(communicationDetails)
                 .employmentDetails(employmentDTO)
                 .build();
@@ -904,8 +917,8 @@ public class DataInitial {
         if(existingCustomerDTOList.getDocuments()!=null && existingCustomerDTOList.getDocuments().size()>0){
             for(CRM_DocumentsDTO document : existingCustomerDTOList.getDocuments()) {
                 CRM_DocumentsDTO documentDTO = CRM_DocumentsDTO.builder ()
-                        .originalName(document.getOriginalName())
-                        .fileName(document.getFileName())
+                        .originalname(document.getOriginalname())
+                        .filename(document.getFilename())
                         .type(document.getType()).build();
                 documentDTOS.add(documentDTO);
             }

@@ -11,6 +11,6 @@ public class CRM_PersonalInfomationDTO {
     public List<CRM_IdentificationsDTO> identifications = null;
     public List<CRM_AddressDTO> addresses = null;
     public CRM_CommunicationDetailsDTO communicationDetails;
-    public List<CRM_FamilyDTO> family = null;
+    public List<CRM_FamilyListDTO> family = null;
 
 }

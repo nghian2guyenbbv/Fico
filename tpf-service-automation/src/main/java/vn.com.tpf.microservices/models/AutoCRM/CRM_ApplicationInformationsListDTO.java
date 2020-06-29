@@ -24,6 +24,7 @@ public class CRM_ApplicationInformationsListDTO implements Serializable {
     private String email;
     private List<CRM_IdentificationsListDTO> identification;
     private List<CRM_AddressListDTO> address;
+    private List<CRM_FamilyDTO> family;
     private CRM_EmploymentDetailsListDTO employmentDetails;
     public CRM_CommunicationDetailsDTO communicationDetails;
 

@@ -395,6 +395,13 @@ public class CRM_ApplicationInfoPersonalTab {
         setAddressValue(applicationInfoDTO.getAddress());
         loadAddressSection();
 
+        if (applicationInfoDTO.getFamily().size() > 0) {
+            loadFamilySection();
+            await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> familyDivElement.isDisplayed());
+            setFamilyValue(applicationInfoDTO.getFamily());
+        }
+
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> communicationDetailDivElement.isDisplayed());
@@ -642,6 +649,23 @@ public class CRM_ApplicationInfoPersonalTab {
             index++;
             Utilities.captureScreenShot(_driver);
         }
+    }
+
+    public void setFamilyValue(List<CRM_FamilyDTO> datas) throws IOException {
+        for (CRM_FamilyDTO data : datas) {
+            this.memberNameElement.sendKeys(data.getMemberName());
+            new Select(this.relationshipTypeElement).selectByVisibleText(data.getRelationshipType());
+            this.phoneNumberElement.sendKeys(data.getPhoneNumber());
+            if (StringUtils.isNotBlank(data.getEducationStatus()))
+                new Select(this.educationStatusElement).selectByVisibleText(data.getEducationStatus());
+            this.comNameElement.sendKeys(data.getComName());
+            if (StringUtils.isNotBlank(data.getIsDependent()) && Integer.parseInt(data.getIsDependent()) == 1)
+                this.IsDependentElement.click();
+
+            // TODO: instead of break this loop, we must create new family row element here if have more data
+            break;
+        }
+
     }
 
     public void saveAndNext() {

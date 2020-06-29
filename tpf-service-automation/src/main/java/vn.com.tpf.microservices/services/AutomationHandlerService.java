@@ -5300,14 +5300,14 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "COMPLETE";
-            System.out.println("AUTO OK: user =>" + accountDTO.getUserName());
+            System.out.println("AUTO EXISTING CUSTOMER OK: user run auto: " + accountDTO.getUserName());
 
-            System.out.println("Auto - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("AUTO EXISTING CUSTOMER - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
 
             responseModel.setProject(existingCustomerDTO.getProject());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
-            responseModel.setTransaction_id(existingCustomerDTO.getTransaction_id());
+            responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("EXISTING_CUSTOMER PASS");
 
@@ -5317,7 +5317,7 @@ public class AutomationHandlerService {
 
             responseModel.setProject(existingCustomerDTO.getProject());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
-            responseModel.setTransaction_id(existingCustomerDTO.getTransaction_id());
+            responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("EXISTING_CUSTOMER FAILED" + " - " + e.getMessage());
 
@@ -5328,7 +5328,7 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            System.out.println(responseModel.getAutomation_result() + " - Project: " + responseModel.getProject().toUpperCase() + " - AppId: " +responseModel.getApp_id());
             logout(driver,accountDTO.getUserName());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
