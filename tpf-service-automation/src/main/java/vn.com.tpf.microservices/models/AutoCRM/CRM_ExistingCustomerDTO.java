@@ -17,7 +17,8 @@ import java.util.List;
 public class CRM_ExistingCustomerDTO {
     @Id
     private String id;
-    private int status=0;
+    private String status;
+    private String stage;
     @CreatedDate
     private Date createDate;
     @LastModifiedDate
@@ -36,6 +37,7 @@ public class CRM_ExistingCustomerDTO {
     private CRM_QuickLeadDTO quickLead;
     private String leadApp;
     private String automationAcc;
+    private String description;
 
     public CRM_ApplicationInformationsDTO applicationInformation;
     public CRM_LoanDetailsDTO loanDetails;

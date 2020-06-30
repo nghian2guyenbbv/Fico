@@ -4874,14 +4874,14 @@ public class AutomationHandlerService {
     public void CRM_runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO, String project) throws Exception {
         Instant start = Instant.now();
         String stage = "";
-        Application application = Application.builder().build();
+        CRM_ExistingCustomerDTO application = CRM_ExistingCustomerDTO.builder().build();
         log.info("{}", application);
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
-            application = (Application) mapValue.get("ApplicationDTO");
+            application = (CRM_ExistingCustomerDTO) mapValue.get("ApplicationDTO");
             application.setAutomationAcc(accountDTO.getUserName());
-            QuickLead quickLead = application.getQuickLead();
+            CRM_QuickLeadDTO quickLead = application.getQuickLead();
             //mongoTemplate.save(application);
 
 
@@ -4917,7 +4917,7 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            CRM_QuickLeadPage quickLeadPage = new CRM_QuickLeadPage(driver);
             quickLeadPage.setData(quickLead);
 
             System.out.println(stage + ": DONE");
@@ -4944,7 +4944,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             stage = "LEAD STAGE";
             // ========== LEAD STAGE =================
-            LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
+            CRM_LeadDetailPage leadDetailPage = new CRM_LeadDetailPage(driver);
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
 
@@ -5045,10 +5045,10 @@ public class AutomationHandlerService {
         }
     }
 
-    private void CRM_updateStatusRabbit(Application application, String func, String project) throws Exception {
+    private void CRM_updateStatusRabbit(CRM_ExistingCustomerDTO application, String func, String project) throws Exception {
 
         JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-esb",
-                Map.of("func", "updateAutomation", "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getApplicationId() != null ? application.getApplicationId() : "",
+                Map.of("func", func, "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getApplicationId() != null ? application.getApplicationId() : "",
                         "project", project,
                         "automation_result", application.getStatus(),
                         "description", application.getDescription() != null ? application.getDescription() : "",
@@ -5058,13 +5058,8 @@ public class AutomationHandlerService {
 
     }
 
-    private void CRM_updateDB(Application application) throws Exception {
+    private void CRM_updateDB(CRM_ExistingCustomerDTO application) throws Exception {
 
-//        Query queryUpdate = new Query();
-//        queryUpdate.addCriteria(Criteria.where("quickLeadId").is(application.getQuickLeadId()));
-//        Update update = new Update();
-//        update.set("lastModifiedDate", new Date());
-//        AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
         mongoTemplate.save(application);
 
     }

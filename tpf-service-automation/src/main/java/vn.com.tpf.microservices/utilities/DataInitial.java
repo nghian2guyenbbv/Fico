@@ -928,4 +928,10 @@ public class DataInitial {
 
         return map;
     }
+
+    public static Map<String, Object> getDataFromCRM_QL(CRM_ExistingCustomerDTO application) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("ApplicationDTO", application);
+        return map;
+    }
 }
