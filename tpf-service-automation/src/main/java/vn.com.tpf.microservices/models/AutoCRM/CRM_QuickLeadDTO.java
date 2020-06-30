@@ -21,5 +21,8 @@ public class CRM_QuickLeadDTO {
     public String preferredModeOfCommunication;
     public String leadStatus;
     public String communicationTranscript;
+    public String ememployeeName;
+    public String ememployeeNumber;
+
     public List<CRM_DocumentsDTO> documents = null;
 }

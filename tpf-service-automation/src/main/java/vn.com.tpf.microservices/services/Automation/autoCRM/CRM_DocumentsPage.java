@@ -109,7 +109,6 @@ public class CRM_DocumentsPage {
         for (WebElement element : docNameElement) {
             final int _tempIndex = index;
             String docName = element.getText();
-            //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             if (requiredFiled.contains(docName)) {
 
@@ -125,10 +124,8 @@ public class CRM_DocumentsPage {
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
-                        //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
                         String photoUrl = file.getAbsolutePath();
                         System.out.println("PATH:" + photoUrl);
-                        // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 
                         photoElement.get(_tempIndex).sendKeys(photoUrl);
@@ -148,26 +145,19 @@ public class CRM_DocumentsPage {
         await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
 
-        //String fromFile = "http://192.168.0.203:3001/v1/file/";
         String fromFile = downLoadFileURL;
         String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-        //do index=0 la 1 element khac
         System.out.println("update doc - URLdownload: " + fromFile);
 
         int index = 0;
 
         List<String> updateField=new ArrayList<>();
         for(CRM_DocumentsDTO documentDTO:documentDTOS){
-            //updateField.add(documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
             updateField.add(FilenameUtils.removeExtension(documentDTO.originalname));
 
-            //System.out.println("name;" + documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
             System.out.println("name;" + FilenameUtils.removeExtension(documentDTO.originalname));
         }
 
-//        List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book",
-//                "TPF_Customer Photograph","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
-//                "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac"); //
         Utilities.captureScreenShot(_driver);
 
         for (WebElement element : docNameElement) {
@@ -183,18 +173,14 @@ public class CRM_DocumentsPage {
                     String ext= FilenameUtils.getExtension(documentDTO.getFilename());
 
                     toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
-                    //File file = new File(toFile + documentDTO.getFilename());
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();
                         System.out.println("paht;" + photoUrl);
-                        // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 
                         photoElement.get(_tempIndex).sendKeys(photoUrl);//
-                        //System.out.println("up oki");
-                        // Added sleep to make you see the difference.
                         Thread.sleep(2000);
 
                         Utilities.captureScreenShot(_driver);

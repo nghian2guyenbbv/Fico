@@ -529,7 +529,7 @@ public class AutomationService {
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
 		String project = request.path("body").path("project").textValue();
-		Application application = mapper.treeToValue(request.path("body"), Application.class);
+		CRM_ExistingCustomerDTO application = mapper.treeToValue(request.path("body"), CRM_ExistingCustomerDTO.class);
 
 		new Thread(() -> {
 			try {
@@ -542,9 +542,9 @@ public class AutomationService {
 		return response(0, body, application.getQuickLead());
 	}
 
-	private void CRM_runAutomation_QL(Application application, String project) throws Exception {
+	private void CRM_runAutomation_QL(CRM_ExistingCustomerDTO application, String project) throws Exception {
 		String browser = "chrome";
-		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
+		Map<String, Object> mapValue = DataInitial.getDataFromCRM_QL(application);
 
 		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"CRM_quickLead",project.toUpperCase());
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
