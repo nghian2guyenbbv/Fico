@@ -285,6 +285,18 @@ public class AutomationHandlerService {
                     accountDTO = pollAccountFromQueue(accounts, project);
                     CRM_runAutomation_QuickLead_With_CustID(driver, mapValue, accountDTO);
                     break;
+                case "CRM_quickLead":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
+                    break;
+                case "runAutomation_ResponseQuery":
+                    accountDTO = return_pollAccountFromQueue(accounts, project, mapValue);
+                    runAutomationDE_responseQuery(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_SaleQueue":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    runAutomationDE_saleQueue(driver, mapValue, accountDTO);
+                    break;
             }
 
         } catch (Exception e) {
@@ -4858,6 +4870,206 @@ public class AutomationHandlerService {
     //------------------------ END UPDATE RABBITMQ -----------------------------------------------------
 
     //------------------------ PROJECT CRM -----------------------------------------------------
+    //------------------------ QUICKLEAD CRM -----------------------------------------------------
+    public void CRM_runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO, String project) throws Exception {
+        Instant start = Instant.now();
+        String stage = "";
+        Application application = Application.builder().build();
+        log.info("{}", application);
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            application = (Application) mapValue.get("ApplicationDTO");
+            application.setAutomationAcc(accountDTO.getUserName());
+            QuickLead quickLead = application.getQuickLead();
+            //mongoTemplate.save(application);
+
+
+            //*************************** END GET DATA *********************//
+            System.out.println(stage + ": DONE");
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "QUICK LEAD";
+            // ========== QUICK LEAD =================
+            homePage.menuClick();
+            homePage.leadQuickClick();
+
+            await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Quick Lead Entry"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
+            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            quickLeadPage.setData(quickLead);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "LEADS GRID";
+            // ========== LEAD PAGE =================
+            LeadsPage leadsPage = new LeadsPage(driver);
+            await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Lead Grid"));
+
+            await("notifyTextElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
+
+            String notify = leadsPage.getNotifyTextElement().getText();
+            String leadApp = "";
+            if (notify.contains("LEAD")) {
+                leadApp = notify.substring(notify.indexOf("LEAD"), notify.length());
+            }
+
+            System.out.println("LEAD APP: =>" + leadApp);
+            leadsPage.setData(leadApp);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "LEAD STAGE";
+            // ========== LEAD STAGE =================
+            LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
+            await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadDetailPage.getContentElement().isDisplayed());
+
+            leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            Utilities.captureScreenShot(driver);
+
+            await("Lead Page timeout").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Lead Grid"));
+
+            leadsPage.getSpanAllNotifyElement().click();
+            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
+
+            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
+            leadsPage.getBtnAllNotifyElement().click();
+
+            Utilities.captureScreenShot(driver);
+            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
+
+            String leadAppID = "";
+            stage = "APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getMenuApplicationElement().click();
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+            //get appID moi o day
+            leadAppID = de_applicationManagerPage.getAppID(leadApp);
+            System.out.println(" APP: =>" + leadAppID);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            //-------------------- END ---------------------------
+
+            application.setApplicationId(leadAppID);
+            application.setLeadApp(leadApp);
+
+            //UPDATE STATUS
+            application.setStatus("QUICKLEAD PASS");
+            application.setDescription("Thanh cong");
+
+
+            Utilities.captureScreenShot(driver);
+            //logout(driver);
+
+        } catch (Exception e) {
+            //UPDATE STATUS
+            application.setStatus("QUICKLEAD FAIL");
+            application.setStage(stage);
+            application.setDescription(e.getMessage());
+
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+
+            if (e.getMessage().contains("Work flow failed!!!")) {
+                stage = "END OF LEAD DETAIL";
+
+                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+
+                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                    String error = "Error: ";
+                    for (WebElement we : driver.findElements(By.id("error-message"))) {
+                        error += " - " + we.getText();
+                    }
+                    System.out.println(stage + "=>" + error);
+                }
+            }
+        } finally {
+            if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
+                application.setApplicationId("UNKNOW");
+                application.setStatus("QUICKLEAD_FAILED");
+                application.setDescription("Khong thanh cong");
+            }
+
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            try {
+                CRM_updateStatusRabbit(application, "updateAutomation", project);
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            }
+            CRM_updateDB(application);
+            logout(driver,accountDTO.getUserName());
+
+        }
+    }
+
+    private void CRM_updateStatusRabbit(Application application, String func, String project) throws Exception {
+
+        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-esb",
+                Map.of("func", "updateAutomation", "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getApplicationId() != null ? application.getApplicationId() : "",
+                        "project", project,
+                        "automation_result", application.getStatus(),
+                        "description", application.getDescription() != null ? application.getDescription() : "",
+                        "transaction_id", application.getQuickLeadId(),
+                        "automation_account", application.getAutomationAcc())));
+        System.out.println("rabit:=>" + jsonNode.toString());
+
+    }
+
+    private void CRM_updateDB(Application application) throws Exception {
+
+//        Query queryUpdate = new Query();
+//        queryUpdate.addCriteria(Criteria.where("quickLeadId").is(application.getQuickLeadId()));
+//        Update update = new Update();
+//        update.set("lastModifiedDate", new Date());
+//        AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+        mongoTemplate.save(application);
+
+    }
+
+
     //------------------------ CRM QUICKLEAD WITH CUSTID -----------------------------------------------------
     public void CRM_runAutomation_QuickLead_With_CustID(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
@@ -4872,6 +5084,8 @@ public class AutomationHandlerService {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
             existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("QuickLeadAppWithCustIDList");
+            existingCustomerDTO.setAutomationAcc(accountDTO.getUserName());
+
             log.info("{}", existingCustomerDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
@@ -4990,6 +5204,8 @@ public class AutomationHandlerService {
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
             System.out.println("APPID => " + applicationId);
 
+            existingCustomerDTO.setApplicationId(applicationId);
+
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "COMPLETE";
@@ -5023,6 +5239,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
             logout(driver,accountDTO.getUserName());
+            updateQuickleadExistingCustomer(existingCustomerDTO);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
@@ -5334,6 +5551,10 @@ public class AutomationHandlerService {
         }
     }
 
+    private void updateQuickleadExistingCustomer(CRM_ExistingCustomerDTO existingCustomerDTO) throws Exception {
+        mongoTemplate.save(existingCustomerDTO);
+
+    }
     //------------------------ END EXISTING CUSTOMER -----------------------------------------------------
 
     //------------------------ END PROJECT CRM -----------------------------------------------------

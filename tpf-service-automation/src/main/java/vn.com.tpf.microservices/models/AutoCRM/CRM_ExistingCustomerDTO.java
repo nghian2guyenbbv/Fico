@@ -5,12 +5,15 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
+import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
 @Builder
+@Document(collection="automation_application")
 public class CRM_ExistingCustomerDTO {
     @Id
     private String id;
@@ -21,6 +24,7 @@ public class CRM_ExistingCustomerDTO {
     private Date lastDate;
 
     private String quickLeadId;
+    private String applicationId;
     private String neoCustID;
     private String cifNumber;
     private String idNumber;
@@ -29,6 +33,9 @@ public class CRM_ExistingCustomerDTO {
     private String transaction_id;
     private String automation_result;
     private String comment;
+    private CRM_QuickLeadDTO quickLead;
+    private String leadApp;
+    private String automationAcc;
 
     public CRM_ApplicationInformationsDTO applicationInformation;
     public CRM_LoanDetailsDTO loanDetails;
