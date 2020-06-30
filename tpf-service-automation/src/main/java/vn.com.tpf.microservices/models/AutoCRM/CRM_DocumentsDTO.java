@@ -6,8 +6,8 @@ import lombok.Data;
 @Builder
 @Data
 public class CRM_DocumentsDTO {
-    public String originalName;
-    public String fileName;
+    public String originalname;
+    public String filename;
     public String type;
     public String link;
 }

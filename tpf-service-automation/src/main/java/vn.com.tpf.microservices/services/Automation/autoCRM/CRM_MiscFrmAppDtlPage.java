@@ -129,7 +129,7 @@ public class CRM_MiscFrmAppDtlPage {
     @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
     private WebElement companyNameElement;
 
-    @FindBy(how = How.ID, using = "amount_insurance_monthly_fee_frmAppDtl_2")
+    @FindBy(how = How.ID, using = "tpf_insurance_fee_frmAppDtl_2")
     private WebElement monthlyFeeElement;
 
     public WebElement _getBtnSaveElement() {

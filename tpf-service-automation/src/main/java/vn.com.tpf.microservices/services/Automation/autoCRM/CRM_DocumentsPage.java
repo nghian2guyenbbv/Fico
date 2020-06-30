@@ -118,11 +118,11 @@ public class CRM_DocumentsPage {
                 if(doc!=null)
                 {
                     //bo sung get ext file
-                    String ext=FilenameUtils.getExtension(doc.getFileName());
+                    String ext=FilenameUtils.getExtension(doc.getFilename());
 
                     toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
-                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFileName(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
                         //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
@@ -159,10 +159,10 @@ public class CRM_DocumentsPage {
         List<String> updateField=new ArrayList<>();
         for(CRM_DocumentsDTO documentDTO:documentDTOS){
             //updateField.add(documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
-            updateField.add(FilenameUtils.removeExtension(documentDTO.originalName));
+            updateField.add(FilenameUtils.removeExtension(documentDTO.originalname));
 
             //System.out.println("name;" + documentDTO.originalname.replace(".pdf","").replace(".PDF",""));
-            System.out.println("name;" + FilenameUtils.removeExtension(documentDTO.originalName));
+            System.out.println("name;" + FilenameUtils.removeExtension(documentDTO.originalname));
         }
 
 //        List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book",
@@ -176,15 +176,15 @@ public class CRM_DocumentsPage {
             if (updateField.contains(docName)) {
 
                 //do type truyen sang null
-                CRM_DocumentsDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalName.contains(docName)).findAny().orElse(null);
+                CRM_DocumentsDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalname.contains(docName)).findAny().orElse(null);
                 if(documentDTO!=null){
 
                     //bo sung get ext file
-                    String ext= FilenameUtils.getExtension(documentDTO.getFileName());
+                    String ext= FilenameUtils.getExtension(documentDTO.getFilename());
 
                     toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
                     //File file = new File(toFile + documentDTO.getFilename());
-                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFileName(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();

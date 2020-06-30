@@ -151,7 +151,7 @@ public class RabbitMQService {
 					String checkCifNumber = request.path("body").path("cifNumber").textValue();
 					String checkIdNumber = request.path("body").path("idNumber").textValue();
 					if (StringUtils.isEmpty(checkCustID) && StringUtils.isEmpty(checkCifNumber) && StringUtils.isEmpty(checkIdNumber)){
-						return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
+						return response(message, payload, automationService.CRM_quickLeadApp(request));
 					}else{
 						return response(message, payload, automationService.CRM_quickLeadAppWithCustID(request));
 					}
