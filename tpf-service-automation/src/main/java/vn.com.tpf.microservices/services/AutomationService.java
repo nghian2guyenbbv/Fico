@@ -341,7 +341,7 @@ public class AutomationService {
 		}else if("mobility".equals(projectJson)) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
 		}else{
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery",projectJson.toUpperCase());
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery",projectJson);
 		}
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
@@ -377,7 +377,7 @@ public class AutomationService {
 		}else if(projectJson.equals("mobility")) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","MOBILITY_FIELD");
 		}else{
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue",projectJson.toUpperCase());
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue",projectJson);
 		}
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
@@ -546,7 +546,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromCRM_QL(application);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"CRM_quickLead",project.toUpperCase());
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"CRM_quickLead", project);
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -572,7 +572,7 @@ public class AutomationService {
 		String browser = "chrome";
 		String projectJson = existingCustomerDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromCRM_QLWithCustID(existingCustomerDTOList);
-		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"CRM_quickLead_With_CustID",projectJson.toUpperCase());
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"CRM_quickLead_With_CustID",projectJson);
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
@@ -601,7 +601,7 @@ public class AutomationService {
 		String browser = "chrome";
 		String projectJson = existingCustomerDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Existing_Customer(existingCustomerDTOList);
-		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer",projectJson.toUpperCase());
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer",projectJson);
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);

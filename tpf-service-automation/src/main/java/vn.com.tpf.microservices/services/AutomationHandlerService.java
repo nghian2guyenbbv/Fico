@@ -244,11 +244,11 @@ public class AutomationHandlerService {
                     runAutomationDE_autoAssign(driver, mapValue, project, browser);
                     break;
                 case "runAutomationDE_ResponseQuery":
-                    accountDTO = return_pollAccountFromQueue(accounts, project, mapValue);
+                    accountDTO = return_pollAccountFromQueue(accounts, project.toUpperCase(), mapValue);
                     runAutomationDE_responseQuery(driver, mapValue, accountDTO);
                     break;
                 case "runAutomationDE_SaleQueue":
-                    accountDTO = pollAccountFromQueue(accounts, project);
+                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
                     runAutomationDE_saleQueue(driver, mapValue, accountDTO);
                     break;
                 case "SN_quickLead":
@@ -278,15 +278,15 @@ public class AutomationHandlerService {
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Existing_Customer":
-                    accountDTO = pollAccountFromQueue(accounts, project);
+                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
                     runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
-                    accountDTO = pollAccountFromQueue(accounts, project);
+                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
                     CRM_runAutomation_QuickLead_With_CustID(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead":
-                    accountDTO = pollAccountFromQueue(accounts, project);
+                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
                     CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
                     break;
                 case "runAutomation_ResponseQuery":
