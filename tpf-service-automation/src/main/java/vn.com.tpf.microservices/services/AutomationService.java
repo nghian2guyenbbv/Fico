@@ -341,7 +341,7 @@ public class AutomationService {
 		}else if("mobility".equals(projectJson)) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
 		}else{
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue",projectJson.toUpperCase());
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery",projectJson.toUpperCase());
 		}
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
