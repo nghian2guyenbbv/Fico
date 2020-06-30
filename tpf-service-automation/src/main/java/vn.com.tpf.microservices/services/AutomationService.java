@@ -518,7 +518,35 @@ public class AutomationService {
 
 	//------------------------ PROJECT CRM  -------------------------------------
 
-	//------------------------ QUICKLEAD  -------------------------------------
+	//------------------------ QUICKLEAD -------------------------------------
+	public Map<String, Object> CRM_quickLeadApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		String project = request.path("body").path("project").textValue();
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				CRM_runAutomation_QL(application, project);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application.getQuickLead());
+	}
+
+	private void CRM_runAutomation_QL(Application application, String project) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"MOBILITY_quickLead",project.toUpperCase());
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+
 	public Map<String, Object> CRM_quickLeadAppWithCustID(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
