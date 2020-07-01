@@ -38,11 +38,6 @@ public class CRM_ExistingCustomerDTO {
     private String leadApp;
     private String automationAcc;
     private String description;
-
-    public CRM_ApplicationInformationsDTO applicationInformation;
-    public CRM_LoanDetailsDTO loanDetails;
-    public List<CRM_DocumentsDTO> documents = null;
-    public List<CRM_ReferencesDTO> references = null;
-    public List<CRM_DynamicFormDTO> dynamicForm = null;
+    private CRM_FullInfoAppDTO fullInfoApp;
 
 }
