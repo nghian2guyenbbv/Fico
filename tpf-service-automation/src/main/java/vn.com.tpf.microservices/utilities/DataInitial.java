@@ -753,17 +753,17 @@ public class DataInitial {
         ////********************************APPLICATIONINFORMATION************************************////
         ////*********PERSONALINFORMATION
         ////*********PERSONALINFO
-        CRM_PersonalInfoDTO personalInfo=existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getPersonalInfo();
+        CRM_PersonalInfoDTO personalInfo=existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getPersonalInfo();
 
         ////*********IDENTIFICATION
         List<CRM_IdentificationsListDTO> identificationDTOs = new ArrayList<>();
-        for (CRM_IdentificationsDTO identification : existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getIdentifications()) {
+        for (CRM_IdentificationsDTO identification : existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getIdentifications()) {
             identificationDTOs.add(new CRM_IdentificationsListDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getPlaceOfIssue(),identification.getIssuingCountry()));
         }
 
         ////*********ADDRESS
         List<CRM_AddressListDTO> addressDTOs = new ArrayList<>();
-        for (CRM_AddressDTO address : existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getAddresses()) {
+        for (CRM_AddressDTO address : existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getAddresses()) {
             CRM_AddressListDTO addressDTO = CRM_AddressListDTO.builder()
                     .addressType(address.getAddressType())
                     .country(address.getCountry())
@@ -784,11 +784,11 @@ public class DataInitial {
         }
 
         ////*********COMMUNICATIONDETAILS
-        CRM_CommunicationDetailsDTO communicationDetails=existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getCommunicationDetails();
+        CRM_CommunicationDetailsDTO communicationDetails=existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getCommunicationDetails();
 
         //Family
         List<CRM_FamilyDTO> familyDTOs = new ArrayList<>();
-        for (CRM_FamilyListDTO family : existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getFamily()) {
+        for (CRM_FamilyListDTO family : existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getFamily()) {
             CRM_FamilyDTO familyDTO = CRM_FamilyDTO.builder()
                     .relationshipType(family.getRelationship())
                     .memberName(family.getMemberName())
@@ -799,7 +799,7 @@ public class DataInitial {
         }
 
         ////*********EMPLOYMENT DETAIL
-        CRM_EmploymentDetailsDTO employmentDetails = existingCustomerDTOList.getApplicationInformation().getEmploymentDetails();
+        CRM_EmploymentDetailsDTO employmentDetails = existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getEmploymentDetails();
         CRM_EmploymentDetailsListDTO employmentDTO = CRM_EmploymentDetailsListDTO.builder()
                 .occupationType(employmentDetails.getOccupationType())
                 .employeeNumber(employmentDetails.getEmployeeNumber())
@@ -831,7 +831,7 @@ public class DataInitial {
                 .education(personalInfo.getCustomerCategoryCode())
                 .identification(identificationDTOs)
                 .address(addressDTOs)
-                .email(existingCustomerDTOList.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
+                .email(existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
                 .family(familyDTOs)
                 .communicationDetails(communicationDetails)
                 .employmentDetails(employmentDTO)
@@ -841,7 +841,7 @@ public class DataInitial {
 
         ////******************************** LOAN DETAIL DTO************************************////
         ////*********LOANDETAILS
-        CRM_LoanDetailsDTO loanDetails = existingCustomerDTOList.getLoanDetails();
+        CRM_LoanDetailsDTO loanDetails = existingCustomerDTOList.getFullInfoApp().getLoanDetails();
         CRM_SourcingDetailsListDTO sourcingDetailsListDTO = CRM_SourcingDetailsListDTO.builder()
                 .branch(loanDetails.getSourcingDetails().sourcingBranch) //set branch default la FPT
                 .channel(loanDetails.getSourcingDetails().sourcingChannel)
@@ -873,7 +873,7 @@ public class DataInitial {
         ////******************************** REFERENCE DTO ************************************////
 
         List<CRM_ReferencesListDTO> referenceDTOs = new ArrayList<>();
-        for(CRM_ReferencesDTO reference : existingCustomerDTOList.getReferences()) {
+        for(CRM_ReferencesDTO reference : existingCustomerDTOList.getFullInfoApp().getReferences()) {
             CRM_ReferencesListDTO referenceDTO = CRM_ReferencesListDTO.builder()
                     .fullName(reference.getName())
                     .relationShip(reference.getRelationship())
@@ -888,7 +888,7 @@ public class DataInitial {
 
         ////******************************** DYNAMIC FORM ************************************////
         List<CRM_DynamicFormDTO> dynamicFormList=new ArrayList<>();
-        for(CRM_DynamicFormDTO dynamicForm: existingCustomerDTOList.getDynamicForm()){
+        for(CRM_DynamicFormDTO dynamicForm: existingCustomerDTOList.getFullInfoApp().getDynamicForm()){
             if(dynamicForm.getFormName().equals("frmAppDtl")){
                 CRM_MiscFrmAppDtlDTO miscFrmAppDtlDTO = CRM_MiscFrmAppDtlDTO.builder()
                         .loanPurpose(dynamicForm.getLoanPurpose())
@@ -914,8 +914,8 @@ public class DataInitial {
 
         ////******************************** DOCUMENT DTO ************************************////
         List<CRM_DocumentsDTO> documentDTOS = new ArrayList<>();
-        if(existingCustomerDTOList.getDocuments()!=null && existingCustomerDTOList.getDocuments().size()>0){
-            for(CRM_DocumentsDTO document : existingCustomerDTOList.getDocuments()) {
+        if(existingCustomerDTOList.getFullInfoApp().getDocuments()!=null && existingCustomerDTOList.getFullInfoApp().getDocuments().size()>0){
+            for(CRM_DocumentsDTO document : existingCustomerDTOList.getFullInfoApp().getDocuments()) {
                 CRM_DocumentsDTO documentDTO = CRM_DocumentsDTO.builder ()
                         .originalname(document.getOriginalname())
                         .filename(document.getFilename())
