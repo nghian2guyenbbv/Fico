@@ -5225,14 +5225,14 @@ public class AutomationHandlerService {
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + e.getMessage());
 
-            System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            System.out.println("Auto Error:" + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+            System.out.println("Auto DONE: " + responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " +responseModel.getApp_id());
             logout(driver,accountDTO.getUserName());
             updateQuickleadExistingCustomer(existingCustomerDTO);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
@@ -5533,14 +5533,14 @@ public class AutomationHandlerService {
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("EXISTING_CUSTOMER FAILED" + " - " + e.getMessage());
 
-            System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            System.out.println("Auto Error: " + stage + "\n =>  MESSAGE " + e.getMessage() + " =>  TRACE: " + e.toString());
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            System.out.println(responseModel.getAutomation_result() + " - Project: " + responseModel.getProject().toUpperCase() + " - AppId: " +responseModel.getApp_id());
+            System.out.println(responseModel.getAutomation_result() + " =>  Project: " + responseModel.getProject().toUpperCase() + " =>  AppId: " +responseModel.getApp_id());
             logout(driver,accountDTO.getUserName());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
