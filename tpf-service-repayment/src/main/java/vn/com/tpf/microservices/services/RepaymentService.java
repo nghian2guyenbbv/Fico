@@ -641,14 +641,17 @@ public class RepaymentService {
 					.responseCode(resNode.path("responseCode").asText(""))
 					.responseMessage(resNode.path("responseMessage").asText(""))
 					.responseDate( new Timestamp((sdf.parse(resNode.path("responseDate").asText("")).getTime())))
-					//.responseDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(resNode.path("responseDate").asText("")))
 					.payinSlipReferencNumber(resNode.path("responseData").path("success").path("payinSlipReferencNumber").asText(""))
 					.receiptId(resNode.path("responseData").path("success").path("receiptId").asText(""))
 					.i18nCode(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("i18nCode").asText("")
 							:resNode.path("responseData").path("error").get(0).path("i18nCode").asText(""))
-					.type(resNode.path("type").asText(""))
-					.value(resNode.path("value").asText(""))
-					.messageArguments(resNode.path("messageArguments").asText(""))
+					.type(resNode.path("responseData").hasNonNull("success")? resNode.path("responseData").path("success").path("message").path("type").asText("")
+							:resNode.path("responseData").path("error").get(0).path("type").asText(""))
+					.value(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("value").asText("")
+							:resNode.path("responseData").path("error").get(0).path("value").asText(""))
+					.messageArguments(resNode.path("responseData").hasNonNull("success")? mapper.writeValueAsString(resNode.path("responseData").path("success").path("message"))
+							:mapper.writeValueAsString(resNode.path("responseData").path("error").get(0).path("messageArguments")))
+					.logResponse(logResponse.replaceAll("\u00A0", ""))
 					.build();
 
 			ficoReceiptPaymentLogDAO.save(ficoReceiptPaymentLog);
