@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,22 +23,25 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
-import vn.com.tpf.microservices.dao.FicoCustomerDAO;
-import vn.com.tpf.microservices.dao.FicoImportPayooDAO;
-import vn.com.tpf.microservices.dao.FicoReceiptPaymentDAO;
-import vn.com.tpf.microservices.dao.FicoTransPayDAO;
+import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -69,6 +73,9 @@ public class RepaymentService {
 
 	@Autowired
 	private FicoReceiptPaymentDAO ficoReceiptPaymentDAO;
+
+	@Autowired
+	private FicoReceiptPaymentLogDAO ficoReceiptPaymentLogDAO;
 
 	@Autowired
 	private TransactionTemplate transactionTemplate;
@@ -280,16 +287,14 @@ public class RepaymentService {
 						ficoReceiptPayment.setRequestChannel("RECEIPT");
 						ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
 
-						// Save report receipt payment
-						saveReportReceiptPayment(requestModel,timestamp);
 
 						String urlReceiptLMS = urlAPI;
 						URI uri = null;
+						String response="";
 						try {
 							uri = new URI(urlAPI);
-						} catch (URISyntaxException e) {
-							e.printStackTrace();
-						}
+
+
 						RestTemplate restTemplate = new RestTemplate();
 						MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
 						headers.add("clientId", "1");
@@ -297,7 +302,25 @@ public class RepaymentService {
 						headers.add("Content-Type", "application/json");
 						HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
 						ResponseEntity<String> res = restTemplate.postForEntity(uri, body, String.class);
-						log.info("{}", res.getBody());
+
+						response=res.getBody();
+
+						} catch (URISyntaxException e) {
+							e.printStackTrace();
+						}finally {
+							//save report
+							try {
+								log.info("REQ:" + mapper.writeValueAsString(requestModel) +" - RES:" + response);
+
+								saveReportReceiptPaymentLog(ficoRepaymentModel,response,timestamp);
+							} catch (JsonProcessingException e) {
+								log.info(e.toString());
+							} catch (IOException e) {
+								log.info(e.toString());
+							} catch (ParseException e) {
+								log.info(e.toString());
+							}
+						}
 					}).start();
 					//END CALL
 
@@ -762,6 +785,92 @@ public class RepaymentService {
 		ficoReceiptPayment.setProcessTillMaker("FALSE");
 		ficoReceiptPayment.setRequestChannel("RECEIPT");
 		ficoReceiptPaymentDAO.save(ficoReceiptPayment);
+	}
+
+	public void saveReportReceiptPaymentLog(FicoRepaymentModel ficoRepaymentModel,String logResponse,Timestamp timestamp) throws IOException, ParseException {
+		//GregorianCalendar cal = new GregorianCalendar();
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sssXXX");
+
+		if(!StringUtils.isEmpty(logResponse)) {
+			JsonNode resNode = mapper.readTree(logResponse.replaceAll("\u00A0", ""));
+
+			FicoReceiptPaymentLog ficoReceiptPaymentLog = FicoReceiptPaymentLog.builder()
+					.tenantId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getTenantId())
+					.userCode(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getUserCode())
+					.branchId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getBranchId())
+					.receiptPayOutMode(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayOutMode())
+					.receiptNo(ficoRepaymentModel.getReceiptProcessingMO().getReceiptNo())
+					.paymentSubMode(ficoRepaymentModel.getReceiptProcessingMO().getPaymentSubMode())
+					.receiptAgainst(ficoRepaymentModel.getReceiptProcessingMO().getReceiptAgainst())
+					.transactionValueDate(timestamp)
+					.receiptPurpose(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPurpose())
+					.transactionCurrencyCode(ficoRepaymentModel.getReceiptProcessingMO().getTransactionCurrencyCode())
+					.loanAccountNo(ficoRepaymentModel.getReceiptProcessingMO().getLoanAccountNo())
+					.autoAllocation(ficoRepaymentModel.getReceiptProcessingMO().getAutoAllocation())
+					.receiptTransactionStatus(ficoRepaymentModel.getReceiptProcessingMO().getReceiptTransactionStatus())
+					.receiptPayOutMode(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayOutMode())
+					.depositBankAccountNumber(ficoRepaymentModel.getReceiptProcessingMO().getDepositBankAccountNumber())
+					.depositDate(timestamp)
+					.realizationDate(timestamp)
+					.bounceCancelReason(ficoRepaymentModel.getReceiptProcessingMO().getBounceCancelReason())
+					.bankIdentificationCode(ficoRepaymentModel.getReceiptProcessingMO().getBankIdentificationCode())
+					.bankIdentificationType(ficoRepaymentModel.getReceiptProcessingMO().getBankIdentificationType())
+					.instrumentDate(timestamp)
+					.requestChannel(ficoRepaymentModel.getReceiptProcessingMO().getRequestChannel())
+					.instrumentReferenceNumber(ficoRepaymentModel.getReceiptProcessingMO().getInstrumentReferenceNumber())
+					.processTillMaker(String.valueOf(ficoRepaymentModel.getReceiptProcessingMO().isProcessTillMaker()))
+					.transactionId(resNode.path("transactionId").asText(""))
+					.responseCode(resNode.path("responseCode").asText(""))
+					.responseMessage(resNode.path("responseMessage").asText(""))
+					.responseDate( new Timestamp((sdf.parse(resNode.path("responseDate").asText("")).getTime())))
+					.payinSlipReferencNumber(resNode.path("responseData").path("success").path("payinSlipReferencNumber").asText(""))
+					.receiptId(resNode.path("responseData").path("success").path("receiptId").asText(""))
+					.i18nCode(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("i18nCode").asText("")
+							:resNode.path("responseData").path("error").get(0).path("i18nCode").asText(""))
+					.type(resNode.path("responseData").hasNonNull("success")? resNode.path("responseData").path("success").path("message").path("type").asText("")
+							:resNode.path("responseData").path("error").get(0).path("type").asText(""))
+					.value(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("value").asText("")
+							:resNode.path("responseData").path("error").get(0).path("value").asText(""))
+					.messageArguments(resNode.path("responseData").hasNonNull("success")? mapper.writeValueAsString(resNode.path("responseData").path("success").path("message"))
+							:mapper.writeValueAsString(resNode.path("responseData").path("error").get(0).path("messageArguments")))
+					.logResponse(logResponse.replaceAll("\u00A0", ""))
+					.build();
+
+			ficoReceiptPaymentLogDAO.save(ficoReceiptPaymentLog);
+		}
+		else
+		{
+			FicoReceiptPaymentLog ficoReceiptPaymentLog = FicoReceiptPaymentLog.builder()
+					.tenantId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getTenantId())
+					.userCode(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getUserCode())
+					.branchId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getBranchId())
+					.receiptPayOutMode(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayOutMode())
+					.receiptNo(ficoRepaymentModel.getReceiptProcessingMO().getReceiptNo())
+					.paymentSubMode(ficoRepaymentModel.getReceiptProcessingMO().getPaymentSubMode())
+					.receiptAgainst(ficoRepaymentModel.getReceiptProcessingMO().getReceiptAgainst())
+					.transactionValueDate(timestamp)
+					.receiptPurpose(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPurpose())
+					.transactionCurrencyCode(ficoRepaymentModel.getReceiptProcessingMO().getTransactionCurrencyCode())
+					.loanAccountNo(ficoRepaymentModel.getReceiptProcessingMO().getLoanAccountNo())
+					.autoAllocation(ficoRepaymentModel.getReceiptProcessingMO().getAutoAllocation())
+					.receiptTransactionStatus(ficoRepaymentModel.getReceiptProcessingMO().getReceiptTransactionStatus())
+					.receiptPayOutMode(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayOutMode())
+					.depositBankAccountNumber(ficoRepaymentModel.getReceiptProcessingMO().getDepositBankAccountNumber())
+					.depositDate(timestamp)
+					.realizationDate(timestamp)
+					.bounceCancelReason(ficoRepaymentModel.getReceiptProcessingMO().getBounceCancelReason())
+					.bankIdentificationCode(ficoRepaymentModel.getReceiptProcessingMO().getBankIdentificationCode())
+					.bankIdentificationType(ficoRepaymentModel.getReceiptProcessingMO().getBankIdentificationType())
+					.instrumentDate(timestamp)
+					.requestChannel(ficoRepaymentModel.getReceiptProcessingMO().getRequestChannel())
+					.instrumentReferenceNumber(ficoRepaymentModel.getReceiptProcessingMO().getInstrumentReferenceNumber())
+					.processTillMaker(String.valueOf(ficoRepaymentModel.getReceiptProcessingMO().isProcessTillMaker()))
+					.build();
+
+			ficoReceiptPaymentLogDAO.save(ficoReceiptPaymentLog);
+		}
+
 	}
 	//---------------------- END FUNCTION SAVE REPORT -----------------
 
