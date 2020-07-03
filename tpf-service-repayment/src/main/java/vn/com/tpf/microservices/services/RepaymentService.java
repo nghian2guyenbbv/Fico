@@ -795,6 +795,7 @@ public class RepaymentService {
 		if(!StringUtils.isEmpty(logResponse)) {
 			JsonNode resNode = mapper.readTree(logResponse.replaceAll("\u00A0", ""));
 
+
 			FicoReceiptPaymentLog ficoReceiptPaymentLog = FicoReceiptPaymentLog.builder()
 					.tenantId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getTenantId())
 					.userCode(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getUserCode())
@@ -824,18 +825,24 @@ public class RepaymentService {
 					.responseCode(resNode.path("responseCode").asText(""))
 					.responseMessage(resNode.path("responseMessage").asText(""))
 					.responseDate( new Timestamp((sdf.parse(resNode.path("responseDate").asText("")).getTime())))
-					.payinSlipReferencNumber(resNode.path("responseData").path("success").path("payinSlipReferencNumber").asText(""))
-					.receiptId(resNode.path("responseData").path("success").path("receiptId").asText(""))
-					.i18nCode(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("i18nCode").asText("")
-							:resNode.path("responseData").path("error").get(0).path("i18nCode").asText(""))
-					.type(resNode.path("responseData").hasNonNull("success")? resNode.path("responseData").path("success").path("message").path("type").asText("")
-							:resNode.path("responseData").path("error").get(0).path("type").asText(""))
-					.value(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("value").asText("")
-							:resNode.path("responseData").path("error").get(0).path("value").asText(""))
-					.messageArguments(resNode.path("responseData").hasNonNull("success")? mapper.writeValueAsString(resNode.path("responseData").path("success").path("message"))
-							:mapper.writeValueAsString(resNode.path("responseData").path("error").get(0).path("messageArguments")))
 					.logResponse(logResponse.replaceAll("\u00A0", ""))
 					.build();
+
+					if(!resNode.path("responseData").isNull())
+					{
+
+						ficoReceiptPaymentLog.setPayinSlipReferencNumber(resNode.path("responseData").path("success").path("payinSlipReferencNumber").asText(""));
+						ficoReceiptPaymentLog.setReceiptId(resNode.path("responseData").path("success").path("receiptId").asText(""));
+						ficoReceiptPaymentLog.setI18nCode(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("i18nCode").asText("")
+									:resNode.path("responseData").path("error").get(0).path("i18nCode").asText(""));
+						ficoReceiptPaymentLog.setType(resNode.path("responseData").hasNonNull("success")? resNode.path("responseData").path("success").path("message").path("type").asText("")
+									:resNode.path("responseData").path("error").get(0).path("type").asText(""));
+						ficoReceiptPaymentLog.setValue(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("value").asText("")
+									:resNode.path("responseData").path("error").get(0).path("value").asText(""));
+						ficoReceiptPaymentLog.setMessageArguments(resNode.path("responseData").hasNonNull("success")? mapper.writeValueAsString(resNode.path("responseData").path("success").path("message"))
+									:mapper.writeValueAsString(resNode.path("responseData").path("error").get(0).path("messageArguments")));
+					}
+
 
 			ficoReceiptPaymentLogDAO.save(ficoReceiptPaymentLog);
 		}
