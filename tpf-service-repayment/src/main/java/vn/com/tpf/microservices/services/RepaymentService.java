@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
 
@@ -200,7 +201,7 @@ public class RepaymentService {
 			request_id = requestModel.getRequest_id();
 //			date_time = requestModel.getDate_time();
 
-			Timestamp timestamp=new Timestamp(new Date().getTime());
+			Timestamp timestamp=new Timestamp(DateUtils.addMonths(new Date(),6).getTime());
 
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
@@ -295,7 +296,7 @@ public class RepaymentService {
 						headers.add("sign", "1");
 						headers.add("Content-Type", "application/json");
 						HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
-						ResponseEntity<JsonNode> res = restTemplate.postForEntity(uri, body, JsonNode.class);
+						ResponseEntity<String> res = restTemplate.postForEntity(uri, body, String.class);
 						log.info("{}", res.getBody());
 					}).start();
 					//END CALL
