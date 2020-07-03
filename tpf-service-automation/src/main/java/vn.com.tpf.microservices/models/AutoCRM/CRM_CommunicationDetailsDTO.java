@@ -1,14 +1,19 @@
 package vn.com.tpf.microservices.models.AutoCRM;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CRM_CommunicationDetailsDTO {
 
     public String primaryAddress;
-    public String primaryEmailId;
-    public List<CRM_PhonenumberDTO> phoneNumbers;
+    public String phoneNumbers;
+//    public String primaryEmailId;
+//    public List<CRM_PhonenumberDTO> phoneNumbers;
 
 }

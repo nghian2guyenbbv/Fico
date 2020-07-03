@@ -8,6 +8,7 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import vn.com.tpf.microservices.models.AutoCRM.CRM_DynamicFormDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_MiscFrmAppDtlDTO;
 import vn.com.tpf.microservices.models.Automation.MiscFrmAppDtlDTO;
 import vn.com.tpf.microservices.utilities.Constant;
@@ -147,7 +148,7 @@ public class CRM_MiscFrmAppDtlPage {
         this._driver=driver;
     }
 
-    public void setData(CRM_MiscFrmAppDtlDTO data) {
+    public void setData(CRM_DynamicFormDTO data) {
         await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
         loanPurposeElement.click();
@@ -168,14 +169,14 @@ public class CRM_MiscFrmAppDtlPage {
 
 
 
-        numberOfDependentsElement.sendKeys(data.getNumOfDependents());
+        numberOfDependentsElement.sendKeys(data.getNumberOfDependents());
 
         houseOwnerShipElement.click();
         await("houseOwnerShipOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> houseOwnerShipOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getHouseOwnership(), houseOwnerShipOptionElement);
         Utilities.captureScreenShot(_driver);
-        mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
+        mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
         //update them contractNumber
         companyNameElement.sendKeys(data.getCompanyName());
@@ -191,8 +192,8 @@ public class CRM_MiscFrmAppDtlPage {
 
         zaloElement.sendKeys(data.getZalo());
 
-        salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
-        maxRequestRateElement.sendKeys(data.getMaxRequestRate());
+        salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
+        maxRequestRateElement.sendKeys(data.getMaximumInterestedRate());
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
         Utilities.captureScreenShot(_driver);
 

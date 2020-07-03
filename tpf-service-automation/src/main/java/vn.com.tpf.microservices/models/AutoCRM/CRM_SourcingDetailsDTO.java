@@ -1,8 +1,12 @@
 package vn.com.tpf.microservices.models.AutoCRM;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CRM_SourcingDetailsDTO {
 
     public String sourcingChannel;
@@ -13,7 +17,7 @@ public class CRM_SourcingDetailsDTO {
     public String schemeCode;
     public String loanAmountRequested;
     public String requestedTenure;
-    public String chassisApplicationNum;
+    public String interestRate;
     public String loanPurposeDesc;
     public String saleAgentCode;
 

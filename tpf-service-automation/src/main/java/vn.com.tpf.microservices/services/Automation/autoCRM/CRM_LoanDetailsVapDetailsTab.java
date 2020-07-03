@@ -7,6 +7,7 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import vn.com.tpf.microservices.models.AutoCRM.CRM_VapDetailsDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_VapDetailsListDTO;
 import vn.com.tpf.microservices.models.Automation.LoanDetailsVapDTO;
 import vn.com.tpf.microservices.utilities.Constant;
@@ -69,7 +70,7 @@ public class CRM_LoanDetailsVapDetailsTab {
         _driver = driver;
     }
 
-    public void setData(CRM_VapDetailsListDTO data) {
+    public void setData(CRM_VapDetailsDTO data) {
         //vap product
         vapProductElement.click();
         Utilities.captureScreenShot(_driver);
