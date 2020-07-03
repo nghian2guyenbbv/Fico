@@ -58,6 +58,9 @@ public class CRM_FullInfoAppDTO {
     public String vapTreatment;
     public String insuranceCompany;
 
+    //references
+    public List<CRM_ReferencesDTO> references = null;
+
     //--dynamicForm
     //frmAppDtl
     public String loanPurpose;

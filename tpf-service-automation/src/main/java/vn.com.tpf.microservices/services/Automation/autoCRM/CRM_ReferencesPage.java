@@ -79,17 +79,17 @@ public class CRM_ReferencesPage {
             mobilePhone.sendKeys(data.getMobilePhoneNumber());
 
             //update them nhap primary phone
-            if(data.getPriNumber()!=null&&!StringUtils.isEmpty(data.getPriNumber()))
-            {
-                WebElement priNumber = _driver.findElement(By.id("phoneNumber_phoneNumber_" + index));
-                priNumber.sendKeys(data.getPriNumber());
-
-                WebElement stdNumber = _driver.findElement(By.id("stdCode_phoneNumber_" + index));
-                stdNumber.sendKeys(data.getPriStd());
-
-                WebElement extNumber = _driver.findElement(By.id("extension_phoneNumber_" + index));
-                extNumber.sendKeys(data.getPriExt());
-            }
+//            if(data.getPriNumber()!=null&&!StringUtils.isEmpty(data.getPriNumber()))
+//            {
+//                WebElement priNumber = _driver.findElement(By.id("phoneNumber_phoneNumber_" + index));
+//                priNumber.sendKeys(data.getPriNumber());
+//
+//                WebElement stdNumber = _driver.findElement(By.id("stdCode_phoneNumber_" + index));
+//                stdNumber.sendKeys(data.getPriStd());
+//
+//                WebElement extNumber = _driver.findElement(By.id("extension_phoneNumber_" + index));
+//                extNumber.sendKeys(data.getPriExt());
+//            }
 
             if (index < datas.size() - 1) {
                 await("Btn Add Reference not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

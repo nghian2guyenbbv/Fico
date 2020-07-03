@@ -850,6 +850,20 @@ public class DataInitial {
 
         ////********************************END LOAN DETAIL DTO************************************////
 
+        ///******************************** REFERENCE DTO ************************************////
+
+        List<CRM_ReferencesListDTO> referenceDTOs = new ArrayList<>();
+        for(CRM_ReferencesDTO reference : existingCustomerDTOList.getFullInfoApp().getReferences()) {
+            CRM_ReferencesListDTO referenceDTO = CRM_ReferencesListDTO.builder()
+                    .fullName(reference.getName())
+                    .relationShip(reference.getRelationship())
+                    .mobilePhoneNumber(reference.getPhoneNumber())
+                    .build();
+            referenceDTOs.add(referenceDTO);
+        }
+        map.put("ReferenceDTO", referenceDTOs);
+        ////********************************END REFERENCE DTO************************************////
+
         ////******************************** DYNAMIC FORM ************************************////
         CRM_DynamicFormDTO dynamicForms = CRM_DynamicFormDTO.builder()
                 .loanPurpose(existingCustomerDTOList.getFullInfoApp().getLoanPurpose())
