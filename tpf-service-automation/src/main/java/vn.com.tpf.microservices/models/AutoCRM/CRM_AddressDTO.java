@@ -20,6 +20,8 @@ public class CRM_AddressDTO {
     public String landMark;
     public String yearsInCurrentAddress;
     public String monthsInCurrentAddress;
-    public List<CRM_PhonenumberDTO> phoneNumbers = null;
+    public String phoneNumbers;
+
+//    public List<CRM_PhonenumberDTO> phoneNumbers = null;
 
 }

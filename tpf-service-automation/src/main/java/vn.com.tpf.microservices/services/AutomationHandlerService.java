@@ -5256,11 +5256,9 @@ public class AutomationHandlerService {
             //*************************** GET DATA *********************//
             existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
             CRM_ApplicationInformationsListDTO applicationInfoDTO = (CRM_ApplicationInformationsListDTO) mapValue.get("ApplicationInfoDTO");
-            CRM_SourcingDetailsListDTO sourcingDetailsDTO = (CRM_SourcingDetailsListDTO) mapValue.get("SourcingDetailsDTO");
-            CRM_VapDetailsListDTO vapDetailsDTO = (CRM_VapDetailsListDTO) mapValue.get("VapDetailsDTO");
-            List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
+            CRM_LoanDetailsDTO loanDetailsDTO = (CRM_LoanDetailsDTO) mapValue.get("VapDetailsDTO");
             List<CRM_DocumentsDTO> documentDTOS = (List<CRM_DocumentsDTO>) mapValue.get("DocumentDTO");
-            CRM_MiscFrmAppDtlDTO miscFrmAppDtlDTO = (CRM_MiscFrmAppDtlDTO) mapValue.get("MiscFrmAppDtlDTO");
+            CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", existingCustomerDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
@@ -5393,27 +5391,21 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-            stage = "EMPLOYMENT DETAILS";
-            // ========== EMPLOYMENT DETAILS =================
-            await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
 
-            CRM_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
-            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
-
-            employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetails());
-            employmentDetailsTab.getDoneBtnElement().click();
-            await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
-            employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
-            employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetails());
-            employmentDetailsTab.getSaveAndNextBtnElement().click();
-            Utilities.captureScreenShot(driver);
+            stage = "FINANCIAL";
+            // ==========FINANCIAL DETAILS =================
+            if (applicationInfoDTO.getFinancialDetail() != null) {
+                CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
+                financialDetailsTab.openFinancialDetailsTabSection();
+                financialDetailsTab.openIncomeDetailSection();
+                await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
+                financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
+                financialDetailsTab.saveAndNext();
+            }
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-            stage = "EMPLOYMENT DETAILS - FINANCIAL";
 
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
@@ -5426,7 +5418,7 @@ public class AutomationHandlerService {
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
-            loanDetailsSourcingDetailsTab.setData(applicationId, sourcingDetailsDTO);
+            loanDetailsSourcingDetailsTab.setData(applicationId, loanDetailsDTO.getSourcingDetails());
 
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
@@ -5435,14 +5427,14 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             // ==========VAP DETAILS=======================
-            if (vapDetailsDTO != null && vapDetailsDTO.getVapProduct() != null && !vapDetailsDTO.getVapProduct().equals("")) {
+            if (loanDetailsDTO.getVapDetails() != null && loanDetailsDTO.getVapDetails().getVapProduct() != null && !loanDetailsDTO.getVapDetails().getVapProduct().equals("")) {
                 stage = "LOAN DETAIL PAGE - VAP DETAIL TAB";
                 Utilities.captureScreenShot(driver);
                 CRM_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new CRM_LoanDetailsVapDetailsTab(driver);
 
                 await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> loanDetailsVapDetailsTab.getVapDetailsDivContainerElement().isDisplayed());
-                loanDetailsVapDetailsTab.setData(vapDetailsDTO);
+                loanDetailsVapDetailsTab.setData(loanDetailsDTO.getVapDetails());
                 Utilities.captureScreenShot(driver);
                 loanDetailsVapDetailsTab.getBtnSaveAndNextElement().click();
 
@@ -5469,18 +5461,6 @@ public class AutomationHandlerService {
                 Utilities.captureScreenShot(driver);
                 documentsPage.getBtnSubmitElement().click();
             }
-
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
-            stage = "REFERENCES";
-            // ==========REFERENCES=================
-            stage = "REFERENCES PAGE";
-            CRM_ReferencesPage referencesPage = new CRM_ReferencesPage(driver);
-            await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
-            referencesPage.getTabReferencesElement().click();
-            referencesPage.setData(referenceDTO);
-            referencesPage.getSaveBtnElement().click();
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);

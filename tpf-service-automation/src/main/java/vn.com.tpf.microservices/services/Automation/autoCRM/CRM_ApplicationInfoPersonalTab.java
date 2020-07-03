@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
+import org.bson.types.ObjectId;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -17,6 +18,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -342,34 +344,35 @@ public class CRM_ApplicationInfoPersonalTab {
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(applicationInfoDTO.getGender(), genderSelectOptionElement);
+        Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getGender(), genderSelectOptionElement);
 
         this.firstNameElement.clear();
-        this.firstNameElement.sendKeys(applicationInfoDTO.getFirstName());
+        this.firstNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getFirstName());
         this.middleNameElement.clear();
-        this.middleNameElement.sendKeys(applicationInfoDTO.getMiddleName());
+        this.middleNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getMiddleName());
         this.lastNameElement.clear();
-        this.lastNameElement.sendKeys(applicationInfoDTO.getLastName());
+        this.lastNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getLastName());
         this.dateOfBirthdaElement.clear();
-        this.dateOfBirthdaElement.sendKeys(applicationInfoDTO.getDateOfBirth());
+        this.dateOfBirthdaElement.sendKeys(applicationInfoDTO.getPersonalInfo().getDateOfBirth());
         this.placeOfBirthElement.clear();
-        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getPlaceOfIssue());
+        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().getPlaceOfIssue());
 
         this.maritalStatusElement.click();
         await("maritalStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> maritalStatusOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(applicationInfoDTO.getMaritalStatus(), maritalStatusOptionElement);
+        Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getMaritalStatus(), maritalStatusOptionElement);
 
         this.nationalElement.click();
         await("nationalOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> nationalOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(applicationInfoDTO.getNational(), nationalOptionElement);
+        Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getNationality(), nationalOptionElement);
 
-        this.educationElement.click();
-        await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> educationOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(applicationInfoDTO.getEducation(), educationOptionElement);
-
+        if (applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode() != null) {
+            this.educationElement.click();
+            await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> educationOptionElement.size() > 0);
+            Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode(), educationOptionElement);
+        }
         //btnPersonInfoProcessClick(); -- update ko co nút này click
 
         loadIdentificationSection();
@@ -377,59 +380,33 @@ public class CRM_ApplicationInfoPersonalTab {
                 .until(() -> identificationDivElement.isDisplayed());
         setIdentificationValue(applicationInfoDTO.getIdentification());
 
-        loadAddressSection();
-        await("Load addressGridElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> addressGridElement.isDisplayed());
+        if (!Objects.isNull(applicationInfoDTO.getAddress())) {
+            loadAddressSection();
+            await("Load addressGridElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> addressGridElement.isDisplayed());
 
-        //click edit
-        await("editTadAddressElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> editTadAddressElement.isDisplayed());
-        Actions actions = new Actions(_driver);
-        editTadAddressElement.click();
+            //click edit
+            await("editTadAddressElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> editTadAddressElement.isDisplayed());
+            Actions actions = new Actions(_driver);
+            editTadAddressElement.click();
 
-        await("formAddressEditElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> formAddressEditElement.isDisplayed());
+            await("formAddressEditElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> formAddressEditElement.isDisplayed());
 
-        Utilities.captureScreenShot(_driver);
-        //editTadAddressElement.click();
-        setAddressValue(applicationInfoDTO.getAddress());
-        loadAddressSection();
+            Utilities.captureScreenShot(_driver);
+            setAddressValue(applicationInfoDTO.getAddress());
+            loadAddressSection();
 
-        if (applicationInfoDTO.getFamily().size() > 0) {
-            loadFamilySection();
-            await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> familyDivElement.isDisplayed());
-            setFamilyValue(applicationInfoDTO.getFamily());
+            loadCommunicationSection();
+            await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> communicationDetailDivElement.isDisplayed());
+            selectPrimaryAddress(applicationInfoDTO.getCommunicationDetail().getPrimaryAddress());//default la Current Address
         }
-
-        loadCommunicationSection();
-        await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> communicationDetailDivElement.isDisplayed());
-        selectPrimaryAddress( applicationInfoDTO.getCommunicationDetails().getPrimaryAddress());//default la Current Address
-        await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> primaryEmailElement.isDisplayed());
-        getPrimaryEmailElement().sendKeys(applicationInfoDTO.getEmail());
-
 
         //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
-        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=1
-                && !applicationInfoDTO.communicationDetails.getPrimaryAddress().equals("Current Address"))
-        {
-            cusMobileElements.clear();
-            cusMobileElements.sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(0).getPhoneNumber());
-        }
-
-        //check nhap them so dien thoai thu 2, update them, luc nao so mobile cung lay cua current
-        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
-        {
-            addAlternateMobileElement.click();
-
-            await("listMobileAlternateElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> listMobileAlternateElement.size() > 0);
-
-            listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
-            Utilities.captureScreenShot(_driver);
-        }
+        cusMobileElements.clear();
+        cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
 
         loadCommunicationSection(); // close section after complete input
 
@@ -448,35 +425,26 @@ public class CRM_ApplicationInfoPersonalTab {
         this.btnLoadIdentificationElement.click();
     }
 
-    public void setIdentificationValue(List<CRM_IdentificationsListDTO> datas) throws JsonParseException, JsonMappingException, IOException {
+    public void setIdentificationValue(CRM_IdentificationsDTO data) throws JsonParseException, JsonMappingException, IOException {
         int index = 0;
         WebElement type;
         WebElement country;
-        for (CRM_IdentificationsListDTO data : datas) {
-            type = _driver.findElement(By.id("idDetail_identificationType" + index));
-            new Select(type).selectByVisibleText(data.getDocumentType());
+        type = _driver.findElement(By.id("idDetail_identificationType" + index));
+        new Select(type).selectByVisibleText(data.getIdentificationType());
 
-            _driver.findElement(By.id("idDetail_identificationNumber" + index)).clear();
-            _driver.findElement(By.id("idDetail_identificationNumber" + index)).sendKeys(data.getDocumentNumber());
-            _driver.findElement(By.id("idDetail_issueDate" + index)).clear();
-            _driver.findElement(By.id("idDetail_issueDate" + index)).sendKeys(data.getIssueDate());
-            _driver.findElement(By.id("idDetail_expiryDate" + index)).clear();
-            _driver.findElement(By.id("idDetail_expiryDate" + index)).sendKeys(data.getExpirationDate());
-            country = _driver.findElement(By.id("idDetail_country" + index));
-            new Select(country).selectByVisibleText(data.getCountryOfIssue());
-            if (index < datas.size() - 1) {
-                await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> btnAddIdentElement.isEnabled());
-                btnAddIdentElement.click();
-                index++;
-            }
-        }
+        _driver.findElement(By.id("idDetail_identificationNumber" + index)).clear();
+        _driver.findElement(By.id("idDetail_identificationNumber" + index)).sendKeys(data.getIdentificationNumber());
+        _driver.findElement(By.id("idDetail_issueDate" + index)).clear();
+        _driver.findElement(By.id("idDetail_issueDate" + index)).sendKeys(data.getIssueDate());
+        _driver.findElement(By.id("idDetail_expiryDate" + index)).clear();
+        _driver.findElement(By.id("idDetail_expiryDate" + index)).sendKeys(data.getExpiryDate());
+        country = _driver.findElement(By.id("idDetail_country" + index));
+        new Select(country).selectByVisibleText(data.getIssuingCountry());
     }
 
     public void loadAddressSection() {
         JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
         jse2.executeScript("arguments[0].click();", btnLoadAddressElementElement);
-//        this.btnLoadAddressElementElement.click();
     }
 
     public void loadCommunicationSection() {
@@ -511,7 +479,6 @@ public class CRM_ApplicationInfoPersonalTab {
                 actions.moveToElement(btnCreateAnotherElement).click().build().perform();
             }
 
-
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
             mobilePhoneNumberElement.click();
@@ -528,62 +495,39 @@ public class CRM_ApplicationInfoPersonalTab {
                 }
             }
 
-            actions.moveToElement(textCountryElement).click().build().perform();
-            await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> textCountryOptionElement.size() > 1);
-            for (WebElement element : textCountryOptionElement) {
-                if (element.getText().equals(data.getCountry())) {
-                    element.click();
-                    break;
+            if(data.getCountry() != null){
+                actions.moveToElement(textCountryElement).click().build().perform();
+                await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> textCountryOptionElement.size() > 1);
+                for (WebElement element : textCountryOptionElement) {
+                    if (element.getText().equals(data.getCountry())) {
+                        element.click();
+                        break;
+                    }
                 }
             }
 
-//			Select countrySelect = new Select(textCountryElement);
-//			await("Country loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> countrySelect.getOptions().size() > 0);
-//			countrySelect.selectByVisibleText(data.getCountry());
+            if(data.getRegion() != null) {
+                actions.moveToElement(regionElement).click().build().perform();
+                await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> regionOptionElement.size() > 1);
 
-            actions.moveToElement(regionElement).click().build().perform();
-            await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> regionOptionElement.size() > 1);
-//            for (WebElement element : regionOptionElement) {
-//                if (element.getText().equals(data.getRegion())) {
-//                    element.click();
-//                    break;
-//                }
-//            }
+                //update lai chỗ này để load lại đia chỉ lần đầu tiên cho quicklead, nó ko load lai data nếu ko reload lai region
+                regionInputElement.sendKeys("Select");
+                regionInputElement.sendKeys(Keys.ENTER);
 
-            //update lai chỗ này để load lại đia chỉ lần đầu tiên cho quicklead, nó ko load lai data nếu ko reload lai region
-            regionInputElement.sendKeys("Select");
-            regionInputElement.sendKeys(Keys.ENTER);
-
-            actions.moveToElement(regionElement).click().build().perform();
-            regionInputElement.sendKeys(data.getRegion());
-            regionInputElement.sendKeys(Keys.ENTER);
-            //end update
-
-//			Select regionSelect = new Select(regionElement);
-//			await("Region loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//			.until(() -> regionSelect.getOptions().size() > 0);
-//			regionSelect.selectByVisibleText(data.getRegion());
+                actions.moveToElement(regionElement).click().build().perform();
+                regionInputElement.sendKeys(data.getRegion());
+                regionInputElement.sendKeys(Keys.ENTER);
+            }
 
             actions.moveToElement(cityElement).click().build().perform();
             await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> cityOptionElement.size() > 1);
-//            for (WebElement element : cityOptionElement) {
-//                if (element.getText().equals(data.getCity())) {
-//                    element.click();
-//                    break;
-//                }
-//            }
             cityInputElement.sendKeys(data.getCity().toUpperCase());
             cityInputElement.sendKeys(Keys.ENTER);
 
-//            Select citySelect = new Select(cityElement);
-//            await("City loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> citySelect.getOptions().size() > 0);
-//            citySelect.selectByVisibleText(data.getCity());
-
+            pinCodeElement.clear();
             pinCodeElement.sendKeys("%%%");
             await("Pincode loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> pinCodeValueElement.isDisplayed());
@@ -593,79 +537,45 @@ public class CRM_ApplicationInfoPersonalTab {
             await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> areaOptionElement.size() > 1);
 
-//            for (WebElement element : areaOptionElement) {
-//                if (element.getText().equals(data.getArea())) {
-//                    element.click();
-//                    break;
-//                }
-//            }
 
             // sua bang cach nhap enter, hoa thuong deu dc
             areaInputElement.sendKeys(data.getArea().toUpperCase());
             areaInputElement.sendKeys(Keys.ENTER);
 
-
-//            Select areaSelect = new Select(areaElement);
-//            await("Area loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> areaSelect.getOptions().size() > 0);
-//            areaSelect.selectByVisibleText(data.getArea());
-
+            address1Element.clear();
             address1Element.sendKeys(data.getBuilding());
+            address2Element.clear();
             address2Element.sendKeys(data.getHouse());
+            address3Element.clear();
             address3Element.sendKeys(data.getWard());
 
 
-            //update them landmard
-            addressLandmark.clear();
-            addressLandmark.sendKeys(data.getAddressLandmark());
+            if(data.getAddressLandmark() != null) {
+                //update them landmard
+                addressLandmark.clear();
+                addressLandmark.sendKeys(data.getAddressLandmark());
+            }
 
-            currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
-            currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
-//            currentCityYearsElement.sendKeys(data.getCityDurationYear());
-//            currentCityMonthsElement.sendKeys(data.getCityDurationMonth());
+            if(data.getResidentDurationYear() != null) {
+                currentAddrYearsElement.clear();
+                currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
+            }
+            if(data.getResidentDurationMonth() != null) {
+                currentAddrMonthsElement.clear();
+                currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+            }
 
-
-            //dien so dien thoan ban neu co
-            primaryStdElement.clear();
-            primaryStdElement.sendKeys(data.getPriStd());
-            primaryNumberElement.clear();
-            primaryNumberElement.sendKeys(data.getPriNumber());
-            primaryEXTNElement.clear();
-            primaryEXTNElement.sendKeys(data.getPriExt());
-
-            mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             Utilities.captureScreenShot(_driver);
             actions.moveToElement(btnSaveAddressElement).click().build().perform();
             if (index < datas.size() - 1) {
-//            	actions.moveToElement(cbCreateAnotherElement).click().build().perform();
-//                actions.moveToElement(btnSaveAddressElement).click().build().perform();
                 await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> btnCreateAnotherElement.isEnabled());
                 actions.moveToElement(btnCreateAnotherElement).click().build().perform();
                 //TODO: temporarily wait by webdriver
-//            	new WebDriverWait(_driver, Constant.TIME_OUT_S).until(ExpectedConditions.alertIsPresent());
-//            	_driver.switchTo().alert().accept();
             }
             index++;
             Utilities.captureScreenShot(_driver);
         }
-    }
-
-    public void setFamilyValue(List<CRM_FamilyDTO> datas) throws IOException {
-        for (CRM_FamilyDTO data : datas) {
-            this.memberNameElement.sendKeys(data.getMemberName());
-            new Select(this.relationshipTypeElement).selectByVisibleText(data.getRelationshipType());
-            this.phoneNumberElement.sendKeys(data.getPhoneNumber());
-            if (StringUtils.isNotBlank(data.getEducationStatus()))
-                new Select(this.educationStatusElement).selectByVisibleText(data.getEducationStatus());
-            this.comNameElement.sendKeys(data.getComName());
-            if (StringUtils.isNotBlank(data.getIsDependent()) && Integer.parseInt(data.getIsDependent()) == 1)
-                this.IsDependentElement.click();
-
-            // TODO: instead of break this loop, we must create new family row element here if have more data
-            break;
-        }
-
     }
 
     public void saveAndNext() {

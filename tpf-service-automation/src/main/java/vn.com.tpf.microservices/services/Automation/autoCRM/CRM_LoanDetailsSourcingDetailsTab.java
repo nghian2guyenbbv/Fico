@@ -8,6 +8,7 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import vn.com.tpf.microservices.models.AutoCRM.CRM_SourcingDetailsDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_SourcingDetailsListDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -35,11 +36,11 @@ public class CRM_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private WebElement branchElement;
 
-    @FindBy(how = How.ID, using = "auto-container")
+    @FindBy(how = How.ID, using = "holder")
     @CacheLookup
     private WebElement branchContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_branch')]")
+    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_branch0a')]")
     @CacheLookup
     private List<WebElement> branchOptionElement;
 
@@ -134,18 +135,17 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         _driver = driver;
     }
 
-    public void setData(String applicationId, CRM_SourcingDetailsListDTO data) {
-        if (StringUtils.isNotBlank(data.getBranch())) {
+    public void setData(String applicationId, CRM_SourcingDetailsDTO data) {
+        if (StringUtils.isNotBlank(data.getSourcingBranch())) {
             branchElement.clear();
-            // TODO: should select value from dropdown autocomplete
-            branchElement.sendKeys(data.getBranch());
+            branchElement.sendKeys(data.getSourcingBranch());
 
             await("branchContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchContainerElement.isDisplayed());
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchOptionElement.size() > 0);
             for(WebElement e: branchOptionElement) {
-                if(!Objects.isNull(e.getAttribute("username")) && e.getAttribute("username").equals(data.getBranch())) {
+                if(!Objects.isNull(e.getAttribute("title")) && e.getAttribute("title").equals(data.getSourcingBranch())) {
                     e.click();
                     Utilities.captureScreenShot(_driver);
                     break;
@@ -155,26 +155,26 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         channelElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> channelOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getChannel(), channelOptionElement);
+        Utilities.chooseDropdownValue(data.getSourcingChannel(), channelOptionElement);
 
         applicationFormNumberElement.sendKeys(applicationId);
 
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanApplicationTypeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getLoanAppType(), loanApplicationTypeOptionElement);
+        Utilities.chooseDropdownValue(data.getLoanApplicationType(), loanApplicationTypeOptionElement);
 
         productNameElement.click();
         await("productNameOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> productNameOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getProductName(), productNameOptionElement);
+        Utilities.chooseDropdownValue(data.getProductCode(), productNameOptionElement);
 
         schemeElement.click();
         await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> schemeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+        Utilities.chooseDropdownValue(data.getSchemeCode(), schemeOptionElement);
 
-        Utilities.checkValueSendkey(data.getLoanAmount(),loanAmountElement);
+        Utilities.checkValueSendkey(data.getLoanAmountRequested(),loanAmountElement);
 
         try {
             Thread.sleep(2000);
@@ -187,13 +187,15 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         await("loanTermElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(loanTermElement.getAttribute("value")));
         loanTermElement.clear();
-        loanTermElement.sendKeys(data.getLoanTerm());
+        loanTermElement.sendKeys(data.getRequestedTenure());
         Utilities.captureScreenShot(_driver);
 
         //sua sang 60s , hay bi timeout cho nay
         await("rateElement loading timeout").atMost(60, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
 
+        rateElement.clear();
+        rateElement.sendKeys(data.getInterestRate());
         Utilities.captureScreenShot(_driver);
 
         salesAgentCodeElement.click();

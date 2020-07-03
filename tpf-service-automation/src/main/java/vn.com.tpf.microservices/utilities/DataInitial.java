@@ -753,163 +753,117 @@ public class DataInitial {
         ////********************************APPLICATIONINFORMATION************************************////
         ////*********PERSONALINFORMATION
         ////*********PERSONALINFO
-        CRM_PersonalInfoDTO personalInfo=existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getPersonalInfo();
+        CRM_PersonalInfoDTO personalInfos = CRM_PersonalInfoDTO.builder()
+                .firstName(existingCustomerDTOList.getFullInfoApp().getFirstName())
+                .middleName(existingCustomerDTOList.getFullInfoApp().getMiddleName())
+                .lastName(existingCustomerDTOList.getFullInfoApp().getLastName())
+                .gender(existingCustomerDTOList.getFullInfoApp().getGender())
+                .dateOfBirth(existingCustomerDTOList.getFullInfoApp().getDateOfBirth())
+                .nationality("Vietnamese")
+                .build();
 
         ////*********IDENTIFICATION
-        List<CRM_IdentificationsListDTO> identificationDTOs = new ArrayList<>();
-        for (CRM_IdentificationsDTO identification : existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getIdentifications()) {
-            identificationDTOs.add(new CRM_IdentificationsListDTO(identification.getIdentificationType(), identification.getIdentificationNumber(), identification.getIssueDate(), identification.getExpiryDate(), identification.getPlaceOfIssue(),identification.getIssuingCountry()));
-        }
+        CRM_IdentificationsDTO identifications = CRM_IdentificationsDTO.builder()
+                .identificationType(existingCustomerDTOList.getFullInfoApp().getIdentificationType())
+                .identificationNumber(existingCustomerDTOList.getFullInfoApp().getIdentificationNumber())
+                .issuingCountry(existingCustomerDTOList.getFullInfoApp().getIssuingCountry())
+                .placeOfIssue(existingCustomerDTOList.getFullInfoApp().getPlaceOfIssue())
+                .issueDate(existingCustomerDTOList.getFullInfoApp().getIssueDate())
+                .expiryDate(existingCustomerDTOList.getFullInfoApp().getExpiryDate())
+                .build();
 
         ////*********ADDRESS
         List<CRM_AddressListDTO> addressDTOs = new ArrayList<>();
-        for (CRM_AddressDTO address : existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getAddresses()) {
-            CRM_AddressListDTO addressDTO = CRM_AddressListDTO.builder()
-                    .addressType(address.getAddressType())
-                    .country(address.getCountry())
-                    .region(address.getState())
-                    .city(address.getCity())
-                    .area(address.getArea())
-                    .building(address.getAddressLine1())
-                    .house(address.getAddressLine2())
-                    .ward(address.getAddressLine3())
-                    .addressLandmark(address.getLandMark())
-                    .residentDurationYear(address.getYearsInCurrentAddress())
-                    .residentDurationMonth(address.getMonthsInCurrentAddress())
-                    .priStd(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
-                    .priNumber(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
-                    .priExt(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getExtension():"")
-                    .mobilePhone(address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?address.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
-            addressDTOs.add(addressDTO);
+        if (existingCustomerDTOList.getFullInfoApp().getAddresses() != null){
+            for (CRM_AddressDTO address : existingCustomerDTOList.getFullInfoApp().getAddresses()) {
+                CRM_AddressListDTO addressDTO = CRM_AddressListDTO.builder()
+                        .addressType(address.getAddressType())
+                        .country("Vietnam")
+                        .region("ALL")
+                        .city(address.getCity())
+                        .area(address.getArea())
+                        .building(address.getAddressLine1())
+                        .house(address.getAddressLine2())
+                        .ward(address.getAddressLine3())
+                        .addressLandmark(address.getLandMark())
+                        .residentDurationYear(address.getYearsInCurrentAddress())
+                        .residentDurationMonth(address.getMonthsInCurrentAddress())
+                        .mobilePhone(address.getPhoneNumbers())
+                        .build();
+                addressDTOs.add(addressDTO);
+            }
         }
+
 
         ////*********COMMUNICATIONDETAILS
-        CRM_CommunicationDetailsDTO communicationDetails=existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getCommunicationDetails();
+        CRM_CommunicationDetailsDTO communicationDetails = CRM_CommunicationDetailsDTO.builder()
+                .primaryAddress(existingCustomerDTOList.getFullInfoApp().getPrimaryAddress())
+                .phoneNumbers(existingCustomerDTOList.getFullInfoApp().getPhoneNumber())
+                .build();
 
-        //Family
-        List<CRM_FamilyDTO> familyDTOs = new ArrayList<>();
-        for (CRM_FamilyListDTO family : existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getFamily()) {
-            CRM_FamilyDTO familyDTO = CRM_FamilyDTO.builder()
-                    .relationshipType(family.getRelationship())
-                    .memberName(family.getMemberName())
-                    .phoneNumber(family.getPhoneNumber())
-                    .educationStatus("")
-                    .comName("").build();
-            familyDTOs.add(familyDTO);
-        }
+        //financialDetails
+        CRM_FinancialDetailsDTO financialDetails = CRM_FinancialDetailsDTO.builder()
+                .incomeExpense(existingCustomerDTOList.getFullInfoApp().getIncomeExpense())
+                .frequency("Monthly")
+                .amount(existingCustomerDTOList.getFullInfoApp().getAmount())
+                .modeOfPayment(existingCustomerDTOList.getFullInfoApp().getModeOfPayment())
+                .dayOfSalaryPayment(existingCustomerDTOList.getFullInfoApp().getDayOfSalaryPayment())
+                .build();
 
-        ////*********EMPLOYMENT DETAIL
-        CRM_EmploymentDetailsDTO employmentDetails = existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getEmploymentDetails();
-        CRM_EmploymentDetailsListDTO employmentDTO = CRM_EmploymentDetailsListDTO.builder()
-                .occupationType(employmentDetails.getOccupationType())
-                .employeeNumber(employmentDetails.getEmployeeNumber())
-                .taxCode(employmentDetails.getEmployerCode())
-                .natureOfBussiness(employmentDetails.getNatureOfBusiness())
-                .natureOfOccupation(employmentDetails.getNatureOfOccupation()!=null?employmentDetails.getNatureOfOccupation():"Unemployed")
-                .industry(employmentDetails.getIndustry())
-                .department(employmentDetails.getDepartmentName())
-                .level(employmentDetails.getDesignation())
-                .employmentStatus(employmentDetails.getEmploymentStatus())
-                .employmentType(employmentDetails.getEmploymentType())
-                .durationYears(employmentDetails.getYearsInJob())
-                .durationMonths(employmentDetails.getMonthsInJob())
-                .otherCompanyTaxCode(employmentDetails.getOtherCompanyTaxCode())
-                .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation().isEmpty()?0:Integer.parseInt(employmentDetails.getTotalMonthsInOccupation()))
-                .totalYearsInOccupation(employmentDetails.getTotalYearsInOccupation().isEmpty()?0:Integer.parseInt(employmentDetails.getTotalYearsInOccupation()))
-                .isMajorEmployment(employmentDetails.getIsMajorEmployment())
-                .remarks(employmentDetails.getRemarks()).build();
 
         CRM_ApplicationInformationsListDTO applicationInfoDTO = CRM_ApplicationInformationsListDTO.builder()
-                .gender(personalInfo.getGender())
-                .firstName(personalInfo.getFirstName())
-                .middleName(personalInfo.getMiddleName())
-                .lastName(personalInfo.getLastName())
-                .dateOfBirth(personalInfo.getDateOfBirth())
-                .placeOfIssue(identificationDTOs.stream().filter(x->x.getDocumentType().equals("Current National ID")).findAny().get().getPlaceOfIssue())
-                .maritalStatus(personalInfo.getMaritalStatus())
-                .national(personalInfo.getNationality())
-                .education(personalInfo.getCustomerCategoryCode())
-                .identification(identificationDTOs)
+                .personalInfo(personalInfos)
+                .identification(identifications)
                 .address(addressDTOs)
-                .email(existingCustomerDTOList.getFullInfoApp().getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId())
-                .family(familyDTOs)
-                .communicationDetails(communicationDetails)
-                .employmentDetails(employmentDTO)
+                .communicationDetail(communicationDetails)
+                .financialDetail(financialDetails)
                 .build();
         map.put("ApplicationInfoDTO", applicationInfoDTO);
         ////********************************END APPLICATIONINFO DTO************************************////
 
         ////******************************** LOAN DETAIL DTO************************************////
         ////*********LOANDETAILS
-        CRM_LoanDetailsDTO loanDetails = existingCustomerDTOList.getFullInfoApp().getLoanDetails();
-        CRM_SourcingDetailsListDTO sourcingDetailsListDTO = CRM_SourcingDetailsListDTO.builder()
-                .branch(loanDetails.getSourcingDetails().sourcingBranch) //set branch default la FPT
-                .channel(loanDetails.getSourcingDetails().sourcingChannel)
-                .applicationNumber(loanDetails.getSourcingDetails().chassisApplicationNum)
-                .loanAppType(loanDetails.getSourcingDetails().loanApplicationType)
-                .productName(loanDetails.getSourcingDetails().productCode)
-                .scheme(loanDetails.getSourcingDetails().getSchemeCode())
-                .loanAmount(loanDetails.getSourcingDetails().getLoanAmountRequested())
-                .loanTerm(loanDetails.getSourcingDetails().getRequestedTenure())
-                .loadPurpose(loanDetails.getSourcingDetails().getLoanPurposeDesc())
-                .saleAgentCode(loanDetails.getSourcingDetails().getSaleAgentCode())
+        CRM_SourcingDetailsDTO sourcingDetails = CRM_SourcingDetailsDTO.builder()
+                .sourcingBranch(existingCustomerDTOList.getFullInfoApp().getSourcingBranch())
+                .sourcingChannel(existingCustomerDTOList.getFullInfoApp().getSourcingChannel())
+                .loanApplicationType(existingCustomerDTOList.getFullInfoApp().getLoanApplicationType())
+                .productCode(existingCustomerDTOList.getFullInfoApp().getProductCode())
+                .schemeCode(existingCustomerDTOList.getFullInfoApp().getSchemeCode())
+                .loanAmountRequested(existingCustomerDTOList.getFullInfoApp().getLoanAmountRequested())
+                .requestedTenure(existingCustomerDTOList.getFullInfoApp().getRequestedTenure())
+                .interestRate(existingCustomerDTOList.getFullInfoApp().getInterestRate())
+                .saleAgentCode(existingCustomerDTOList.getFullInfoApp().getSaleAgentCodeLoanDetails())
                 .build();
-        map.put("SourcingDetailsDTO", sourcingDetailsListDTO);
 
-        ////*********LOANVAPDETAILS
-        CRM_VapDetailsListDTO loanDetailsVapDTO = CRM_VapDetailsListDTO.builder().build();
-        if(loanDetails.getVapDetails()!=null)
-        {
-            loanDetailsVapDTO = CRM_VapDetailsListDTO.builder()
-                    .vapProduct(loanDetails.getVapDetails().vapProduct) //set branch default la FPT
-                    .vapTreatment(loanDetails.getVapDetails().vapTreatment)
-                    .insuranceCompany(loanDetails.getVapDetails().getInsuranceCompany())
-                    .build();
-        }
-        map.put("VapDetailsDTO", loanDetailsVapDTO);
+        CRM_VapDetailsDTO vapDetails = CRM_VapDetailsDTO.builder()
+                .vapProduct(existingCustomerDTOList.getFullInfoApp().getVapProduct())
+                .vapTreatment(existingCustomerDTOList.getFullInfoApp().getVapTreatment())
+                .insuranceCompany(existingCustomerDTOList.getFullInfoApp().getInsuranceCompany())
+                .build();
+
+        CRM_LoanDetailsDTO loanDetails = CRM_LoanDetailsDTO.builder()
+                .sourcingDetails(sourcingDetails)
+                .vapDetails(vapDetails)
+                .build();
+        map.put("VapDetailsDTO", loanDetails);
+
 
         ////********************************END LOAN DETAIL DTO************************************////
 
-        ////******************************** REFERENCE DTO ************************************////
-
-        List<CRM_ReferencesListDTO> referenceDTOs = new ArrayList<>();
-        for(CRM_ReferencesDTO reference : existingCustomerDTOList.getFullInfoApp().getReferences()) {
-            CRM_ReferencesListDTO referenceDTO = CRM_ReferencesListDTO.builder()
-                    .fullName(reference.getName())
-                    .relationShip(reference.getRelationship())
-                    .priStd(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getStdCode():"")
-                    .priNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getPhoneNumber():"")
-                    .priExt(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Primary Phone")).findAny().get().getExtension():"")
-                    .mobilePhoneNumber(reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().isPresent()?reference.getPhoneNumbers().stream().filter(c->c.getPhoneType().equals("Mobile Phone")).findAny().get().getPhoneNumber():"").build();
-            referenceDTOs.add(referenceDTO);
-        }
-        map.put("ReferenceDTO", referenceDTOs);
-        ////********************************END REFERENCE DTO************************************////
-
         ////******************************** DYNAMIC FORM ************************************////
-        List<CRM_DynamicFormDTO> dynamicFormList=new ArrayList<>();
-        for(CRM_DynamicFormDTO dynamicForm: existingCustomerDTOList.getFullInfoApp().getDynamicForm()){
-            if(dynamicForm.getFormName().equals("frmAppDtl")){
-                CRM_MiscFrmAppDtlDTO miscFrmAppDtlDTO = CRM_MiscFrmAppDtlDTO.builder()
-                        .loanPurpose(dynamicForm.getLoanPurpose())
-                        .numOfDependents(dynamicForm.getNumberOfDependents())
-                        .houseOwnership(dynamicForm.getHouseOwnership())
-                        .mortgagePaymentCost(dynamicForm.getMonthlyRental())
-                        .newBankCardNumber(dynamicForm.getNewBankCardNumber())
-                        .salesAgentCode(dynamicForm.getSaleAgentCode())
-                        .maxRequestRate(dynamicForm.getMaximumInterestedRate())
-                        .courierCode(dynamicForm.getCourierCode())
-                        .totalMonthlyPayable(dynamicForm.getTotalMonthlyPayable())
-                        .loanOfWork(dynamicForm.getLoanAtWork()!=null?dynamicForm.getLoanAtWork():"")
-                        .companyName(dynamicForm.getCompanyName()!=null?dynamicForm.getCompanyName():"")
-                        .monthlyFee(dynamicForm.getMonthlyFee()!=null?dynamicForm.getMonthlyFee():"")
-                        .contractNumber(dynamicForm.getContractNumber()!=null?dynamicForm.getContractNumber():"")
-                        .oldContractLoanAmount(dynamicForm.getOldContractLoanAmount()!=null?dynamicForm.getOldContractLoanAmount():"")
-                        .zalo(dynamicForm.getZalo()!=null?dynamicForm.getZalo():"")
-                        .remark(dynamicForm.getRemark()).build();
-                map.put("MiscFrmAppDtlDTO", miscFrmAppDtlDTO);
-            }
-        }
+        CRM_DynamicFormDTO dynamicForms = CRM_DynamicFormDTO.builder()
+                .loanPurpose(existingCustomerDTOList.getFullInfoApp().getLoanPurpose())
+                .loanPurposeOther(existingCustomerDTOList.getFullInfoApp().getLoanPurposeOther())
+                .numberOfDependents(existingCustomerDTOList.getFullInfoApp().getNumberOfDependents())
+                .monthlyRental(existingCustomerDTOList.getFullInfoApp().getMonthlyRental())
+                .houseOwnership(existingCustomerDTOList.getFullInfoApp().getHouseOwnership())
+                .newBankCardNumber(existingCustomerDTOList.getFullInfoApp().getNewBankCardNumber())
+                .saleAgentCode(existingCustomerDTOList.getFullInfoApp().getSaleAgentCodeDynamicForm())
+                .courierCode(existingCustomerDTOList.getFullInfoApp().getCourierCode())
+                .maximumInterestedRate(existingCustomerDTOList.getFullInfoApp().getMaximumInterestedRate())
+                .build();
+        map.put("MiscFrmAppDtlDTO", dynamicForms);
+
         ////********************************ENDDYNAMIC FORM************************************////
 
         ////******************************** DOCUMENT DTO ************************************////

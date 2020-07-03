@@ -12,20 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 public class CRM_ApplicationInformationsListDTO implements Serializable {
 
-    private String gender;
-    private String firstName;
-    private String middleName;
-    private String lastName;
-    private String dateOfBirth;
-    private String placeOfIssue;
-    private String maritalStatus;
-    private String national;
-    private String education;
-    private String email;
-    private List<CRM_IdentificationsListDTO> identification;
+    private CRM_PersonalInfoDTO personalInfo;
+    private CRM_IdentificationsDTO identification;
     private List<CRM_AddressListDTO> address;
-    private List<CRM_FamilyDTO> family;
-    private CRM_EmploymentDetailsListDTO employmentDetails;
-    public CRM_CommunicationDetailsDTO communicationDetails;
+    private CRM_CommunicationDetailsDTO communicationDetail;
+    private CRM_FinancialDetailsDTO financialDetail;
 
 }
