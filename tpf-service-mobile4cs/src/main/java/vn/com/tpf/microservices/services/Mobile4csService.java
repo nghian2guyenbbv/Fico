@@ -245,7 +245,7 @@ public class Mobile4csService {
                 data.put("permanentAddress", dataSql.getString("perAdd"));
                 data.put("companyName", dataSql.getString("comName"));
                 data.put("workingAddress", getStringFromJsonArray(dataSql.getJSONArray("comAdd")));
-                data.put("workingPhoneNumber", "telePhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("telePhone")) +" "+ "mobiPhone: " + getStringFromJsonArray(dataSql.getJSONObject("comPhone").getJSONArray("mobiPhone")));
+                data.put("workingPhoneNumber",!dataSql.getJSONObject("comPhone").getJSONArray("telePhone").isEmpty() ? dataSql.getJSONObject("comPhone").getJSONArray("telePhone").getString(0) : dataSql.getJSONObject("comPhone").getJSONArray("mobiPhone").getString(0));
                 data.put("referencePhoneNumber", getStringFromJsonArray(dataSql.getJSONArray("refPhone")));
                 data.put("emailAddress", dataSql.getString("email"));
                 data.put("nearestLoanAccountNumber", dataSql.getString("loanNo"));
