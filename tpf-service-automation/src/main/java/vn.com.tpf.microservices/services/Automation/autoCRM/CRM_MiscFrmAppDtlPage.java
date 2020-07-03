@@ -179,49 +179,46 @@ public class CRM_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
         //update them contractNumber
-        companyNameElement.sendKeys(data.getCompanyName());
-        contractNumberElement.sendKeys(data.getContractNumber());
-        monthlyFeeElement.clear();
-        monthlyFeeElement.sendKeys(data.getMonthlyFee());
+//        companyNameElement.sendKeys(data.getCompanyName());
+//        contractNumberElement.sendKeys(data.getContractNumber());
+//        monthlyFeeElement.clear();
+//        monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
 
-        remarkElement.sendKeys(data.getRemark());
+//        remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 
         courierCodeElement.sendKeys(data.getCourierCode());
 
-        zaloElement.sendKeys(data.getZalo());
+//        zaloElement.sendKeys(data.getZalo());
 
         salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
         maxRequestRateElement.sendKeys(data.getMaximumInterestedRate());
-        totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+//        totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
         Utilities.captureScreenShot(_driver);
 
         //update them oldContractNumber
-        if(data.getOldContractLoanAmount().equals("1"))
-        {
-            oldContractLoanAmountLess20Elememt.click();
-        }
-        if(data.getOldContractLoanAmount().equals("2"))
-        {
-            oldContractLoanAmountMore20Elememt.click();
-        }
-        if(data.getOldContractLoanAmount().equals("3"))
-        {
-            oldContractLoanAmountOtherElememt.click();
-        }
-        //
-
-
-        if(data.getLoanOfWork().equals("Yes"))
-        {
-            loanOfWorkYesElememt.click();
-        }
-
-        if(data.getLoanOfWork().equals("No"))
-        {
-            loanOfWorkNoElememt.click();
-        }
+//        if (data.getOldContractLoanAmount() != null) {
+//            if (data.getOldContractLoanAmount().equals("1")) {
+//                oldContractLoanAmountLess20Elememt.click();
+//            }
+//            if (data.getOldContractLoanAmount().equals("2")) {
+//                oldContractLoanAmountMore20Elememt.click();
+//            }
+//            if (data.getOldContractLoanAmount().equals("3")) {
+//                oldContractLoanAmountOtherElememt.click();
+//            }
+//        }
+//
+//        if (data.getLoanOfWork() != null) {
+//            if (data.getLoanOfWork().equals("Yes")) {
+//                loanOfWorkYesElememt.click();
+//            }
+//
+//            if (data.getLoanOfWork().equals("No")) {
+//                loanOfWorkNoElememt.click();
+//            }
+//        }
         Utilities.captureScreenShot(_driver);
     }
 

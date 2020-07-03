@@ -5258,6 +5258,7 @@ public class AutomationHandlerService {
             CRM_ApplicationInformationsListDTO applicationInfoDTO = (CRM_ApplicationInformationsListDTO) mapValue.get("ApplicationInfoDTO");
             CRM_LoanDetailsDTO loanDetailsDTO = (CRM_LoanDetailsDTO) mapValue.get("VapDetailsDTO");
             List<CRM_DocumentsDTO> documentDTOS = (List<CRM_DocumentsDTO>) mapValue.get("DocumentDTO");
+            List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
             CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", existingCustomerDTO);
             //*************************** END GET DATA *********************//
@@ -5465,6 +5466,20 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            stage = "REFERENCES";
+            // ==========REFERENCES=================
+            stage = "REFERENCES PAGE";
+            CRM_ReferencesPage referencesPage = new CRM_ReferencesPage(driver);
+            await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
+            referencesPage.getTabReferencesElement().click();
+            referencesPage.setData(referenceDTO);
+            referencesPage.getSaveBtnElement().click();
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+
             // ==========MISC FRM APP DTL=================
             stage = "MISC FRM APPDTL PAGE";
             CRM_MiscFrmAppDtlPage miscFrmAppDtlPage = new CRM_MiscFrmAppDtlPage(driver);
@@ -5484,12 +5499,11 @@ public class AutomationHandlerService {
 
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
             Utilities.captureScreenShot(driver);
-            System.out.println("MISC FRM APP DTL: DONE");
+            System.out.println(stage + ": DONE");
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
 
-            System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "COMPLETE";
             System.out.println("AUTO EXISTING CUSTOMER OK: user run auto: " + accountDTO.getUserName());

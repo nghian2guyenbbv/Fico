@@ -10,6 +10,7 @@ public class CRM_ReferencesDTO implements Serializable {
 
     public String name;
     public String relationship;
-    public List<CRM_PhonenumberDTO> phoneNumbers = null;
+    public String phoneNumber;
+//    public List<CRM_PhonenumberDTO> phoneNumbers = null;
 
 }
