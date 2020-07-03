@@ -15,14 +15,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.Application;
+import vn.com.tpf.microservices.models.Finnone.*;
+import vn.com.tpf.microservices.models.Finnone.cas.MoneyType;
+import vn.com.tpf.microservices.models.Identification;
 import vn.com.tpf.microservices.models.leadCreation.*;
+import vn.com.tpf.microservices.models.leadCreation.AttachmentDetails;
+import vn.com.tpf.microservices.models.leadCreation.CommunicationDetails;
+import vn.com.tpf.microservices.models.leadCreation.Documents;
+import vn.com.tpf.microservices.models.leadCreation.PersonInfo;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.math.BigInteger;
+import java.text.ParseException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ConvertService {
@@ -261,7 +269,8 @@ public class ConvertService {
 			loanInformation.setLoanProduct(getDataF1Service.getLoanProduct(application.getQuickLead().getSchemeCode()));
 			loanInformation.setScheme(getDataF1Service.getScheme(application.getQuickLead().getSchemeCode()));
 			AmountField amountField = new AmountField();
-			amountField.setValue(BigDecimal.valueOf(Long.valueOf(application.getQuickLead().getLoanAmountRequested())));
+
+			amountField.setValue(new BigDecimal(application.getQuickLead().getLoanAmountRequested().replace(",", "")));
 			loanInformation.setLoanAmountRequested(amountField);
 
 			/*-------------------------dummy-------------------------*/
@@ -311,4 +320,348 @@ public class ConvertService {
 		return app;
 	}
 
+	public JsonNode toAppApiF1(Application application){
+		JsonNode app = mapper.createObjectNode();
+		try {
+			UpdateApplicationRequest updateApplicationRequest = new UpdateApplicationRequest();
+
+			/*-------------------------------------------appParameter-------------------------------------------*/
+			AppParameter appParameter = new AppParameter();
+			appParameter.setProductProcessor("mCAS");
+			appParameter.setApplicationNumber(application.getApplicationId());
+			appParameter.setBranchCode("");
+			appParameter.setUserName("System (TBD)");
+			appParameter.setMoveToNextStageFlag(true);
+
+			/*-------------------------------------------customerDet-------------------------------------------*/
+			CustomerDet customerDet = new CustomerDet();
+			/*-------------------------------------------CUSTOMER PARAMETER-------------------------------------------*/
+			CustomerParameter customerParameter = new CustomerParameter();
+			customerParameter.setPartyRole(BigInteger.ONE);
+			customerParameter.setCustomerType("");
+			customerParameter.setCustomerNumber(application.getCustomerId());
+			customerDet.setCustomerParameter(customerParameter);
+
+			/*-------------------------------------------PERSONAL INFOR-------------------------------------------*/
+			vn.com.tpf.microservices.models.Finnone.PersonInfo personInfo = convertPersonInfo(application);
+			customerDet.setPersonInfo(personInfo);
+			/*-------------------------------------------IDENTIFICATIONS-------------------------------------------*/
+			List<UpdateIdentificationDetails> updateIdentificationDetailsList = convertUpdateIdentificationDetails(application);
+			customerDet.getUpdateIdentificationDetails().addAll(updateIdentificationDetailsList);
+			/*-------------------------------------------ADDRESSES-------------------------------------------*/
+			List<UpdateAddressDetails> updateAddressDetailsList = convertUpdateAddressDetails(application);
+			customerDet.getUpdateAddressDetails().addAll(updateAddressDetailsList);
+			/*-------------------------------------------COMMUNICATION DETAILS-------------------------------------------*/
+			vn.com.tpf.microservices.models.Finnone.CommunicationDetails communicationDetails = new vn.com.tpf.microservices.models.Finnone.CommunicationDetails();
+			communicationDetails.setPrimaryEmailId(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryEmailId());
+			communicationDetails.setPhoneNumber(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPhoneNumbers()
+					.stream().map(this::convertPhoneNumber).collect(Collectors.toList()));
+			customerDet.setCommunicationDetails(communicationDetails);
+			/*-------------------------------------------FAMILY-------------------------------------------*/
+			UpdateFamily updateFamily = convertUpdateFamily(application);
+			customerDet.setUpdateFamily(updateFamily);
+			/*-------------------------------------------EMPLOYMENT DETAILS-------------------------------------------*/
+			List<UpdateOccupationInfo> updateOccupationInfoList = convertUpdateOccupationInfo(application);
+			customerDet.getUpdateOccupationInfo().addAll(updateOccupationInfoList);
+
+			customerDet.setYearsInTotalOccupation(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getTotalYearsInOccupation()));
+			customerDet.setMonthsInTotalOccupation(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getTotalMonthsInOccupation()));
+
+			/*-------------------------------------------FINANCIAL DETAILS-------------------------------------------*/
+			UpdateFinancialDetails updateFinancialDetails = convertUpdateFinancialDetails(application);
+			customerDet.setFinancialDetails(updateFinancialDetails);
+			/*-------------------------------------------LOAN DETAILS-------------------------------------------*/
+			UpdateLoanDetails updateLoanDetails = covertUpdateLoanDetails(application);
+
+			/*-------------------------------------------REFERENCES-------------------------------------------*/
+			List<ReferenceDetails> referenceDetails = application.getReferences().stream().map(reference -> {
+				ReferenceDetails referenceDetails1 = new ReferenceDetails();
+				referenceDetails1.setName(reference.getName());
+				referenceDetails1.setRelationship(reference.getRelationship());
+				referenceDetails1.setPhoneNumber(reference.getPhoneNumbers().stream().map(this::convertPhoneNumber).collect(Collectors.toList()));
+				return referenceDetails1;
+			}).collect(Collectors.toList());
+
+			/*-------------------------------------------DYNAMIC FORMS-------------------------------------------*/
+			UpdateDynamicFormDetails dynamicFormDetails = new UpdateDynamicFormDetails();
+			dynamicFormDetails.setDynamicFormName(application.getDynamicForm().get(0).getFormName());
+
+			ObjectNode objectNode = mapper.convertValue(application.getDynamicForm().get(0), ObjectNode.class);
+			objectNode.remove("formName");
+			objectNode.put("houseOwnership", getDataF1Service.getHouseOwnership(application.getDynamicForm().get(0).getHouseOwnership()));
+			dynamicFormDetails.setDynamicFormData(objectNode.toString());
+
+			/*-------------------------------------------DOCUMENTS-------------------------------------------*/
+			List<UpdateDocuments> updateDocuments = covertDocuments(application);
+
+			updateApplicationRequest.setAppParameter(appParameter);
+			updateApplicationRequest.getCustomerDet().add(customerDet);
+			updateApplicationRequest.setUpdateLoanDetails(updateLoanDetails);
+			updateApplicationRequest.getReferenceDetails().addAll(referenceDetails);
+			updateApplicationRequest.getDocuments().addAll(updateDocuments);
+			updateApplicationRequest.getDynamicFormDetails().add(dynamicFormDetails);
+			app = mapper.convertValue(updateApplicationRequest, JsonNode.class);
+		}catch (Exception e){
+			log.info("{}", e.toString());
+		}
+		return app;
+	}
+
+	private List<UpdateDocuments> covertDocuments(Application application) {
+		if (application.getDocuments() == null || application.getDocuments().size() == 0){
+			return new ArrayList<>();
+		}
+		return application.getDocuments()
+				.stream().map(qlDocument -> {
+					UpdateDocuments documents = new UpdateDocuments();
+					documents.setDocumentReferenceId(Long.valueOf(getDataF1Service.getDocumentReferenceId(application.getApplicationId())));
+					documents.setReferenceType("Customer");
+					String entityType = application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFirstName().toUpperCase();
+					if(StringUtils.hasLength(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getMiddleName()))
+						entityType += " " + application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getMiddleName().toUpperCase();
+					entityType += " " + application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getLastName().toUpperCase();
+					documents.setEntityType(entityType);
+					documents.setDocumentName(qlDocument.getType());
+					documents.setVerificationStatus("verified");
+					documents.setPhysicalState("photocopy");
+					GregorianCalendar cal = new GregorianCalendar();
+					cal.setTime(new Date());
+					try {
+						documents.setRecievingDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+					} catch (DatatypeConfigurationException e) {
+						log.info("{}", e.toString());
+					}
+
+					documents.setRemarks("Document received");
+
+					HttpHeaders headers = new HttpHeaders();
+					headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+					HttpEntity<String> entity = new HttpEntity<>(headers);
+
+
+					vn.com.tpf.microservices.models.Finnone.AttachmentDetails attachmentDetails = new vn.com.tpf.microservices.models.Finnone.AttachmentDetails();
+					attachmentDetails.setAttachedDocName(qlDocument.getOriginalname());
+					ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + qlDocument.getFilename(), HttpMethod.GET, entity, byte[].class);
+
+					attachmentDetails.setAttachedDocument(response.getBody());
+					documents.getAttachmentDetails().add(attachmentDetails);
+					return documents;
+				}).collect(Collectors.toList());
+	}
+
+	private UpdateLoanDetails covertUpdateLoanDetails(Application application) {
+		/*-------------------------------------------SOURCING DETAILS-------------------------------------------*/
+		UpdateSourcingDetail sourcingDetail = new UpdateSourcingDetail();
+		LoanInfo loanInfo = new LoanInfo();
+		loanInfo.setProductCode(getDataF1Service.getLoanProduct(application.getLoanDetails().getSourcingDetails().getSchemeCode()));
+		loanInfo.setSchemeCode(getDataF1Service.getScheme(application.getLoanDetails().getSourcingDetails().getSchemeCode()));
+		MoneyType amountRequested = new MoneyType();
+		amountRequested.setCurrencyCode("VND");
+		amountRequested.setValue(new BigDecimal(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested().replace(",", "")));
+		loanInfo.setLoanAmountRequested(amountRequested);
+		loanInfo.setRequestedTenure(Integer.valueOf(application.getLoanDetails().getSourcingDetails().getRequestedTenure()));
+		loanInfo.setLoanPurpose("OTHERS");
+		loanInfo.setLoanPurposeDesc(application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc());
+		loanInfo.setChassisApplicationNum(application.getLoanDetails().getSourcingDetails().getChassisApplicationNum());
+		sourcingDetail.setLoanInfo(loanInfo);
+
+		ApplicationDetails applicationDetails = new ApplicationDetails();
+		applicationDetails.setLoanApplicationType(getDataF1Service.getLoanApplicationType(application.getLoanDetails().getSourcingDetails().getLoanApplicationType()));
+		applicationDetails.setOfficer(getDataF1Service.getOfficer(application.getLoanDetails().getSourcingDetails().getSaleAgentCode()));
+		applicationDetails.setSourcingChannel("");
+		sourcingDetail.setApplicationDetails(applicationDetails);
+		/*-------------------------------------------VAP DETAILS-------------------------------------------*/
+		UpdateVapDetail updateVapDetail = new UpdateVapDetail();
+		String vapProductApi = getDataF1Service.getVapProduct(application.getLoanDetails().getVapDetails().getVapProduct());
+		updateVapDetail.setVapProduct(vapProductApi);
+		updateVapDetail.setVapTreatment(getDataF1Service.getVapTreatment(application.getLoanDetails().getVapDetails().getVapProduct()));
+		updateVapDetail.setInsuranceCompany(getDataF1Service.getInsuranceCompany(application.getLoanDetails().getVapDetails().getVapProduct()));
+		Map<String, Object> amtPayOut = getDataF1Service.getAmtCompPolicy(application.getLoanDetails().getVapDetails().getVapProduct());
+		updateVapDetail.setAmtCompPolicy(amtPayOut.get("CODE_AMT_COMP").toString());
+		updateVapDetail.setPayOutCompPolicy(amtPayOut.get("CODE_PAY_OUT").toString());
+		MoneyType amount = new MoneyType();
+		amount.setCurrencyCode("VND");
+		amount.setValue(BigDecimal.ZERO);
+		updateVapDetail.setCoverageAmount(amount);
+		updateVapDetail.setPremiumAmount(amount);
+		UpdateLoanDetails updateLoanDetails = new UpdateLoanDetails();
+		updateLoanDetails.setSourcingDetail(sourcingDetail);
+		updateLoanDetails.getVapDetail().add(updateVapDetail);
+		return updateLoanDetails;
+	}
+
+	private UpdateFinancialDetails convertUpdateFinancialDetails(Application application) {
+		UpdateFinancialDetails updateFinancialDetails = new UpdateFinancialDetails();
+		application.getApplicationInformation().getFinancialDetails().forEach(financialDetail -> {
+			UpdateIncomeDetails incomeDetail = new UpdateIncomeDetails();
+			incomeDetail.setIncomeExpense(getDataF1Service.getIncomeExpense(financialDetail.getIncomeExpense()));
+			incomeDetail.setFrequency("MONTHLY");
+			MoneyType amount = new MoneyType();
+			amount.setCurrencyCode("VND");
+			amount.setValue(new BigDecimal(financialDetail.getAmount().replace(",", "")));
+			incomeDetail.setAmount(amount);
+			incomeDetail.setPaymentMode(getDataF1Service.getPaymentMode(financialDetail.getModeOfPayment()));
+			incomeDetail.setIncomeSource(financialDetail.getDayOfSalaryPayment());
+			incomeDetail.setPercentage(BigDecimal.valueOf(100));
+			updateFinancialDetails.getIncomeDetails().add(incomeDetail);
+		});
+		return updateFinancialDetails;
+	}
+
+	private UpdateFamily convertUpdateFamily(Application application) {
+		UpdateFamily updateFamily = new UpdateFamily();
+		if(application.getApplicationInformation().getPersonalInformation().getFamily().size() > 0){
+			updateFamily.setNoOfDependents(0);
+			updateFamily.setNoOfDependentChildren(0);
+			UpdateFamilyDetails updateFamilyDetails = new UpdateFamilyDetails();
+			application.getApplicationInformation().getPersonalInformation().getFamily().forEach(family -> {
+				FamilyDetails familyDetails = new FamilyDetails();
+				familyDetails.setMemberName(family.getMemberName());
+				familyDetails.setRelationship(family.getRelationship());
+				familyDetails.setPhoneNumber(family.getPhoneNumber());
+				familyDetails.setIsDependent(0);
+				familyDetails.setEducationStatus("Uneducated");
+				updateFamilyDetails.setFamilyDetails(familyDetails);
+			});
+			updateFamily.getUpdateFamilyDetails().add(updateFamilyDetails);
+		}
+		return updateFamily;
+	}
+
+	private List<UpdateOccupationInfo> convertUpdateOccupationInfo(Application application) {
+		List<UpdateOccupationInfo> updateOccupationInfoList = new ArrayList<>();
+		UpdateOccupationInfo updateOccupationInfo = new UpdateOccupationInfo();
+		OccupationInfo occupationInfo = new OccupationInfo();
+		occupationInfo.setOccupationType(getDataF1Service.getOccupationType(application.getApplicationInformation().getEmploymentDetails().getOccupationType()));
+		occupationInfo.setEmployerCode(application.getApplicationInformation().getEmploymentDetails().getEmployerCode());
+		occupationInfo.setNatureOfBusiness(getDataF1Service.getNatureOfBusiness(application.getApplicationInformation().getEmploymentDetails().getNatureOfBusiness()));
+		occupationInfo.setRemarks(application.getApplicationInformation().getEmploymentDetails().getRemarks());
+		occupationInfo.setEmployeeNumber(application.getApplicationInformation().getEmploymentDetails().getOtherCompanyTaxCode());
+		occupationInfo.setIndustry(getDataF1Service.getIndustry(application.getApplicationInformation().getEmploymentDetails().getIndustry()));
+		occupationInfo.setEmploymentType(getDataF1Service.getEmploymentType(application.getApplicationInformation().getEmploymentDetails().getEmploymentType()));
+		occupationInfo.setEmploymentStatus(getDataF1Service.getEmploymentStatus(application.getApplicationInformation().getEmploymentDetails().getEmploymentStatus()));
+		occupationInfo.setDepartmentName(application.getApplicationInformation().getEmploymentDetails().getDepartmentName());
+		occupationInfo.setDesignation(application.getApplicationInformation().getEmploymentDetails().getDesignation());
+		occupationInfo.setYearsInJob(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getYearsInJob()));
+		occupationInfo.setMonthsInJob(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getMonthsInJob()));
+		occupationInfo.setIsMajorEmployment(1);
+		occupationInfo.setNatureOfOccupation(getDataF1Service.getNatureOfOccupation(application.getApplicationInformation().getEmploymentDetails().getNatureOfOccupation()));
+		updateOccupationInfo.setOccupationInfo(occupationInfo);
+		updateOccupationInfoList.add(updateOccupationInfo);
+		return updateOccupationInfoList;
+	}
+
+	private PhoneNumber convertPhoneNumber(vn.com.tpf.microservices.models.PhoneNumber phoneNumber) {
+		PhoneNumber phoneNumber1 = new PhoneNumber();
+		phoneNumber1.setPhoneType(phoneNumber.getPhoneType());
+		phoneNumber1.setExtension(phoneNumber.getExtension());
+		phoneNumber1.setIsdCode(phoneNumber.getIsdCode());
+		phoneNumber1.setPhoneNumber(phoneNumber.getPhoneNumber());
+		phoneNumber1.setCountryCode(phoneNumber.getCountryCode());
+		phoneNumber1.setStdCode(phoneNumber.getStdCode());
+		return phoneNumber1;
+	}
+
+	private List<UpdateAddressDetails> convertUpdateAddressDetails(Application application) {
+		List<UpdateAddressDetails> updateAddressDetailsList = application.getApplicationInformation().getPersonalInformation().getAddresses()
+				.stream()
+				.map(address -> {
+					UpdateAddressDetails updateAddressDetails = new UpdateAddressDetails();
+					updateAddressDetails.setDeleteFlag(false);
+					AddressDetails addressDetails = new AddressDetails();
+					addressDetails.setAddressType(getDataF1Service.getAddressType(address.getAddressType()));
+					addressDetails.setCountry(getDataF1Service.getCountry(address.getCountry()));
+					Map<String, Object> cityMap = getDataF1Service.getState_City_Zip(address.getCity());
+					addressDetails.setState(cityMap.get("STATE").toString());
+					addressDetails.setCity(cityMap.get("CITY").toString());
+					addressDetails.setZipcode(cityMap.get("ZIP").toString());
+					addressDetails.setArea(getDataF1Service.getArea(address.getArea(), cityMap.get("CITY").toString()));
+					addressDetails.setLandMark(address.getLandMark());
+					addressDetails.setAddressLine1(address.getAddressLine1());
+					addressDetails.setAddressLine2(address.getAddressLine2());
+					addressDetails.setAddressLine3(address.getAddressLine3());
+					addressDetails.setYearsInCurrentAddress(Integer.valueOf(address.getYearsInCurrentAddress()));
+					addressDetails.setMonthsInCurrentAddress(Integer.valueOf(address.getMonthsInCurrentAddress()));
+					if(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryAddress().toUpperCase().equals(address.getAddressType().toUpperCase())){
+						addressDetails.setPrimaryAddress(1);
+					}
+					addressDetails.setPhoneNumber(address.getPhoneNumbers().stream().map(this::convertPhoneNumber).collect(Collectors.toList()));
+					addressDetails.setAccomodationType("");
+					updateAddressDetails.setAddressDetails(addressDetails);
+					return updateAddressDetails;
+				}).collect(Collectors.toList());
+
+		return updateAddressDetailsList;
+	}
+
+	private vn.com.tpf.microservices.models.Finnone.PersonInfo convertPersonInfo(Application application) {
+		vn.com.tpf.microservices.models.Finnone.PersonInfo personInfo = new vn.com.tpf.microservices.models.Finnone.PersonInfo();
+		personInfo.setGender(getDataF1Service.getGender(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getGender()));
+		personInfo.setFirstName(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getFirstName().toUpperCase());
+		if(StringUtils.hasLength(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getMiddleName())){
+			personInfo.setMiddleName(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getMiddleName().toUpperCase());
+		}
+		personInfo.setLastName(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getLastName().toUpperCase());
+
+		GregorianCalendar cal = new GregorianCalendar();
+		try{
+			Date dateOfBirth = DateUtils.parseDate(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getDateOfBirth(), new String[]{"dd/MM/yyyy"});
+			cal.setTime(dateOfBirth);
+			personInfo.setDateOfBirth(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+		} catch (ParseException | DatatypeConfigurationException e) {
+			log.info("{}", e.toString());
+		}
+
+		personInfo.setMaritalStatus(getDataF1Service.getMaritalStatus(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getMaritalStatus()));
+
+		personInfo.setPlaceOfBirth(application.getApplicationInformation().getPersonalInformation().getIdentifications()
+				.stream()
+				.filter(identification -> identification.getIdentificationType().trim().toUpperCase().equals( "Current National ID".toUpperCase()))
+				.map(Identification::getPlaceOfIssue).collect(Collectors.joining()));
+
+		personInfo.setNationality(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getNationality());
+		personInfo.setCustomerCategoryCode(getDataF1Service.getCustomerCategoryCode(application.getApplicationInformation().getPersonalInformation().getPersonalInfo().getCustomerCategoryCode()));
+		personInfo.setSalutation(getDataF1Service.getSalutation());
+		personInfo.setResidentType(getDataF1Service.getResidentType());
+		personInfo.setConstitutionCode(getDataF1Service.getConstitutionCode());
+		personInfo.setMothersMaidenName("dummy");
+
+		return personInfo;
+	}
+
+	private List<UpdateIdentificationDetails> convertUpdateIdentificationDetails(Application application) {
+		List<UpdateIdentificationDetails> updateIdentificationDetailsList = application.getApplicationInformation().getPersonalInformation().getIdentifications()
+				.stream()
+				.map(identification -> {
+			UpdateIdentificationDetails updateIdentificationDetails = new UpdateIdentificationDetails();
+			updateIdentificationDetails.setDeleteFlag(false);
+			IdentificationDetails identificationDetails = new IdentificationDetails();
+			identificationDetails.setIdentificationType(getDataF1Service.getIdentificationType(identification.getIdentificationType()));
+			identificationDetails.setIdentificationNumber(identification.getIdentificationNumber());
+			GregorianCalendar cal = new GregorianCalendar();
+			if(StringUtils.hasLength(identification.getIssueDate())){
+				try {
+					Date issueDate = DateUtils.parseDate(identification.getIssueDate(), new String[]{"dd/MM/yyyy"});
+					cal.setTime(issueDate);
+					identificationDetails.setIssueDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+				} catch (ParseException | DatatypeConfigurationException e) {
+					log.info("{}", e.toString());
+				}
+			}
+			if(StringUtils.hasLength(identification.getExpiryDate())){
+				try {
+					Date expiryDate = DateUtils.parseDate(identification.getExpiryDate(), new String[]{"dd/MM/yyyy"});
+					cal.setTime(expiryDate);
+					identificationDetails.setExpiryDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+				} catch (ParseException | DatatypeConfigurationException e) {
+					log.info("{}", e.toString());
+				}
+			}
+			identificationDetails.setIssuingCountry(getDataF1Service.getCountry(identification.getIssuingCountry()));
+			updateIdentificationDetails.setIdentificationDetails(identificationDetails);
+			return updateIdentificationDetails;
+		}).collect(Collectors.toList());
+
+		return  updateIdentificationDetailsList;
+	}
 }

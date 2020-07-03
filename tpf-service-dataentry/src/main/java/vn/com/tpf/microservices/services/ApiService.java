@@ -80,6 +80,8 @@ public class ApiService {
 
 	private RestTemplate restTemplateFirstCheck;
 
+	private RestTemplate restTemplateESB;
+
 	@PostConstruct
 	private void init() {
 		ClientHttpRequestFactory factoryDow = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
@@ -102,6 +104,8 @@ public class ApiService {
 		ClientHttpRequestFactory factoryFirstCheck = new BufferingClientHttpRequestFactory(scrf);
 		restTemplateFirstCheck = new RestTemplate(factoryFirstCheck);
 		restTemplateFirstCheck.setInterceptors(Arrays.asList(new HttpLogService()));
+
+		restTemplateESB = new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
 	}
 
 //	public String firstCheck(JsonNode request, JsonNode token) {
@@ -2245,11 +2249,26 @@ public class ApiService {
         headers.add("clientId", "1");
         headers.add("sign", "1");
         headers.add("Content-Type", "application/json");
-        HttpEntity<?> payload = new HttpEntity<>(application, headers);
-        log.info("createLeadF1.payload {}", payload.toString());
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, payload , String.class);
-			log.info("response.body {}", response.getBody());
+			HttpEntity<?> payload = new HttpEntity<>(application, headers);
+			JsonNode jsonLog = application.deepCopy();
+			if(!jsonLog.findPath("attachmentDetails").isMissingNode() && jsonLog.findPath("attachmentDetails").asText().length() > 200){
+				((ObjectNode) jsonLog).put("attachmentDetails", jsonLog.findPath("attachmentDetails").asText().substring(0, 20));
+			}
+			ObjectNode logRequest = mapper.createObjectNode();
+			logRequest.put("type", "[==HTTP-LOG-REQUEST-ESB==]");
+			logRequest.put("headers", headers.toString());
+			logRequest.set("body", jsonLog);
+			log.info("{}", logRequest);
+
+            ResponseEntity<String> response = restTemplateESB.postForEntity(url, payload , String.class);
+
+			ObjectNode logResponse = mapper.createObjectNode();
+			logResponse.put("type", "[==HTTP-LOG-RESPONSE-ESB==]");
+			logResponse.put("headers", headers.toString());
+			logResponse.set("body", mapper.convertValue(payload, JsonNode.class));
+			log.info("{}", logResponse);
+
 			String bodyString = response.getBody();
 			if(StringUtils.hasLength(bodyString)){
 				bodyString = bodyString.replaceAll("\u00A0", "");
@@ -2257,9 +2276,13 @@ public class ApiService {
             JsonNode result = mapper.readTree(bodyString);
 			return result;
         }catch (Exception e){
-            log.info("createLeadF1.Exception {}", e.toString());
-			return mapper.createObjectNode().put("errMsg", e.toString());
+            log.info("response body from esb Exception {}", e.toString());
+			return mapper.createObjectNode().put("errMsg", e.toString()).set("appConvert", application);
         }
     }
+
+    public int chooseAutoOrApiF1(){
+		return 1;
+	}
 
 }
