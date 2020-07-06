@@ -95,6 +95,8 @@ public class RabbitMQService {
 					return response(message, payload, Map.of("status", 200, "data", crmService.addDocuments((request))));
 				case "addDocumentsWithCustId":
 					return response(message, payload, Map.of("status", 200, "data", crmService.addDocumentsWithCustId((request))));
+				case "addDocumentsWithCustIdAndFullApp":
+					return response(message, payload, Map.of("status", 200, "data", crmService.addDocumentsWithCustIdAndFullApp((request))));
 				case "updateAutomation":
 					return response(message, payload, Map.of("status", 200, "data", crmService.updateAutomation((request))));	
 				case "createField":

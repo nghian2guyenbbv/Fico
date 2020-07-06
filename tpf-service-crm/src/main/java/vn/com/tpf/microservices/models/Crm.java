@@ -68,6 +68,39 @@ public class Crm {
 	private String neoCustID;
 	private String cifNumber ;
 	private String idNumber;
+	private String middleName;
+	private String gender;
+	private String identificationType;
+	private String identificationNumber;
+	private String issuingCountry;
+	private String placeOfIssue;
+	private String issueDate;
+	private String expiryDate;
+	private String primaryAddress;
+	private String phoneNumber;
+	private String incomeExpense;
+	private String amount;
+	private String modeOfPayment;
+	private String dayOfSalaryPayment;
+	private String loanApplicationType;
+	private String loanAmountRequested;
+	private String requestedTenure;
+	private String interestRate;
+	private String saleAgentCodeLoanDetails;
+	private String vapProduct;
+	private String vapTreatment;
+	private String insuranceCompany;
+	private String loanPurpose;
+	private String loanPurposeOther;
+	private String numberOfDependents;
+	private String monthlyRental;
+	private String houseOwnership;
+	private String newBankCardNumber;
+	private String saleAgentCodeDynamicForm;
+	private String courierCode;
+	private String maximumInterestedRate;
+	private List<Object> addresses;
+	private List<Object> references;
 }
 
 
