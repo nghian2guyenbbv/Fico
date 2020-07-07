@@ -697,7 +697,7 @@ public class CrmService {
 				.set("loanApplicationType", data.path("fullInfoApp").path("loanApplicationType").asText())
 				.set("loanAmountRequested", data.path("fullInfoApp").path("loanAmountRequested").asText())
 				.set("requestedTenure", data.path("fullInfoApp").path("requestedTenure").asText())
-				.set("interestRate", data.path("fullInfoApp").path("interestRateinterestRate").asText())
+				.set("interestRate", data.path("fullInfoApp").path("interestRate").asText())
 				.set("saleAgentCodeLoanDetails", data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText())
 				.set("vapProduct", data.path("fullInfoApp").path("vapProduct").asText())
 				.set("vapTreatment", data.path("fullInfoApp").path("vapTreatment").asText())
