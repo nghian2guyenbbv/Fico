@@ -185,6 +185,8 @@ public class RabbitMQService {
 				return response(message, payload, automationService.Submit_Field(request));
 			case "existingCustomer":
 				return response(message, payload, automationService.Existing_Customer(request));
+			case "quickLeadAppAssignPool":
+				return response(message, payload, automationService.quickLeadAppAssignPool(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
