@@ -610,4 +610,39 @@ public class AutomationService {
 
 	//------------------------ END - PROJECT CRM  -------------------------------------
 
+
+	//------------------------ PROJECT CRM  -------------------------------------
+
+	//------------------------ QUICK LEAD WITH ASSIGN POOL -------------------------------------------
+	public Map<String, Object> quickLeadAppAssignPool(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_QLAssignPool(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application.getQuickLead());
+	}
+
+	private void runAutomation_QLAssignPool(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"quickLead_Assign_Pool","DATAENTRY");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+
+	//------------------------ END - QUICK LEAD WITH ASSIGN POOL -------------------------------------
+
+	//------------------------ END - PROJECT CRM  -------------------------------
+
 }
