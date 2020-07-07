@@ -145,7 +145,7 @@ public class CRM_LoanDetailsSourcingDetailsTab {
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchOptionElement.size() > 0);
             for(WebElement e: branchOptionElement) {
-                if(!Objects.isNull(e.getAttribute("title")) && e.getAttribute("title").equals(data.getSourcingBranch())) {
+                if(!Objects.isNull(e.getAttribute("title")) && e.getAttribute("title").equals(data.getSourcingBranch().toUpperCase())) {
                     e.click();
                     Utilities.captureScreenShot(_driver);
                     break;
