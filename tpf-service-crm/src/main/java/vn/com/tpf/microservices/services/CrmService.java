@@ -468,88 +468,88 @@ public class CrmService {
 		if (!data.hasNonNull("documents") || mapper.convertValue(data.path("documents"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.documents array required"));
-		if (data.path("identificationType").asText().isBlank())
+		if (data.path("fullInfoApp").path("identificationType").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.identificationType not blank"));
-		if (data.path("identificationNumber").asText().isBlank())
+		if (data.path("fullInfoApp").path("identificationNumber").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.identificationNumber not blank"));
-		if (data.path("issuingCountry").asText().isBlank())
+		if (data.path("fullInfoApp").path("issuingCountry").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.issuingCountry not blank"));
-		if (data.path("placeOfIssue").asText().isBlank())
+		if (data.path("fullInfoApp").path("placeOfIssue").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.placeOfIssue not blank"));
-		if (data.path("issueDate").asText().isBlank())
+		if (data.path("fullInfoApp").path("issueDate").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.issueDate not blank"));
-		if (data.path("expiryDate").asText().isBlank())
+		if (data.path("fullInfoApp").path("expiryDate").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.expiryDate not blank"));
-		if (!data.hasNonNull("references") || mapper.convertValue(data.path("references"), ArrayNode.class).size() == 0)
+		if (!data.path("fullInfoApp").hasNonNull("references") || mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.references array required"));
-		if (data.path("primaryAddress").asText().isBlank())
+		if (data.path("fullInfoApp").path("primaryAddress").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.primaryAddress not blank"));
-		if (data.path("phoneNumber").asText().isBlank())
+		if (data.path("fullInfoApp").path("phoneNumber").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.phoneNumber not blank"));
-		if (data.path("incomeExpense").asText().isBlank())
+		if (data.path("fullInfoApp").path("incomeExpense").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.incomeExpense not blank"));
-		if (data.path("modeOfPayment").asText().isBlank())
+		if (data.path("fullInfoApp").path("modeOfPayment").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.modeOfPayment not blank"));
-		if (data.path("dayOfSalaryPayment").asText().isBlank())
+		if (data.path("fullInfoApp").path("dayOfSalaryPayment").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.dayOfSalaryPayment not blank"));
-		if (data.path("loanApplicationType").asText().isBlank())
+		if (data.path("fullInfoApp").path("loanApplicationType").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.loanApplicationType not blank"));
-		if (data.path("loanAmountRequested").asText().isBlank())
+		if (data.path("fullInfoApp").path("loanAmountRequested").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.loanAmountRequested not blank"));
-		if (data.path("requestedTenure").asText().isBlank())
+		if (data.path("fullInfoApp").path("requestedTenure").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.requestedTenure not blank"));
-		if (data.path("interestRate").asText().isBlank())
+		if (data.path("fullInfoApp").path("interestRate").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.interestRate not blank"));
-		if (data.path("saleAgentCodeLoanDetails").asText().isBlank())
+		if (data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.saleAgentCodeLoanDetails not blank"));
-		if (data.path("vapProduct").asText().isBlank())
+		if (data.path("fullInfoApp").path("vapProduct").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.vapProduct not blank"));
-		if (data.path("vapTreatment").asText().isBlank())
+		if (data.path("fullInfoApp").path("vapTreatment").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.vapTreatment not blank"));
-		if (data.path("insuranceCompany").asText().isBlank())
+		if (data.path("fullInfoApp").path("insuranceCompany").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.insuranceCompany not blank"));
-		if (data.path("loanPurpose").asText().isBlank())
+		if (data.path("fullInfoApp").path("loanPurpose").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.loanPurpose not blank"));
-		if (data.path("numberOfDependents").asText().isBlank())
+		if (data.path("fullInfoApp").path("numberOfDependents").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.numberOfDependents not blank"));
-		if (data.path("monthlyRental").asText().isBlank())
+		if (data.path("fullInfoApp").path("monthlyRental").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.monthlyRental not blank"));
-		if (data.path("houseOwnership").asText().isBlank())
+		if (data.path("fullInfoApp").path("houseOwnership").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.houseOwnership not blank"));
-		if (data.path("newBankCardNumber").asText().isBlank())
+		if (data.path("fullInfoApp").path("newBankCardNumber").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.newBankCardNumber not blank"));
-		if (data.path("saleAgentCodeDynamicForm").asText().isBlank())
+		if (data.path("fullInfoApp").path("saleAgentCodeDynamicForm").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.saleAgentCodeDynamicForm not blank"));
-		if (data.path("courierCode").asText().isBlank())
+		if (data.path("fullInfoApp").path("courierCode").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.courierCode not blank"));
-		if (data.path("maximumInterestedRate").asText().isBlank())
+		if (data.path("fullInfoApp").path("maximumInterestedRate").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.maximumInterestedRate not blank"));
 		
@@ -644,17 +644,20 @@ public class CrmService {
 		}
 		ArrayNode addresses = mapper.convertValue(data.path("fullInfoApp").path("addresses"), ArrayNode.class);
 		List<HashMap> addressesUpload = new ArrayList<HashMap>();
-		for(JsonNode address : addresses) {
-			HashMap<String, String> addressUpload = new HashMap<>();
-			addressUpload.put("addressType", address.path("addressType").asText());
-			addressUpload.put("addressLine1", address.path("addressLine1").asText());
-			addressUpload.put("addressLine2", address.path("addressLine2").asText());
-			addressUpload.put("addressLine3", address.path("addressLine3").asText());
-			addressUpload.put("area", address.path("area").asText());
-			addressUpload.put("city", address.path("city").asText());
-			addressesUpload.add(addressUpload);
+		if (addresses != null ) {
+			if (addresses.size() != 0) {
+				for(JsonNode address : addresses) {
+					HashMap<String, String> addressUpload = new HashMap<>();
+					addressUpload.put("addressType", address.path("addressType").asText());
+					addressUpload.put("addressLine1", address.path("addressLine1").asText());
+					addressUpload.put("addressLine2", address.path("addressLine2").asText());
+					addressUpload.put("addressLine3", address.path("addressLine3").asText());
+					addressUpload.put("area", address.path("area").asText());
+					addressUpload.put("city", address.path("city").asText());
+					addressesUpload.add(addressUpload);
+				}
+			}
 		}
-		
 		ArrayNode references = mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class);
 		List<HashMap> referencesUpload = new ArrayList<HashMap>();
 		for(JsonNode reference : references) {
