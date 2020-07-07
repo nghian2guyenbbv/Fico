@@ -153,7 +153,7 @@ public class RabbitMQService {
 					if (StringUtils.isEmpty(checkCustID) && StringUtils.isEmpty(checkCifNumber) && StringUtils.isEmpty(checkIdNumber)){
 						return response(message, payload, automationService.CRM_quickLeadApp(request));
 					}else{
-						return response(message, payload, automationService.CRM_quickLeadAppWithCustID(request));
+						return response(message, payload, automationService.Existing_Customer(request));
 					}
 				}
 				else
@@ -183,7 +183,7 @@ public class RabbitMQService {
 				return response(message, payload, automationService.Waive_Field(request));
 			case "submitField":
 				return response(message, payload, automationService.Submit_Field(request));
-			case "quickLeadFullInfoApp":
+			case "existingCustomer":
 				return response(message, payload, automationService.Existing_Customer(request));
 			case "quickLeadAppAssignPool":
 				return response(message, payload, automationService.quickLeadAppAssignPool(request));
