@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
 
@@ -801,6 +803,8 @@ public class RepaymentService {
 					.userCode(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getUserCode())
 					.branchId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getBranchId())
 					.receiptPayOutMode(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayOutMode())
+					.receiptPayoutChannel(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayoutChannel())
+					.receiptOrPayoutAmount(ficoRepaymentModel.getReceiptProcessingMO().getReceiptOrPayoutAmount())
 					.receiptNo(ficoRepaymentModel.getReceiptProcessingMO().getReceiptNo())
 					.paymentSubMode(ficoRepaymentModel.getReceiptProcessingMO().getPaymentSubMode())
 					.receiptAgainst(ficoRepaymentModel.getReceiptProcessingMO().getReceiptAgainst())
@@ -880,5 +884,70 @@ public class RepaymentService {
 
 	}
 	//---------------------- END FUNCTION SAVE REPORT -----------------
+
+
+	//----------------------- START CRON --------------------------
+	@Value("${spring.ftp.server}")
+	private String ftpServer;
+	@Value("${spring.ftp.port}")
+	private int ftpPort;
+	@Value("${spring.ftp.username}")
+	private String ftpUser;
+	@Value("${spring.ftp.password}")
+	private String ftpPass;
+
+	private boolean connectFTP(FTPClient ftpClient) {
+		boolean success = false;
+
+		try {
+			ftpClient.connect(ftpServer,ftpPort);
+			showServerReply(ftpClient);
+			int replyCode = ftpClient.getReplyCode();
+			if (!FTPReply.isPositiveCompletion(replyCode)) {
+				System.out.println("Operation failed. Server reply code: " + replyCode);
+				return success;
+			}
+			success = ftpClient.login(ftpUser, ftpPass);
+			showServerReply(ftpClient);
+		} catch (IOException ex) {
+			System.out.println("Oops! Something wrong happened");
+			ex.printStackTrace();
+		}
+		return success;
+	}
+
+	public Map<String, Object> getCron() throws IOException {
+		ResponseModel responseModel = new ResponseModel();
+
+		FTPClient ftpClient = new FTPClient();
+		boolean success = connectFTP(ftpClient);
+		if (!success) {
+			System.out.println("Could not login to the server");
+		} else {
+			System.out.println("LOGGED IN SERVER");
+			String[] filesFTP = ftpClient.listNames();
+			for (String file : filesFTP) {
+				System.out.println("File:  " +  file);
+			}
+		}
+		responseModel.setRequest_id(UUID.randomUUID().toString());
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		responseModel.setDate_time(new Timestamp(new Date().getTime()));
+		responseModel.setResult_code(0);
+
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	private void showServerReply(FTPClient ftpClient) {
+		String[] replies = ftpClient.getReplyStrings();
+		if (replies != null && replies.length > 0) {
+			for (String aReply : replies) {
+				System.out.println("SERVER: " + aReply);
+			}
+		}
+	}
+
+
+	//----------------------- END CRON ----------------------------
 
 }
