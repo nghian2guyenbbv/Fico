@@ -6,6 +6,11 @@ spring:
         url: jdbc:postgresql://10.1.66.30:5435/ficodb
   hostRequest:
         url: http://10.131.21.190:8900/api/v2/f1/receiptService
+  ftp:
+    server: 10.131.21.12
+    port: 22
+    username: hiepln
+    password: 123456
 security:
   oauth2:
     client:

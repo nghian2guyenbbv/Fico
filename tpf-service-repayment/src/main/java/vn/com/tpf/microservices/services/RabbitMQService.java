@@ -101,6 +101,8 @@ public class RabbitMQService {
 				return response(message, payload, repaymentService.getTransDate(request));
 			case "syncData":
 					return response(message, payload, repaymentService.syncData(request));
+			case "cronSchedule":
+					return response(message, payload, repaymentService.getCron());
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
