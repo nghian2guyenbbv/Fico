@@ -3899,13 +3899,29 @@ public class AutomationHandlerService {
 
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
+                if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent()){
+                    DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
+                    await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
+
+                    de_applicationManagerPage.getBackBtnElement().click();
+
+                    await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
+                }
+            }
+
+            /*if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
                 DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
                 //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
                 if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent())
                 {
                     de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                 }
-            }
+            }*/
 
             deSaleQueueDTO.setStatus("OK");
             deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
@@ -5652,36 +5668,6 @@ public class AutomationHandlerService {
                     .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
 
             String leadAppID = "";
-//            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
-//                System.out.println(e.getText());
-//                if (e.getText().contains("APPL")) {
-//                    leadAppID = e.getText().substring(e.getText().indexOf("APPL"), e.getText().indexOf("APPL") + 12);
-//                }
-//            }
-//            System.out.println("APPID: => " + leadAppID);
-//
-//            Utilities.captureScreenShot(driver);
-//            System.out.println(stage + ": DONE");
-
-
-//            //update thêm phần assign về acc tạo app để tranh rơi vào pool
-//            stage = "APPLICATION MANAGER";
-//            // ========== APPLICATION MANAGER =================
-//            homePage.getMenuApplicationElement().click();
-//            homePage.getApplicationManagerElement().click();
-//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("Application Manager"));
-//
-//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-//
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
-//            System.out.println(stage + ": DONE");
-//            Utilities.captureScreenShot(driver);
-//
-//            //-------------------- END ---------------------------
-            //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
             homePage.getMenuApplicationElement().click();
@@ -5697,17 +5683,6 @@ public class AutomationHandlerService {
             //get appID moi o day
             leadAppID = de_applicationManagerPage.getAppID(leadApp);
             System.out.println(" APP: =>" + leadAppID);
-
-            //smartner bo phan reassign user auto
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
-//
-//            de_applicationManagerPage.getBackBtnElement().click();
-//
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-//
-//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 

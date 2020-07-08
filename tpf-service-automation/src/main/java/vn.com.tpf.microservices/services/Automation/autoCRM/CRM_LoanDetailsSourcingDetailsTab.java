@@ -155,7 +155,7 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         channelElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> channelOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getSourcingChannel(), channelOptionElement);
+        Utilities.chooseDropdownValue(data.getSourcingChannel().toUpperCase(), channelOptionElement);
 
         applicationFormNumberElement.sendKeys(applicationId);
 
@@ -167,12 +167,12 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         productNameElement.click();
         await("productNameOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> productNameOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getProductCode(), productNameOptionElement);
+        Utilities.chooseDropdownValue(data.getProductCode().toUpperCase(), productNameOptionElement);
 
         schemeElement.click();
         await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> schemeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getSchemeCode(), schemeOptionElement);
+        Utilities.chooseDropdownValue(data.getSchemeCode().toUpperCase(), schemeOptionElement);
 
         Utilities.checkValueSendkey(data.getLoanAmountRequested(),loanAmountElement);
 
