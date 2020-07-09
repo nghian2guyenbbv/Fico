@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
@@ -30,6 +31,11 @@ import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
@@ -49,6 +55,8 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.Properties;
+
 
 @Service
 public class RepaymentService {
@@ -896,6 +904,9 @@ public class RepaymentService {
 	@Value("${spring.ftp.password}")
 	private String ftpPass;
 
+	@Autowired
+	private FicoCronLogDAO ficoCronLogDAO;
+
 	private boolean connectFTP(FTPClient ftpClient) {
 		boolean success = false;
 
@@ -916,7 +927,7 @@ public class RepaymentService {
 		return success;
 	}
 
-	public Map<String, Object> getCron() throws IOException {
+	public Map<String, Object> getCron() throws IOException, MessagingException {
 		ResponseModel responseModel = new ResponseModel();
 
 		FTPClient ftpClient = new FTPClient();
@@ -925,9 +936,54 @@ public class RepaymentService {
 			System.out.println("Could not login to the server");
 		} else {
 			System.out.println("LOGGED IN SERVER");
-			String[] filesFTP = ftpClient.listNames();
-			for (String file : filesFTP) {
-				System.out.println("File:  " +  file);
+//			String[] filesFTP = ftpClient.listNames();
+//			for (String file : filesFTP) {
+//				System.out.println("File:  " +  file);
+//			}
+
+//			Arrays.sort(ftpClient.listFiles(),
+//					Comparator.comparing((FTPFile remoteFile) -> remoteFile.getTimestamp()).reversed());
+
+			FTPFile[] ftpFiles = ftpClient.listFiles();
+			if (ftpFiles.length > 0) {
+				FTPFile file = lastFileModified(ftpFiles);
+
+				//check file ton tai hay chua
+				List<FicoCronLogModel> ficoCronLogModelList = ficoCronLogDAO.findByFileName(file.getName());
+
+				if (ficoCronLogModelList.size() > 0) {
+					System.out.println("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+
+					responseModel.setRequest_id(UUID.randomUUID().toString());
+					responseModel.setMessage("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
+
+					return Map.of("status", 200, "data", responseModel);
+				}
+
+				//ghi log
+				FicoCronLogModel ficoCronLogModel = FicoCronLogModel.builder()
+							.fileName(file.getName())
+							.createdDate(new Date())
+							.fileCreatedDate(file.getTimestamp().getTime())
+							.build();
+				ficoCronLogDAO.save(ficoCronLogModel);
+
+				//call proc sync
+
+				//send mail
+				sendMail();
+
+				//return
+				responseModel.setRequest_id(UUID.randomUUID().toString());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setMessage("File:  " + file.getName() + " complete at " + file.getTimestamp().getTime());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(0);
+
+				return Map.of("status", 200, "data", responseModel);
 			}
 		}
 		responseModel.setRequest_id(UUID.randomUUID().toString());
@@ -936,6 +992,55 @@ public class RepaymentService {
 		responseModel.setResult_code(0);
 
 		return Map.of("status", 200, "data", responseModel);
+
+	}
+
+	public static FTPFile lastFileModified(FTPFile[] files) {
+		Date lastMod = files[0].getTimestamp().getTime();
+		FTPFile choice = files[0];
+		for (FTPFile file : files) {
+			if (file.getTimestamp().getTime().after(lastMod)) {
+				choice = file;
+				lastMod = file.getTimestamp().getTime();
+			}
+		}
+		return choice;
+	}
+
+	private void sendMail() throws MessagingException {
+
+		Properties prop = new Properties();
+		prop.put("mail.smtp.auth", true);
+		prop.put("mail.smtp.starttls.enable", "true");
+		prop.put("mail.smtp.host", "smtp.mailtrap.io");
+		prop.put("mail.smtp.port", "25");
+		prop.put("mail.smtp.ssl.trust", "smtp.mailtrap.io");
+
+
+		javax.mail.Session session = javax.mail.Session.getInstance(prop, new Authenticator() {
+			@Override
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication("265d55fad40447", "2e3ac0f543683e");
+			}
+		});
+
+		Message message = new MimeMessage(session);
+		message.setFrom(new InternetAddress("hiepln512@gmail.com"));
+		message.setRecipients(
+				Message.RecipientType.TO, InternetAddress.parse("nghiahiep512@gmail.com"));
+		message.setSubject("Mail Subject");
+
+		String msg = "This is my first email using JavaMailer";
+
+		MimeBodyPart mimeBodyPart = new MimeBodyPart();
+		mimeBodyPart.setContent(msg, "text/html");
+
+		Multipart multipart = new MimeMultipart();
+		multipart.addBodyPart(mimeBodyPart);
+
+		message.setContent(multipart);
+
+		Transport.send(message);
 	}
 
 	private void showServerReply(FTPClient ftpClient) {
