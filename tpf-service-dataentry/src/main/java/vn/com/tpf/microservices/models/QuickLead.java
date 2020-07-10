@@ -35,4 +35,5 @@ public class QuickLead {
 //    private List<QLDocument> documentsAfterSubmit;
 
     private String partnerId;
+    private String customerId;
 }

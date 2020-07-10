@@ -96,7 +96,7 @@ public class ApiService {
 		scrfCall3P.setReadTimeout(1000*180);
 		ClientHttpRequestFactory factoryCall3P = new BufferingClientHttpRequestFactory(scrfCall3P);
 		restTemplate = new RestTemplate(factoryCall3P);
-		restTemplate.setInterceptors(Arrays.asList(new HttpLogService())); 
+		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
 
 		SimpleClientHttpRequestFactory scrf = new SimpleClientHttpRequestFactory();
 		scrf.setConnectTimeout(1000*120);
@@ -105,7 +105,10 @@ public class ApiService {
 		restTemplateFirstCheck = new RestTemplate(factoryFirstCheck);
 		restTemplateFirstCheck.setInterceptors(Arrays.asList(new HttpLogService()));
 
-		restTemplateESB = new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
+		SimpleClientHttpRequestFactory callESB = new SimpleClientHttpRequestFactory();
+		scrfCall3P.setConnectTimeout(30_000);
+		scrfCall3P.setReadTimeout(30_000);
+		restTemplateESB = new RestTemplate(callESB);
 	}
 
 //	public String firstCheck(JsonNode request, JsonNode token) {
@@ -2244,44 +2247,46 @@ public class ApiService {
 		}
 	}
 
-    public JsonNode createLeadF1(String url, JsonNode application){
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("clientId", "1");
-        headers.add("sign", "1");
-        headers.add("Content-Type", "application/json");
-        try {
+	public JsonNode createLeadF1(String url, JsonNode application){
+		MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+		headers.add("clientId", "1");
+		headers.add("sign", "1");
+		headers.add("Content-Type", "application/json");
+		try {
 			HttpEntity<?> payload = new HttpEntity<>(application, headers);
-			JsonNode jsonLog = application.deepCopy();
-			if(!jsonLog.findPath("attachmentDetails").isMissingNode() && jsonLog.findPath("attachmentDetails").asText().length() > 200){
-				((ObjectNode) jsonLog).put("attachmentDetails", jsonLog.findPath("attachmentDetails").asText().substring(0, 20));
-			}
+
 			ObjectNode logRequest = mapper.createObjectNode();
 			logRequest.put("type", "[==HTTP-LOG-REQUEST-ESB==]");
+			logRequest.put("url", url);
 			logRequest.put("headers", headers.toString());
-			logRequest.set("body", jsonLog);
+			if(application.findPath("attachedDocument").isMissingNode()
+					|| (!application.findPath("attachedDocument").isMissingNode() && application.findPath("attachedDocument").asText("").length() < 200)){
+				logRequest.set("body", application);
+			}
 			log.info("{}", logRequest);
 
-            ResponseEntity<String> response = restTemplateESB.postForEntity(url, payload , String.class);
-
-			ObjectNode logResponse = mapper.createObjectNode();
-			logResponse.put("type", "[==HTTP-LOG-RESPONSE-ESB==]");
-			logResponse.put("headers", headers.toString());
-			logResponse.set("body", mapper.convertValue(payload, JsonNode.class));
-			log.info("{}", logResponse);
+			ResponseEntity<String> response = restTemplateESB.postForEntity(url, payload , String.class);
 
 			String bodyString = response.getBody();
 			if(StringUtils.hasLength(bodyString)){
 				bodyString = bodyString.replaceAll("\u00A0", "");
 			}
-            JsonNode result = mapper.readTree(bodyString);
-			return result;
-        }catch (Exception e){
-            log.info("response body from esb Exception {}", e.toString());
-			return mapper.createObjectNode().put("errMsg", e.toString()).set("appConvert", application);
-        }
-    }
 
-    public int chooseAutoOrApiF1(){
+			ObjectNode logResponse = mapper.createObjectNode();
+			logResponse.put("type", "[==HTTP-LOG-RESPONSE-ESB==]");
+			logResponse.put("headers", headers.toString());
+			logResponse.set("body", mapper.readTree(bodyString));
+			log.info("{}", logResponse);
+
+			JsonNode result = mapper.readTree(bodyString);
+			return result;
+		}catch (Exception e){
+			log.info("response body from esb Exception {}", e.toString());
+			return mapper.createObjectNode().put("errMsg", e.toString()).set("appConvert", application);
+		}
+	}
+
+	public int chooseAutoOrApiF1(){
 		return 1;
 	}
 
