@@ -11,6 +11,7 @@ spring:
     port: 21
     username: hiepln
     password: 123456
+    cronconfig: "0 */5 * ? * *"
 security:
   oauth2:
     client:

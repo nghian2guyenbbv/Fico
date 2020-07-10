@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -59,6 +61,7 @@ import java.util.Properties;
 
 
 @Service
+@EnableScheduling
 public class RepaymentService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -904,6 +907,7 @@ public class RepaymentService {
 	@Value("${spring.ftp.password}")
 	private String ftpPass;
 
+
 	@Autowired
 	private FicoCronLogDAO ficoCronLogDAO;
 
@@ -927,6 +931,7 @@ public class RepaymentService {
 		return success;
 	}
 
+	@Scheduled(cron = "${spring.ftp.cronconfig}")
 	public Map<String, Object> getCron() throws IOException, MessagingException {
 		ResponseModel responseModel = new ResponseModel();
 
@@ -991,6 +996,7 @@ public class RepaymentService {
 		responseModel.setDate_time(new Timestamp(new Date().getTime()));
 		responseModel.setResult_code(0);
 
+		System.out.println("job : " + new Date());
 		return Map.of("status", 200, "data", responseModel);
 
 	}
