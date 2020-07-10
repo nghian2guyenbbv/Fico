@@ -5526,16 +5526,16 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
             stage = "COMPLETE";
-            System.out.println("AUTO EXISTING CUSTOMER OK: user run auto: " + accountDTO.getUserName());
+            System.out.println("AUTO QUICKLEAD OK: user run auto: " + accountDTO.getUserName());
 
-            System.out.println("AUTO EXISTING CUSTOMER - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("AUTO QUICKLEAD - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
 
             responseModel.setProject(existingCustomerDTO.getProject());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("EXISTING_CUSTOMER PASS");
+            responseModel.setAutomation_result("QUICKLEAD PASS");
 
             Utilities.captureScreenShot(driver);
 
@@ -5545,7 +5545,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("EXISTING_CUSTOMER FAILED" + " - " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
