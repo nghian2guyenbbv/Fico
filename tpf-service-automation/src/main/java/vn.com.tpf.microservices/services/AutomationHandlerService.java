@@ -5531,7 +5531,7 @@ public class AutomationHandlerService {
             System.out.println("AUTO QUICKLEAD - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
 
-            responseModel.setProject(existingCustomerDTO.getProject());
+            responseModel.setProject(existingCustomerDTO.getProject().toUpperCase());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
@@ -5541,7 +5541,7 @@ public class AutomationHandlerService {
 
         } catch (Exception e) {
 
-            responseModel.setProject(existingCustomerDTO.getProject());
+            responseModel.setProject(existingCustomerDTO.getProject().toUpperCase());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
