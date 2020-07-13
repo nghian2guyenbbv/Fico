@@ -5554,9 +5554,10 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject().toLowerCase() + " => AppId: " +responseModel.getApp_id());
+            System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " +responseModel.getApp_id());
             logout(driver,accountDTO.getUserName());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            pushAccountToQueue(accountDTO, responseModel.getProject());
         }
     }
 
