@@ -5531,7 +5531,7 @@ public class AutomationHandlerService {
             System.out.println("AUTO QUICKLEAD - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
 
-            responseModel.setProject(existingCustomerDTO.getProject().toUpperCase());
+            responseModel.setProject(existingCustomerDTO.getProject());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
@@ -5541,7 +5541,7 @@ public class AutomationHandlerService {
 
         } catch (Exception e) {
 
-            responseModel.setProject(existingCustomerDTO.getProject().toUpperCase());
+            responseModel.setProject(existingCustomerDTO.getProject());
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
@@ -5556,8 +5556,8 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " +responseModel.getApp_id());
             logout(driver,accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            pushAccountToQueue(accountDTO, responseModel.getProject());
         }
     }
 
