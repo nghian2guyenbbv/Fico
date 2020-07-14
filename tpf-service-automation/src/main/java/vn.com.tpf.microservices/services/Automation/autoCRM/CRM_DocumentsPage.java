@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.LocalFileDetector;
@@ -127,7 +128,9 @@ public class CRM_DocumentsPage {
                         String photoUrl = file.getAbsolutePath();
                         System.out.println("PATH:" + photoUrl);
                         Thread.sleep(2000);
-
+                        new Select(lendingStatusElement.get(index)).selectByVisibleText("Received");
+                        await("Load lendingPhotoContainerElement Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() ->  lendingPhotoContainerElement.get(_tempIndex).isDisplayed());
                         photoElement.get(_tempIndex).sendKeys(photoUrl);
                         Utilities.captureScreenShot(_driver);
                     }
