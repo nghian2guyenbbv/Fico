@@ -4553,15 +4553,11 @@ public class AutomationHandlerService {
             driver = setupTestDriver.getDriver();
 
             stage = "LOGIN FINONE";
-
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
-
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -4723,14 +4719,11 @@ public class AutomationHandlerService {
             driver = setupTestDriver.getDriver();
 
             stage = "LOGIN FINONE";
-
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
