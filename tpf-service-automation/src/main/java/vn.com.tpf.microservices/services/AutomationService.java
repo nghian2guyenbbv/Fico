@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_ExistingCustomerDTO;
+import vn.com.tpf.microservices.models.AutoCRM.CRM_SaleQueueDTO;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
@@ -607,6 +608,37 @@ public class AutomationService {
 		workerThreadPool.submit(automationThreadService);
 	}
 	//------------------------ END - EXISTING_CUSTOMER -------------------------------------
+
+
+	//------------------------ SALE_QUEUE -------------------------------------
+	public Map<String, Object> Sale_Queue_With_FullInfo(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		CRM_SaleQueueDTO saleQueueDTOList = mapper.treeToValue(request.path("body"), CRM_SaleQueueDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_Sale_Queue_With_FullInfo(saleQueueDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, saleQueueDTOList);
+	}
+
+	private void runAutomation_Sale_Queue_With_FullInfo(CRM_SaleQueueDTO saleQueueDTOList) throws Exception {
+		String browser = "chrome";
+		String projectJson = saleQueueDTOList.getProject();
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Sale_Queue_FullInfo(saleQueueDTOList);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Sale_Queue_With_FullInfo",projectJson);
+
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//------------------------ END - SALE_QUEUE -------------------------------------
+
 
 	//------------------------ END - PROJECT CRM  -------------------------------------
 

@@ -897,6 +897,157 @@ public class DataInitial {
         return map;
     }
 
+    public static Map<String, Object> getDataFrom_Sale_Queue_FullInfo(CRM_SaleQueueDTO saleQueueList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("SaleQueueList", saleQueueList);
+
+        ////********************************APPLICATIONINFORMATION************************************////
+        ////*********PERSONALINFORMATION
+        ////*********PERSONALINFO
+        CRM_PersonalInfoDTO personalInfos = CRM_PersonalInfoDTO.builder()
+                .firstName(saleQueueList.getFullInfoApp().getFirstName())
+                .middleName(saleQueueList.getFullInfoApp().getMiddleName())
+                .lastName(saleQueueList.getFullInfoApp().getLastName())
+                .gender(saleQueueList.getFullInfoApp().getGender())
+                .dateOfBirth(saleQueueList.getFullInfoApp().getDateOfBirth())
+                .nationality("Vietnamese")
+                .build();
+
+        ////*********IDENTIFICATION
+        CRM_IdentificationsDTO identifications = CRM_IdentificationsDTO.builder()
+                .identificationType(saleQueueList.getFullInfoApp().getIdentificationType())
+                .identificationNumber(saleQueueList.getFullInfoApp().getIdentificationNumber())
+                .issuingCountry(saleQueueList.getFullInfoApp().getIssuingCountry())
+                .placeOfIssue(saleQueueList.getFullInfoApp().getPlaceOfIssue())
+                .issueDate(saleQueueList.getFullInfoApp().getIssueDate())
+                .expiryDate(saleQueueList.getFullInfoApp().getExpiryDate())
+                .build();
+
+        ////*********ADDRESS
+        List<CRM_AddressListDTO> addressDTOs = new ArrayList<>();
+        if (saleQueueList.getFullInfoApp().getAddresses() != null){
+            for (CRM_AddressDTO address : saleQueueList.getFullInfoApp().getAddresses()) {
+                CRM_AddressListDTO addressDTO = CRM_AddressListDTO.builder()
+                        .addressType(address.getAddressType())
+                        .country("Vietnam")
+                        .region("ALL")
+                        .city(address.getCity())
+                        .area(address.getArea())
+                        .building(address.getAddressLine1())
+                        .house(address.getAddressLine2())
+                        .ward(address.getAddressLine3())
+                        .addressLandmark(address.getLandMark())
+                        .residentDurationYear(address.getYearsInCurrentAddress())
+                        .residentDurationMonth(address.getMonthsInCurrentAddress())
+                        .mobilePhone(address.getPhoneNumbers())
+                        .build();
+                addressDTOs.add(addressDTO);
+            }
+        }
+
+
+        ////*********COMMUNICATIONDETAILS
+        CRM_CommunicationDetailsDTO communicationDetails = CRM_CommunicationDetailsDTO.builder()
+                .primaryAddress(saleQueueList.getFullInfoApp().getPrimaryAddress())
+                .phoneNumbers(saleQueueList.getFullInfoApp().getPhoneNumber())
+                .build();
+
+        //financialDetails
+        CRM_FinancialDetailsDTO financialDetails = CRM_FinancialDetailsDTO.builder()
+                .incomeExpense(saleQueueList.getFullInfoApp().getIncomeExpense())
+                .frequency("Monthly")
+                .amount(saleQueueList.getFullInfoApp().getAmount())
+                .modeOfPayment(saleQueueList.getFullInfoApp().getModeOfPayment())
+                .dayOfSalaryPayment(saleQueueList.getFullInfoApp().getDayOfSalaryPayment())
+                .build();
+
+
+        CRM_ApplicationInformationsListDTO applicationInfoDTO = CRM_ApplicationInformationsListDTO.builder()
+                .personalInfo(personalInfos)
+                .identification(identifications)
+                .address(addressDTOs)
+                .communicationDetail(communicationDetails)
+                .financialDetail(financialDetails)
+                .build();
+        map.put("ApplicationInfoDTO", applicationInfoDTO);
+        ////********************************END APPLICATIONINFO DTO************************************////
+
+        ////******************************** LOAN DETAIL DTO************************************////
+        ////*********LOANDETAILS
+        CRM_SourcingDetailsDTO sourcingDetails = CRM_SourcingDetailsDTO.builder()
+                .sourcingBranch(saleQueueList.getFullInfoApp().getSourcingBranch())
+                .sourcingChannel(saleQueueList.getFullInfoApp().getSourcingChannel())
+                .loanApplicationType(saleQueueList.getFullInfoApp().getLoanApplicationType())
+                .productCode(saleQueueList.getFullInfoApp().getProductCode())
+                .schemeCode(saleQueueList.getFullInfoApp().getSchemeCode())
+                .loanAmountRequested(saleQueueList.getFullInfoApp().getLoanAmountRequested())
+                .requestedTenure(saleQueueList.getFullInfoApp().getRequestedTenure())
+                .interestRate(saleQueueList.getFullInfoApp().getInterestRate())
+                .saleAgentCode(saleQueueList.getFullInfoApp().getSaleAgentCodeLoanDetails())
+                .build();
+
+        CRM_VapDetailsDTO vapDetails = CRM_VapDetailsDTO.builder()
+                .vapProduct(saleQueueList.getFullInfoApp().getVapProduct())
+                .vapTreatment(saleQueueList.getFullInfoApp().getVapTreatment())
+                .insuranceCompany(saleQueueList.getFullInfoApp().getInsuranceCompany())
+                .build();
+
+        CRM_LoanDetailsDTO loanDetails = CRM_LoanDetailsDTO.builder()
+                .sourcingDetails(sourcingDetails)
+                .vapDetails(vapDetails)
+                .build();
+        map.put("VapDetailsDTO", loanDetails);
+
+
+        ////********************************END LOAN DETAIL DTO************************************////
+
+        ///******************************** REFERENCE DTO ************************************////
+
+        List<CRM_ReferencesListDTO> referenceDTOs = new ArrayList<>();
+        for(CRM_ReferencesDTO reference : saleQueueList.getFullInfoApp().getReferences()) {
+            CRM_ReferencesListDTO referenceDTO = CRM_ReferencesListDTO.builder()
+                    .fullName(reference.getName())
+                    .relationShip(reference.getRelationship())
+                    .mobilePhoneNumber(reference.getPhoneNumber())
+                    .build();
+            referenceDTOs.add(referenceDTO);
+        }
+        map.put("ReferenceDTO", referenceDTOs);
+        ////********************************END REFERENCE DTO************************************////
+
+        ////******************************** DYNAMIC FORM ************************************////
+        CRM_DynamicFormDTO dynamicForms = CRM_DynamicFormDTO.builder()
+                .loanPurpose(saleQueueList.getFullInfoApp().getLoanPurpose())
+                .loanPurposeOther(saleQueueList.getFullInfoApp().getLoanPurposeOther())
+                .numberOfDependents(saleQueueList.getFullInfoApp().getNumberOfDependents())
+                .monthlyRental(saleQueueList.getFullInfoApp().getMonthlyRental())
+                .houseOwnership(saleQueueList.getFullInfoApp().getHouseOwnership())
+                .newBankCardNumber(saleQueueList.getFullInfoApp().getNewBankCardNumber())
+                .saleAgentCode(saleQueueList.getFullInfoApp().getSaleAgentCodeDynamicForm())
+                .courierCode(saleQueueList.getFullInfoApp().getCourierCode())
+                .maximumInterestedRate(saleQueueList.getFullInfoApp().getMaximumInterestedRate())
+                .build();
+        map.put("MiscFrmAppDtlDTO", dynamicForms);
+
+        ////********************************ENDDYNAMIC FORM************************************////
+
+        ////******************************** DOCUMENT DTO ************************************////
+        List<CRM_DocumentsDTO> documentDTOS = new ArrayList<>();
+        if(saleQueueList.getFullInfoApp().getDocuments()!=null && saleQueueList.getFullInfoApp().getDocuments().size()>0){
+            for(CRM_DocumentsDTO document : saleQueueList.getFullInfoApp().getDocuments()) {
+                CRM_DocumentsDTO documentDTO = CRM_DocumentsDTO.builder ()
+                        .originalname(document.getOriginalname())
+                        .filename(document.getFilename())
+                        .type(document.getType()).build();
+                documentDTOS.add(documentDTO);
+            }
+        }
+        map.put("DocumentDTO", documentDTOS);
+        ////********************************END DOCUMENT DTO************************************////
+
+        return map;
+    }
+
     public static Map<String, Object> getDataFromCRM_QL(CRM_ExistingCustomerDTO application) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("ApplicationDTO", application);

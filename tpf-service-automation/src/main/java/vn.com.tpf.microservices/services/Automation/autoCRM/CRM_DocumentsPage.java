@@ -104,7 +104,7 @@ public class CRM_DocumentsPage {
                 "TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
                 "TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card","TPF_Collab document","TPF_Credit contract documentations",
                 "TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon","TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
-                "TPF_Transcript","TPF_Representatives "); //
+                "TPF_Transcript","TPF_Representatives ");
         Utilities.captureScreenShot(_driver);
 
         for (WebElement element : docNameElement) {
@@ -142,59 +142,4 @@ public class CRM_DocumentsPage {
         Utilities.captureScreenShot(_driver);
 
     }
-
-    public void updateData(List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL) throws IOException, InterruptedException {
-        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-        await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
-
-        String fromFile = downLoadFileURL;
-        String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-        System.out.println("update doc - URLdownload: " + fromFile);
-
-        int index = 0;
-
-        List<String> updateField=new ArrayList<>();
-        for(CRM_DocumentsDTO documentDTO:documentDTOS){
-            updateField.add(FilenameUtils.removeExtension(documentDTO.originalname));
-
-            System.out.println("name;" + FilenameUtils.removeExtension(documentDTO.originalname));
-        }
-
-        Utilities.captureScreenShot(_driver);
-
-        for (WebElement element : docNameElement) {
-            final int _tempIndex = index;
-            String docName = element.getText();
-            if (updateField.contains(docName)) {
-
-                //do type truyen sang null
-                CRM_DocumentsDTO documentDTO=documentDTOS.stream().filter(documentdto -> documentdto.originalname.contains(docName)).findAny().orElse(null);
-                if(documentDTO!=null){
-
-                    //bo sung get ext file
-                    String ext= FilenameUtils.getExtension(documentDTO.getFilename());
-
-                    toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
-                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-                    File file = new File(toFile);
-                    if(file.exists()) {
-                        String photoUrl = file.getAbsolutePath();
-                        System.out.println("paht;" + photoUrl);
-                        Thread.sleep(2000);
-
-                        photoElement.get(_tempIndex).sendKeys(photoUrl);//
-                        Thread.sleep(2000);
-
-                        Utilities.captureScreenShot(_driver);
-                        System.out.println(photoElement.get(_tempIndex).getText());
-                    }
-                }
-
-            }
-            index++;
-        }
-
-    }
-
 }
