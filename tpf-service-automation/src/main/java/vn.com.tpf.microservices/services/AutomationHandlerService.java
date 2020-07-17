@@ -4460,36 +4460,13 @@ public class AutomationHandlerService {
                 ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
 
                 for (LoginDTO loginDTO : loginDTOList) {
-
-                    SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-                    WebDriver drivers = setupTestDriver.getDriver();
-
-                    stage = "LOGIN FINONE";
-                    LoginPage loginPage = new LoginPage(drivers);
-                    loginPage.setLoginValue(loginDTO.getUserName(), loginDTO.getPassword());
-                    loginPage.clickLogin();
-
-                    try{
-                        await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(drivers::getTitle, is("DashBoard"));
-                        Utilities.captureScreenShot(drivers);
-                        System.out.println(stage + ": DONE");
-                    }catch (Exception ex){
-                        Query queryUpdate = new Query();
-                        queryUpdate.addCriteria(Criteria.where("active").is(1).and("username").is(loginDTO.getUserName()).and("project").is(project));
-                        Update update = new Update();
-                        update.set("active", 0);
-                        mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
-                        continue;
-                    }
-
                     workerThreadPoolDE.execute(new Runnable() {
                         @Override
                         public void run() {
                             if ("Waive_Field".equals(funcString)){
-                                runAutomation_Waive_Field_run(drivers, loginDTO, project, mapValue);
+                                runAutomation_Waive_Field_run(browser, loginDTO, project, mapValue);
                             }else if ("Submit_Field".equals(funcString)){
-                                runAutomation_Submit_Field_run(drivers, loginDTO, project, mapValue);
+                                runAutomation_Submit_Field_run(browser, loginDTO, project, mapValue);
                             }
                         }
                     });
@@ -4506,7 +4483,8 @@ public class AutomationHandlerService {
     //------------------------ END FIELD -----------------------------------------------------
 
     //------------------------ WAIVE FIELD -----------------------------------------------------
-    private void runAutomation_Waive_Field_run(WebDriver driver, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
+    private void runAutomation_Waive_Field_run(String browser, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
+        WebDriver driver = null;
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -4526,6 +4504,28 @@ public class AutomationHandlerService {
                 waiveFieldDTOList.get(i).setProject(projectField);
                 waiveFieldDTOList.get(i).setTransaction_id(transaction_id);
                 waiveFieldDTOList.get(i).setReference_id(reference_id);
+            }
+
+
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
+
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            try{
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
+                Utilities.captureScreenShot(driver);
+                System.out.println(stage + ": DONE");
+            }catch (Exception ex){
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("active").is(1).and("username").is(accountDTO.getUserName()).and("project").is(project));
+                Update update = new Update();
+                update.set("active", 0);
+                mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
             }
 
             do {
@@ -4658,7 +4658,8 @@ public class AutomationHandlerService {
     //------------------------ END WAIVE FIELD -----------------------------------------------------
 
     //------------------------ SUBMIT FIELD -----------------------------------------------------
-    private void runAutomation_Submit_Field_run(WebDriver driver, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
+    private void runAutomation_Submit_Field_run(String browser, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
+        WebDriver driver = null;
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -4679,6 +4680,28 @@ public class AutomationHandlerService {
                 submitFieldDTOList.get(i).setTransaction_id(transaction_id);
                 submitFieldDTOList.get(i).setReference_id(reference_id);
             }
+
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
+
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            try{
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
+                Utilities.captureScreenShot(driver);
+                System.out.println(stage + ": DONE");
+            }catch (Exception ex){
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("active").is(1).and("username").is(accountDTO.getUserName()).and("project").is(project));
+                Update update = new Update();
+                update.set("active", 0);
+                mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+            }
+
             do {
                 try {
                     Query query = new Query();
