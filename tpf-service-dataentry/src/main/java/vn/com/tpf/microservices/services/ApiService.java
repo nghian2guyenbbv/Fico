@@ -2247,42 +2247,55 @@ public class ApiService {
 		}
 	}
 
-	public JsonNode createLeadF1(String url, JsonNode application){
+	public JsonNode callApiF1(String url, JsonNode application){
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
 		headers.add("clientId", "1");
 		headers.add("sign", "1");
 		headers.add("Content-Type", "application/json");
+		ObjectNode logInfo = mapper.createObjectNode();
 		try {
 			HttpEntity<?> payload = new HttpEntity<>(application, headers);
 
-			ObjectNode logRequest = mapper.createObjectNode();
-			logRequest.put("type", "[==HTTP-LOG-REQUEST-ESB==]");
-			logRequest.put("url", url);
-			logRequest.put("headers", headers.toString());
-			if(application.findPath("attachedDocument").isMissingNode()
-					|| (!application.findPath("attachedDocument").isMissingNode() && application.findPath("attachedDocument").asText("").length() < 200)){
-				logRequest.set("body", application);
+			ObjectNode log = mapper.createObjectNode();
+			log.put("type", "[==REQUEST-ESB==]");
+			log.put("url", url);
+			log.put("headers", headers.toString());
+            ObjectNode appLog = application.deepCopy();
+
+			if (appLog.hasNonNull("documents")){
+				appLog.put("documents", "have document");
 			}
-			log.info("{}", logRequest);
+            log.set("body", appLog);
+			logInfo.set("request", log);
 
 			ResponseEntity<String> response = restTemplateESB.postForEntity(url, payload , String.class);
+
+			log = mapper.createObjectNode();
+			log.put("type", "[==RESPONSE-ESB==]");
+			log.put("headers", headers.toString());
+			log.put("body", response.toString());
+			logInfo.set("response", log);
 
 			String bodyString = response.getBody();
 			if(StringUtils.hasLength(bodyString)){
 				bodyString = bodyString.replaceAll("\u00A0", "");
 			}
 
-			ObjectNode logResponse = mapper.createObjectNode();
-			logResponse.put("type", "[==HTTP-LOG-RESPONSE-ESB==]");
-			logResponse.put("headers", headers.toString());
-			logResponse.set("body", mapper.readTree(bodyString));
-			log.info("{}", logResponse);
-
 			JsonNode result = mapper.readTree(bodyString);
+
+			log = mapper.createObjectNode();
+			log.put("type", "[==RESPONSE-ESB-PARSED==]");
+			log.put("body", bodyString);
+			logInfo.set("response-parse", log);
 			return result;
 		}catch (Exception e){
-			log.info("response body from esb Exception {}", e.toString());
+			ObjectNode log = mapper.createObjectNode();
+			log.put("type", "[==EXCEPTION==]");
+			log.put("body", e.toString());
+			logInfo.set("exception", log);
 			return mapper.createObjectNode().put("errMsg", e.toString()).set("appConvert", application);
+		}finally {
+			log.info("{}", logInfo);
 		}
 	}
 

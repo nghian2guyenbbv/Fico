@@ -50,6 +50,4 @@ public class Application {
 //    private boolean isHolding = false;
 
     private String reasonCancel;
-
-    private String customerId;
 }

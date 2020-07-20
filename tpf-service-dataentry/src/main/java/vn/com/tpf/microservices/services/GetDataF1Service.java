@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -41,7 +40,6 @@ public class GetDataF1Service {
         }
     }
 
-    @Cacheable(value = "", key = "#schemeCode")
     public String getLoanProduct(String schemeCode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("schemeCode", schemeCode);
         String sql = "SELECT  lp.PRODUCT_CODE FROM NEO_CAS_LMS_GA25_GIR_SD.loan_PRODUCT lp,NEO_CAS_LMS_GA25_GIR_SD.loan_scheme ls " +
@@ -255,6 +253,19 @@ public class GetDataF1Service {
         return executeQuery(sql, namedParameters);
     }
 
+    public String getIncomeSource(String dayOfSalaryPayment){
+        SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("dayOfSalaryPayment", dayOfSalaryPayment);
+        String sql = "select code from NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER where name = :dayOfSalaryPayment and dtype='IncomeSource'";
+        try {
+            List<String> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, String.class);
+            if (result.size() <= 0) return "";
+            return result.get(0);
+        }catch (Exception e){
+            log("getIncomeSource", sql, e.toString());
+            return "";
+        }
+    }
+
     public String getDocumentReferenceId(String applicationNumber, String documentName){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("applicationNumber", applicationNumber, "documentName", documentName));
         String sql = "SELECT ID FROM NEO_CM_GA25_GIR_SD.LENDING_DOCUMENT WHERE ID IN (\n" +
@@ -325,6 +336,36 @@ public class GetDataF1Service {
         }
     }
 
+    public List<Object> getListError(String appNum){
+        String sql = "SELECT ERROR_MESSAGE\n" +
+                "FROM NEO_CAS_LMS_GA25_GIR_SD.re_rule \n" +
+                "    where id in (\n" +
+                "    select RULE_ID \n" +
+                "    from NEO_CAS_LMS_GA25_GIR_SD.RULES_AUDIT_LOG\n" +
+                "    where RULE_INVOCATIONUUID=\n" +
+                "    (   \n" +
+                "        SELECT c.RULES_AUDITUUID \n" +
+                "        FROM NEO_CAS_LMS_GA25_GIR_SD.RULE_EXECUTION_ENTITY_MAPPING c \n" +
+                "        where id=(SELECT max(b.id)\n" +
+                "        FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_APPLICATION a,NEO_CAS_LMS_GA25_GIR_SD.RULE_EXECUTION_ENTITY_MAPPING b \n" +
+                "        where a.id=b.LOAN_APPLICATION_ID\n" +
+                "        and a.APPLICATION_NUMBER = :appNum )\n" +
+                "    ) \n" +
+                "    and RULE_RESULT='false'" +
+                ")";
+        SqlParameterSource namedParameters = new MapSqlParameterSource("appNum", appNum);
+        try{
+            boolean hasNull = checkNull(namedParameters);
+            if (hasNull) return new ArrayList<>();
+            List<Object> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, Object.class);
+            if(result == null) return new ArrayList<>();
+            return result;
+        }catch (Exception e){
+            log("getListError", sql, e.toString());
+            return new ArrayList<>();
+        }
+    }
+
     private String executeQuery(String sql, SqlParameterSource namedParameters){
         try {
             boolean hasNull = checkNull(namedParameters);
@@ -367,4 +408,5 @@ public class GetDataF1Service {
         objectNode.put("message", msgError);
         log.info("{}", objectNode);
     }
+
 }

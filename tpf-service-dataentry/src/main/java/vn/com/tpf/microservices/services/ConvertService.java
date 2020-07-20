@@ -123,7 +123,6 @@ public class ConvertService {
 			optional.put("partnerName", application.getPartnerName());
 		}
 
-
 		try{
 			optional.put("reasonCancel", application.getReasonCancel());
 			optional.put("createdBy", application.getUserName());
@@ -207,7 +206,7 @@ public class ConvertService {
 			leadCreationRequest.getPersonInfoType().add(personInfo);
 
 			/*---------------------------------------------------productProcessor---------------------------------------------------- */
-			leadCreationRequest.setProductProcessor("mCAS");
+			leadCreationRequest.setProductProcessor("EXTERNAL");
 
 			/*-----------------------------------------------------documents------------------------------------------------------ */
 			application.getQuickLead().getDocuments().stream().forEach(qlDocument -> {
@@ -232,7 +231,7 @@ public class ConvertService {
 				headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 				HttpEntity<String> entity = new HttpEntity<>(headers);
 
-				ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + "/" + qlDocument.getFilename(), HttpMethod.GET, entity, byte[].class);
+				ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + qlDocument.getFilename(), HttpMethod.GET, entity, byte[].class);
 
 				attachmentDetails.setAttachedDocument(response.getBody());
 
@@ -268,10 +267,10 @@ public class ConvertService {
 			loanInformation.setLoanProduct(getDataF1Service.getLoanProduct(application.getQuickLead().getSchemeCode()));
 			loanInformation.setScheme(getDataF1Service.getScheme(application.getQuickLead().getSchemeCode()));
 			AmountField amountField = new AmountField();
-
-			amountField.setValue(new BigDecimal(application.getQuickLead().getLoanAmountRequested().replace(",", "")));
-			loanInformation.setLoanAmountRequested(amountField);
-
+			if (StringUtils.hasLength(application.getQuickLead().getLoanAmountRequested())) {
+				amountField.setValue(new BigDecimal(application.getQuickLead().getLoanAmountRequested().replace(",", "")));
+				loanInformation.setLoanAmountRequested(amountField);
+			}
 			/*-------------------------dummy-------------------------*/
 			loanInformation.setProduct("");
 			loanInformation.setCityInwhichPropertyIsBased("");
@@ -288,7 +287,7 @@ public class ConvertService {
 			CommunicationDetails communicationDetails = new CommunicationDetails();
 			communicationDetails.setModeOfCommunication("PHONE");
 			communicationDetails.setLeadStatus(getDataF1Service.getLeadStatus(application.getQuickLead().getLeadStatus()));
-			communicationDetails.setAddComment(application.getQuickLead().getCommunicationTranscript());
+			communicationDetails.setAddComment(application.getQuickLead().getComment());
 			communicationDetails.setContactedBy("System");
 			cal.setTime(new Date());
 			communicationDetails.setDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
@@ -320,10 +319,13 @@ public class ConvertService {
 	}
 
 	public JsonNode toAppApiF1(Application application){
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.set("app", mapper.convertValue(application, JsonNode.class));
 		try {
+
 			/*-------------------------------------------appParameter-------------------------------------------*/
 			AppParameter appParameter = new AppParameter();
-			appParameter.setProductProcessor("mCAS");
+			appParameter.setProductProcessor("EXTERNAL");
 			appParameter.setApplicationNumber(application.getApplicationId());
 			appParameter.setUserName("System");
 			appParameter.setMoveToNextStageFlag(true);
@@ -395,11 +397,13 @@ public class ConvertService {
 			updateApplicationRequest.getDocuments().addAll(updateDocuments);
 			updateApplicationRequest.getDynamicFormDetails().add(dynamicFormDetails);
 			JsonNode app = mapper.convertValue(updateApplicationRequest, JsonNode.class);
-			log.info("app converted {}", app);
+//			logInfo.set("appConverted", app);
 			return app;
 		}catch (Exception e){
-			log.info("toAppApiF1 Exception {}", e.toString());
+			logInfo.put("exception", e.toString());
 			throw e;
+		}finally {
+			log.info("{}", logInfo);
 		}
 	}
 
@@ -450,8 +454,10 @@ public class ConvertService {
 		ObjectNode oth = mapper.createObjectNode();
 		oth.put("ZALO_DYN", application.getDynamicForm().get(0).getZalo());
 		oth.put("Max_req_EIR", application.getDynamicForm().get(0).getMaximumInterestedRate());
-		BigDecimal totalMonthlyPayable = new BigDecimal(application.getDynamicForm().get(0).getTotalMonthlyPayable().replace(",", ""));
-		oth.put("Total_Monthly_Payable", "VND~" + totalMonthlyPayable + ".0000000");
+		if (StringUtils.hasLength(application.getDynamicForm().get(0).getTotalMonthlyPayable())){
+			BigDecimal totalMonthlyPayable = new BigDecimal(application.getDynamicForm().get(0).getTotalMonthlyPayable().replace(",", ""));
+			oth.put("Total_Monthly_Payable", "VND~" + totalMonthlyPayable + ".0000000");
+		}
 		if (StringUtils.hasLength(application.getDynamicForm().get(0).getOldContractLoanAmount())){
 			String oldContractLoanAmount = "";
 			if ("1".equals(application.getDynamicForm().get(0).getOldContractLoanAmount())){
@@ -525,9 +531,11 @@ public class ConvertService {
 		String schemeCode = getDataF1Service.getScheme(application.getLoanDetails().getSourcingDetails().getSchemeCode());
 		loanInfo.setSchemeCode(schemeCode);
 		MoneyType amountRequested = new MoneyType();
-		amountRequested.setCurrencyCode("VND");
-		amountRequested.setValue(new BigDecimal(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested().replace(",", "")));
-		loanInfo.setLoanAmountRequested(amountRequested);
+		if (StringUtils.hasLength(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested())){
+			amountRequested.setCurrencyCode("VND");
+			amountRequested.setValue(new BigDecimal(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested().replace(",", "")));
+			loanInfo.setLoanAmountRequested(amountRequested);
+		}
 		loanInfo.setRequestedTenure(Integer.valueOf(application.getLoanDetails().getSourcingDetails().getRequestedTenure()));
 		loanInfo.setLoanPurpose("OTHERS");
 		if (StringUtils.hasLength(application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc()))
@@ -549,6 +557,7 @@ public class ConvertService {
 
 		/*-------------------------------------------VAP DETAILS-------------------------------------------*/
 		UpdateVapDetail updateVapDetail = new UpdateVapDetail();
+        UpdateLoanDetails updateLoanDetails = new UpdateLoanDetails();
 		if (StringUtils.hasLength(application.getLoanDetails().getVapDetails().getVapProduct())){
 			String vapProductApi = getDataF1Service.getVapProduct(application.getLoanDetails().getVapDetails().getVapProduct());
 			updateVapDetail.setVapProduct(vapProductApi);
@@ -557,15 +566,15 @@ public class ConvertService {
 			Map<String, Object> amtPayOut = getDataF1Service.getAmtCompPolicy(application.getLoanDetails().getVapDetails().getVapProduct(), schemeCode);
 			updateVapDetail.setAmtCompPolicy(amtPayOut.get("CODE_AMT_COMP").toString());
 			updateVapDetail.setPayOutCompPolicy(amtPayOut.get("CODE_PAY_OUT").toString());
+			MoneyType amount = new MoneyType();
+			amount.setCurrencyCode("VND");
+			amount.setValue(BigDecimal.ZERO);
+			updateVapDetail.setCoverageAmount(amount);
+			updateVapDetail.setPremiumAmount(amount);
+            updateLoanDetails.getVapDetail().add(updateVapDetail);
 		}
-		MoneyType amount = new MoneyType();
-		amount.setCurrencyCode("VND");
-		amount.setValue(BigDecimal.ZERO);
-		updateVapDetail.setCoverageAmount(amount);
-		updateVapDetail.setPremiumAmount(amount);
-		UpdateLoanDetails updateLoanDetails = new UpdateLoanDetails();
 		updateLoanDetails.setSourcingDetail(sourcingDetail);
-		updateLoanDetails.getVapDetail().add(updateVapDetail);
+
 		return updateLoanDetails;
 	}
 
@@ -576,14 +585,16 @@ public class ConvertService {
 			incomeDetail.setIncomeExpense(getDataF1Service.getIncomeExpense(financialDetail.getIncomeExpense()));
 			incomeDetail.setFrequency("MONTHLY");
 			MoneyType amount = new MoneyType();
-			amount.setCurrencyCode("VND");
-			amount.setValue(new BigDecimal(financialDetail.getAmount().replace(",", "")));
-			incomeDetail.setAmount(amount);
+			if (StringUtils.hasLength(financialDetail.getAmount())){
+				amount.setCurrencyCode("VND");
+				amount.setValue(new BigDecimal(financialDetail.getAmount().replace(",", "")));
+				incomeDetail.setAmount(amount);
+			}
 			if(StringUtils.hasLength(financialDetail.getModeOfPayment())){
 				incomeDetail.setPaymentMode(getDataF1Service.getPaymentMode(financialDetail.getModeOfPayment()));
 			}
 			if(StringUtils.hasLength(financialDetail.getDayOfSalaryPayment())){
-				incomeDetail.setIncomeSource(financialDetail.getDayOfSalaryPayment());
+				incomeDetail.setIncomeSource(getDataF1Service.getIncomeSource(financialDetail.getDayOfSalaryPayment()));
 			}
 			incomeDetail.setPercentage(BigDecimal.valueOf(100));
 			updateFinancialDetails.getIncomeDetails().add(incomeDetail);
@@ -631,8 +642,6 @@ public class ConvertService {
 			occupationInfo.setNatureOfOccupation(getDataF1Service.getNatureOfOccupation(application.getApplicationInformation().getEmploymentDetails().getNatureOfOccupation()));
 		updateOccupationInfo.setOccupationInfo(occupationInfo);
 		updateOccupationInfoList.add(updateOccupationInfo);
-
-
 
 		return updateOccupationInfoList;
 	}
