@@ -104,8 +104,9 @@ public class RabbitMQService {
 				case "submitField": 
 					return response(message, payload, Map.of("status", 200, "data", crmService.submitField((request))));	
 				case "waiveField": 
-					return response(message, payload, Map.of("status", 200, "data", crmService.waiveField((request))));	
-					
+					return response(message, payload, Map.of("status", 200, "data", crmService.waiveField((request))));
+				case "returnQueueAndSendBack":
+					return response(message, payload, Map.of("status", 200, "data", crmService.returnQueueAndSendBack(request)));
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
 							mapper.createObjectNode().put("message", "function not found"))));

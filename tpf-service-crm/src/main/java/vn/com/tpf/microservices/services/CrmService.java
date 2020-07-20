@@ -1932,4 +1932,264 @@ public class CrmService {
 
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public JsonNode returnQueueAndSendBack(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		boolean hasDocumentCodeACCA = false;
+		if (body.path("data").isNull())
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+		ObjectNode data = (ObjectNode) request.path("body").path("data");
+		final String appId = data.path("appId").asText();
+		if (appId.isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.appId not null"));
+		if (data.path("comment").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.comment not null"));
+		final boolean hasDocuments = data.hasNonNull("documents");
+		if (hasDocuments) {
+			ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+			if (documents != null && documents.size() == 0)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.documents not empty"));
+			for (int index = 0; index < documents.size(); index++) {
+				JsonNode document = documents.get(index);
+				if (document.path("documentCode").asText().isBlank()
+						|| document.path("documentFileExtension").asText().isBlank()
+						|| document.path("documentMd5").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s]  not valid", index)));
+				// \\.[a-z]{2,5}
+				if (!document.path("documentUrlDownload").asText().matches(
+						"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
+
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s].documentUrlDownload not valid", index)));
+				if (document.path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
+						.equals(DOCUMENT_CODE_ACCA))
+					hasDocumentCodeACCA = true;
+
+			}
+		}
+		if (data.path("fullInfoApp").path("identificationType").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.identificationType not blank"));
+		if (data.path("fullInfoApp").path("identificationNumber").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.identificationNumber not blank"));
+		if (data.path("fullInfoApp").path("issuingCountry").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.issuingCountry not blank"));
+		if (data.path("fullInfoApp").path("placeOfIssue").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.placeOfIssue not blank"));
+		if (data.path("fullInfoApp").path("issueDate").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.issueDate not blank"));
+		if (data.path("fullInfoApp").path("expiryDate").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.expiryDate not blank"));
+		if (!data.path("fullInfoApp").hasNonNull("references") || mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.references array required"));
+		if (data.path("fullInfoApp").path("primaryAddress").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.primaryAddress not blank"));
+		if (data.path("fullInfoApp").path("phoneNumber").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.phoneNumber not blank"));
+		if (data.path("fullInfoApp").path("incomeExpense").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.incomeExpense not blank"));
+		if (data.path("fullInfoApp").path("modeOfPayment").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.modeOfPayment not blank"));
+		if (data.path("fullInfoApp").path("dayOfSalaryPayment").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.dayOfSalaryPayment not blank"));
+		if (data.path("fullInfoApp").path("loanApplicationType").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.loanApplicationType not blank"));
+		if (data.path("fullInfoApp").path("loanAmountRequested").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.loanAmountRequested not blank"));
+		if (data.path("fullInfoApp").path("requestedTenure").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.requestedTenure not blank"));
+		if (data.path("fullInfoApp").path("interestRate").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.interestRate not blank"));
+		if (data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.saleAgentCodeLoanDetails not blank"));
+		if (data.path("fullInfoApp").path("vapProduct").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.vapProduct not blank"));
+		if (data.path("fullInfoApp").path("vapTreatment").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.vapTreatment not blank"));
+		if (data.path("fullInfoApp").path("insuranceCompany").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.insuranceCompany not blank"));
+		if (data.path("fullInfoApp").path("loanPurpose").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.loanPurpose not blank"));
+		if (data.path("fullInfoApp").path("numberOfDependents").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.numberOfDependents not blank"));
+		if (data.path("fullInfoApp").path("monthlyRental").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.monthlyRental not blank"));
+		if (data.path("fullInfoApp").path("houseOwnership").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.houseOwnership not blank"));
+		if (data.path("fullInfoApp").path("newBankCardNumber").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.newBankCardNumber not blank"));
+		if (data.path("fullInfoApp").path("saleAgentCodeDynamicForm").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.saleAgentCodeDynamicForm not blank"));
+		if (data.path("fullInfoApp").path("courierCode").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.courierCode not blank"));
+		if (data.path("fullInfoApp").path("maximumInterestedRate").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.maximumInterestedRate not blank"));
+
+		Query query = Query.query(Criteria.where("appId").is(appId));
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm == null)
+			return utils.getJsonNodeResponse(1, body,
+					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
+
+		if (!crm.getStage().equals(STAGE_SALES_QUEUE))
+			return utils.getJsonNodeResponse(1, body,
+					mapper.createObjectNode().put("message",
+							String.format("data.appId %s not request resubmit queue. current stage %s status %s", appId,
+									crm.getStage(), crm.getStatus())));
+
+		final String productCode = crm.getProduct().replace(" ", "_").trim().toLowerCase();
+		final String schemeCode = crm.getScheme().replace(" ", "_").trim().toLowerCase();
+
+		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
+						Map.of("productCode", productCode, "schemeCode", schemeCode)));
+
+		if (documentFinnOne.path("status").asInt() != 200)
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+					String.format("%s %s not found", productCode, schemeCode)));
+
+		JsonNode returns = mapper.convertValue(crm.getReturns(), JsonNode.class);
+		if (returns.hasNonNull("returnQueues") && !(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class))
+				.get(0).path("isComplete").asBoolean())
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.appId %s returnQueue not complete", crm.getAppId())));
+
+		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
+		HashMap<String, Object> returnQueue = new HashMap<>();
+		if (hasDocuments) {
+			ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+
+			for (int index = 0; index < documents.size(); index++) {
+				if (documents.get(index).path("documentMd5").asText().isBlank()
+						|| documents.get(index).path("documentCode").asText().isBlank()
+						|| documents.get(index).path("documentFileExtension").asText().isBlank()
+						|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+				if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("%s not found", documents.get(index).path("documentCode").asText())));
+			}
+
+			List<HashMap> filesUpload = new ArrayList<HashMap>();
+			for (JsonNode document : documents) {
+				JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+				JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+				if (uploadResult.path("resultCode").asInt() != 200)
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+				if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+						.equals(document.path("documentMd5").asText().toLowerCase()))
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message",
+									String.format("document %s md5 %s not valid",
+											document.path("documentCode").asText(),
+											uploadResult.path("md5").asText().toLowerCase())));
+				HashMap<String, String> docUpload = new HashMap<>();
+				docUpload.put("documentCode", document.path("documentCode").asText());
+				docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+				docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+				docUpload.put("documentMd5", document.path("documentMd5").asText());
+				docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+				docUpload.put("originalname", document.path("documentCode").asText().concat(".")
+						.concat(document.path("documentFileExtension").asText()));
+				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+				filesUpload.add(docUpload);
+			}
+
+			returnQueue.put("data", filesUpload);
+		}
+
+		returnQueue.put("createdAt", new Date());
+		returnQueue.put("updatedAt", new Date());
+		returnQueue.put("comment", data.path("comment").asText());
+		returnQueue.put("isComplete", false);
+
+		ArrayNode addresses = mapper.convertValue(data.path("fullInfoApp").path("addresses"), ArrayNode.class);
+		List<HashMap> addressesUpload = new ArrayList<HashMap>();
+		if (addresses != null ) {
+			if (addresses.size() != 0) {
+				for(JsonNode address : addresses) {
+					HashMap<String, String> addressUpload = new HashMap<>();
+					addressUpload.put("addressType", address.path("addressType").asText());
+					addressUpload.put("addressLine1", address.path("addressLine1").asText());
+					addressUpload.put("addressLine2", address.path("addressLine2").asText());
+					addressUpload.put("addressLine3", address.path("addressLine3").asText());
+					addressUpload.put("area", address.path("area").asText());
+					addressUpload.put("city", address.path("city").asText());
+					addressesUpload.add(addressUpload);
+				}
+			}
+		}
+		ArrayNode references = mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class);
+		List<HashMap> referencesUpload = new ArrayList<HashMap>();
+		for(JsonNode reference : references) {
+			HashMap<String, String> referenceUpload = new HashMap<>();
+			referenceUpload.put("name", reference.path("name").asText());
+			referenceUpload.put("relationship", reference.path("relationship").asText());
+			referenceUpload.put("phoneNumber", reference.path("phoneNumber").asText());
+			referencesUpload.add(referenceUpload);
+		}
+
+		returnQueue.put("addresses", addressesUpload);
+		returnQueue.put("references", referencesUpload);
+
+		LinkedList<Map> returnQueuesNew = mapper
+				.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
+		if (returnQueuesNew == null)
+			returnQueuesNew = new LinkedList<Map>();
+		returnQueuesNew.push(returnQueue);
+
+		Update update = new Update().set("updatedAt", new Date());
+		update.set("returns.returnQueues", returnQueuesNew);
+
+		if (hasDocumentCodeACCA)
+			update.set("stage", STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA);
+		else
+			update.set("stage", STAGE_SALES_QUEUE_UPLOADING);
+
+		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Crm.class);
+
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "saleQueueWithFullInfo", "body",
+				convertService.toSaleQueueFinnoneAndSenback(crm).put("reference_id", body.path("reference_id").asText())));
+
+		rabbitMQService.send("tpf-service-app",
+				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+						Map.of("project", "crm", "id", crm.getId()), "body",
+						convertService.toAppStage(crm)));
+
+		return utils.getJsonNodeResponse(0, body, null);
+	}
 }

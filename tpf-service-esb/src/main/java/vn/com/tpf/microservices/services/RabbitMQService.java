@@ -101,6 +101,8 @@ public class RabbitMQService {
 				return response(message, payload, appService.getCheckList(request));
 			case "createQuickLeadAppWithCustId":
 				return response(message, payload, appService.createQuickLeadAppWithCustId(request));
+            case "saleQueueWithFullInfo":
+            	return response(message, payload, appService.saleQueueWithFullInfo(request));
 			default:
 				return response(message, payload, appService.sendFinnOne(request));
 			}

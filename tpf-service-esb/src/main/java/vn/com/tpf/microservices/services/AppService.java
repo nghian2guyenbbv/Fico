@@ -129,4 +129,12 @@ public class AppService {
 		return response(res.path("status").asInt(), res.path("data"));
 	}
 
+	public JsonNode saleQueueWithFullInfo(JsonNode request) throws Exception {
+		final String project = request.path("body").path("project").asText();
+		final String queue_automation = "tpf-service-automation".concat(project.isBlank()?"":"-"+project.toLowerCase().trim());
+		JsonNode res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "saleQueueWithFullInfo", "reference_id",
+				request.path("reference_id"), "body", mapper.convertValue(request.path("body"), Object.class)));
+		return response(res.path("status").asInt(), res.path("data"));
+	}
+
 }
