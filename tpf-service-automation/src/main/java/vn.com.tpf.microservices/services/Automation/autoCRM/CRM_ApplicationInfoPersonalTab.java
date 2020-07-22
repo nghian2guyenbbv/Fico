@@ -112,7 +112,8 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement addressDivElement;
 
-    @FindBy(how = How.ID, using = "addressType_chzn")
+//    @FindBy(how = How.ID, using = "addressType_chzn")
+    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'addressType_chzn')]")
     private WebElement addressTypeElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'addressType_chzn_o_')]")
