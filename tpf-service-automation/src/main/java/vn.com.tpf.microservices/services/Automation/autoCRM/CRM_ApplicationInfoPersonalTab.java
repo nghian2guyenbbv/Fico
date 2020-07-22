@@ -112,8 +112,7 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement addressDivElement;
 
-//    @FindBy(how = How.ID, using = "addressType_chzn")
-    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'addressType_chzn')]")
+    @FindBy(how = How.ID, using = "addressType_chzn")
     private WebElement addressTypeElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'addressType_chzn_o_')]")
@@ -738,7 +737,7 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
-
+                mobilePhoneNumberElement.click();
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
