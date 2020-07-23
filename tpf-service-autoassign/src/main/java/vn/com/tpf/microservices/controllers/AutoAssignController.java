@@ -119,7 +119,7 @@ public class AutoAssignController {
 		Map<String, Object> responseConfig = autoAssignService.configureApplication(body);
 
 		return ResponseEntity.status(200).body(Map.of("result_code", 0, "request_id", reqId,"reference_id", refId, "date_time", new Timestamp(new Date().getTime()),
-				"data", Map.of("vendorName", responseConfig.get("vendorName"), "vendorId", responseConfig.get("vendorId"))));
+				"data", Map.of("vendorName", responseConfig.get("vendorName"), "vendorId", responseConfig.get("vendorId"), "routingId", responseConfig.get("routingId"))));
 	}
 
 }

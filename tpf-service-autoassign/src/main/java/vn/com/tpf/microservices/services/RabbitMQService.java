@@ -32,7 +32,7 @@ public class RabbitMQService {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	private AutoAssignService repaymentService;
+	private AutoAssignService autoAssignService;
 
 	@PostConstruct
 	private void init() {
@@ -80,8 +80,8 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
-			case "":
-//				return ;
+			case "configureVendor":
+				return response(message, payload, autoAssignService.configureApplication(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

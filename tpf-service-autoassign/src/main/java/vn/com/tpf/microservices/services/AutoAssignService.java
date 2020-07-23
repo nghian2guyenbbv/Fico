@@ -398,15 +398,19 @@ public class AutoAssignService {
 	public Map<String, Object> configureApplication(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = "";
-		String reference_id = UUID.randomUUID().toString();
+		String reference_id = "";
 		long vendorId = 0;
 		String vendorName = "";
 		String vendorQueue = "";
+		Long routingId = -1l;
 		try{
 			RequestApplicationModel requestApplicationModel = mapper.treeToValue(request, RequestApplicationModel.class);
 			request_id = requestApplicationModel.getRequest_id();
 			reference_id = requestApplicationModel.getReference_id();
-
+			boolean exist = autoAssignConfigureApplicationDAO.existsAutoAssignConfigureApplicationByReferenceId(reference_id);
+			if (exist){
+				reference_id += "-" + new Date().getTime();
+			}
 			List<Object> resultGetVendorConfig = autoAssignConfigureDAO.getVendorConfigApplication(request_id, reference_id);
 			if (resultGetVendorConfig != null){
 				vendorId = Integer.parseInt(resultGetVendorConfig.get(0).toString());
@@ -415,6 +419,8 @@ public class AutoAssignService {
 				vendorName = vendor.getName();
 				vendorQueue = vendor.getQueue();
 			}
+			AutoAssignConfigureApplication autoAssignConfigureApplication = autoAssignConfigureApplicationDAO.findAutoAssignConfigureApplicationByReferenceId(reference_id);
+			routingId = autoAssignConfigureApplication.getId();
 
 //			AutoAssignLog inputLog = new AutoAssignLog();
 //			inputLog.setRequestId(request_id);
@@ -448,7 +454,7 @@ public class AutoAssignService {
 			dataLog.set("error", mapper.convertValue(e, JsonNode.class));
 			log.info("{}", dataLog);
 		}
-		return Map.of("status", 200, "data", responseModel, "vendorId", vendorId, "vendorName", vendorName, "vendorQueue", vendorQueue);
+		return Map.of("status", 200, "data", responseModel, "vendorId", vendorId, "vendorName", vendorName, "vendorQueue", vendorQueue, "routingId", routingId);
 	}
 
 	public JsonNode checkToken(String[] token) {

@@ -13,6 +13,7 @@ import java.util.List;
 @Transactional
 @Repository
 public interface AutoAssignConfigureApplicationDAO extends JpaRepository<AutoAssignConfigureApplication, String> {
-
+    AutoAssignConfigureApplication findAutoAssignConfigureApplicationByReferenceId(String referenceId);
+    boolean existsAutoAssignConfigureApplicationByReferenceId(String referenceId);
 }
 
