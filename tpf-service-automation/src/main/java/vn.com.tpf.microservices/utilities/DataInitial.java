@@ -760,6 +760,7 @@ public class DataInitial {
                 .gender(existingCustomerDTOList.getFullInfoApp().getGender())
                 .dateOfBirth(existingCustomerDTOList.getFullInfoApp().getDateOfBirth())
                 .nationality("Vietnamese")
+                .maritalStatus(existingCustomerDTOList.getFullInfoApp().getMaritalStatus())
                 .build();
 
         ////*********IDENTIFICATION
@@ -801,6 +802,26 @@ public class DataInitial {
                 .phoneNumbers(existingCustomerDTOList.getFullInfoApp().getPhoneNumber())
                 .build();
 
+        //Family
+        List<CRM_FamilyListDTO> familyDTOs = new ArrayList<>();
+        for (CRM_FamilyDTO family : existingCustomerDTOList.getFullInfoApp().getFamily()) {
+            CRM_FamilyListDTO familyDTO = CRM_FamilyListDTO.builder()
+                    .relationship(family.getRelationshipType())
+                    .memberName(family.getMemberName())
+                    .phoneNumber(family.getPhoneNumber())
+                    .build();
+            familyDTOs.add(familyDTO);
+        }
+
+        //Employment Detail
+        CRM_EmploymentDetailsDTO employmentDetails = CRM_EmploymentDetailsDTO.builder()
+                .occupationType(existingCustomerDTOList.getFullInfoApp().getOccupationType())
+                .isMajorEmployment(existingCustomerDTOList.getFullInfoApp().getIsMajorEmployment())
+                .natureOfOccupation(existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation()!=null?existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation():"Unemployed")
+                .remarks(existingCustomerDTOList.getFullInfoApp().getRemarks())
+                .build();
+
+
         //financialDetails
         CRM_FinancialDetailsDTO financialDetails = CRM_FinancialDetailsDTO.builder()
                 .incomeExpense(existingCustomerDTOList.getFullInfoApp().getIncomeExpense())
@@ -815,7 +836,9 @@ public class DataInitial {
                 .personalInfo(personalInfos)
                 .identification(identifications)
                 .address(addressDTOs)
+                .family(familyDTOs)
                 .communicationDetail(communicationDetails)
+                .employmentDetail(employmentDetails)
                 .financialDetail(financialDetails)
                 .build();
         map.put("ApplicationInfoDTO", applicationInfoDTO);
@@ -911,6 +934,7 @@ public class DataInitial {
                 .gender(saleQueueList.getFullInfoApp().getGender())
                 .dateOfBirth(saleQueueList.getFullInfoApp().getDateOfBirth())
                 .nationality("Vietnamese")
+                .maritalStatus(saleQueueList.getFullInfoApp().getMaritalStatus())
                 .build();
 
         ////*********IDENTIFICATION
@@ -952,6 +976,26 @@ public class DataInitial {
                 .phoneNumbers(saleQueueList.getFullInfoApp().getPhoneNumber())
                 .build();
 
+        //Family
+        List<CRM_FamilyListDTO> familyDTOs = new ArrayList<>();
+        for (CRM_FamilyDTO family : saleQueueList.getFullInfoApp().getFamily()) {
+            CRM_FamilyListDTO familyDTO = CRM_FamilyListDTO.builder()
+                    .relationship(family.getRelationshipType())
+                    .memberName(family.getMemberName())
+                    .phoneNumber(family.getPhoneNumber())
+                    .build();
+            familyDTOs.add(familyDTO);
+        }
+
+        //Employment Detail
+        CRM_EmploymentDetailsDTO employmentDetails = CRM_EmploymentDetailsDTO.builder()
+                .occupationType(saleQueueList.getFullInfoApp().getOccupationType())
+                .isMajorEmployment(saleQueueList.getFullInfoApp().getIsMajorEmployment())
+                .natureOfOccupation(saleQueueList.getFullInfoApp().getNatureOfOccupation()!=null?saleQueueList.getFullInfoApp().getNatureOfOccupation():"Unemployed")
+                .remarks(saleQueueList.getFullInfoApp().getRemarks())
+                .build();
+
+
         //financialDetails
         CRM_FinancialDetailsDTO financialDetails = CRM_FinancialDetailsDTO.builder()
                 .incomeExpense(saleQueueList.getFullInfoApp().getIncomeExpense())
@@ -966,7 +1010,9 @@ public class DataInitial {
                 .personalInfo(personalInfos)
                 .identification(identifications)
                 .address(addressDTOs)
+                .family(familyDTOs)
                 .communicationDetail(communicationDetails)
+                .employmentDetail(employmentDetails)
                 .financialDetail(financialDetails)
                 .build();
         map.put("ApplicationInfoDTO", applicationInfoDTO);

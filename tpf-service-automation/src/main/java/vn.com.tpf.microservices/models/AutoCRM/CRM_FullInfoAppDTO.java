@@ -34,11 +34,20 @@ public class CRM_FullInfoAppDTO {
     public String primaryAddress;
     public String phoneNumber;
 
+    //Family
+    public List<CRM_FamilyDTO> family = null;
+
     //financialDetails
     public String incomeExpense;
     public String amount;
     public String modeOfPayment;
     public String dayOfSalaryPayment;
+
+    //financialDetails
+    public String occupationType;
+    public String isMajorEmployment;
+    public String natureOfOccupation;
+    public String remarks;
 
     //---loanDetails
     //sourcingDetails

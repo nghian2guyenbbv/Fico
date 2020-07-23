@@ -12,8 +12,8 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsListDTO;
-import vn.com.tpf.microservices.models.Automation.EmploymentDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -161,13 +161,16 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
         this._driver = driver;
     }
 
-    public void setData(CRM_EmploymentDetailsListDTO data) throws JsonParseException, JsonMappingException, IOException {
+    public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException {
 
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed() && occupationTypeElement.isEnabled());
+
         occupationTypeElement.click();
+
         await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeOptionElement.size() > 0);
+
         for (WebElement element : occupationTypeOptionElement) {
             if (element.getText().equals(data.getOccupationType())) {
                 element.click();
@@ -199,92 +202,10 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             eaCheckElement.click();
 
             Utilities.captureScreenShot(_driver);
-        } else {
-            //companyTaxCodeElement.sendKeys("%%%");
-            companyTaxCodeElement.sendKeys(data.getEmployeeNumber());
-            await("Occupation Type option loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> occupationTypeOthersElement.isDisplayed());
-            occupationTypeOthersElement.click();
-
-            natureOfBusinessElement.click();
-            await("natureOfBusinessOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> natureOfBusinessOptionElement.size() > 0);
-            for (WebElement element : natureOfBusinessOptionElement) {
-                if (element.getText().equals(data.getNatureOfBussiness())) {
-                    element.click();
-                    break;
-                }
-            }
-
-            industryElement.click();
-            await("industryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> industryOptionElement.size() > 0);
-            for (WebElement element : industryOptionElement) {
-                if (element.getText().equals(data.getIndustry())) {
-                    element.click();
-                    break;
-                }
-            }
-
-            if(!data.getEmploymentType().isEmpty())
-            {
-                employmentTypeElement.click();
-                await("employmentTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> employmentTypeOptionElement.size() > 0);
-                for (WebElement element : employmentTypeOptionElement) {
-                    if (element.getText().equals(data.getEmploymentType())) {
-                        element.click();
-                        break;
-                    }
-                }
-            }
-
-
-            departmentNameElement.sendKeys(data.getDepartment());
-
-            otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
-
-            employmentStatusElement.click();
-            await("employmentStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> employmentStatusOptionElement.size() > 0);
-            for (WebElement element : employmentStatusOptionElement) {
-                if (element.getText().equals(data.getEmploymentStatus())) {
-                    element.click();
-                    break;
-                }
-            }
-
-            levelElement.sendKeys(data.getLevel());
-
-            Utilities.captureScreenShot(_driver);
-            durationYearsElement.sendKeys(data.getDurationYears());
-            durationMonthsElement.sendKeys(data.getDurationMonths());
-            Utilities.captureScreenShot(_driver);
-            employerName.clear();
-            employerName.sendKeys(data.getRemarks());
-
-            employerAddressCheckElement.click();
         }
     }
 
-    public void setExperienceInIndustry(CRM_EmploymentDetailsListDTO data) {
-        Actions actions = new Actions(_driver);
-        Utilities.captureScreenShot(_driver);
-        actions.moveToElement(totalYearsInOccupationIdElement).click().build().perform();
-        await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> totalYearsInOccupationOptionElement.size() > 1);
-        totalYearsInOccupationInputElement.sendKeys(String.valueOf(data.getTotalYearsInOccupation()));
-        totalYearsInOccupationInputElement.sendKeys(Keys.ENTER);
-        Utilities.captureScreenShot(_driver);
-        actions.moveToElement(totalMonthsInOccupationIdElement).click().build().perform();
-        await("totalMonthInOccupationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> totalMonthsInOccupationOptionElement.size() > 1);
-        totalMonthsInOccupationInputElement.sendKeys(String.valueOf(data.getTotalMonthsInOccupation()));
-        totalMonthsInOccupationInputElement.sendKeys(Keys.ENTER);
-        Utilities.captureScreenShot(_driver);
-    }
-
-    public void setMajorOccupation(CRM_EmploymentDetailsListDTO data) {
+    public void setMajorOccupation(CRM_EmploymentDetailsDTO data) {
         if(!data.getIsMajorEmployment().isEmpty()&&!data.getIsMajorEmployment().equals("Others"))
         {
             if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)

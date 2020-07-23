@@ -1,8 +1,12 @@
 package vn.com.tpf.microservices.models.AutoCRM;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CRM_FamilyListDTO {
 
     public String memberName;

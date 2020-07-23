@@ -421,8 +421,7 @@ public class CRM_ApplicationInfoPersonalTab {
         saveAndNext();
     }
 
-    public void updateValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception
-    {
+    public void updateValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
 
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -466,8 +465,7 @@ public class CRM_ApplicationInfoPersonalTab {
         await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> deleteIdDetailElement.size() > 0);
 
-        for (int i=0; i<deleteIdDetailElement.size()-1; i++)
-        {
+        for (int i=0; i<deleteIdDetailElement.size()-1; i++) {
             WebElement var = deleteIdDetailElement.get(i);
             var.click();
         }
@@ -486,6 +484,13 @@ public class CRM_ApplicationInfoPersonalTab {
         updateAddressValue(applicationInfoDTO.getAddress());
         loadAddressSection();
 
+        if (applicationInfoDTO.getFamily().size() > 0) {
+            loadFamilySection();
+            await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> familyDivElement.isDisplayed());
+            updateFamilyValue(applicationInfoDTO.getFamily());
+        }
+
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> communicationDetailDivElement.isDisplayed());
@@ -494,8 +499,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 .until(() -> primaryEmailElement.isDisplayed());
 
         //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
-        if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null)
-        {
+        if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null) {
             cusMobileElements.clear();
             cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
         }
@@ -906,6 +910,18 @@ public class CRM_ApplicationInfoPersonalTab {
                 actions.moveToElement(btnSaveAddressElement).click().build().perform();
             }
         }
+    }
+
+    public void updateFamilyValue(List<CRM_FamilyListDTO> datas) throws IOException {
+        for (CRM_FamilyListDTO data : datas) {
+            this.memberNameElement.clear();
+            this.memberNameElement.sendKeys(data.getMemberName());
+            new Select(this.relationshipTypeElement).selectByVisibleText(data.getRelationship());
+            this.phoneNumberElement.clear();
+            this.phoneNumberElement.sendKeys(data.getPhoneNumber());
+            break;
+        }
+
     }
 
     public void saveAndNext() {
