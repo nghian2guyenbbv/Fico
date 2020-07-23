@@ -234,14 +234,10 @@ public class ConvertService {
 		fullApp.put("lastName", crm.getLastName());
 		fullApp.put("gender", crm.getGender());
 		fullApp.put("dateOfBirth", crm.getDateOfBirth());
-		fullApp.put("identificationType", crm.getIdentificationType());
-		fullApp.put("identificationNumber", crm.getIdentificationNumber());
-		fullApp.put("issuingCountry", crm.getIssuingCountry());
-		fullApp.put("placeOfIssue", crm.getPlaceOfIssue());
-		fullApp.put("issueDate", crm.getIssueDate());
-		fullApp.put("expiryDate", crm.getExpiryDate());
+		fullApp.put("maritalStatus", crm.getMaritalStatus());
 		fullApp.put("primaryAddress", crm.getPrimaryAddress());
 		fullApp.put("phoneNumber", crm.getPhoneNumber());
+		fullApp.put("employmentName", crm.getEmploymentName());
 		fullApp.put("incomeExpense", crm.getIncomeExpense());
 		fullApp.put("amount", crm.getAmount());
 		fullApp.put("modeOfPayment", crm.getModeOfPayment());
@@ -264,6 +260,7 @@ public class ConvertService {
 		fullApp.put("monthlyRental", crm.getMonthlyRental());
 		fullApp.put("houseOwnership", crm.getHouseOwnership());
 		fullApp.put("newBankCardNumber", crm.getNewBankCardNumber());
+		fullApp.put("remarksDynamicForm", crm.getRemarksDynamicForm());
 		fullApp.put("saleAgentCodeDynamicForm", crm.getSaleAgentCodeDynamicForm());
 		fullApp.put("courierCode", crm.getCourierCode());
 		fullApp.put("maximumInterestedRate", crm.getMaximumInterestedRate());
@@ -272,6 +269,8 @@ public class ConvertService {
 		ArrayNode documents = mapper.createArrayNode();
 		ArrayNode addresses = mapper.createArrayNode();
 		ArrayNode references = mapper.createArrayNode();
+		ArrayNode family = mapper.createArrayNode();
+		ArrayNode identifications = mapper.createArrayNode();
 
 		crm.getFilesUpload().forEach(e -> {
 			JsonNode crmDoc = mapper.convertValue(e, JsonNode.class);
@@ -291,11 +290,20 @@ public class ConvertService {
 			JsonNode crmReferences= mapper.convertValue(e, JsonNode.class);
 			references.add(crmReferences);
 		});
-
+		crm.getFamily().forEach(e -> {
+			JsonNode crmFamilys= mapper.convertValue(e, JsonNode.class);
+			family.add(crmFamilys);
+		});
+		crm.getIdentifications().forEach(e -> {
+			JsonNode crmIdentifications= mapper.convertValue(e, JsonNode.class);
+			identifications.add(crmIdentifications);
+		});
 		quickLead.set("documents", documents);
 		fullApp.set("addresses", addresses);
 		fullApp.set("documents", documents);
 		fullApp.set("references", references);
+		fullApp.set("family", family);
+		fullApp.set("identifications", identifications);
 		app.set("quickLead", quickLead);
 		app.set("fullInfoApp", fullApp);
 
@@ -395,12 +403,6 @@ public class ConvertService {
 		fullApp.put("lastName", crm.getLastName());
 		fullApp.put("gender", crm.getGender());
 		fullApp.put("dateOfBirth", crm.getDateOfBirth());
-		fullApp.put("identificationType", crm.getIdentificationType());
-		fullApp.put("identificationNumber", crm.getIdentificationNumber());
-		fullApp.put("issuingCountry", crm.getIssuingCountry());
-		fullApp.put("placeOfIssue", crm.getPlaceOfIssue());
-		fullApp.put("issueDate", crm.getIssueDate());
-		fullApp.put("expiryDate", crm.getExpiryDate());
 		fullApp.put("primaryAddress", crm.getPrimaryAddress());
 		fullApp.put("phoneNumber", crm.getPhoneNumber());
 		fullApp.put("incomeExpense", crm.getIncomeExpense());

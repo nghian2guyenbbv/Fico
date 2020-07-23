@@ -468,24 +468,6 @@ public class CrmService {
 		if (!data.hasNonNull("documents") || mapper.convertValue(data.path("documents"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.documents array required"));
-		if (data.path("fullInfoApp").path("identificationType").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.identificationType not blank"));
-		if (data.path("fullInfoApp").path("identificationNumber").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.identificationNumber not blank"));
-		if (data.path("fullInfoApp").path("issuingCountry").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.issuingCountry not blank"));
-		if (data.path("fullInfoApp").path("placeOfIssue").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.placeOfIssue not blank"));
-		if (data.path("fullInfoApp").path("issueDate").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.issueDate not blank"));
-		if (data.path("fullInfoApp").path("expiryDate").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.expiryDate not blank"));
 		if (!data.path("fullInfoApp").hasNonNull("references") || mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.references array required"));
@@ -552,7 +534,19 @@ public class CrmService {
 		if (data.path("fullInfoApp").path("maximumInterestedRate").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.maximumInterestedRate not blank"));
-		
+		if (!data.path("fullInfoApp").hasNonNull("identifications") || mapper.convertValue(data.path("fullInfoApp").path("identifications"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.identifications array required"));
+		if (data.path("fullInfoApp").path("remarksDynamicForm").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.remarksDynamicForm not blank"));
+		if (data.path("fullInfoApp").path("maritalStatus").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.maritalStatus not blank"));
+		if (data.path("fullInfoApp").path("employmentName").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.employmentName not blank"));
+
 		Query query = Query.query(Criteria.where("leadId").is(leadId));
 		Crm crm = crmTemplate.findOne(query, Crm.class);
 		if (crm == null)
@@ -623,7 +617,7 @@ public class CrmService {
 			if (uploadResult.path("resultCode").asInt() != 200)
 				return utils.getJsonNodeResponse(499, body,
 						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
-			
+
 			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
 					.equals(document.path("documentMd5").asText().toLowerCase()))
 				return utils.getJsonNodeResponse(499, body,
@@ -667,7 +661,38 @@ public class CrmService {
 			referenceUpload.put("phoneNumber", reference.path("phoneNumber").asText());
 			referencesUpload.add(referenceUpload);
 		}
-		
+
+		ArrayNode familyes = mapper.convertValue(data.path("fullInfoApp").path("family"), ArrayNode.class);
+		List<HashMap> familyesUpload = new ArrayList<HashMap>();
+		if (familyes != null ) {
+			if (familyes.size() != 0) {
+				for(JsonNode family : familyes) {
+					HashMap<String, String> familyUpload = new HashMap<>();
+					familyUpload.put("memberName", family.path("memberName").asText());
+					familyUpload.put("phoneNumber", family.path("phoneNumber").asText());
+					familyUpload.put("relationship", family.path("relationship").asText());
+					familyesUpload.add(familyUpload);
+				}
+			}
+		}
+
+		ArrayNode identifications = mapper.convertValue(data.path("fullInfoApp").path("identifications"), ArrayNode.class);
+		List<HashMap> identificationsUpload = new ArrayList<HashMap>();
+		if (familyes != null ) {
+			if (familyes.size() != 0) {
+				for(JsonNode identification : identifications) {
+					HashMap<String, String> identificationUpload = new HashMap<>();
+					identificationUpload.put("identificationType", identification.path("identificationType").asText());
+					identificationUpload.put("identificationNumber", identification.path("identificationNumber").asText());
+					identificationUpload.put("issuingCountry", identification.path("issuingCountry").asText());
+					identificationUpload.put("placeOfIssue", identification.path("placeOfIssue").asText());
+					identificationUpload.put("issueDate", identification.path("issueDate").asText());
+					identificationUpload.put("expiryDate", identification.path("expiryDate").asText());
+					identificationsUpload.add(identificationUpload);
+				}
+			}
+		}
+
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
@@ -682,14 +707,12 @@ public class CrmService {
 				.set("lastName", data.path("fullInfoApp").path("lastName").asText())
 				.set("gender", data.path("fullInfoApp").path("gender").asText())
 				.set("dateOfBirth", data.path("fullInfoApp").path("dateOfBirth").asText())
-				.set("identificationType", data.path("fullInfoApp").path("identificationType").asText())
-				.set("identificationNumber", data.path("fullInfoApp").path("identificationNumber").asText())
-				.set("issuingCountry", data.path("fullInfoApp").path("issuingCountry").asText())
-				.set("placeOfIssue", data.path("fullInfoApp").path("placeOfIssue").asText())
-				.set("issueDate", data.path("fullInfoApp").path("issueDate").asText())
-				.set("expiryDate", data.path("fullInfoApp").path("expiryDate").asText())
+				.set("maritalStatus", data.path("fullInfoApp").path("maritalStatus").asText())
+				.set("family", familyesUpload)
+				.set("identifications", identificationsUpload)
 				.set("primaryAddress", data.path("fullInfoApp").path("primaryAddress").asText())
 				.set("phoneNumber", data.path("fullInfoApp").path("phoneNumber").asText())
+				.set("employmentName", data.path("fullInfoApp").path("employmentName").asText())
 				.set("incomeExpense", data.path("fullInfoApp").path("incomeExpense").asText())
 				.set("amount", data.path("fullInfoApp").path("amount").asText())
 				.set("modeOfPayment", data.path("fullInfoApp").path("modeOfPayment").asText())
@@ -708,6 +731,7 @@ public class CrmService {
 				.set("monthlyRental", data.path("fullInfoApp").path("monthlyRental").asText())
 				.set("houseOwnership", data.path("fullInfoApp").path("houseOwnership").asText())
 				.set("newBankCardNumber", data.path("fullInfoApp").path("newBankCardNumber").asText())
+				.set("remarksDynamicForm", data.path("fullInfoApp").path("remarksDynamicForm").asText())
 				.set("saleAgentCodeDynamicForm", data.path("fullInfoApp").path("saleAgentCodeDynamicForm").asText())
 				.set("courierCode", data.path("fullInfoApp").path("courierCode").asText())
 				.set("maximumInterestedRate", data.path("fullInfoApp").path("maximumInterestedRate").asText())

@@ -70,12 +70,6 @@ public class Crm {
 	private String idNumber;
 	private String middleName;
 	private String gender;
-	private String identificationType;
-	private String identificationNumber;
-	private String issuingCountry;
-	private String placeOfIssue;
-	private String issueDate;
-	private String expiryDate;
 	private String primaryAddress;
 	private String phoneNumber;
 	private String incomeExpense;
@@ -99,8 +93,13 @@ public class Crm {
 	private String saleAgentCodeDynamicForm;
 	private String courierCode;
 	private String maximumInterestedRate;
+	private String employmentName;
+	private String remarksDynamicForm;
 	private List<Object> addresses;
 	private List<Object> references;
+	private List<Object> family;
+	private List<Object> identifications;
+	private String maritalStatus;
 }
 
 
