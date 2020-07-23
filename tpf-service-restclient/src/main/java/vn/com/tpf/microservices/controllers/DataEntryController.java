@@ -55,6 +55,9 @@ public class DataEntryController {
 	@Value("${spring.url.digitex-token}")
 	private String digitexToken;
 
+	@Value("${spring.url.auto-assign}")
+	private String urlAutoAssign;
+
 	private RestTemplate restTemplate;
 
 	@PostConstruct
@@ -1247,8 +1250,23 @@ public class DataEntryController {
 
 		Map partner = new HashMap();
 		String partnerIdToGetPartner;
+		Long routingId;
 		if (appId.equals("new")) {
-			partnerIdToGetPartner = partnerId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+			headers.setBearerAuth(token.replace("Bearer", "").trim());
+			HttpEntity<?> entity = new HttpEntity<>(mapper.convertValue(Map.of("request_id", UUID.randomUUID().toString()), JsonNode.class), headers);
+			ResponseEntity<String> res = restTemplate.postForEntity(urlAutoAssign, entity, String.class);
+
+			if (!res.getStatusCode().is2xxSuccessful()) {
+				return ResponseEntity.status(200)
+						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+								"result_code", 3, "message", "Not get partner"));
+			}
+			partnerIdToGetPartner = mapper.readTree(res.getBody()).path("data").path("vendorId").asText("");
+			routingId = mapper.readTree(res.getBody()).path("data").path("routingId").asLong(-1);
+			request.put("routingId", routingId);
+
 			for (MultipartFile item : files) {
 				if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
 					return ResponseEntity.status(200)
@@ -1400,7 +1418,12 @@ public class DataEntryController {
 				boolean checkIdCard = false;
 				boolean checkHousehold = false;
 				int i = 0;
-
+				if("3".equals(partnerIdToGetPartner)){
+					request.put("body", body);
+					JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+					return ResponseEntity.status(response.path("status").asInt(500))
+							.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+				}
 				if (appId.equals("new")){
 					ArrayNode documents = mapper.createArrayNode();
 					if(files != null) {

@@ -715,7 +715,7 @@ public class DataEntryService {
 
 									JsonNode response = apiService.callApiF1(urlUpdateApp, convertService.toAppApiF1(dataFullApp));
 									result.set("response", response);
-									if(!response.hasNonNull("errMsg")){
+									if(!response.hasNonNull("errMsg") && response.findPath("responseCode").asInt(1) == 0){
 										Thread.sleep(waitTime);
 										JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", dataFullApp.getApplicationId()), JsonNode.class);
 										JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
@@ -1040,7 +1040,7 @@ public class DataEntryService {
 
 											JsonNode response = apiService.callApiF1(urlUpdateApp, convertService.toAppApiF1(dataUpdate));
 											result.set("response", response);
-											if(!response.hasNonNull("errMsg")){
+											if(!response.hasNonNull("errMsg") && response.findPath("responseCode").asInt(1) == 0){
 												Thread.sleep(waitTime);
 												JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", dataUpdate.getApplicationId()), JsonNode.class);
 												JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
@@ -1573,7 +1573,11 @@ public class DataEntryService {
 							}).start();
 						}
 					}else{
-						rabbitMQService.send(queueAutoSGB, Map.of("func", "quickLeadApp","body", appData.get(0)));
+						if (appData.get(0).getPartnerId().equals("3")){
+							rabbitMQService.send(queueAutoSGB, Map.of("func", "quickLeadAppAssignPool", "body", appData.get(0)));
+						}else {
+							rabbitMQService.send(queueAutoSGB, Map.of("func", "quickLeadApp", "body", appData.get(0)));
+						}
 					}
 				}else {
 					if(!request.path("body").path("data").path("partnerId").isTextual()){
@@ -1656,10 +1660,12 @@ public class DataEntryService {
 							}
 						}).start();
 					}else{
-						rabbitMQService.send(queueAutoSGB, Map.of("func", "quickLeadApp", "body", appData.get(0)));
+						if (appData.get(0).getPartnerId().equals("3")){
+							rabbitMQService.send(queueAutoSGB, Map.of("func", "quickLeadAppAssignPool", "body", appData.get(0)));
+						}else {
+							rabbitMQService.send(queueAutoSGB, Map.of("func", "quickLeadApp", "body", appData.get(0)));
+						}
 					}
-
-
 				}
 
 				responseModel.setRequest_id(requestId);
@@ -1709,12 +1715,13 @@ public class DataEntryService {
 				app.setQuickLead(quickLead);
 				app.setStatus("UPLOADFILE");
 				app.setUserName(token.path("user_name").textValue());
-				app.setPartnerId("1");
-				app.setPartnerName("DIGI-TEXX");
 				app.setCreatedDate(new Date());
 
 				app.setPartnerId(request.get("partnerId").asText());
 				app.setPartnerName(request.get("partnerName").asText());
+
+				app.setCreateFrom("WEB");
+				app.setRoutingId(request.get("routingId").asLong());
 
 				mongoTemplate.save(app);
 
@@ -2015,43 +2022,44 @@ public class DataEntryService {
 					update.set("lastModifiedDate", new Date());
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
-					String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
-							resultUpdatetest.getQuickLead().getFirstName();
-					String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
-					String applicationId = request.path("body").path("applicationId").textValue();
-					ArrayList<String> inputQuery = new ArrayList<String>();
-					if (resultUpdatetest.getQuickLead().getDocuments() != null) {
-						for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
-							if (item.getUrlid() != null) {
-								inputQuery.add(item.getUrlid());
+					if (!resultUpdatetest.getPartnerId().equals("3")) {
+						String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
+								resultUpdatetest.getQuickLead().getFirstName();
+						String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
+						String applicationId = request.path("body").path("applicationId").textValue();
+						ArrayList<String> inputQuery = new ArrayList<String>();
+						if (resultUpdatetest.getQuickLead().getDocuments() != null) {
+							for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
+								if (item.getUrlid() != null) {
+									inputQuery.add(item.getUrlid());
+								}
 							}
 						}
-					}
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
-							"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
+						JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+								"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
 
-					Map partner = this.getPartner(partnerId);
-					if(StringUtils.isEmpty(partner.get("data"))){
-						return Map.of("result_code", 3, "message","Not found partner");
-					}
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
-
-					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-//						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-						apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
-					} else if(partnerId.equals("2")){
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						if(StringUtils.isEmpty(tokenPartner)){
-							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						Map partner = this.getPartner(partnerId);
+						if (StringUtils.isEmpty(partner.get("data"))) {
+							return Map.of("result_code", 3, "message", "Not found partner");
 						}
-						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-					}
+						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+						String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
 
+						if (partnerId.equals("1")) {
+							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//						apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+							apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
+						} else if (partnerId.equals("2")) {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+							}
+							apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+						}
+					}
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "updateApp","reference_id", referenceId,
@@ -4756,42 +4764,44 @@ public class DataEntryService {
 			update.set("lastModifiedDate", new Date());
 			Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
-			String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
-					resultUpdatetest.getQuickLead().getFirstName();
-			String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
-			String applicationId = applicationNumber;
-			ArrayList<String> inputQuery = new ArrayList<String>();
-			if (resultUpdatetest.getQuickLead().getDocuments() != null) {
-				for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
-					if (item.getUrlid() != null) {
-						inputQuery.add(item.getUrlid());
+			if (!resultUpdatetest.getPartnerId().equals("3")){
+				String customerName = resultUpdatetest.getQuickLead().getLastName() + " " +
+						resultUpdatetest.getQuickLead().getFirstName();
+				String idCardNo = resultUpdatetest.getQuickLead().getIdentificationNumber();
+				String applicationId = applicationNumber;
+				ArrayList<String> inputQuery = new ArrayList<String>();
+				if (resultUpdatetest.getQuickLead().getDocuments() != null) {
+					for (QLDocument item : resultUpdatetest.getQuickLead().getDocuments()) {
+						if (item.getUrlid() != null) {
+							inputQuery.add(item.getUrlid());
+						}
 					}
 				}
-			}
 
-			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
-					"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+						"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
 
-			Map partner = this.getPartner(partnerId);
-			if(StringUtils.isEmpty(partner.get("data"))){
-				return Map.of("result_code", 3, "message","Not found partner");
-			}
-			Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-			String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
-
-			if(partnerId.equals("1")){
-				String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-				apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-			} else if(partnerId.equals("2")){
-				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-				if(StringUtils.isEmpty(tokenPartner)){
-					return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+				Map partner = this.getPartner(partnerId);
+				if(StringUtils.isEmpty(partner.get("data"))){
+					return Map.of("result_code", 3, "message","Not found partner");
 				}
-				apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-			}
+				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+				String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
 
+				if(partnerId.equals("1")){
+					String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+				} else if(partnerId.equals("2")){
+					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+					String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+					if(StringUtils.isEmpty(tokenPartner)){
+						return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+					}
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+				}
+
+			}
 			Application dataFullApp = mongoTemplate.findOne(query, Application.class);
 			rabbitMQService.send("tpf-service-app",
 					Map.of("func", "updateApp","reference_id", referenceId,
@@ -5232,4 +5242,199 @@ public class DataEntryService {
 		}
 		return Map.of("status", 200, "data", jsonNode);
 	}
+
+	public  Map<String, Object> sendAppNonWeb(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "sendAppNonWeb");
+		logInfo.put("request", request.toString());
+		try{
+			RequestQuickLeadModel requestModel = mapper.treeToValue(request.get("body"), RequestQuickLeadModel.class);
+			String requestId = requestModel.getRequest_id();
+
+			QuickLead data = requestModel.getData();
+			data.setCreatedDate(new Timestamp(new Date().getTime()));
+
+			String appId = request.findPath("data").path("applicationId").asText("");
+			if (StringUtils.isEmpty(appId)){
+				throw new Exception("applicationId null");
+			}
+
+			if (StringUtils.isEmpty(data.getPartnerId())){
+				throw new Exception("partnerId null");
+			}
+
+			appId = appId.trim();
+			String errMsg = saveApp(data, appId);
+			if (StringUtils.hasLength(errMsg)){
+				throw new Exception(errMsg);
+			}
+			logInfo.put("save-app", "SUCCESS");
+
+			errMsg = sendFileToPartner(data);
+			if (StringUtils.hasLength(errMsg)){
+				throw new Exception(errMsg);
+			}
+			logInfo.put("send-file", "SUCCESS");
+
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(appId));
+			List<Application> applications = mongoTemplate.find(query, Application.class);
+			if (applications.size() <= 0){
+				throw new Exception("application not exist");
+			}
+
+			errMsg = sendAppNumberToPartner(applications.get(0));
+			if (StringUtils.hasLength(errMsg)){
+				throw new Exception(errMsg);
+			}
+			logInfo.put("send-appNum", "SUCCESS");
+
+			Report report = new Report();
+			report.setQuickLeadId(applications.get(0).getQuickLeadId());
+			report.setFunction("QUICKLEAD");
+			report.setStatus("PROCESSING");
+			report.setCreatedDate(new Date());
+			report.setCreatedBy(request.findPath("data").path("project").asText(""));
+			report.setPartnerId(applications.get(0).getPartnerId());
+			report.setPartnerName(applications.get(0).getPartnerName());
+			mongoTemplate.save(report);
+
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			return Map.of("status", 200, "data", responseModel);
+		}catch (Exception e) {
+			logInfo.put("exception", e.toString());
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage("Other errors");
+			return Map.of("status", 200, "data", responseModel);
+		}finally {
+			log.info("{}", logInfo);
+		}
+	}
+
+	private String saveApp(QuickLead data, String appId) {
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "saveApp");
+		try {
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(appId));
+			boolean exist = mongoTemplate.exists(query, Application.class);
+			if (exist){
+				throw new Exception("application exist");
+			}
+
+			Map partner = this.getPartner(data.getPartnerId());
+			Application app = new Application();
+			app.setQuickLeadId(data.getQuickLeadId());
+			app.setQuickLead(data);
+			app.setApplicationId(appId);
+			app.setCreateFrom("OTHER");
+			app.setPartnerId(mapper.convertValue(partner.get("data"), Map.class).get("partnerId").toString());
+			app.setPartnerName(mapper.convertValue(partner.get("data"), Map.class).get("partnerName").toString());
+			mongoTemplate.save(app);
+		} catch (Exception e){
+			logInfo.put("exception", e.toString());
+			return e.toString();
+		} finally {
+			log.info("{}", logInfo);
+		}
+		return "";
+	}
+
+	private String sendFileToPartner(QuickLead data) {
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "sendFileToPartner");
+		try {
+			Map partner = this.getPartner(data.getPartnerId());
+			ObjectNode request = mapper.createObjectNode();
+			request.set("body", mapper.createObjectNode().set("data", mapper.convertValue(Map.of("quickLeadId", data.getQuickLeadId()), JsonNode.class)));
+
+			logInfo.put("request", request.toString());
+
+			JsonNode resultUpload = apiService.retryUploadPartner(request, partner);
+
+			logInfo.put("response", resultUpload.toString());
+
+			if (resultUpload.hasNonNull("uploadDigiTex")){
+				throw new Exception(resultUpload.path("uploadDigiTex").asText());
+			}
+
+			List<QLDocument> dataUpload = mapper.readValue(resultUpload.toString(), new TypeReference<List<QLDocument>>() {
+			});
+			for (QLDocument item : dataUpload) {
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("quickLead.documents.originalname").is(item.getOriginalname()));
+
+				Update update = new Update();
+				update.set("quickLead.documents.$.urlid", item.getUrlid());
+				mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+			}
+			logInfo.put("update-doc-id", dataUpload.toString());
+		} catch (Exception e){
+			logInfo.put("exception", e.toString());
+			return e.toString();
+		} finally {
+			log.info("{}", logInfo);
+		}
+		return "";
+	}
+
+	private String sendAppNumberToPartner(Application application) {
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "sendAppNumberToPartner");
+		try {
+			String customerName = application.getQuickLead().getLastName() + " " +
+					application.getQuickLead().getFirstName();
+			String idCardNo = application.getQuickLead().getIdentificationNumber();
+			String applicationId = application.getApplicationId();
+			ArrayList<String> inputQuery = new ArrayList<>();
+			if (application.getQuickLead().getDocuments() != null) {
+				for (QLDocument item : application.getQuickLead().getDocuments()) {
+					if (item.getUrlid() != null) {
+						inputQuery.add(item.getUrlid());
+					}
+				}
+			}
+			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("customer-name", customerName, "id-card-no", idCardNo,
+					"application-id", applicationId, "document-ids", inputQuery)), JsonNode.class);
+
+			Map partner = this.getPartner(application.getPartnerId());
+			logInfo.put("get-partner", partner.toString());
+
+			if(StringUtils.isEmpty(partner.get("data"))){
+				throw new Exception("Not found partner");
+			}
+			Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+			String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
+
+			if(application.getPartnerId().equals("1")){
+				String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+				JsonNode node = apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, application.getPartnerId());
+				logInfo.put("call-api-dgt", node.toString());
+			} else if(application.getPartnerId().equals("2")){
+				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+				logInfo.put("get-token-bpo", tokenPartner);
+				if(StringUtils.isEmpty(tokenPartner)){
+					throw new Exception("Not get token saigon-bpo");
+				}
+				JsonNode node = apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, application.getPartnerId());
+				logInfo.put("call-api-bpo", node.toString());
+			}
+		} catch (Exception e){
+			logInfo.put("exception", e.toString());
+			return e.toString();
+		} finally {
+			log.info("{}", logInfo);
+		}
+		return "";
+	}
+
+
 }

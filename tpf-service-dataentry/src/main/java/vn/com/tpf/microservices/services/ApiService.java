@@ -65,6 +65,9 @@ public class ApiService {
 	@Value("${spring.url.digitex-token}")
 	private String digitexToken;
 
+	@Value("${spring.isAuto}")
+	private int isAuto;
+
 	@Autowired
 	private ObjectMapper mapper;
 
@@ -2300,7 +2303,7 @@ public class ApiService {
 	}
 
 	public int chooseAutoOrApiF1(){
-		return 1;
+		return isAuto;
 	}
 
 }

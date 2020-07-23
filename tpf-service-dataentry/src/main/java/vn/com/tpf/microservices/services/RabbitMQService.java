@@ -231,6 +231,8 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getAppByQuickLeadId(request), false);
 				case "callApiF1":
 					return response(message, payload, dataEntryService.callApiF1(request));
+				case "sendAppNonWeb":
+					return response(message, payload, dataEntryService.sendAppNonWeb(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
