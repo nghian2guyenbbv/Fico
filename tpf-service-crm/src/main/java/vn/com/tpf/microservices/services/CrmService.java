@@ -678,8 +678,8 @@ public class CrmService {
 
 		ArrayNode identifications = mapper.convertValue(data.path("fullInfoApp").path("identifications"), ArrayNode.class);
 		List<HashMap> identificationsUpload = new ArrayList<HashMap>();
-		if (familyes != null ) {
-			if (familyes.size() != 0) {
+		if (identifications != null ) {
+			if (identifications.size() != 0) {
 				for(JsonNode identification : identifications) {
 					HashMap<String, String> identificationUpload = new HashMap<>();
 					identificationUpload.put("identificationType", identification.path("identificationType").asText());
@@ -1995,24 +1995,7 @@ public class CrmService {
 
 			}
 		}
-		if (data.path("fullInfoApp").path("identificationType").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.identificationType not blank"));
-		if (data.path("fullInfoApp").path("identificationNumber").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.identificationNumber not blank"));
-		if (data.path("fullInfoApp").path("issuingCountry").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.issuingCountry not blank"));
-		if (data.path("fullInfoApp").path("placeOfIssue").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.placeOfIssue not blank"));
-		if (data.path("fullInfoApp").path("issueDate").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.issueDate not blank"));
-		if (data.path("fullInfoApp").path("expiryDate").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.expiryDate not blank"));
+
 		if (!data.path("fullInfoApp").hasNonNull("references") || mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class).size() == 0)
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.references array required"));
@@ -2079,7 +2062,18 @@ public class CrmService {
 		if (data.path("fullInfoApp").path("maximumInterestedRate").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.maximumInterestedRate not blank"));
-
+		if (!data.path("fullInfoApp").hasNonNull("identifications") || mapper.convertValue(data.path("fullInfoApp").path("identifications"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.identifications array required"));
+		if (data.path("fullInfoApp").path("remarksDynamicForm").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.remarksDynamicForm not blank"));
+		if (data.path("fullInfoApp").path("maritalStatus").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.maritalStatus not blank"));
+		if (data.path("fullInfoApp").path("employmentName").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.employmentName not blank"));
 		Query query = Query.query(Criteria.where("appId").is(appId));
 		Crm crm = crmTemplate.findOne(query, Crm.class);
 		if (crm == null)
@@ -2158,6 +2152,37 @@ public class CrmService {
 		returnQueue.put("createdAt", new Date());
 		returnQueue.put("updatedAt", new Date());
 		returnQueue.put("comment", data.path("comment").asText());
+		returnQueue.put("firstName", data.path("fullInfoApp").path("firstName").asText());
+		returnQueue.put("middleName", data.path("fullInfoApp").path("middleName").asText());
+		returnQueue.put("lastName", data.path("fullInfoApp").path("lastName").asText());
+		returnQueue.put("gender", data.path("fullInfoApp").path("gender").asText());
+		returnQueue.put("dateOfBirth", data.path("fullInfoApp").path("dateOfBirth").asText());
+		returnQueue.put("maritalStatus", data.path("fullInfoApp").path("maritalStatus").asText());
+		returnQueue.put("primaryAddress", data.path("fullInfoApp").path("primaryAddress").asText());
+		returnQueue.put("phoneNumber", data.path("fullInfoApp").path("phoneNumber").asText());
+		returnQueue.put("employmentName", data.path("fullInfoApp").path("employmentName").asText());
+		returnQueue.put("incomeExpense", data.path("fullInfoApp").path("incomeExpense").asText());
+		returnQueue.put("amount", data.path("fullInfoApp").path("amount").asText());
+		returnQueue.put("modeOfPayment", data.path("fullInfoApp").path("modeOfPayment").asText());
+		returnQueue.put("dayOfSalaryPayment", data.path("fullInfoApp").path("dayOfSalaryPayment").asText());
+		returnQueue.put("loanApplicationType", data.path("fullInfoApp").path("loanApplicationType").asText());
+		returnQueue.put("loanAmountRequested", data.path("fullInfoApp").path("loanAmountRequested").asText());
+		returnQueue.put("requestedTenure", data.path("fullInfoApp").path("requestedTenure").asText());
+		returnQueue.put("interestRate", data.path("fullInfoApp").path("interestRate").asText());
+		returnQueue.put("saleAgentCodeLoanDetails", data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText());
+		returnQueue.put("vapProduct", data.path("fullInfoApp").path("vapProduct").asText());
+		returnQueue.put("vapTreatment", data.path("fullInfoApp").path("vapTreatment").asText());
+		returnQueue.put("insuranceCompany", data.path("fullInfoApp").path("insuranceCompany").asText());
+		returnQueue.put("loanPurpose", data.path("fullInfoApp").path("loanPurpose").asText());
+		returnQueue.put("loanPurposeOther", data.path("fullInfoApp").path("loanPurposeOther").asText());
+		returnQueue.put("numberOfDependents", data.path("fullInfoApp").path("numberOfDependents").asText());
+		returnQueue.put("monthlyRental", data.path("fullInfoApp").path("monthlyRental").asText());
+		returnQueue.put("houseOwnership", data.path("fullInfoApp").path("houseOwnership").asText());
+		returnQueue.put("newBankCardNumber", data.path("fullInfoApp").path("newBankCardNumber").asText());
+		returnQueue.put("remarksDynamicForm", data.path("fullInfoApp").path("remarksDynamicForm").asText());
+		returnQueue.put("saleAgentCodeDynamicForm", data.path("fullInfoApp").path("saleAgentCodeDynamicForm").asText());
+		returnQueue.put("courierCode", data.path("fullInfoApp").path("courierCode").asText());
+		returnQueue.put("maximumInterestedRate", data.path("fullInfoApp").path("maximumInterestedRate").asText());
 		returnQueue.put("isComplete", false);
 
 		ArrayNode addresses = mapper.convertValue(data.path("fullInfoApp").path("addresses"), ArrayNode.class);
@@ -2186,8 +2211,40 @@ public class CrmService {
 			referencesUpload.add(referenceUpload);
 		}
 
+		ArrayNode familyes = mapper.convertValue(data.path("fullInfoApp").path("family"), ArrayNode.class);
+		List<HashMap> familyesUpload = new ArrayList<HashMap>();
+		if (familyes != null ) {
+			if (familyes.size() != 0) {
+				for(JsonNode family : familyes) {
+					HashMap<String, String> familyUpload = new HashMap<>();
+					familyUpload.put("memberName", family.path("memberName").asText());
+					familyUpload.put("phoneNumber", family.path("phoneNumber").asText());
+					familyUpload.put("relationship", family.path("relationship").asText());
+					familyesUpload.add(familyUpload);
+				}
+			}
+		}
+
+		ArrayNode identifications = mapper.convertValue(data.path("fullInfoApp").path("identifications"), ArrayNode.class);
+		List<HashMap> identificationsUpload = new ArrayList<HashMap>();
+		if (identifications != null ) {
+			if (identifications.size() != 0) {
+				for(JsonNode identification : identifications) {
+					HashMap<String, String> identificationUpload = new HashMap<>();
+					identificationUpload.put("identificationType", identification.path("identificationType").asText());
+					identificationUpload.put("identificationNumber", identification.path("identificationNumber").asText());
+					identificationUpload.put("issuingCountry", identification.path("issuingCountry").asText());
+					identificationUpload.put("placeOfIssue", identification.path("placeOfIssue").asText());
+					identificationUpload.put("issueDate", identification.path("issueDate").asText());
+					identificationUpload.put("expiryDate", identification.path("expiryDate").asText());
+					identificationsUpload.add(identificationUpload);
+				}
+			}
+		}
 		returnQueue.put("addresses", addressesUpload);
 		returnQueue.put("references", referencesUpload);
+		returnQueue.put("family", familyesUpload);
+		returnQueue.put("identifications", identificationsUpload);
 
 		LinkedList<Map> returnQueuesNew = mapper
 				.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);

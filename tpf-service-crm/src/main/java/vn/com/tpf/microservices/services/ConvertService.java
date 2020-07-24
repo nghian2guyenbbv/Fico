@@ -398,58 +398,105 @@ public class ConvertService {
 		}
 
 		ObjectNode fullApp = mapper.createObjectNode();
-		fullApp.put("firstName", crm.getFirstName());
-		fullApp.put("middleName", crm.getMiddleName());
-		fullApp.put("lastName", crm.getLastName());
-		fullApp.put("gender", crm.getGender());
-		fullApp.put("dateOfBirth", crm.getDateOfBirth());
-		fullApp.put("primaryAddress", crm.getPrimaryAddress());
-		fullApp.put("phoneNumber", crm.getPhoneNumber());
-		fullApp.put("incomeExpense", crm.getIncomeExpense());
-		fullApp.put("amount", crm.getAmount());
-		fullApp.put("modeOfPayment", crm.getModeOfPayment());
-		fullApp.put("dayOfSalaryPayment", crm.getDayOfSalaryPayment());
-		fullApp.put("sourcingBranch", crm.getBranch());
-		fullApp.put("sourcingChannel", crm.getChanel());
-		fullApp.put("loanApplicationType", crm.getLoanApplicationType());
+		fullApp.put("firstName", lastReturnQueue.path("firstName").asText());
+		fullApp.put("middleName", lastReturnQueue.path("middleName").asText());
+		fullApp.put("lastName", lastReturnQueue.path("lastName").asText());
+		fullApp.put("gender", lastReturnQueue.path("gender").asText());
+		fullApp.put("dateOfBirth", lastReturnQueue.path("dateOfBirth").asText());
+		fullApp.put("maritalStatus", lastReturnQueue.path("maritalStatus").asText());
+		fullApp.put("primaryAddress", lastReturnQueue.path("primaryAddress").asText());
+		fullApp.put("phoneNumber", lastReturnQueue.path("phoneNumber").asText());
+		fullApp.put("employmentName", lastReturnQueue.path("employmentName").asText());
+		fullApp.put("incomeExpense", lastReturnQueue.path("incomeExpense").asText());
+		fullApp.put("amount", lastReturnQueue.path("amount").asText());
+		fullApp.put("modeOfPayment", lastReturnQueue.path("modeOfPayment").asText());
+		fullApp.put("dayOfSalaryPayment", lastReturnQueue.path("dayOfSalaryPayment").asText());
+		fullApp.put("sourcingBranch", lastReturnQueue.path("sourcingBranch").asText());
+		fullApp.put("sourcingChannel", lastReturnQueue.path("sourcingChannel").asText());
+		fullApp.put("loanApplicationType", lastReturnQueue.path("loanApplicationType").asText());
 		fullApp.put("productCode", crm.getProductFinnOne());
 		fullApp.put("schemeCode", crm.getSchemeFinnOne());
-		fullApp.put("loanAmountRequested", crm.getLoanAmountRequested());
-		fullApp.put("requestedTenure", crm.getRequestedTenure());
-		fullApp.put("interestRate", crm.getInterestRate());
-		fullApp.put("saleAgentCodeLoanDetails", crm.getSaleAgentCodeLoanDetails());
-		fullApp.put("vapProduct", crm.getVapProduct());
-		fullApp.put("vapTreatment", crm.getVapTreatment());
-		fullApp.put("insuranceCompany", crm.getInsuranceCompany());
-		fullApp.put("loanPurpose", crm.getLoanPurpose());
-		fullApp.put("loanPurposeOther", crm.getLoanPurposeOther());
-		fullApp.put("numberOfDependents", crm.getNumberOfDependents());
-		fullApp.put("monthlyRental", crm.getMonthlyRental());
-		fullApp.put("houseOwnership", crm.getHouseOwnership());
-		fullApp.put("newBankCardNumber", crm.getNewBankCardNumber());
-		fullApp.put("saleAgentCodeDynamicForm", crm.getSaleAgentCodeDynamicForm());
-		fullApp.put("courierCode", crm.getCourierCode());
-		fullApp.put("maximumInterestedRate", crm.getMaximumInterestedRate());
+		fullApp.put("loanAmountRequested", lastReturnQueue.path("loanAmountRequested").asText());
+		fullApp.put("requestedTenure", lastReturnQueue.path("requestedTenure").asText());
+		fullApp.put("interestRate", lastReturnQueue.path("interestRate").asText());
+		fullApp.put("saleAgentCodeLoanDetails", lastReturnQueue.path("saleAgentCodeLoanDetails").asText());
+		fullApp.put("vapProduct", lastReturnQueue.path("vapProduct").asText());
+		fullApp.put("vapTreatment", lastReturnQueue.path("vapTreatment").asText());
+		fullApp.put("insuranceCompany", lastReturnQueue.path("insuranceCompany").asText());
+		fullApp.put("loanPurpose", lastReturnQueue.path("loanPurpose").asText());
+		fullApp.put("loanPurposeOther", lastReturnQueue.path("loanPurposeOther").asText());
+		fullApp.put("numberOfDependents", lastReturnQueue.path("numberOfDependents").asText());
+		fullApp.put("monthlyRental", lastReturnQueue.path("monthlyRental").asText());
+		fullApp.put("houseOwnership", lastReturnQueue.path("houseOwnership").asText());
+		fullApp.put("newBankCardNumber", lastReturnQueue.path("newBankCardNumber").asText());
+		fullApp.put("remarksDynamicForm", lastReturnQueue.path("remarksDynamicForm").asText());
+		fullApp.put("saleAgentCodeDynamicForm", lastReturnQueue.path("saleAgentCodeDynamicForm").asText());
+		fullApp.put("courierCode", lastReturnQueue.path("courierCode").asText());
+		fullApp.put("maximumInterestedRate", lastReturnQueue.path("maximumInterestedRate").asText());
 
 
 
 		ArrayNode addresses = mapper.createArrayNode();
 		ArrayNode references = mapper.createArrayNode();
+		ArrayNode family = mapper.createArrayNode();
+		ArrayNode identifications = mapper.createArrayNode();
 
 
-		crm.getAddresses().forEach(e -> {
-			JsonNode crmAdresses = mapper.convertValue(e, JsonNode.class);
-			addresses.add(crmAdresses);
-		});
+		if (lastReturnQueue.hasNonNull("addresses")) {
+			ArrayNode lastReturnQueueDatas = mapper.convertValue(lastReturnQueue.path("addresses"), ArrayNode.class);
+			for (JsonNode data : lastReturnQueueDatas) {
+				ObjectNode dataDocument = mapper.createObjectNode();
+				dataDocument.put("addressType", data.path("addressType").asText());
+				dataDocument.put("addressLine1", data.path("addressLine1").asText());
+				dataDocument.put("addressLine2", data.path("addressLine2").asText());
+				dataDocument.put("addressLine3", data.path("addressLine3").asText());
+				dataDocument.put("area", data.path("area").asText());
+				dataDocument.put("city", data.path("city").asText());
+				addresses.add(dataDocument);
+			}
+		}
 
-		crm.getReferences().forEach(e -> {
-			JsonNode crmReferences= mapper.convertValue(e, JsonNode.class);
-			references.add(crmReferences);
-		});
+		if (lastReturnQueue.hasNonNull("references")) {
+			ArrayNode lastReturnQueueDatas = mapper.convertValue(lastReturnQueue.path("references"), ArrayNode.class);
+			for (JsonNode data : lastReturnQueueDatas) {
+				ObjectNode dataDocument = mapper.createObjectNode();
+				dataDocument.put("name", data.path("name").asText());
+				dataDocument.put("relationship", data.path("relationship").asText());
+				dataDocument.put("phoneNumber", data.path("phoneNumber").asText());
+				references.add(dataDocument);
+			}
+		}
+
+		if (lastReturnQueue.hasNonNull("family")) {
+			ArrayNode lastReturnQueueDatas = mapper.convertValue(lastReturnQueue.path("family"), ArrayNode.class);
+			for (JsonNode data : lastReturnQueueDatas) {
+				ObjectNode dataDocument = mapper.createObjectNode();
+				dataDocument.put("memberName", data.path("memberName").asText());
+				dataDocument.put("phoneNumber", data.path("phoneNumber").asText());
+				dataDocument.put("relationship", data.path("relationship").asText());
+				family.add(dataDocument);
+			}
+		}
+
+		if (lastReturnQueue.hasNonNull("identifications")) {
+			ArrayNode lastReturnQueueDatas = mapper.convertValue(lastReturnQueue.path("identifications"), ArrayNode.class);
+			for (JsonNode data : lastReturnQueueDatas) {
+				ObjectNode dataDocument = mapper.createObjectNode();
+				dataDocument.put("identificationType", data.path("identificationType").asText());
+				dataDocument.put("identificationNumber", data.path("identificationNumber").asText());
+				dataDocument.put("issuingCountry", data.path("issuingCountry").asText());
+				dataDocument.put("placeOfIssue", data.path("placeOfIssue").asText());
+				dataDocument.put("issueDate", data.path("issueDate").asText());
+				dataDocument.put("expiryDate", data.path("expiryDate").asText());
+				identifications.add(dataDocument);
+			}
+		}
 
 		fullApp.set("addresses", addresses);
 		fullApp.set("documents", documents);
 		fullApp.set("references", references);
+		fullApp.set("family", family);
+		fullApp.set("identifications", identifications);
 		app.set("fullInfoApp", fullApp);
 
 		return app;
