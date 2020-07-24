@@ -772,7 +772,7 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
-                
+
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 

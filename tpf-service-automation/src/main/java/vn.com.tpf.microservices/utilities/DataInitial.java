@@ -820,9 +820,10 @@ public class DataInitial {
 
         //Employment Detail
         CRM_EmploymentDetailsDTO employmentDetails = CRM_EmploymentDetailsDTO.builder()
-                .occupationType(existingCustomerDTOList.getFullInfoApp().getOccupationType())
-                .isMajorEmployment(existingCustomerDTOList.getFullInfoApp().getIsMajorEmployment())
-                .natureOfOccupation(existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation()!=null?existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation():"Unemployed")
+                .occupationType("Others")
+                .isMajorEmployment("Others")
+                .natureOfOccupation("Commercial")
+//                .natureOfOccupation(existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation()!=null?existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation():"Unemployed")
                 .remarks(existingCustomerDTOList.getFullInfoApp().getEmploymentName())
                 .build();
 
