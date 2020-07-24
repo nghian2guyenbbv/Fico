@@ -355,7 +355,7 @@ public class CRM_ApplicationInfoPersonalTab {
         this.dateOfBirthdaElement.clear();
         this.dateOfBirthdaElement.sendKeys(applicationInfoDTO.getPersonalInfo().getDateOfBirth());
         this.placeOfBirthElement.clear();
-        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().getPlaceOfIssue());
+        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().stream().filter(x->x.getIdentificationType().equals("Current National ID")).findAny().get().getPlaceOfIssue());
 
         this.maritalStatusElement.click();
         await("maritalStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -437,7 +437,7 @@ public class CRM_ApplicationInfoPersonalTab {
         this.dateOfBirthdaElement.clear();
         this.dateOfBirthdaElement.sendKeys(applicationInfoDTO.getPersonalInfo().getDateOfBirth());
         this.placeOfBirthElement.clear();
-        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().getPlaceOfIssue());
+        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().stream().filter(x->x.getIdentificationType().equals("Current National ID")).findAny().get().getPlaceOfIssue());
 
         this.maritalStatusElement.click();
         await("maritalStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -465,14 +465,25 @@ public class CRM_ApplicationInfoPersonalTab {
         await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> deleteIdDetailElement.size() > 0);
 
-        for (int i=0; i<deleteIdDetailElement.size()-1; i++) {
-            WebElement var = deleteIdDetailElement.get(i);
-            var.click();
+        if (applicationInfoDTO.getIdentification().size() > 0){
+            List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
+            for (int i=0; i<documentType.size()-1; i++) {
+                Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
+                String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
+                if (optionIdentificationTypeLabel.equals("Current National ID")){
+                    WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                    new Select(type).selectByVisibleText("Other National ID");
+                }
+                WebElement country = _driver.findElement(By.id("idDetail_country" + i));
+                new Select(country).selectByVisibleText("Vietnam");
+            }
+
+            await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> btnAddIdentElement.isEnabled());
+            btnAddIdentElement.click();
+//            setIdentificationValue(applicationInfoDTO.getIdentification());
+            updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
         }
-        await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnAddIdentElement.isEnabled());
-        btnAddIdentElement.click();
-        updateIdentificationValue(applicationInfoDTO.getIdentification(),deleteIdDetailElement.size()-1);
         //end update identification
 
         //update address: ko xoa dc do anh huong cac employment detail nen chi edit
@@ -521,27 +532,38 @@ public class CRM_ApplicationInfoPersonalTab {
         this.btnLoadIdentificationElement.click();
     }
 
-    public void setIdentificationValue(CRM_IdentificationsDTO data) throws JsonParseException, JsonMappingException, IOException {
+    public void setIdentificationValue(List<CRM_IdentificationsListDTO> datas) throws JsonParseException, JsonMappingException, IOException {
         int index = 0;
         WebElement type;
         WebElement country;
-        type = _driver.findElement(By.id("idDetail_identificationType" + index));
-        new Select(type).selectByVisibleText(data.getIdentificationType());
+        for (CRM_IdentificationsListDTO data : datas) {
+            type = _driver.findElement(By.id("idDetail_identificationType" + index));
+            new Select(type).selectByVisibleText(data.getIdentificationType());
 
-        _driver.findElement(By.id("idDetail_identificationNumber" + index)).clear();
-        _driver.findElement(By.id("idDetail_identificationNumber" + index)).sendKeys(data.getIdentificationNumber());
-        _driver.findElement(By.id("idDetail_issueDate" + index)).clear();
-        _driver.findElement(By.id("idDetail_issueDate" + index)).sendKeys(data.getIssueDate());
-        _driver.findElement(By.id("idDetail_expiryDate" + index)).clear();
-        _driver.findElement(By.id("idDetail_expiryDate" + index)).sendKeys(data.getExpiryDate());
-        country = _driver.findElement(By.id("idDetail_country" + index));
-        new Select(country).selectByVisibleText(data.getIssuingCountry());
+            _driver.findElement(By.id("idDetail_identificationNumber" + index)).clear();
+            _driver.findElement(By.id("idDetail_identificationNumber" + index)).sendKeys(data.getIdentificationNumber());
+            _driver.findElement(By.id("idDetail_issueDate" + index)).clear();
+            _driver.findElement(By.id("idDetail_issueDate" + index)).sendKeys(data.getIssueDate());
+            _driver.findElement(By.id("idDetail_expiryDate" + index)).clear();
+            _driver.findElement(By.id("idDetail_expiryDate" + index)).sendKeys(data.getExpiryDate());
+            country = _driver.findElement(By.id("idDetail_country" + index));
+            new Select(country).selectByVisibleText(data.getIssuingCountry());
+            if (index < datas.size() - 1) {
+                await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> btnAddIdentElement.isEnabled());
+                btnAddIdentElement.click();
+                index++;
+            }
+
+        }
+
     }
 
-    public void updateIdentificationValue(CRM_IdentificationsDTO data, int indexRow) throws JsonParseException, JsonMappingException, IOException {
+    public void updateIdentificationValue(List<CRM_IdentificationsListDTO> datas, int indexRow) throws JsonParseException, JsonMappingException, IOException {
         int index=0;
         WebElement type;
         WebElement country;
+        for (CRM_IdentificationsListDTO data : datas) {
             type = _driver.findElement(By.id("idDetail_identificationType" + indexRow));
             new Select(type).selectByVisibleText(data.getIdentificationType());
 
@@ -550,6 +572,15 @@ public class CRM_ApplicationInfoPersonalTab {
             _driver.findElement(By.id("idDetail_expiryDate" + indexRow)).sendKeys(data.getExpiryDate());
             country = _driver.findElement(By.id("idDetail_country" + indexRow));
             new Select(country).selectByVisibleText(data.getIssuingCountry());
+            if (index < datas.size() - 1) {
+                await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> btnAddIdentElement.isEnabled());
+                btnAddIdentElement.click();
+                index++;
+            }
+            indexRow++;
+        }
+
     }
 
     public void loadAddressSection() {

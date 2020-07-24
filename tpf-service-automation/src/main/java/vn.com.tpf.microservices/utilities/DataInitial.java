@@ -764,14 +764,19 @@ public class DataInitial {
                 .build();
 
         ////*********IDENTIFICATION
-        CRM_IdentificationsDTO identifications = CRM_IdentificationsDTO.builder()
-                .identificationType(existingCustomerDTOList.getFullInfoApp().getIdentificationType())
-                .identificationNumber(existingCustomerDTOList.getFullInfoApp().getIdentificationNumber())
-                .issuingCountry(existingCustomerDTOList.getFullInfoApp().getIssuingCountry())
-                .placeOfIssue(existingCustomerDTOList.getFullInfoApp().getPlaceOfIssue())
-                .issueDate(existingCustomerDTOList.getFullInfoApp().getIssueDate())
-                .expiryDate(existingCustomerDTOList.getFullInfoApp().getExpiryDate())
-                .build();
+        //IDENTIFICATION
+        List<CRM_IdentificationsListDTO> identificationsDTOs = new ArrayList<>();
+        for (CRM_IdentificationsDTO identifications : existingCustomerDTOList.getFullInfoApp().getIdentifications()) {
+            CRM_IdentificationsListDTO identificationsDTO = CRM_IdentificationsListDTO.builder()
+                    .identificationType(identifications.getIdentificationType())
+                    .identificationNumber(identifications.getIdentificationNumber())
+                    .issuingCountry(identifications.getIssuingCountry())
+                    .placeOfIssue(identifications.getPlaceOfIssue())
+                    .issueDate(identifications.getIssueDate())
+                    .expiryDate(identifications.getExpiryDate())
+                    .build();
+            identificationsDTOs.add(identificationsDTO);
+        }
 
         ////*********ADDRESS
         List<CRM_AddressListDTO> addressDTOs = new ArrayList<>();
@@ -806,7 +811,7 @@ public class DataInitial {
         List<CRM_FamilyListDTO> familyDTOs = new ArrayList<>();
         for (CRM_FamilyDTO family : existingCustomerDTOList.getFullInfoApp().getFamily()) {
             CRM_FamilyListDTO familyDTO = CRM_FamilyListDTO.builder()
-                    .relationship(family.getRelationshipType())
+                    .relationship(family.getRelationship())
                     .memberName(family.getMemberName())
                     .phoneNumber(family.getPhoneNumber())
                     .build();
@@ -818,7 +823,7 @@ public class DataInitial {
                 .occupationType(existingCustomerDTOList.getFullInfoApp().getOccupationType())
                 .isMajorEmployment(existingCustomerDTOList.getFullInfoApp().getIsMajorEmployment())
                 .natureOfOccupation(existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation()!=null?existingCustomerDTOList.getFullInfoApp().getNatureOfOccupation():"Unemployed")
-                .remarks(existingCustomerDTOList.getFullInfoApp().getRemarks())
+                .remarks(existingCustomerDTOList.getFullInfoApp().getEmploymentName())
                 .build();
 
 
@@ -834,7 +839,7 @@ public class DataInitial {
 
         CRM_ApplicationInformationsListDTO applicationInfoDTO = CRM_ApplicationInformationsListDTO.builder()
                 .personalInfo(personalInfos)
-                .identification(identifications)
+                .identification(identificationsDTOs)
                 .address(addressDTOs)
                 .family(familyDTOs)
                 .communicationDetail(communicationDetails)
@@ -938,14 +943,19 @@ public class DataInitial {
                 .build();
 
         ////*********IDENTIFICATION
-        CRM_IdentificationsDTO identifications = CRM_IdentificationsDTO.builder()
-                .identificationType(saleQueueList.getFullInfoApp().getIdentificationType())
-                .identificationNumber(saleQueueList.getFullInfoApp().getIdentificationNumber())
-                .issuingCountry(saleQueueList.getFullInfoApp().getIssuingCountry())
-                .placeOfIssue(saleQueueList.getFullInfoApp().getPlaceOfIssue())
-                .issueDate(saleQueueList.getFullInfoApp().getIssueDate())
-                .expiryDate(saleQueueList.getFullInfoApp().getExpiryDate())
-                .build();
+        //IDENTIFICATION
+        List<CRM_IdentificationsListDTO> identificationsDTOs = new ArrayList<>();
+        for (CRM_IdentificationsDTO identifications : saleQueueList.getFullInfoApp().getIdentifications()) {
+            CRM_IdentificationsListDTO identificationsDTO = CRM_IdentificationsListDTO.builder()
+                    .identificationType(identifications.getIdentificationType())
+                    .identificationNumber(identifications.getIdentificationNumber())
+                    .issuingCountry(identifications.getIssuingCountry())
+                    .placeOfIssue(identifications.getPlaceOfIssue())
+                    .issueDate(identifications.getIssueDate())
+                    .expiryDate(identifications.getExpiryDate())
+                    .build();
+            identificationsDTOs.add(identificationsDTO);
+        }
 
         ////*********ADDRESS
         List<CRM_AddressListDTO> addressDTOs = new ArrayList<>();
@@ -980,7 +990,7 @@ public class DataInitial {
         List<CRM_FamilyListDTO> familyDTOs = new ArrayList<>();
         for (CRM_FamilyDTO family : saleQueueList.getFullInfoApp().getFamily()) {
             CRM_FamilyListDTO familyDTO = CRM_FamilyListDTO.builder()
-                    .relationship(family.getRelationshipType())
+                    .relationship(family.getRelationship())
                     .memberName(family.getMemberName())
                     .phoneNumber(family.getPhoneNumber())
                     .build();
@@ -989,10 +999,11 @@ public class DataInitial {
 
         //Employment Detail
         CRM_EmploymentDetailsDTO employmentDetails = CRM_EmploymentDetailsDTO.builder()
-                .occupationType(saleQueueList.getFullInfoApp().getOccupationType())
-                .isMajorEmployment(saleQueueList.getFullInfoApp().getIsMajorEmployment())
-                .natureOfOccupation(saleQueueList.getFullInfoApp().getNatureOfOccupation()!=null?saleQueueList.getFullInfoApp().getNatureOfOccupation():"Unemployed")
-                .remarks(saleQueueList.getFullInfoApp().getRemarks())
+                .occupationType("Others")
+                .isMajorEmployment("Others")
+//                .natureOfOccupation(saleQueueList.getFullInfoApp().getNatureOfOccupation()!=null?saleQueueList.getFullInfoApp().getNatureOfOccupation():"Unemployed")
+                .natureOfOccupation("Commercial")
+                .remarks(saleQueueList.getFullInfoApp().getEmploymentName())
                 .build();
 
 
@@ -1008,7 +1019,7 @@ public class DataInitial {
 
         CRM_ApplicationInformationsListDTO applicationInfoDTO = CRM_ApplicationInformationsListDTO.builder()
                 .personalInfo(personalInfos)
-                .identification(identifications)
+                .identification(identificationsDTOs)
                 .address(addressDTOs)
                 .family(familyDTOs)
                 .communicationDetail(communicationDetails)

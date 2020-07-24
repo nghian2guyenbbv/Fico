@@ -13,7 +13,6 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsDTO;
-import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsListDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -178,38 +177,34 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             }
         }
 
-        if (data.getOccupationType().equals("Others")) {
-            WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
-            we.click();
+        await("natureOfOccupationElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> natureOfOccupationElement.isDisplayed() && natureOfOccupationElement.isEnabled());
 
-            await("natureOfOccupationElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> natureOfOccupationElement.isDisplayed() && natureOfOccupationElement.isEnabled());
-            natureOfOccupationElement.click();
-            await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> natureOfOccupationOptionElement.size() > 0);
-            for (WebElement element : natureOfOccupationOptionElement) {
-                if (element.getText().equals(data.getNatureOfOccupation())) {
-                    element.click();
-                    break;
-                }
+        natureOfOccupationElement.click();
+
+        await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> natureOfOccupationOptionElement.size() > 0);
+
+        for (WebElement element : natureOfOccupationOptionElement) {
+            if (element.getText().equals(data.getNatureOfOccupation())) {
+                element.click();
+                break;
             }
-
-            employerName.clear();
-            employerName.sendKeys(data.getRemarks());
-
-            //upddate lai cho nay, moi checkbox theoname cua occupation
-            WebElement eaCheckElement =_driver.findElement(By.id("employment_detail_" + data.getOccupationType().toLowerCase() +"_address_check"));
-            eaCheckElement.click();
-
-            Utilities.captureScreenShot(_driver);
         }
+
+        employerName.clear();
+        employerName.sendKeys(data.getRemarks());
+
+        WebElement eaCheckElement =_driver.findElement(By.id("employment_detail_" + data.getOccupationType().toLowerCase() +"_address_check"));
+        eaCheckElement.click();
+
+        Utilities.captureScreenShot(_driver);
+
     }
 
     public void setMajorOccupation(CRM_EmploymentDetailsDTO data) {
-        if(!data.getIsMajorEmployment().isEmpty()&&!data.getIsMajorEmployment().equals("Others"))
-        {
-            if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
-            {
+//        if(!data.getIsMajorEmployment().isEmpty()&&!data.getIsMajorEmployment().equals("Others")) {
+            if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0) {
                 Utilities.captureScreenShot(_driver);
                 WebElement webElement=_driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input"));
                 webElement.click();
@@ -222,6 +217,6 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
                 Utilities.captureScreenShot(_driver);
             }
-        }
+//        }
     }
 }

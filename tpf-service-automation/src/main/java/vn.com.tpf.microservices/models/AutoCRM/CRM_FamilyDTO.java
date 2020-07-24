@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class CRM_FamilyDTO {
     private String memberName;
-    private String relationshipType;
+    private String relationship;
     private String phoneNumber;
     private String educationStatus;
     private String comName;
