@@ -13,7 +13,7 @@ import java.util.List;
 public class CRM_ApplicationInformationsListDTO implements Serializable {
 
     private CRM_PersonalInfoDTO personalInfo;
-    private CRM_IdentificationsDTO identification;
+    private List<CRM_IdentificationsListDTO> identification;
     private List<CRM_AddressListDTO> address;
     private List<CRM_FamilyListDTO> family;
     private CRM_CommunicationDetailsDTO communicationDetail;

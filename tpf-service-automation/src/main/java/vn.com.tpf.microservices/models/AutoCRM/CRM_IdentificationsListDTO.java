@@ -11,11 +11,11 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class CRM_IdentificationsListDTO implements Serializable {
 
-    private String documentType;
-    private String documentNumber;
-    private String issueDate;
-    private String expirationDate;
+    private String identificationType;
+    private String identificationNumber;
+    private String issuingCountry;
     private String placeOfIssue;
-    private String countryOfIssue;
+    private String issueDate;
+    private String expiryDate;
 
 }

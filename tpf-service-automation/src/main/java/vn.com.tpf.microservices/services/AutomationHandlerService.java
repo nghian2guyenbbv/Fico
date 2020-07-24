@@ -279,7 +279,7 @@ public class AutomationHandlerService {
                     break;
                 case "runAutomation_Existing_Customer":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
-                    runAutomation_QuickLead_With_FullInfo(driver, mapValue, accountDTO);
+                    runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
@@ -5272,7 +5272,7 @@ public class AutomationHandlerService {
 
     //------------------------ EXISTING CUSTOMER -----------------------------------------------------
 
-    public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+    public void runAutomation_Existing_Customer_2(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -5571,7 +5571,7 @@ public class AutomationHandlerService {
         }
     }
 
-    public void runAutomation_QuickLead_With_FullInfo(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+    public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -5752,6 +5752,38 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            stage = "Bank / Credit Card Details";
+            // ==========BANK DETAILS =================
+            await("Load Bank details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> appInfoPage.getBankDetailsTabElement().getAttribute("class").contains("active"));
+
+            CRM_ApplicationInfoBankDetailsTab bankDetailsTab = appInfoPage.getApplicationInfoBankDetailsTab();
+
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankDetailsTab.getApplicationId().isEnabled());
+
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankDetailsTab.getBankDetailsGridElement().isEnabled());
+
+            if(bankDetailsTab.getBankDetailsTableElement().size() > 2){
+
+                await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> bankDetailsTab.getBankDetailsTableElement().size() > 2);
+
+                await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> bankDetailsTab.getDeleteIdDetailElement().size() > 0);
+
+                for (int i=0; i<bankDetailsTab.getDeleteIdDetailElement().size(); i++) {
+                    WebElement var = bankDetailsTab.getDeleteIdDetailElement().get(i);
+                    var.click();
+                }
+            }
+
+            bankDetailsTab.saveAndNext();
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
             CRM_LoanDetailsPage loanDetailsPage = new CRM_LoanDetailsPage(driver);
@@ -5926,7 +5958,6 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
-            // ========== EXISTING CUSTOMER =================
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
 
@@ -5979,6 +6010,25 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            stage = "EMPLOYMENT DETAILS";
+            // ========== EMPLOYMENT DETAILS =================
+            await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
+
+            CRM_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
+
+            employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetail());
+            employmentDetailsTab.getDoneBtnElement().click();
+            await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
+            employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetail());
+            employmentDetailsTab.getSaveAndNextBtnElement().click();
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
@@ -5990,6 +6040,38 @@ public class AutomationHandlerService {
                 financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
                 financialDetailsTab.saveAndNext();
             }
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "Bank / Credit Card Details";
+            // ==========BANK DETAILS =================
+            await("Load Bank details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> appInfoPage.getBankDetailsTabElement().getAttribute("class").contains("active"));
+
+            CRM_ApplicationInfoBankDetailsTab bankDetailsTab = appInfoPage.getApplicationInfoBankDetailsTab();
+
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankDetailsTab.getApplicationId().isEnabled());
+
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankDetailsTab.getBankDetailsGridElement().isEnabled());
+
+            if(bankDetailsTab.getBankDetailsTableElement().size() > 2){
+
+                await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> bankDetailsTab.getBankDetailsTableElement().size() > 2);
+
+                await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> bankDetailsTab.getDeleteIdDetailElement().size() > 0);
+
+                for (int i=0; i<bankDetailsTab.getDeleteIdDetailElement().size(); i++) {
+                    WebElement var = bankDetailsTab.getDeleteIdDetailElement().get(i);
+                    var.click();
+                }
+            }
+
+            bankDetailsTab.saveAndNext();
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -6089,6 +6171,8 @@ public class AutomationHandlerService {
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
+
+            Utilities.captureScreenShot(driver);
 
             Utilities.captureScreenShot(driver);
             stage = "COMPLETE";

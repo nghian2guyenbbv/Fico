@@ -14,6 +14,7 @@ public class CRM_ApplicationInfoPage {
     private CRM_ApplicationInfoPersonalTab applicationInfoPersonalTab;
     private CRM_ApplicationInfoEmploymentDetailsTab applicationInfoEmploymentDetailsTab;
     private CRM_ApplicationInfoFinancialDetailsTab applicationInfoFinancialDetailsTab;
+    private CRM_ApplicationInfoBankDetailsTab applicationInfoBankDetailsTab;
 
     @FindBy(how = How.ID, using = "customerMainChildTabs_personal_tab")
     @CacheLookup
@@ -22,6 +23,10 @@ public class CRM_ApplicationInfoPage {
     @FindBy(how = How.ID, using = "customerMainChildTabs_employment_tab")
     @CacheLookup
     private WebElement employmentDetailsTabElement;
+
+    @FindBy(how = How.ID, using = "customerMainChildTabs_bankDetails_tab")
+    @CacheLookup
+    private WebElement bankDetailsTabElement;
 
     @FindBy(how = How.ID, using = "customerMainChildTabs_income_tab")
     @CacheLookup
@@ -32,6 +37,7 @@ public class CRM_ApplicationInfoPage {
         applicationInfoPersonalTab = new CRM_ApplicationInfoPersonalTab(driver);
         applicationInfoEmploymentDetailsTab = new CRM_ApplicationInfoEmploymentDetailsTab(driver);
         applicationInfoFinancialDetailsTab = new CRM_ApplicationInfoFinancialDetailsTab(driver);
+        applicationInfoBankDetailsTab = new CRM_ApplicationInfoBankDetailsTab(driver);
     }
 
     public CRM_ApplicationInfoPersonalTab getApplicationInfoPersonalTab() {
@@ -44,6 +50,10 @@ public class CRM_ApplicationInfoPage {
 
     public CRM_ApplicationInfoFinancialDetailsTab getApplicationInfoFinancialDetailsTab() {
         return applicationInfoFinancialDetailsTab;
+    }
+
+    public CRM_ApplicationInfoBankDetailsTab getApplicationInfoBankDetailsTab() {
+        return applicationInfoBankDetailsTab;
     }
 
 }

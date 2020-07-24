@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.models.AutoCRM;
 
 import lombok.Data;
+import vn.com.tpf.microservices.models.Identification;
 
 import java.util.List;
 
@@ -20,12 +21,8 @@ public class CRM_FullInfoAppDTO {
     public String issuePlace;
 
     //identifications
-    public String identificationType;
-    public String identificationNumber;
-    public String issuingCountry;
-    public String placeOfIssue;
-    public String issueDate;
-    public String expiryDate;
+    public List<CRM_IdentificationsDTO> identifications = null;
+    public List<CRM_IdentificationsDTO> identificationNews = null;
 
     //addresses
     public List<CRM_AddressDTO> addresses = null;
@@ -43,11 +40,11 @@ public class CRM_FullInfoAppDTO {
     public String modeOfPayment;
     public String dayOfSalaryPayment;
 
-    //financialDetails
+    //Employment
     public String occupationType;
     public String isMajorEmployment;
     public String natureOfOccupation;
-    public String remarks;
+    public String employmentName;
 
     //---loanDetails
     //sourcingDetails
