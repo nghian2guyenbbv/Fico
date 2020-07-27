@@ -1609,7 +1609,7 @@ public class DataEntryService {
 					update.set("status", "NEW");
 					update.set("lastModifiedDate", new Date());
 
-					update.set("partnerId", data.getPartnerId());
+//					update.set("partnerId", data.getPartnerId());
 					Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
 					if (resultUpdate == null){
 						responseModel.setRequest_id(requestId);
@@ -1721,7 +1721,7 @@ public class DataEntryService {
 				app.setPartnerName(request.get("partnerName").asText());
 
 				app.setCreateFrom("WEB");
-				app.setRoutingId(request.get("routingId").asLong());
+				app.setRoutingId(request.get("routingId").asLong(-1));
 
 				mongoTemplate.save(app);
 

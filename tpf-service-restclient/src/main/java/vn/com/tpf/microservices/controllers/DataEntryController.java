@@ -55,8 +55,11 @@ public class DataEntryController {
 	@Value("${spring.url.digitex-token}")
 	private String digitexToken;
 
-	@Value("${spring.url.auto-assign}")
-	private String urlAutoAssign;
+	@Value("${spring.url.auto-routing}")
+	private String urlAutoRouting;
+
+	@Value("${spring.auto-routing}")
+	private boolean autoRouting;
 
 	private RestTemplate restTemplate;
 
@@ -1249,23 +1252,25 @@ public class DataEntryController {
 		String checkDuplicateFile = "";
 
 		Map partner = new HashMap();
-		String partnerIdToGetPartner;
+		String partnerIdToGetPartner = "";
 		Long routingId;
 		if (appId.equals("new")) {
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			headers.setBearerAuth(token.replace("Bearer", "").trim());
-			HttpEntity<?> entity = new HttpEntity<>(mapper.convertValue(Map.of("request_id", UUID.randomUUID().toString()), JsonNode.class), headers);
-			ResponseEntity<String> res = restTemplate.postForEntity(urlAutoAssign, entity, String.class);
+			if(autoRouting){
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+				headers.setBearerAuth(token.replace("Bearer", "").trim());
+				HttpEntity<?> entity = new HttpEntity<>(mapper.convertValue(Map.of("request_id", UUID.randomUUID().toString()), JsonNode.class), headers);
+				ResponseEntity<String> res = restTemplate.postForEntity(urlAutoRouting, entity, String.class);
 
-			if (!res.getStatusCode().is2xxSuccessful()) {
-				return ResponseEntity.status(200)
-						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-								"result_code", 3, "message", "Not get partner"));
+				if (!res.getStatusCode().is2xxSuccessful()) {
+					return ResponseEntity.status(200)
+							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+									"result_code", 3, "message", "Not get partner"));
+				}
+				partnerIdToGetPartner = mapper.readTree(res.getBody()).path("data").path("vendorId").asText("");
+				routingId = mapper.readTree(res.getBody()).path("data").path("routingId").asLong(-1);
+				request.put("routingId", routingId);
 			}
-			partnerIdToGetPartner = mapper.readTree(res.getBody()).path("data").path("vendorId").asText("");
-			routingId = mapper.readTree(res.getBody()).path("data").path("routingId").asLong(-1);
-			request.put("routingId", routingId);
 
 			for (MultipartFile item : files) {
 				if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
@@ -1863,11 +1868,12 @@ public class DataEntryController {
 	 */
 	private String getPartnerName(JsonNode body) throws Exception{
 		String partnerId = null;
-		if(body.path("partnerId").isTextual()){
-			partnerId = body.path("partnerId").asText();
-		}else if(body.path("data").path("partnerId").isTextual()) {
-			partnerId = body.path("data").path("partnerId").asText();
-		}else if(body.path("applicationId").isTextual()){
+//		if(body.path("partnerId").isTextual()){
+//			partnerId = body.path("partnerId").asText();
+//		}else if(body.path("data").path("partnerId").isTextual()) {
+//			partnerId = body.path("data").path("partnerId").asText();
+//		}else
+		if(body.path("applicationId").isTextual()){
 			String partnerName = this.getPartnerNameByAppId(body.path("applicationId").asText());
 			return partnerName;
 		}else if(body.path("data").path("applicationId").isTextual()){
@@ -1882,12 +1888,12 @@ public class DataEntryController {
 		}else
 			return null;
 
-		Map<String, Object> request = new HashMap<>();
-		request.put("func", "getPartner");
-		request.put("body", Map.of("partnerId", partnerId));
-
-		JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-		return response.path("data").path(0).path("partnerName").asText();
+//		Map<String, Object> request = new HashMap<>();
+//		request.put("func", "getPartner");
+//		request.put("body", Map.of("partnerId", partnerId));
+//
+//		JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+//		return response.path("data").path(0).path("partnerName").asText();
 	}
 
 	private String getPartnerNameByQuickLeadId(String quickleadId) {
