@@ -467,15 +467,17 @@ public class CRM_ApplicationInfoPersonalTab {
 
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-            for (int i=0; i<documentType.size()-1; i++) {
-                Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
-                String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
-                if (optionIdentificationTypeLabel.equals("Current National ID")){
-                    WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                    new Select(type).selectByVisibleText("Other National ID");
+            if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals("Current National ID")){
+                for (int i=0; i<documentType.size()-1; i++) {
+                    Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
+                    String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
+                    if (optionIdentificationTypeLabel.equals("Current National ID")){
+                        WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                        new Select(type).selectByVisibleText("Other National ID");
+                    }
+                    WebElement country = _driver.findElement(By.id("idDetail_country" + i));
+                    new Select(country).selectByVisibleText("Vietnam");
                 }
-                WebElement country = _driver.findElement(By.id("idDetail_country" + i));
-                new Select(country).selectByVisibleText("Vietnam");
             }
 
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
