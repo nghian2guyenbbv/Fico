@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.dao.*;
@@ -407,6 +408,9 @@ public class AutoAssignService {
 			RequestApplicationModel requestApplicationModel = mapper.treeToValue(request, RequestApplicationModel.class);
 			request_id = requestApplicationModel.getRequest_id();
 			reference_id = requestApplicationModel.getReference_id();
+			if (StringUtils.isEmpty(reference_id)){
+				reference_id = UUID.randomUUID().toString();
+			}
 			boolean exist = autoAssignConfigureApplicationDAO.existsAutoAssignConfigureApplicationByReferenceId(reference_id);
 			if (exist){
 				reference_id += "-" + new Date().getTime();
