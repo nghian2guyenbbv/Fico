@@ -6379,13 +6379,11 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             try {
-                SN_updateStatusRabbit(application, "updateAutomation", "dataentry");
+                updateStatusRabbit(application, "updateAutomation");
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
-            SN_updateDB(application);
             logout(driver,accountDTO.getUserName());
-
         }
     }
 
