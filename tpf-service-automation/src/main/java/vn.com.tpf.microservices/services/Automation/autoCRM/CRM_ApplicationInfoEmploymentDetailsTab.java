@@ -162,6 +162,12 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
     public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException {
 
+        List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+
+        if(editOccupationTypeElements.size()>1){
+            editOccupationTypeElements.get(0).click();
+        }
+
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed() && occupationTypeElement.isEnabled());
 
