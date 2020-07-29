@@ -134,4 +134,7 @@ public class FicoReceiptPaymentLog {
 
     @Column(name="log_response")
     private String logResponse;
+
+    @Column(name="log_callUpdate")
+    private String logCallUpdate;
 }

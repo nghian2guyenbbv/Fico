@@ -17,8 +17,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -53,9 +58,11 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 import java.util.Properties;
 
@@ -104,6 +111,7 @@ public class RepaymentService {
 	public Map<String, Object> getCustomers(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
+		String s="";
 		try{
 			List<FicoCustomer> ficoCustomerList = null;
 
@@ -805,15 +813,15 @@ public class RepaymentService {
 	}
 
 	public void saveReportReceiptPaymentLog(FicoRepaymentModel ficoRepaymentModel,String logResponse,Timestamp timestamp,String errorMesage) throws IOException, ParseException {
-		//GregorianCalendar cal = new GregorianCalendar();
-
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sssXXX");
+		FicoReceiptPaymentLog ficoReceiptPaymentLog=null;
+		String message="";
+		try
+		{
+			if(!StringUtils.isEmpty(logResponse)) {
+				JsonNode resNode = mapper.readTree(logResponse.replaceAll("\u00A0", ""));
 
-		if(!StringUtils.isEmpty(logResponse)) {
-			JsonNode resNode = mapper.readTree(logResponse.replaceAll("\u00A0", ""));
-
-
-			FicoReceiptPaymentLog ficoReceiptPaymentLog = FicoReceiptPaymentLog.builder()
+				ficoReceiptPaymentLog=FicoReceiptPaymentLog.builder()
 					.tenantId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getTenantId())
 					.userCode(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getUserCode())
 					.branchId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getBranchId())
@@ -847,27 +855,36 @@ public class RepaymentService {
 					.logResponse(logResponse.replaceAll("\u00A0", ""))
 					.build();
 
-					if(!resNode.path("responseData").isNull())
-					{
+				if(!resNode.path("responseData").isNull())
+				{
 
-						ficoReceiptPaymentLog.setPayinSlipReferencNumber(resNode.path("responseData").path("success").path("payinSlipReferencNumber").asText(""));
-						ficoReceiptPaymentLog.setReceiptId(resNode.path("responseData").path("success").path("receiptId").asText(""));
-						ficoReceiptPaymentLog.setI18nCode(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("i18nCode").asText("")
-									:resNode.path("responseData").path("error").get(0).path("i18nCode").asText(""));
-						ficoReceiptPaymentLog.setType(resNode.path("responseData").hasNonNull("success")? resNode.path("responseData").path("success").path("message").path("type").asText("")
-									:resNode.path("responseData").path("error").get(0).path("type").asText(""));
-						ficoReceiptPaymentLog.setValue(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("value").asText("")
-									:resNode.path("responseData").path("error").get(0).path("value").asText(""));
-						ficoReceiptPaymentLog.setMessageArguments(resNode.path("responseData").hasNonNull("success")? mapper.writeValueAsString(resNode.path("responseData").path("success").path("message"))
-									:mapper.writeValueAsString(resNode.path("responseData").path("error").get(0).path("messageArguments")));
+					ficoReceiptPaymentLog.setPayinSlipReferencNumber(resNode.path("responseData").path("success").path("payinSlipReferencNumber").asText(""));
+					ficoReceiptPaymentLog.setReceiptId(resNode.path("responseData").path("success").path("receiptId").asText(""));
+					ficoReceiptPaymentLog.setI18nCode(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("i18nCode").asText("")
+								:resNode.path("responseData").path("error").get(0).path("i18nCode").asText(""));
+					ficoReceiptPaymentLog.setType(resNode.path("responseData").hasNonNull("success")? resNode.path("responseData").path("success").path("message").path("type").asText("")
+								:resNode.path("responseData").path("error").get(0).path("type").asText(""));
+					ficoReceiptPaymentLog.setValue(resNode.path("responseData").hasNonNull("success")?resNode.path("responseData").path("success").path("message").path("value").asText("")
+								:resNode.path("responseData").path("error").get(0).path("value").asText(""));
+					ficoReceiptPaymentLog.setMessageArguments(resNode.path("responseData").hasNonNull("success")? mapper.writeValueAsString(resNode.path("responseData").path("success").path("message"))
+								:mapper.writeValueAsString(resNode.path("responseData").path("error").get(0).path("messageArguments")));
+
+					//if call api success, call function update data
+					if(resNode.path("responseData").hasNonNull("success"))
+					{
+						String resultF1=F1_Fn_get_loan_netamount(ficoRepaymentModel.getReceiptProcessingMO().getLoanAccountNo());
+						message +="resultF1: " + resultF1;
+
+						int resultCallUpdate = updateDataLoanFromF1(resultF1,ficoRepaymentModel.getReceiptProcessingMO().getLoanAccountNo());
+						message +="resultCallUpdate: " + resultCallUpdate;
+						ficoReceiptPaymentLog.setLogCallUpdate(String.valueOf(resultCallUpdate));
 					}
 
-
-			ficoReceiptPaymentLogDAO.save(ficoReceiptPaymentLog);
-		}
-		else
-		{
-			FicoReceiptPaymentLog ficoReceiptPaymentLog = FicoReceiptPaymentLog.builder()
+				}
+			}
+			else
+			{
+				ficoReceiptPaymentLog=FicoReceiptPaymentLog.builder()
 					.tenantId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getTenantId())
 					.userCode(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getUserCode())
 					.branchId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getBranchId())
@@ -899,9 +916,15 @@ public class RepaymentService {
 					.type("ERROR")
 					.build();
 
-			ficoReceiptPaymentLogDAO.save(ficoReceiptPaymentLog);
+			}
+		}catch (Exception e)
+		{
+			message+="; Error: " + e.toString();
 		}
-
+		finally{
+			ficoReceiptPaymentLogDAO.save(ficoReceiptPaymentLog);
+			log.info("SaveLog: " + message);
+		}
 	}
 	//---------------------- END FUNCTION SAVE REPORT -----------------
 
@@ -1070,6 +1093,55 @@ public class RepaymentService {
 
 	//----------------------- END CRON ----------------------------
 
+	// --------------------- CALL FUNCTION F1 --------------------------
 
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplateF1;
+
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplatePosgres;
+
+	public String F1_Fn_get_loan_netamount(String loanAccount)
+	{
+		SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("loanAccount", loanAccount);
+		String sql="select serviceapp.fn_get_loan_netamount(:loanAccount) as RESULT from dual";
+
+		Map<String, Object> resultData =namedParameterJdbcTemplateF1.queryForMap(sql,namedParameters);
+
+		if(resultData!=null && resultData.size()>0 && resultData.get("RESULT")!=null)
+		{
+			return resultData.get("RESULT").toString();
+		}
+
+		return "";
+	}
+
+	public int updateDataLoanFromF1(String result,String loanAccount){
+
+		if(StringUtils.isEmpty(result))
+		{
+			return 0;
+		}
+
+		DateTimeFormatter formatterParseInput= new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
+
+		String[] listParam=result.split("\\|");
+
+		SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("netamount", Integer.parseInt(listParam[4]),
+																					"installmentamount", Integer.parseInt(listParam[5]),
+																					"duedate",  LocalDate.parse(listParam[6],formatterParseInput),
+																					"syncdate", new Timestamp(new Date().getTime()),
+																					"loanstatus", listParam[7],
+																					"loanAccount", loanAccount));
+		String sql="Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
+				"set net_amount=:netamount, installment_amount=:installmentamount, duedate=:duedate, syncdate=:syncdate, loan_status=:loanstatus " +
+				"where loan_account_no=:loanAccount";
+
+		int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
+
+		return resultData;
+	}
+
+	// --------------------- END ---------------------------------------
 
 }

@@ -1,9 +1,14 @@
 spring:
   rabbitmq:
     host: 10.131.31.202
-  datasource:
-#      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
-        url: jdbc:postgresql://10.1.66.30:5435/ficodb
+#  datasource:
+##      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
+#        url: jdbc:postgresql://10.1.66.30:5435/ficodb
+  f1-datasource:
+    jdbc-url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
+    username: ServiceApp
+    password: UATServiceApp#Test2019#
+    driver-class-name: oracle.jdbc.OracleDriver
   hostRequest:
         url: http://10.131.21.190:8900/api/v2/f1/receiptService
   ftp:
