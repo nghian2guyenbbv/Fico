@@ -13,6 +13,10 @@ import vn.com.tpf.microservices.models.Mobility;
 import vn.com.tpf.microservices.models.MobilityField;
 import vn.com.tpf.microservices.models.MobilityWaiveField;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class ConvertService {
 	@Autowired
@@ -242,6 +246,53 @@ public class ConvertService {
 		} else {
 			app.set("dataDocuments", mapper.createArrayNode());
 		}
+
+		return app;
+	}
+
+	public ObjectNode toSendAppNonWebFinnone(Mobility mobility, String partnerId, String requestId) {
+
+		ObjectNode app = mapper.createObjectNode();
+		app.put("request_id", requestId);
+		app.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+
+		ObjectNode quickLead = mapper.createObjectNode();
+		quickLead.put("project", "mobility");
+		quickLead.put("partnerId", partnerId);
+		quickLead.put("appId", mobility.getAppId());
+		quickLead.put("quickLeadId", mobility.getId());
+		quickLead.put("identificationNumber", mobility.getNationalId());
+		quickLead.put("productTypeCode", ProductTypeCode);
+		quickLead.put("customerType", CustomerType);
+		quickLead.put("productCode", mobility.getProductFinnOne());
+		quickLead.put("loanAmountRequested", mobility.getLoanRequest());
+		quickLead.put("firstName", mobility.getFirstName());
+		quickLead.put("lastName", mobility.getLastName());
+		quickLead.put("city", mobility.getCityFinnOne());
+		quickLead.put("sourcingChannel", mobility.getChanel());
+		quickLead.put("dateOfBirth", mobility.getDateOfBirth());
+		quickLead.put("sourcingBranch", mobility.getBranch());
+		quickLead.put("natureOfOccupation", NatureOfOccupation);
+		quickLead.put("schemeCode", mobility.getSchemeFinnOne());
+		quickLead.put("comment", Comment);
+		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
+		quickLead.put("leadStatus", LeadStatus);
+		quickLead.put("communicationTranscript", CommunicationTranscript);
+
+		ArrayNode documents = mapper.createArrayNode();
+
+		mobility.getFilesUpload().forEach(e -> {
+			JsonNode mobilityDoc = mapper.convertValue(e, JsonNode.class);
+			ObjectNode doc = mapper.createObjectNode();
+			doc.put("type", mobilityDoc.path("type").asText());
+			doc.put("originalname", mobilityDoc.path("originalname").asText());
+			doc.put("filename", mobilityDoc.path("filename").asText());
+			documents.add(doc);
+		});
+
+		quickLead.set("documents", documents);
+
+		app.set("data", quickLead);
 
 		return app;
 	}

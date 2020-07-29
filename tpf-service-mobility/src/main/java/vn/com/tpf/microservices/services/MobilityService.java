@@ -618,6 +618,13 @@ public class MobilityService {
 							mapper.createObjectNode().put("message", e.getMessage())));
 				}
 			}).start();
+
+			JsonNode vendorAutoassign = rabbitMQService.sendAndReceive("tpf-service-autoassign", Map.of("func", "configureVendor", "request_id",
+					body.path("reference_id").asText()));
+			if(3 != vendorAutoassign.path("data").path("data").path("vendorId").asLong()){
+				rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
+						convertService.toSendAppNonWebFinnone(mobility, vendorAutoassign.path("data").path("data").path("vendorId").asText(),body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+		}
 		}
 		if (automationResult.contains(AUTOMATION_QUICKLEAD_FAILED)) {
 			update.set("stage", STAGE_QUICKLEAD_FAILED_AUTOMATION);
