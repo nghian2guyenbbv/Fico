@@ -872,6 +872,8 @@ public class RepaymentService {
 					.userCode(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getUserCode())
 					.branchId(ficoRepaymentModel.getReceiptProcessingMO().getRequestHeader().getUserDetail().getBranchId())
 					.receiptPayOutMode(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayOutMode())
+					.receiptPayoutChannel(ficoRepaymentModel.getReceiptProcessingMO().getReceiptPayoutChannel())
+					.receiptOrPayoutAmount(ficoRepaymentModel.getReceiptProcessingMO().getReceiptOrPayoutAmount())
 					.receiptNo(ficoRepaymentModel.getReceiptProcessingMO().getReceiptNo())
 					.paymentSubMode(ficoRepaymentModel.getReceiptProcessingMO().getPaymentSubMode())
 					.receiptAgainst(ficoRepaymentModel.getReceiptProcessingMO().getReceiptAgainst())
