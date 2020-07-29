@@ -77,6 +77,9 @@ public class CrmService {
 	private final String KEY_USER_NAME = "userName";
 	private final String KEY_STAGE = "stage";
 	private final String KEY_STATUS = "status";
+	private final String STATUS_SEND_BACK = "SEND_BACK";
+	private final String STAGE_SEND_BACK_UPLOADING_HAS_ACCA = "SEND_BACK_UPLOADING_HAS_ACCA";
+	private final String STAGE_SEND_BACK_UPLOADING = "SEND_BACK_UPLOADING";
 	private final int At_Company = 1;
 	private final int At_House = 2;
 	private final int ALL = 3;
@@ -2080,10 +2083,15 @@ public class CrmService {
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
 
-		if (!crm.getStage().equals(STAGE_SALES_QUEUE))
+		if (!crm.getStatus().equals(STATUS_SEND_BACK))
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message",
-							String.format("data.appId %s not request resubmit queue. current stage %s status %s", appId,
+							String.format("data.appId %s not request resubmit queue and send back. current stage %s status %s", appId,
+									crm.getStage(), crm.getStatus())));
+		if (!crm.getStage().equals(STAGE_LEAD_DETAILS))
+			return utils.getJsonNodeResponse(1, body,
+					mapper.createObjectNode().put("message",
+							String.format("data.appId %s not request resubmit queue and send back. current stage %s status %s", appId,
 									crm.getStage(), crm.getStatus())));
 
 		final String productCode = crm.getProduct().replace(" ", "_").trim().toLowerCase();
