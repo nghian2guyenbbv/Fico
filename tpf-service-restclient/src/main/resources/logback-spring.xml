@@ -14,7 +14,7 @@
 			</pattern>
 		</layout>
 <!--		<host>192.168.0.203</host>-->
-		<host>10.131.23.30</host>
+		<host>10.131.31.202</host>
 		<springProfile name="dev"><host>tpf-opensource-rabbitmq</host></springProfile>
 		<springProfile name="uat"><host>tpf-opensource-rabbitmq</host></springProfile>
 		<springProfile name="pro"><host>tpf-opensource-rabbitmq</host></springProfile>

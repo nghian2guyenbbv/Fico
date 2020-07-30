@@ -8,11 +8,13 @@ import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
+import vn.com.tpf.microservices.models.AutoField.ExistingCustomerDTO;
+import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -57,6 +59,7 @@ public class AutomationService {
 			LoginDTO.builder().userName("anhdlh").password("Tpf@1234").build()
 	);
 	final static Queue<LoginDTO> loginDTOQueue = new LinkedBlockingQueue<>(accounts);
+
 
 //	final static List<LoginDTO> momoAccounts= Arrays.asList(
 //			LoginDTO.builder().userName("momo_auto5").password("Hcm@12345").build(),
@@ -331,9 +334,15 @@ public class AutomationService {
 
 	private void runAutomationDE_ResponseQuery(DEResponseQueryDTO deResponseQueryDTOList) throws Exception {
 		String browser = "chrome";
+		String projectJson = deResponseQueryDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
+		AutomationThreadService automationThreadService = null;
+		if("smartnet".equals(projectJson)) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
+		}else if("mobility".equals(projectJson)) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
+		}
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -359,9 +368,15 @@ public class AutomationService {
 
 	private void runAutomationDE_SaleQueue(DESaleQueueDTO deSaleQueueDTOList) throws Exception {
 		String browser = "chrome";
+		String projectJson = deSaleQueueDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
+		AutomationThreadService automationThreadService = null;
+		if(projectJson.equals("smartnet")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
+		}else if(projectJson.equals("mobility")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","MOBILITY_FIELD");
+		}
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -400,4 +415,106 @@ public class AutomationService {
 	}
 
 	//------------------------ END - SMARTNET - FUNCTION -------------------------------------
+
+
+	//------------------------ MOBILITY - FUNCTION -----------------------------------------
+
+	//------------------------ QUICKLEAD  -------------------------------------
+	public Map<String, Object> MOBILITY_quickLeadApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				MOBILITY_runAutomation_QL(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application.getQuickLead());
+	}
+
+	private void MOBILITY_runAutomation_QL(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"MOBILITY_quickLead","MOBILITY_FIELD");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+
+		//awaitTerminationAfterShutdown(workerThreadPool);
+	}
+	//------------------------ END - QUICKLEAD  -------------------------------------
+
+	//------------------------ WAIVE_FIELD  --------------------------------------
+	public Map<String, Object> Waive_Field(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		RequestAutomationDTO requestWaiveField = mapper.convertValue(request.path("body"), new TypeReference<RequestAutomationDTO>(){});
+		List<WaiveFieldDTO> waiveFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveFieldDTO>>(){});
+		requestWaiveField.setReference_id(reference_id);
+		requestWaiveField.setWaiveFieldDTO(waiveFieldDTOList);
+
+		new Thread(() -> {
+			try {
+				runAutomation_Waive_Field(requestWaiveField);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, requestWaiveField);
+	}
+
+	private void runAutomation_Waive_Field(RequestAutomationDTO waiveFieldDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY_FIELD");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+
+	//------------------------ END - WAIVE_FIELD  ----------------------------------
+
+	//------------------------ SUBMIT_FIELD  -------------------------------------
+	public Map<String, Object> Submit_Field(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		String reference_id = request.path("reference_id").asText();
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		RequestAutomationDTO requestSubmitField = mapper.convertValue(request.path("body"), new TypeReference<RequestAutomationDTO>(){});
+		List<SubmitFieldDTO> submitFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<SubmitFieldDTO>>(){});
+		requestSubmitField.setReference_id(reference_id);
+		requestSubmitField.setSubmitFieldDTO(submitFieldDTOList);
+
+		new Thread(() -> {
+			try {
+				runAutomation_Submit_Field(requestSubmitField);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, requestSubmitField);
+	}
+
+	private void runAutomation_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Submit_Field(submitFieldDTOList);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY_FIELD");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+
+	//------------------------ END - SUBMIT_FIELD  -------------------------------
+
+	//------------------------ END - MOBILITY - FUNCTION -----------------------------------------
 }

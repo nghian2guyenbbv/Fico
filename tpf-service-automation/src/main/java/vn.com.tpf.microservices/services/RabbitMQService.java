@@ -143,6 +143,9 @@ public class RabbitMQService {
 				if(project.equals("smartnet")) {
 					return response(message, payload, automationService.SN_quickLeadApp(request));
 				}
+				else if (project.equals("mobility")){
+					return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
+				}
 				else
 				{
 					return response(message, payload, automationService.quickLeadApp(request));
@@ -166,6 +169,10 @@ public class RabbitMQService {
 				return response(message, payload, automationService.DE_ResponseQuery(request));
 			case "deSaleQueue":
 				return response(message, payload, automationService.DE_SaleQueue(request));
+			case "waiveField":
+				return response(message, payload, automationService.Waive_Field(request));
+			case "submitField":
+				return response(message, payload, automationService.Submit_Field(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

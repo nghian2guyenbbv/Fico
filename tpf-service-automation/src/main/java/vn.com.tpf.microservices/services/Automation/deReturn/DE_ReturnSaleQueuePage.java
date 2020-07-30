@@ -73,7 +73,7 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
@@ -158,7 +158,7 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicationManagerForm1')]//input[@type='button']")
     private WebElement searchApplicationElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr//td")
     private List<WebElement> tdApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr//td[6]")
@@ -213,17 +213,20 @@ public class DE_ReturnSaleQueuePage {
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Manager"));
 
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("applicationManagerFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
         applicationNumberElement.sendKeys(deSaleQueueDTO.getAppId());
         searchApplicationElement.click();
 
         await("Application Number Not Found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdApplicationElement.size() > 0);
+                .until(() -> tdApplicationElement.size() > 2);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
+
+        await("Stage SALES_QUEUE wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> "SALES_QUEUE".equals(tdCheckStageApplicationElement.getText()));
 
         if (!"SALES_QUEUE".equals(tdCheckStageApplicationElement.getText())){
             return;
@@ -249,6 +252,7 @@ public class DE_ReturnSaleQueuePage {
 
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserOptionElement.size() > 0);
+
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
                 e.click();
@@ -300,7 +304,7 @@ public class DE_ReturnSaleQueuePage {
         }
 
         await("documentTableElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentTableElement.size() > 0);
+                .until(() -> documentTableElement.size() > 2);
 
         System.out.println("LOAD TABLE DOCUMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
