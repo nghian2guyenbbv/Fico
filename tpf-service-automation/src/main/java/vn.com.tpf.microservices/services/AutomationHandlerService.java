@@ -5998,6 +5998,8 @@ public class AutomationHandlerService {
 
             // ========== APPLICANT INFORMATION =================
             // ========== PERSONAL INFORMATION =================
+            CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
+            crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
             stage = "PERSONAL INFORMATION";
             CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
             CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
