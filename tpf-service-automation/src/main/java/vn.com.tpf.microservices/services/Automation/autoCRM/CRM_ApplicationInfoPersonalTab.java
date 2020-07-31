@@ -340,7 +340,7 @@ public class CRM_ApplicationInfoPersonalTab {
         _driver = driver;
     }
 
-    public void setValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws IOException {
+    public void setValue1(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws IOException {
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -421,7 +421,7 @@ public class CRM_ApplicationInfoPersonalTab {
         saveAndNext();
     }
 
-    public void updateValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
+    public void setValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
 
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -479,6 +479,124 @@ public class CRM_ApplicationInfoPersonalTab {
                     new Select(country).selectByVisibleText("Vietnam");
                 }
             }
+
+            await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> btnAddIdentElement.isEnabled());
+            btnAddIdentElement.click();
+//            setIdentificationValue(applicationInfoDTO.getIdentification());
+            updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
+        }
+        //end update identification
+
+        //update address: ko xoa dc do anh huong cac employment detail nen chi edit
+        loadAddressSection();
+        await("Load addressGridElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> addressGridElement.isDisplayed());
+
+        //click edit
+        updateAddressValue(applicationInfoDTO.getAddress());
+        loadAddressSection();
+
+        if (applicationInfoDTO.getFamily().size() > 0) {
+            loadFamilySection();
+            await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> familyDivElement.isDisplayed());
+            updateFamilyValue(applicationInfoDTO.getFamily());
+        }
+
+        loadCommunicationSection();
+        await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> communicationDetailDivElement.isDisplayed());
+        selectPrimaryAddress(applicationInfoDTO.getCommunicationDetail().getPrimaryAddress());//default la Current Address
+        await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> primaryEmailElement.isDisplayed());
+
+        //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null) {
+            cusMobileElements.clear();
+            cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
+        }
+
+        loadCommunicationSection(); // close section after complete input
+
+        await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnCheckDuplicateElement.isEnabled());
+
+        btnCheckDuplicateElement.click();
+
+        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
+                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
+
+        saveAndNext();
+    }
+
+    public void updateValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
+
+        this.genderSelectElement.click();
+        await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> genderSelectOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getGender(), genderSelectOptionElement);
+
+        this.firstNameElement.clear();
+        this.firstNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getFirstName());
+        this.middleNameElement.clear();
+        this.middleNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getMiddleName());
+        this.lastNameElement.clear();
+        this.lastNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getLastName());
+        this.dateOfBirthdaElement.clear();
+        this.dateOfBirthdaElement.sendKeys(applicationInfoDTO.getPersonalInfo().getDateOfBirth());
+//        this.placeOfBirthElement.clear();
+//        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().stream().filter(x->x.getIdentificationType().equals("Current National ID")).findAny().get().getPlaceOfIssue());
+
+        this.maritalStatusElement.click();
+        await("maritalStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> maritalStatusOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getMaritalStatus(), maritalStatusOptionElement);
+
+        this.nationalElement.click();
+        await("nationalOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> nationalOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getNationality(), nationalOptionElement);
+
+
+        if (applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode() != null) {
+            this.educationElement.click();
+            await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> educationOptionElement.size() > 0);
+            Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode(), educationOptionElement);
+        }
+
+        //Update Identification
+        loadIdentificationSection();
+        await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> identificationDivElement.isDisplayed());
+
+        await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> deleteIdDetailElement.size() > 0);
+
+        if (applicationInfoDTO.getIdentification().size() > 0){
+            List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
+            if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals("Current National ID")){
+                for (int i=0; i<documentType.size()-1; i++) {
+                    Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
+                    String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
+                    WebElement deleteDetailsId = _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]"));
+                    if (optionIdentificationTypeLabel.equals("Other National ID")){
+                        deleteDetailsId.click();
+                    }
+                    if (optionIdentificationTypeLabel.equals("Current National ID")){
+                        WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                        new Select(type).selectByVisibleText("Other National ID");
+                    }
+                }
+            }
+
+            List<WebElement> countryOfIssue = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_country')]"));
+            for(int i=0; i<countryOfIssue.size()-1; i++){
+                WebElement country = countryOfIssue.get(i);
+                new Select(country).selectByVisibleText("Vietnam");
+            }
+
 
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnAddIdentElement.isEnabled());
