@@ -164,7 +164,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
 
-        if(editOccupationTypeElements.size()>1){
+        if(editOccupationTypeElements.size()>0){
             editOccupationTypeElements.get(0).click();
         }
 
@@ -212,14 +212,17 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 //        if(!data.getIsMajorEmployment().isEmpty()&&!data.getIsMajorEmployment().equals("Others")) {
             if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0) {
                 Utilities.captureScreenShot(_driver);
+                boolean isChecked = _driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).isSelected();
                 WebElement webElement=_driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input"));
                 webElement.click();
 
                 Utilities.captureScreenShot(_driver);
-                await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> modalMajorChangeElement.isDisplayed());
-                Utilities.captureScreenShot(_driver);
-                btnMajorChangeElement.get(0).click();
+                if (!isChecked) {
+                    await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> modalMajorChangeElement.isDisplayed());
+                    Utilities.captureScreenShot(_driver);
+                    btnMajorChangeElement.get(0).click();
+                }
 
                 Utilities.captureScreenShot(_driver);
             }

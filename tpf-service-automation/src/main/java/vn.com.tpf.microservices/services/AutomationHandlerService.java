@@ -5713,7 +5713,7 @@ public class AutomationHandlerService {
             await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
 
-            personalTab.updateValue(applicationInfoDTO);
+            personalTab.setValue(applicationInfoDTO);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
