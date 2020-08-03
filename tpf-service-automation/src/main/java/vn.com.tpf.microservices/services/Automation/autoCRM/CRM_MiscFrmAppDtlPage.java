@@ -168,7 +168,7 @@ public class CRM_MiscFrmAppDtlPage {
         }
 
 
-
+        numberOfDependentsElement.clear();
         numberOfDependentsElement.sendKeys(data.getNumberOfDependents());
 
         houseOwnerShipElement.click();
@@ -176,6 +176,7 @@ public class CRM_MiscFrmAppDtlPage {
                 .until(() -> houseOwnerShipOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getHouseOwnership(), houseOwnerShipOptionElement);
         Utilities.captureScreenShot(_driver);
+        mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
         //update them contractNumber
@@ -186,13 +187,18 @@ public class CRM_MiscFrmAppDtlPage {
         //
 
 //        remarkElement.sendKeys(data.getRemark());
+        newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 
+        courierCodeElement.clear();
         courierCodeElement.sendKeys(data.getCourierCode());
 
 //        zaloElement.sendKeys(data.getZalo());
 
+        salesAgentCodeElement.clear();
         salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
+
+        maxRequestRateElement.clear();
         maxRequestRateElement.sendKeys(data.getMaximumInterestedRate());
 //        totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
         Utilities.captureScreenShot(_driver);
