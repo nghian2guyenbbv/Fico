@@ -268,6 +268,18 @@ public class RepaymentService {
 
 					ficoTransPayDAO.save(ficoTransPay);
 
+
+					//check thời gian EOD
+					SimpleDateFormat parser = new SimpleDateFormat("HH:mm");
+					Date ninePM = parser.parse("21:00");
+					Date fourAM = parser.parse("04:00");
+
+//					if(LocalDateTime.now().isBefore(ninePM))
+//					{
+//
+//					}
+
+
 					//CALL API LMS
 					new Thread(() -> {
 						String errorMessage="";
