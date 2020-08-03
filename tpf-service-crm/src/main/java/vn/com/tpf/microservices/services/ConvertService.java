@@ -391,7 +391,7 @@ public class ConvertService {
 			for (JsonNode data : lastReturnQueueDatas) {
 				ObjectNode dataDocument = mapper.createObjectNode();
 				dataDocument.put("type", data.path("type").asText());
-				dataDocument.put("fileName", data.path("filename").asText());
+				dataDocument.put("filename", data.path("filename").asText());
 				dataDocument.put("originalname", data.path("originalname").asText());
 				documents.add(dataDocument);
 			}
