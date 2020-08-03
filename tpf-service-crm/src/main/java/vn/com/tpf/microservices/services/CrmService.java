@@ -504,15 +504,15 @@ public class CrmService {
 		if (data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.saleAgentCodeLoanDetails not blank"));
-		if (data.path("fullInfoApp").path("vapProduct").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.vapProduct not blank"));
-		if (data.path("fullInfoApp").path("vapTreatment").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.vapTreatment not blank"));
-		if (data.path("fullInfoApp").path("insuranceCompany").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.insuranceCompany not blank"));
+//		if (data.path("fullInfoApp").path("vapProduct").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.vapProduct not blank"));
+//		if (data.path("fullInfoApp").path("vapTreatment").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.vapTreatment not blank"));
+//		if (data.path("fullInfoApp").path("insuranceCompany").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.insuranceCompany not blank"));
 		if (data.path("fullInfoApp").path("loanPurpose").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.loanPurpose not blank"));
@@ -2032,15 +2032,15 @@ public class CrmService {
 		if (data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.saleAgentCodeLoanDetails not blank"));
-		if (data.path("fullInfoApp").path("vapProduct").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.vapProduct not blank"));
-		if (data.path("fullInfoApp").path("vapTreatment").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.vapTreatment not blank"));
-		if (data.path("fullInfoApp").path("insuranceCompany").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.insuranceCompany not blank"));
+//		if (data.path("fullInfoApp").path("vapProduct").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.vapProduct not blank"));
+//		if (data.path("fullInfoApp").path("vapTreatment").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.vapTreatment not blank"));
+//		if (data.path("fullInfoApp").path("insuranceCompany").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.insuranceCompany not blank"));
 		if (data.path("fullInfoApp").path("loanPurpose").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.loanPurpose not blank"));
