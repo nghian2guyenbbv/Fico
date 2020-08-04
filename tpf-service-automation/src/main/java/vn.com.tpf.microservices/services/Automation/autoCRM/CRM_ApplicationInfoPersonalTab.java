@@ -940,17 +940,20 @@ public class CRM_ApplicationInfoPersonalTab {
                 actions.moveToElement(pinCodeValueElement).click().build().perform();
 
                 actions.moveToElement(areaElement).click().build().perform();
-                await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> areaOptionElement.size() > 1);
                 areaInputElement.sendKeys(data.getArea().toUpperCase());
                 areaInputElement.sendKeys(Keys.ENTER);
 
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
+                System.out.println("address 1");
                 address2Element.clear();
                 address2Element.sendKeys(data.getHouse());
+                System.out.println("address 2");
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
+                System.out.println("address 3");
 
 
                 if(data.getAddressLandmark() != null) {
@@ -994,7 +997,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 }
 
                 actions.moveToElement(textCountryElement).click().build().perform();
-                await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> textCountryOptionElement.size() > 1);
                 for (WebElement element : textCountryOptionElement) {
                     if (element.getText().equals(data.getCountry())) {
@@ -1034,13 +1037,15 @@ public class CRM_ApplicationInfoPersonalTab {
                 areaInputElement.sendKeys(data.getArea().toUpperCase());
                 areaInputElement.sendKeys(Keys.ENTER);
 
-
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
+                System.out.println("address 1");
                 address2Element.clear();
                 address2Element.sendKeys(data.getHouse());
+                System.out.println("address 2");
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
+                System.out.println("address 3");
 
                 if(data.getAddressLandmark() != null) {
                     //update them landmard
