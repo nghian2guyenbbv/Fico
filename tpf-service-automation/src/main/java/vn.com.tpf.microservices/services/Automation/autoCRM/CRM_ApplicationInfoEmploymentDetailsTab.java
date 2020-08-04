@@ -162,7 +162,8 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
     public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException {
 
-        List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+//        List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+        List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
 
         if(editOccupationTypeElements.size()>0){
             editOccupationTypeElements.get(0).click();
