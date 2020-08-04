@@ -947,13 +947,13 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
-                System.out.println("address 1");
+                System.out.println("Address Building");
                 address2Element.clear();
                 address2Element.sendKeys(data.getHouse());
-                System.out.println("address 2");
+                System.out.println("Address House");
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
-                System.out.println("address 3");
+                System.out.println("Address Ward");
 
 
                 if(data.getAddressLandmark() != null) {
@@ -1039,13 +1039,13 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 address1Element.clear();
                 address1Element.sendKeys(data.getBuilding());
-                System.out.println("address 1");
+                System.out.println("Address Building");
                 address2Element.clear();
                 address2Element.sendKeys(data.getHouse());
-                System.out.println("address 2");
+                System.out.println("Address House");
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
-                System.out.println("address 3");
+                System.out.println("Address Ward");
 
                 if(data.getAddressLandmark() != null) {
                     //update them landmard
