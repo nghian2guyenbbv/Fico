@@ -60,6 +60,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -105,6 +106,9 @@ public class RepaymentService {
 
 	@Value("${spring.hostRequest.url}")
 	private String urlAPI;
+
+	@Autowired
+	private FicoTransPayQueueDAO ficoTransPayQueueDAO;
 
 	@SuppressWarnings("unchecked")
 
@@ -270,96 +274,105 @@ public class RepaymentService {
 
 
 					//check thời gian EOD
-					SimpleDateFormat parser = new SimpleDateFormat("HH:mm");
-					Date ninePM = parser.parse("21:00");
-					Date fourAM = parser.parse("04:00");
+					LocalTime now = LocalTime.now();
+					LocalTime ninePM = LocalTime.parse("14:30");
+					LocalTime fourAM = LocalTime.parse("04:00");
 
-//					if(LocalDateTime.now().isBefore(ninePM))
-//					{
-//
-//					}
+					if(now.isBefore(ninePM)&&now.isAfter(fourAM))
+					{
+						//CALL API LMS
+						new Thread(() -> {
+							String errorMessage="";
 
-
-					//CALL API LMS
-					new Thread(() -> {
-						String errorMessage="";
-
-						FicoRepaymentModel ficoRepaymentModel = new FicoRepaymentModel();
-						ReceiptProcessingMO ficoReceiptPayment = new ReceiptProcessingMO();
-						SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
-						if (!requestModel.getData().getTransaction_id().isEmpty()){
-							ficoReceiptPayment.setInstrumentReferenceNumber(requestModel.getData().getTransaction_id());
-						}
-						if (requestModel.getData().getTransaction_id().startsWith("PY")){
-							ficoReceiptPayment.setSourceAccountNumber("45992855603");
-							ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
-						} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
-							ficoReceiptPayment.setSourceAccountNumber("45992855306");
-							ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
-						}
-						ReqHeader requestHeader = new ReqHeader();
-						requestHeader.setTenantId(505);
-						UserDetail userDetail = new UserDetail();
-						userDetail.setBranchId(5);
-						userDetail.setUserCode("system");
-						requestHeader.setUserDetail(userDetail);
-						ficoReceiptPayment.setRequestHeader(requestHeader);
-						ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
-						ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
-						ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
-						ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
-						ficoReceiptPayment.setTransactionCurrencyCode("VND");
-						ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(new Date(timestamp.getTime())));
-						ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(new Date(timestamp.getTime())));
-						ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
-						ficoReceiptPayment.setAutoAllocation("Y");
-						ficoReceiptPayment.setReceiptNo("");
-						ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
-						ficoReceiptPayment.setDepositDate(simpleDateFormat.format(new Date(timestamp.getTime())));
-						ficoReceiptPayment.setDepositBankAccountNumber("519200003");
-						ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(new Date(timestamp.getTime())));
-						ficoReceiptPayment.setReceiptTransactionStatus("C");
-						ficoReceiptPayment.setProcessTillMaker(false);
-						ficoReceiptPayment.setRequestChannel("RECEIPT");
-						ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
-
-
-						String urlReceiptLMS = urlAPI;
-						URI uri = null;
-						String response="";
-						try {
-							uri = new URI(urlAPI);
-
-
-						RestTemplate restTemplate = new RestTemplate();
-						MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-						headers.add("clientId", "1");
-						headers.add("sign", "1");
-						headers.add("Content-Type", "application/json");
-						HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
-						ResponseEntity<String> res = restTemplate.postForEntity(uri, body, String.class);
-
-						response=res.getBody();
-
-						} catch (Exception e) {
-							errorMessage=e.getMessage();
-							e.printStackTrace();
-						}finally {
-							//save report
-							try {
-								log.info("REQ:" + mapper.writeValueAsString(requestModel) +" - RES:" + response);
-
-								saveReportReceiptPaymentLog(ficoRepaymentModel,response,timestamp,errorMessage);
-							} catch (JsonProcessingException e) {
-								log.info(e.toString());
-							} catch (IOException e) {
-								log.info(e.toString());
-							} catch (ParseException e) {
-								log.info(e.toString());
+							FicoRepaymentModel ficoRepaymentModel = new FicoRepaymentModel();
+							ReceiptProcessingMO ficoReceiptPayment = new ReceiptProcessingMO();
+							SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+							if (!requestModel.getData().getTransaction_id().isEmpty()){
+								ficoReceiptPayment.setInstrumentReferenceNumber(requestModel.getData().getTransaction_id());
 							}
-						}
-					}).start();
-					//END CALL
+							if (requestModel.getData().getTransaction_id().startsWith("PY")){
+								ficoReceiptPayment.setSourceAccountNumber("45992855603");
+								ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
+							} else if (requestModel.getData().getTransaction_id().startsWith("MO")) {
+								ficoReceiptPayment.setSourceAccountNumber("45992855306");
+								ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
+							}
+							ReqHeader requestHeader = new ReqHeader();
+							requestHeader.setTenantId(505);
+							UserDetail userDetail = new UserDetail();
+							userDetail.setBranchId(5);
+							userDetail.setUserCode("system");
+							requestHeader.setUserDetail(userDetail);
+							ficoReceiptPayment.setRequestHeader(requestHeader);
+							ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
+							ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
+							ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
+							ficoReceiptPayment.setLoanAccountNo(requestModel.getData().getLoan_account_no());
+							ficoReceiptPayment.setTransactionCurrencyCode("VND");
+							ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+							ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+							ficoReceiptPayment.setReceiptOrPayoutAmount(requestModel.getData().getAmount());
+							ficoReceiptPayment.setAutoAllocation("Y");
+							ficoReceiptPayment.setReceiptNo("");
+							ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
+							ficoReceiptPayment.setDepositDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+							ficoReceiptPayment.setDepositBankAccountNumber("519200003");
+							ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(new Date(timestamp.getTime())));
+							ficoReceiptPayment.setReceiptTransactionStatus("C");
+							ficoReceiptPayment.setProcessTillMaker(false);
+							ficoReceiptPayment.setRequestChannel("RECEIPT");
+							ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
+
+
+							String urlReceiptLMS = urlAPI;
+							URI uri = null;
+							String response="";
+							try {
+								uri = new URI(urlAPI);
+
+
+								RestTemplate restTemplate = new RestTemplate();
+								MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+								headers.add("clientId", "1");
+								headers.add("sign", "1");
+								headers.add("Content-Type", "application/json");
+								HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
+								ResponseEntity<String> res = restTemplate.postForEntity(uri, body, String.class);
+
+								response=res.getBody();
+
+							} catch (Exception e) {
+								errorMessage=e.getMessage();
+								e.printStackTrace();
+							}finally {
+								//save report
+								try {
+									log.info("REQ:" + mapper.writeValueAsString(requestModel) +" - RES:" + response);
+
+									saveReportReceiptPaymentLog(ficoRepaymentModel,response,timestamp,errorMessage);
+								} catch (JsonProcessingException e) {
+									log.info(e.toString());
+								} catch (IOException e) {
+									log.info(e.toString());
+								} catch (ParseException e) {
+									log.info(e.toString());
+								}
+							}
+						}).start();
+						//END CALL
+					}
+					{//ghi table queue: status=0; chua upload, 1: upload
+						ficoTransPayQueueDAO.save(FicoTransPayQueue.builder()
+												.amount(ficoTransPay.getAmount())
+												.loanId(ficoTransPay.getLoanId())
+												.loanAccountNo(ficoTransPay.getLoanAccountNo())
+												.identificationNumber(ficoTransPay.getIdentificationNumber())
+												.transactionId(ficoTransPay.getTransactionId())
+												.createDate(timestamp)
+												.status(0)
+												.build());
+					}
+
 
 					responseModel.setRequest_id(requestModel.getRequest_id());
 					responseModel.setReference_id(UUID.randomUUID().toString());
@@ -942,171 +955,192 @@ public class RepaymentService {
 
 
 	//----------------------- START CRON --------------------------
-//	@Value("${spring.ftp.server}")
-//	private String ftpServer;
-//	@Value("${spring.ftp.port}")
-//	private int ftpPort;
-//	@Value("${spring.ftp.username}")
-//	private String ftpUser;
-//	@Value("${spring.ftp.password}")
-//	private String ftpPass;
-//
-//
-//	@Autowired
-//	private FicoCronLogDAO ficoCronLogDAO;
-//
-//	private boolean connectFTP(FTPClient ftpClient) {
-//		boolean success = false;
-//
-//		try {
-//			ftpClient.connect(ftpServer,ftpPort);
-//			showServerReply(ftpClient);
-//			int replyCode = ftpClient.getReplyCode();
-//			if (!FTPReply.isPositiveCompletion(replyCode)) {
-//				System.out.println("Operation failed. Server reply code: " + replyCode);
-//				return success;
-//			}
-//			success = ftpClient.login(ftpUser, ftpPass);
-//			showServerReply(ftpClient);
-//		} catch (IOException ex) {
-//			System.out.println("Oops! Something wrong happened");
-//			ex.printStackTrace();
-//		}
-//		return success;
-//	}
-//
-//	@Scheduled(cron = "${spring.ftp.cronconfig}")
-//	public Map<String, Object> getCron() throws IOException, MessagingException {
-//		ResponseModel responseModel = new ResponseModel();
-//
-//		FTPClient ftpClient = new FTPClient();
-//		boolean success = connectFTP(ftpClient);
-//		if (!success) {
-//			System.out.println("Could not login to the server");
-//		} else {
-//			System.out.println("LOGGED IN SERVER");
-////			String[] filesFTP = ftpClient.listNames();
-////			for (String file : filesFTP) {
-////				System.out.println("File:  " +  file);
-////			}
-//
-////			Arrays.sort(ftpClient.listFiles(),
-////					Comparator.comparing((FTPFile remoteFile) -> remoteFile.getTimestamp()).reversed());
-//
-//			FTPFile[] ftpFiles = ftpClient.listFiles();
-//			if (ftpFiles.length > 0) {
-//				FTPFile file = lastFileModified(ftpFiles);
-//
-//				//check file ton tai hay chua
-//				List<FicoCronLogModel> ficoCronLogModelList = ficoCronLogDAO.findByFileName(file.getName());
-//
-//				if (ficoCronLogModelList.size() > 0) {
-//					System.out.println("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
-//
-//					responseModel.setRequest_id(UUID.randomUUID().toString());
-//					responseModel.setMessage("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
-//					responseModel.setReference_id(UUID.randomUUID().toString());
-//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//					responseModel.setResult_code(0);
-//
-//					return Map.of("status", 200, "data", responseModel);
-//				}
-//
-//				//ghi log
-//				FicoCronLogModel ficoCronLogModel = FicoCronLogModel.builder()
-//							.fileName(file.getName())
-//							.createdDate(new Date())
-//							.fileCreatedDate(file.getTimestamp().getTime())
-//							.build();
-//				ficoCronLogDAO.save(ficoCronLogModel);
-//
-//				//call proc sync
-//
-//				//send mail
-//				sendMail();
-//
-//				//return
-//				responseModel.setRequest_id(UUID.randomUUID().toString());
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setMessage("File:  " + file.getName() + " complete at " + file.getTimestamp().getTime());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code(0);
-//
-//				return Map.of("status", 200, "data", responseModel);
-//			}
-//		}
-//		responseModel.setRequest_id(UUID.randomUUID().toString());
-//		responseModel.setReference_id(UUID.randomUUID().toString());
-//		responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//		responseModel.setResult_code(0);
-//
-//		System.out.println("job : " + new Date());
-//		return Map.of("status", 200, "data", responseModel);
-//
-//	}
-//
-//	public static FTPFile lastFileModified(FTPFile[] files) {
-//		Date lastMod = files[0].getTimestamp().getTime();
-//		FTPFile choice = files[0];
-//		for (FTPFile file : files) {
-//			if (file.getTimestamp().getTime().after(lastMod)) {
-//				choice = file;
-//				lastMod = file.getTimestamp().getTime();
-//			}
-//		}
-//		return choice;
-//	}
-//
-//	private void sendMail() throws MessagingException {
-//
-//		Properties prop = new Properties();
-//		prop.put("mail.smtp.auth", true);
-//		prop.put("mail.smtp.starttls.enable", "true");
-//		prop.put("mail.smtp.host", "smtp.mailtrap.io");
-//		prop.put("mail.smtp.port", "25");
-//		prop.put("mail.smtp.ssl.trust", "smtp.mailtrap.io");
-//
-//
-//		javax.mail.Session session = javax.mail.Session.getInstance(prop, new Authenticator() {
-//			@Override
-//			protected PasswordAuthentication getPasswordAuthentication() {
-//				return new PasswordAuthentication("265d55fad40447", "2e3ac0f543683e");
-//			}
-//		});
-//
-//		Message message = new MimeMessage(session);
-//		message.setFrom(new InternetAddress("hiepln512@gmail.com"));
-//		message.setRecipients(
-//				Message.RecipientType.TO, InternetAddress.parse("nghiahiep512@gmail.com"));
-//		message.setSubject("Mail Subject");
-//
-//		String msg = "This is my first email using JavaMailer";
-//
-//		MimeBodyPart mimeBodyPart = new MimeBodyPart();
-//		mimeBodyPart.setContent(msg, "text/html");
-//
-//		Multipart multipart = new MimeMultipart();
-//		multipart.addBodyPart(mimeBodyPart);
-//
-//		message.setContent(multipart);
-//
-//		Transport.send(message);
-//	}
-//
-//	private void showServerReply(FTPClient ftpClient) {
-//		String[] replies = ftpClient.getReplyStrings();
-//		if (replies != null && replies.length > 0) {
-//			for (String aReply : replies) {
-//				System.out.println("SERVER: " + aReply);
-//			}
-//		}
-//	}
 
+	@Value("${spring.ftp.server}")
+	private String ftpServer;
+	@Value("${spring.ftp.port}")
+	private int ftpPort;
+	@Value("${spring.ftp.username}")
+	private String ftpUser;
+	@Value("${spring.ftp.password}")
+	private String ftpPass;
+
+
+	@Autowired
+	private FicoCronLogDAO ficoCronLogDAO;
+
+	private boolean connectFTP(FTPClient ftpClient) {
+		boolean success = false;
+
+		try {
+			ftpClient.connect(ftpServer,ftpPort);
+			showServerReply(ftpClient);
+			int replyCode = ftpClient.getReplyCode();
+			if (!FTPReply.isPositiveCompletion(replyCode)) {
+				System.out.println("Operation failed. Server reply code: " + replyCode);
+				return success;
+			}
+			success = ftpClient.login(ftpUser, ftpPass);
+			showServerReply(ftpClient);
+		} catch (IOException ex) {
+			System.out.println("Oops! Something wrong happened");
+			ex.printStackTrace();
+		}
+		return success;
+	}
+
+	@Scheduled(cron = "${spring.ftp.cronconfig}")
+	public Map<String, Object> getCron() throws IOException, MessagingException {
+		ResponseModel responseModel = new ResponseModel();
+
+		FTPClient ftpClient = new FTPClient();
+		boolean success = connectFTP(ftpClient);
+		if (!success) {
+			System.out.println("Could not login to the server");
+		} else {
+			System.out.println("LOGGED IN SERVER");
+//			String[] filesFTP = ftpClient.listNames();
+//			for (String file : filesFTP) {
+//				System.out.println("File:  " +  file);
+//			}
+
+//			Arrays.sort(ftpClient.listFiles(),
+//					Comparator.comparing((FTPFile remoteFile) -> remoteFile.getTimestamp()).reversed());
+
+			FTPFile[] ftpFiles = ftpClient.listFiles();
+			if (ftpFiles.length > 0) {
+				FTPFile file = lastFileModified(ftpFiles);
+
+				//check file ton tai hay chua
+				List<FicoCronLogModel> ficoCronLogModelList = ficoCronLogDAO.findByFileName(file.getName());
+
+				if (ficoCronLogModelList.size() > 0) {
+					System.out.println("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+
+					responseModel.setRequest_id(UUID.randomUUID().toString());
+					responseModel.setMessage("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
+
+					return Map.of("status", 200, "data", responseModel);
+				}
+
+				//ghi log
+				FicoCronLogModel ficoCronLogModel = FicoCronLogModel.builder()
+							.fileName(file.getName())
+							.createdDate(new Date())
+							.fileCreatedDate(file.getTimestamp().getTime())
+							.build();
+				ficoCronLogDAO.save(ficoCronLogModel);
+
+				//call proc sync
+
+				//send mail
+				sendMail();
+
+				//return
+				responseModel.setRequest_id(UUID.randomUUID().toString());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setMessage("File:  " + file.getName() + " complete at " + file.getTimestamp().getTime());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(0);
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+		}
+		responseModel.setRequest_id(UUID.randomUUID().toString());
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		responseModel.setDate_time(new Timestamp(new Date().getTime()));
+		responseModel.setResult_code(0);
+
+		System.out.println("job : " + new Date());
+		return Map.of("status", 200, "data", responseModel);
+
+	}
+
+	public static FTPFile lastFileModified(FTPFile[] files) {
+		Date lastMod = files[0].getTimestamp().getTime();
+		FTPFile choice = files[0];
+		for (FTPFile file : files) {
+			if (file.getTimestamp().getTime().after(lastMod)) {
+				choice = file;
+				lastMod = file.getTimestamp().getTime();
+			}
+		}
+		return choice;
+	}
+
+	private void sendMail() throws MessagingException {
+
+		Properties prop = new Properties();
+		prop.put("mail.smtp.auth", true);
+		prop.put("mail.smtp.starttls.enable", "true");
+		prop.put("mail.smtp.host", "smtp.mailtrap.io");
+		prop.put("mail.smtp.port", "25");
+		prop.put("mail.smtp.ssl.trust", "smtp.mailtrap.io");
+
+
+		javax.mail.Session session = javax.mail.Session.getInstance(prop, new Authenticator() {
+			@Override
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication("265d55fad40447", "2e3ac0f543683e");
+			}
+		});
+
+		Message message = new MimeMessage(session);
+		message.setFrom(new InternetAddress("hiepln512@gmail.com"));
+		message.setRecipients(
+				Message.RecipientType.TO, InternetAddress.parse("nghiahiep512@gmail.com"));
+		message.setSubject("Mail Subject");
+
+		String msg = "This is my first email using JavaMailer";
+
+		MimeBodyPart mimeBodyPart = new MimeBodyPart();
+		mimeBodyPart.setContent(msg, "text/html");
+
+		Multipart multipart = new MimeMultipart();
+		multipart.addBodyPart(mimeBodyPart);
+
+		message.setContent(multipart);
+
+		Transport.send(message);
+	}
+
+	private void showServerReply(FTPClient ftpClient) {
+		String[] replies = ftpClient.getReplyStrings();
+		if (replies != null && replies.length > 0) {
+			for (String aReply : replies) {
+				System.out.println("SERVER: " + aReply);
+			}
+		}
+	}
+
+	@Scheduled(cron = "${spring.syncqueue.cronconfig}")
+	public Map<String, Object> syncDataInQueue()
+	{
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getlistqueue");
+			q.setParameter(1, 0);
+			List<FicoTransPayQueue> list=q.getResultList();
+
+			if(list!=null && list.size()>0)
+			{
+				callFin1API(list);
+			}
+
+			return Map.of("status", 200, "data", Map.of("request_id","","reference_id",UUID.randomUUID().toString(),"date_time",date_time,"data",list,"result_code",0));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return Map.of("status", 200, "data", Map.of("request_id","","reference_id",UUID.randomUUID().toString(),"date_time",date_time,"result_code",500,"message",e.getMessage()));
+		}
+	}
 
 	//----------------------- END CRON ----------------------------
 
 	// --------------------- CALL FUNCTION F1 --------------------------
-
 	@Autowired
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplateF1;
 
@@ -1154,6 +1188,104 @@ public class RepaymentService {
 		return resultData;
 	}
 
+	public int updateSyncData(long id){
+
+		SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("id", id));
+		String sql="Update payoo.fico_trans_pay_queue " +
+				"set status=1 " +
+				"where id=:id";
+
+		int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
+
+		return resultData;
+	}
+
 	// --------------------- END ---------------------------------------
 
+	// ---------------------- API FIN1 ---------------------------------
+	public void callFin1API(List<FicoTransPayQueue> ficoTransPayQueueList)
+	{
+		for (FicoTransPayQueue fico: ficoTransPayQueueList) {
+
+			updateSyncData(fico.getId());
+
+			String errorMessage="";
+
+			FicoRepaymentModel ficoRepaymentModel = new FicoRepaymentModel();
+			ReceiptProcessingMO ficoReceiptPayment = new ReceiptProcessingMO();
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			if (!fico.getTransactionId().isEmpty()){
+				ficoReceiptPayment.setInstrumentReferenceNumber(fico.getTransactionId());
+			}
+			if (fico.getTransactionId().startsWith("PY")){
+				ficoReceiptPayment.setSourceAccountNumber("45992855603");
+				ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
+			} else if (fico.getTransactionId().startsWith("MO")) {
+				ficoReceiptPayment.setSourceAccountNumber("45992855306");
+				ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
+			}
+			ReqHeader requestHeader = new ReqHeader();
+			requestHeader.setTenantId(505);
+			UserDetail userDetail = new UserDetail();
+			userDetail.setBranchId(5);
+			userDetail.setUserCode("system");
+			requestHeader.setUserDetail(userDetail);
+			ficoReceiptPayment.setRequestHeader(requestHeader);
+			ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
+			ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
+			ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
+			ficoReceiptPayment.setLoanAccountNo(fico.getLoanAccountNo());
+			ficoReceiptPayment.setTransactionCurrencyCode("VND");
+			ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(fico.getCreateDate()));
+			ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(fico.getCreateDate()));
+			ficoReceiptPayment.setReceiptOrPayoutAmount(fico.getAmount());
+			ficoReceiptPayment.setAutoAllocation("Y");
+			ficoReceiptPayment.setReceiptNo("");
+			ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
+			ficoReceiptPayment.setDepositDate(simpleDateFormat.format(fico.getCreateDate()));
+			ficoReceiptPayment.setDepositBankAccountNumber("519200003");
+			ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(fico.getCreateDate()));
+			ficoReceiptPayment.setReceiptTransactionStatus("C");
+			ficoReceiptPayment.setProcessTillMaker(false);
+			ficoReceiptPayment.setRequestChannel("RECEIPT");
+			ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
+
+
+			String urlReceiptLMS = urlAPI;
+			URI uri = null;
+			String response="";
+			try {
+				uri = new URI(urlAPI);
+
+
+				RestTemplate restTemplate = new RestTemplate();
+				MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+				headers.add("clientId", "1");
+				headers.add("sign", "1");
+				headers.add("Content-Type", "application/json");
+				HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
+				ResponseEntity<String> res = restTemplate.postForEntity(uri, body, String.class);
+
+				response=res.getBody();
+
+			} catch (Exception e) {
+				errorMessage=e.getMessage();
+				e.printStackTrace();
+			}finally {
+				//save report
+				try {
+					log.info("REQ:" + mapper.writeValueAsString(fico) +" - RES:" + response);
+
+					saveReportReceiptPaymentLog(ficoRepaymentModel,response,fico.getCreateDate(),errorMessage);
+				} catch (JsonProcessingException e) {
+					log.info(e.toString());
+				} catch (IOException e) {
+					log.info(e.toString());
+				} catch (ParseException e) {
+					log.info(e.toString());
+				}
+			}
+		}
+	}
+	// ---------------------- END --------------------------------------
 }
