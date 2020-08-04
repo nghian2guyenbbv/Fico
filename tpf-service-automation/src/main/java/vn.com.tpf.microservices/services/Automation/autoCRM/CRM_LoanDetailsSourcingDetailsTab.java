@@ -157,6 +157,7 @@ public class CRM_LoanDetailsSourcingDetailsTab {
                 .until(() -> channelOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getSourcingChannel().toUpperCase(), channelOptionElement);
 
+        applicationFormNumberElement.clear();
         applicationFormNumberElement.sendKeys(applicationId);
 
         loanApplicationTypeElement.click();
