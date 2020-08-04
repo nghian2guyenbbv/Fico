@@ -5815,12 +5815,11 @@ public class AutomationHandlerService {
                 Utilities.captureScreenShot(driver);
                 loanDetailsVapDetailsTab.getBtnSaveAndNextElement().click();
 
-                System.out.println("LOAN DETAILS - VAP: DONE");
+                System.out.println(stage + ": DONE");
+                Utilities.captureScreenShot(driver);
 
             }
 
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
@@ -6109,12 +6108,11 @@ public class AutomationHandlerService {
                 Utilities.captureScreenShot(driver);
                 loanDetailsVapDetailsTab.getBtnSaveAndNextElement().click();
 
-                System.out.println("LOAN DETAILS - VAP: DONE");
+                System.out.println(stage + ": DONE");
+                Utilities.captureScreenShot(driver);
 
             }
 
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
