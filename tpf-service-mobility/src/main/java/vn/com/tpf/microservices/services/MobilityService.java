@@ -812,7 +812,7 @@ public class MobilityService {
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 		if(3 != mobility.getPartnerId()){
-			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
+			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "commentAppNonWeb", "body",
 					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 		} else {
 		   rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
