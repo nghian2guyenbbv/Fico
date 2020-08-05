@@ -169,6 +169,88 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
 //        index++;
     }
 
+    public void updateIncomeDetailsData(CRM_FinancialDetailsDTO data) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
+
+        await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> deleteIncDetailsElement.size() > 0);
+
+        for (int i=0; i<deleteIncDetailsElement.size(); i++)
+        {
+            WebElement var = deleteIncDetailsElement.get(i);
+            var.click();
+        }
+
+        btnAddMoreIncomeDtlElement.click();
+
+        int indexRow=deleteIncDetailsElement.size();
+        int index = 0;
+//        for (IncomeDetailDTO data : datas) {
+
+            System.out.println(data.getIncomeExpense());
+
+            final int _index = index;
+            int size=trElements.size();
+            await("IncomeDetails Tr container not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> trElements.size() > _index);
+
+            WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chzn"));
+            incomeHead.click();
+            List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + indexRow + "_chzn_o_')]"));
+            for (WebElement element : incomeHeads) {
+                if (element.getText().equals(data.getIncomeExpense())) {
+                    element.click();
+                    break;
+                }
+            }
+
+            WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + indexRow + "_chzn"));
+            frequency.click();
+            List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + indexRow + "_chzn_o_')]"));
+            for (WebElement element : frequencys) {
+                if (element.getText().equals(data.getFrequency())) {
+                    element.click();
+                    break;
+                }
+            }
+            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + indexRow)).clear();
+            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + indexRow)).sendKeys(data.getAmount());
+
+            if(data.getIncomeExpense().equals("Main Personal Income")) {
+                //add income detail
+                _driver.findElement(By.xpath("//*[contains(@id, 'rowIncDetails" + indexRow + "')]//a[contains(@class,'fs-10')]")).click();
+                await("childModalIncomeDetailInlineGridElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> childModalIncomeDetailInlineGridElement.isDisplayed());
+                Actions actions = new Actions(_driver);
+
+                await("incomeDetailForm_incomeSourceElement not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> incomeDetailForm_incomeSourceElement.isEnabled());
+
+                actions.moveToElement(incomeDetailForm_incomeSourceElement).click().build().perform();
+                await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> incomeDetailForm_incomeSourceOptionElement.size() > 1);
+                incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
+                incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
+
+                incomeDetailForm_paymentModeElement.click();
+                await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
+                incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
+                incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
+
+                childModalWindowDoneButtonIncomeDetailInlineGridElement.click();
+                Thread.sleep(3000);
+            }
+
+//            if (index < datas.size() - 1) {
+//                await("Btn Add IncomeDetail not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> btnAddMoreIncomeDtlElement.isEnabled());
+//                btnAddMoreIncomeDtlElement.click();
+//            }
+//            index++;
+//            indexRow++;
+//        }
+    }
+
     public void saveAndNext() {
         this.btnSaveAndNextElement.click();
     }
