@@ -6104,7 +6104,7 @@ public class AutomationHandlerService {
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
-            loanDetailsSourcingDetailsTab.setData(applicationId, loanDetailsDTO.getSourcingDetails());
+            loanDetailsSourcingDetailsTab.updateData(applicationId, loanDetailsDTO.getSourcingDetails());
 
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
