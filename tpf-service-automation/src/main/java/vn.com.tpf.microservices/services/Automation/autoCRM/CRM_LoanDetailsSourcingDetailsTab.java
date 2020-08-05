@@ -233,8 +233,8 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         //sua sang 60s , hay bi timeout cho nay
         await("loanTermElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(loanTermElement.getAttribute("value")));
-        loanTermElement.clear();
-        loanTermElement.sendKeys(data.getRequestedTenure());
+//        loanTermElement.clear();
+//        loanTermElement.sendKeys(data.getRequestedTenure());
         Utilities.captureScreenShot(_driver);
 
         //sua sang 60s , hay bi timeout cho nay
