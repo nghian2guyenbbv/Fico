@@ -86,7 +86,7 @@ public class CRM_FullInfoAppDTO {
     public String loanAtWork;
     public String internalCode;
     public String totalMonthlyPayable;
-    public String remark;
+    public String remarksDynamicForm;
     public String oldContractLoanAmount;
 
     //--Document
