@@ -406,7 +406,7 @@ public class MobilityService {
 			if (uploadResult.path("resultCode").asInt() != 200)
 				return utils.getJsonNodeResponse(499, body,
 						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
-			
+
 			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
 					.equals(document.path("documentMd5").asText().toLowerCase()))
 				return utils.getJsonNodeResponse(499, body,
@@ -430,7 +430,8 @@ public class MobilityService {
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
-				.set("filesUpload", filesUpload);
+				.set("filesUpload", filesUpload)
+				.set("communicationTranscript", data.path("communicationTranscript").asText());
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 

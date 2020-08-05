@@ -178,7 +178,7 @@ public class ConvertService {
 		quickLead.put("comment", Comment);
 		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
 		quickLead.put("leadStatus", LeadStatus);
-		quickLead.put("communicationTranscript", CommunicationTranscript);
+		quickLead.put("communicationTranscript", mobility.getCommunicationTranscript());
 
 		ArrayNode documents = mapper.createArrayNode();
 

@@ -67,6 +67,7 @@ public class Mobility {
 	private Date createdAt;
 	@LastModifiedDate
 	private Date updatedAt;
+	private String communicationTranscript;
 }
 
 
