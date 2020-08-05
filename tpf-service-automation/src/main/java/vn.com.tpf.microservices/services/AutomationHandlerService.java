@@ -5702,13 +5702,18 @@ public class AutomationHandlerService {
             System.out.println("APPID => " + applicationId);
 
             // ========== VIEW/EDIT DETAILED INFORMATION =================
+            stage = "VIEW/EDIT DETAILED INFORMATION";
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
 
             // ========== APPLICANT INFORMATION =================
             // ========== PERSONAL INFORMATION =================
             stage = "PERSONAL INFORMATION";
             CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
             CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
+
+            Utilities.captureScreenShot(driver);
 
             await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
@@ -5997,8 +6002,12 @@ public class AutomationHandlerService {
 
             // ========== APPLICANT INFORMATION =================
             // ========== PERSONAL INFORMATION =================
+            stage = "VIEW/EDIT DETAILED INFORMATION";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
             stage = "PERSONAL INFORMATION";
             CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
             CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
