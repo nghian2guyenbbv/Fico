@@ -204,4 +204,48 @@ public class CRM_LoanDetailsSourcingDetailsTab {
                 .until(() -> salesAgentCodeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getSaleAgentCode(), salesAgentCodeOptionElement);
     }
+
+    public void updateData(String applicationId, CRM_SourcingDetailsDTO data) {
+
+        applicationFormNumberElement.clear();
+        applicationFormNumberElement.sendKeys(applicationId);
+
+        loanApplicationTypeElement.click();
+        await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> loanApplicationTypeOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(data.getLoanApplicationType(), loanApplicationTypeOptionElement);
+
+        schemeElement.click();
+        await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> schemeOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(data.getSchemeCode().toUpperCase(), schemeOptionElement);
+
+        loanAmountElement.clear();
+        Utilities.checkValueSendkey(data.getLoanAmountRequested(),loanAmountElement);
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // default value is 6
+        //sua sang 60s , hay bi timeout cho nay
+        await("loanTermElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> StringUtils.isNotEmpty(loanTermElement.getAttribute("value")));
+        loanTermElement.clear();
+        loanTermElement.sendKeys(data.getRequestedTenure());
+        Utilities.captureScreenShot(_driver);
+
+        //sua sang 60s , hay bi timeout cho nay
+        await("rateElement loading timeout").atMost(60, TimeUnit.SECONDS)
+                .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
+
+        Utilities.captureScreenShot(_driver);
+
+        salesAgentCodeElement.click();
+        await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> salesAgentCodeOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(data.getSaleAgentCode(), salesAgentCodeOptionElement);
+    }
 }
