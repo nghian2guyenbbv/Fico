@@ -186,7 +186,9 @@ public class CRM_MiscFrmAppDtlPage {
 //        monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
 
-//        remarkElement.sendKeys(data.getRemark());
+        remarkElement.clear();
+        remarkElement.sendKeys(data.getRemark());
+
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 

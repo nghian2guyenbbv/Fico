@@ -904,6 +904,7 @@ public class DataInitial {
                 .saleAgentCode(existingCustomerDTOList.getFullInfoApp().getSaleAgentCodeDynamicForm())
                 .courierCode(existingCustomerDTOList.getFullInfoApp().getCourierCode())
                 .maximumInterestedRate(existingCustomerDTOList.getFullInfoApp().getMaximumInterestedRate())
+                .remark(existingCustomerDTOList.getFullInfoApp().getRemarksDynamicForm())
                 .build();
         map.put("MiscFrmAppDtlDTO", dynamicForms);
 
@@ -1084,6 +1085,7 @@ public class DataInitial {
                 .saleAgentCode(saleQueueList.getFullInfoApp().getSaleAgentCodeDynamicForm())
                 .courierCode(saleQueueList.getFullInfoApp().getCourierCode())
                 .maximumInterestedRate(saleQueueList.getFullInfoApp().getMaximumInterestedRate())
+                .remark(saleQueueList.getFullInfoApp().getRemarksDynamicForm())
                 .build();
         map.put("MiscFrmAppDtlDTO", dynamicForms);
 
