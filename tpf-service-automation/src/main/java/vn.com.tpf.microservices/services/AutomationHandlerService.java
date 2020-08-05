@@ -6053,7 +6053,8 @@ public class AutomationHandlerService {
                 financialDetailsTab.openIncomeDetailSection();
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
-                financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
+//                financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
+                financialDetailsTab.updateIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
                 financialDetailsTab.saveAndNext();
             }
 
