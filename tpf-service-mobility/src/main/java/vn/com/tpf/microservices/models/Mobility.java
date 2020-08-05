@@ -63,6 +63,7 @@ public class Mobility {
 	private String userCreatedQueue;
     private Map<String, Object> preChecks;
     private Map<String, Object> returns;
+    private  long partnerId;
 	@CreatedDate
 	private Date createdAt;
 	@LastModifiedDate

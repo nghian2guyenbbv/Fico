@@ -250,7 +250,7 @@ public class ConvertService {
 		return app;
 	}
 
-	public ObjectNode toSendAppNonWebFinnone(Mobility mobility, String partnerId, String requestId) {
+	public ObjectNode toSendAppNonWebFinnone(Mobility mobility, long partnerId, String requestId) {
 
 		ObjectNode app = mapper.createObjectNode();
 		app.put("request_id", requestId);
