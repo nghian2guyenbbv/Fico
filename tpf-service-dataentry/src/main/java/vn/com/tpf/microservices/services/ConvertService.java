@@ -14,15 +14,16 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
-import vn.com.tpf.microservices.models.Application;
+import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.Finnone.*;
+import vn.com.tpf.microservices.models.Finnone.PhoneNumber;
 import vn.com.tpf.microservices.models.Finnone.cas.MoneyType;
-import vn.com.tpf.microservices.models.Identification;
 import vn.com.tpf.microservices.models.leadCreation.AttachmentDetails;
 import vn.com.tpf.microservices.models.leadCreation.CommunicationDetails;
 import vn.com.tpf.microservices.models.leadCreation.Documents;
 import vn.com.tpf.microservices.models.leadCreation.PersonInfo;
 import vn.com.tpf.microservices.models.leadCreation.*;
+import vn.com.tpf.microservices.models.leadCreation.SourcingDetails;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -241,7 +242,11 @@ public class ConvertService {
 
 			/*---------------------------------------------------sourcingDetails---------------------------------------------------- */
 			SourcingDetails sourcingDetails = new SourcingDetails();
-			sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
+			if (application.getPartnerId().equals("3")){
+				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
+			}else{
+				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
+			}
 
 			/*-------------------------dummy-------------------------*/
 			sourcingDetails.setAlternateChannelMode("");
@@ -787,5 +792,33 @@ public class ConvertService {
 				}).collect(Collectors.toList());
 
 		return  updateIdentificationDetailsList;
+	}
+
+	public Application toApplication(JsonNode node){
+		try {
+			CommentModel commentModel = new CommentModel();
+			CommentResponseModel commentResponseModel = new CommentResponseModel();
+			String comment = node.findPath("commentText").asText("");
+			commentResponseModel.setComment(comment);
+			vn.com.tpf.microservices.models.Document document = new vn.com.tpf.microservices.models.Document();
+			String fileName = node.findPath("dataDocument").path("fileName").asText("");
+			String documentName = node.findPath("dataDocument").path("documentName").asText("");
+			document.setType(documentName);
+			document.setOriginalname(documentName);
+			document.setFilename(fileName);
+			commentResponseModel.setDocuments(Arrays.asList(document));
+			commentModel.setResponse(commentResponseModel);
+
+			Application application = new Application();
+			String applicationId = node.findPath("appId").asText("");
+			application.setApplicationId(applicationId);
+			String project = node.findPath("project").asText("");
+			application.setCreateFrom(project);
+			application.setComment(Arrays.asList(commentModel));
+
+			return application;
+		}catch (Exception e){
+			return null;
+		}
 	}
 }

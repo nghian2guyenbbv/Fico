@@ -879,6 +879,11 @@ public class DataEntryService {
 			Query query = new Query();
 			query.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
+
+			if (checkExist != null && checkExist.size() > 0 && StringUtils.hasLength(checkExist.get(0).getCreateFrom()) && !checkExist.get(0).getStatus().equals("FULL_APP_FAIL")){
+				return commentAppForOtherService(requestId, data, checkExist.get(0), request);
+			}
+
 			String partnerId = "";
 			String partnerName = "";
 
@@ -1720,7 +1725,6 @@ public class DataEntryService {
 				app.setPartnerId(request.get("partnerId").asText());
 				app.setPartnerName(request.get("partnerName").asText());
 
-				app.setCreateFrom("WEB");
 				app.setRoutingId(request.get("routingId").asLong(-1));
 
 				mongoTemplate.save(app);
@@ -2883,7 +2887,6 @@ public class DataEntryService {
 		}
 		return Map.of("status", 200, "data", Base64.getEncoder().encodeToString(in.readAllBytes()));
 	}
-
 
 	public Map<String, Object> getDocumentId(JsonNode request, JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
@@ -5255,7 +5258,7 @@ public class DataEntryService {
 			QuickLead data = requestModel.getData();
 			data.setCreatedDate(new Timestamp(new Date().getTime()));
 
-			String appId = request.findPath("data").path("applicationId").asText("");
+			String appId = request.findPath("data").path("appId").asText("");
 			if (StringUtils.isEmpty(appId)){
 				throw new Exception("applicationId null");
 			}
@@ -5265,13 +5268,14 @@ public class DataEntryService {
 			}
 
 			appId = appId.trim();
-			String errMsg = saveApp(data, appId);
+			String project = request.findPath("project").asText("");
+			String errMsg = saveApp(data, appId, project);
 			if (StringUtils.hasLength(errMsg)){
 				throw new Exception(errMsg);
 			}
 			logInfo.put("save-app", "SUCCESS");
 
-			errMsg = sendFileToPartner(data);
+			errMsg = sendFileToPartner(data.getQuickLeadId(), data.getPartnerId(), data.getDocuments(), true);
 			if (StringUtils.hasLength(errMsg)){
 				throw new Exception(errMsg);
 			}
@@ -5306,18 +5310,549 @@ public class DataEntryService {
 			responseModel.setResult_code("0");
 			return Map.of("status", 200, "data", responseModel);
 		}catch (Exception e) {
-			logInfo.put("exception", e.toString());
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
-			responseModel.setMessage("Other errors");
+			responseModel.setMessage(StringUtils.isEmpty(error) ? "Others error" : error);
 			return Map.of("status", 200, "data", responseModel);
 		}finally {
 			log.info("{}", logInfo);
 		}
 	}
 
-	private String saveApp(QuickLead data, String appId) {
+	public  Map<String, Object> commentAppNonWeb(JsonNode request){
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "commentAppNonWeb");
+		String requestId = request.findPath("request_Id").asText(UUID.randomUUID().toString());
+		try {
+			Application appRequest = convertService.toApplication(request);
+
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(appRequest.getApplicationId()));
+			List<Application> appDB = mongoTemplate.find(query, Application.class);
+			if (appDB.size() <= 0){
+				throw new Exception("applicationId not exists.");
+			}
+			Optional opt = appDB.get(0).getComment().stream().filter(commentModel -> commentModel.getResponse() == null).findAny();
+			if (!opt.isPresent()){
+				throw new Exception("application had response");
+			}
+
+			appDB.get(0).getComment().stream().filter(commentModel -> commentModel.getResponse() == null).findAny().ifPresent(commentModel -> {
+				appRequest.getComment().get(0).setCommentId(commentModel.getCommentId());
+				appRequest.getComment().get(0).setType(commentModel.getType());
+				appRequest.getComment().get(0).setCode(commentModel.getCode());
+				appRequest.getComment().get(0).setRequest(commentModel.getRequest());
+				appRequest.getComment().get(0).setCreatedDate(commentModel.getCreatedDate());
+			});
+
+			appDB.get(0).getComment().stream().filter(commentModel -> commentModel.getResponse() == null).findAny().ifPresent(commentModel -> {
+				commentModel.setResponse(appRequest.getComment().get(0).getResponse());
+			});
+			appDB.get(0).getQuickLead().getDocuments()
+					.stream()
+					.filter(qlDocument -> qlDocument.getOriginalname().equals(appRequest.getComment().get(0).getResponse().getDocuments().get(0).getOriginalname()))
+					.findAny()
+					.ifPresent(qlDocument -> appDB.get(0).getQuickLead().setDocumentsComment(appRequest.getComment().get(0).getResponse().getDocuments()
+							.stream().map(document -> {
+								QLDocument qlDocument1 = new QLDocument();
+								qlDocument1.setType(document.getType());
+								qlDocument1.setFilename(document.getFilename());
+								qlDocument1.setOriginalname(document.getOriginalname());
+								qlDocument1.setUrlid(qlDocument.getUrlid());
+								return qlDocument1;
+							}).collect(Collectors.toList())));
+			return commentAppForOtherService(requestId, appRequest, appDB.get(0), null);
+		}catch (Exception e){
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
+			ResponseModel responseModel = new ResponseModel();
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(StringUtils.isEmpty(error) ? "Others error" : error);
+			return Map.of("status", 200, "data", responseModel);
+		}finally {
+			log.info("{}", logInfo);
+		}
+	}
+
+	private Map<String, Object> commentAppForOtherService(String requestId, Application appRequest, Application appDB, JsonNode request){
+		ResponseModel responseModel = new ResponseModel();
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "commentAppForOtherService");
+		String referenceId = UUID.randomUUID().toString();
+		try {
+			if (appRequest.getComment().size() <= 0){
+				throw new Exception("comment null.");
+			}
+			appRequest.setLastModifiedDate(new Timestamp(new Date().getTime()));
+			String project = appDB.getCreateFrom();
+			String finalRequestId = requestId;
+			String errMsg = appRequest.getComment().stream().map(commentModel -> {
+				Query queryComment = new Query();
+				queryComment.addCriteria(Criteria.where("applicationId").is(appDB.getApplicationId()).and("comment.commentId").is(commentModel.getCommentId()));
+				boolean exist = mongoTemplate.exists(queryComment, Application.class);
+				String err;
+				if (!exist){
+					//comment before full app
+					err = saveData(commentModel, appDB.getApplicationId(), referenceId, project);
+					if (StringUtils.hasLength(err)){
+						return err;
+					}
+					logInfo.put("saveData", "SUCCESS");
+					if (request != null){
+						err = sendCommentToOtherService(project, request);
+						logInfo.put("send-to-" + project, StringUtils.hasLength(err) ? err : "SUCCESS");
+					}
+					return err;
+				}
+//				//comment after full app
+//				if (commentModel.getType().equals("FICO")){
+//					err = processCommentAfterFullApp(finalRequestId, referenceId, commentModel, appRequest, appDB, project);
+//					logInfo.put("comment-after-full-app", StringUtils.hasLength(err) ? err : "SUCCESS");
+//					return err;
+//				}
+				//fico comment to partner
+				err = sendFileToPartner(appDB.getQuickLeadId(), appDB.getPartnerId(), appDB.getQuickLead().getDocumentsComment(), false);
+				if (StringUtils.hasLength(err)){
+					return err;
+				}
+				err = sendCommentToPartner(referenceId, commentModel, appRequest, appDB, project);
+				logInfo.put("send-to-partner", StringUtils.hasLength(err) ? err : "SUCCESS");
+				return err;
+			}).collect(Collectors.joining());
+
+			if (StringUtils.hasLength(errMsg)){
+				throw new Exception(errMsg);
+			}
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+		} catch (Exception e){
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(StringUtils.isEmpty(error) ? "Others error" : error);
+		}finally {
+			log.info("{}", logInfo);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	private String sendCommentToPartner(String referenceId, CommentModel commentModel, Application appRequest, Application appDB, String userName) {
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "sendCommentToPartner");
+		try{
+			logInfo.put("applicationId", appRequest.getApplicationId());
+
+			if (commentModel.getResponse().getComment() == null || commentModel.getResponse().getComment().equals("")){
+				throw new Exception("vui lòng nhập comment!");
+			}
+			List<Document> documentCommnet = commentModel.getResponse().getDocuments();
+			List<CommentModel> listComment = appDB.getComment();
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(appRequest.getApplicationId()).and("comment.commentId").is(commentModel.getCommentId()));
+			String comment = "";
+			for (CommentModel itemComment : listComment) {
+				if (itemComment.getCommentId().equals(commentModel.getCommentId())) {
+					if (commentModel.getResponse() != null) {
+						if (commentModel.getResponse().getDocuments().size() > 0) {
+							for (Document itemCommentFico : commentModel.getResponse().getDocuments()) {
+								Link link = new Link();
+								link.setUrlFico(itemCommentFico.getFilename());
+								link.setUrlPartner(itemCommentFico.getUrlid());
+								itemCommentFico.setLink(link);
+							}
+						}
+
+						Update update = new Update();
+						update.set("comment.$.response", commentModel.getResponse());
+						Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
+
+						comment = commentModel.getResponse().getComment();
+						new Thread(() -> {
+							try {
+								String resultInsertORA = insertToOracle_Return(appRequest.getApplicationId(), commentModel.getCommentId(), commentModel.getType(), null, commentModel.getResponse().getComment(),
+										userName, commentModel.getCreatedDate(), new Date());
+								if (!resultInsertORA.equals("success")) {
+									log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+								}
+							}
+							catch (Exception e) {}
+						}).start();
+					}
+				}
+			}
+
+			ArrayNode documents = mapper.createArrayNode();
+			boolean checkIdCard = false;
+			boolean checkHousehold = false;
+			for (Document item : documentCommnet) {
+				ObjectNode doc = mapper.createObjectNode();
+
+				if (item.getType().toUpperCase().equals("TPF_ID Card".toUpperCase())) {
+					if (!checkIdCard) {
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						} else {
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+						}
+
+						checkIdCard = true;
+					}
+				} else if (item.getType().toUpperCase().equals("TPF_Notarization of ID card".toUpperCase())) {
+					if (!checkIdCard) {
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						} else {
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+						}
+
+						checkIdCard = true;
+					}
+				}
+				if (item.getType().toUpperCase().equals("TPF_Family Book".toUpperCase())) {
+					if (!checkHousehold) {
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						} else {
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+						}
+
+						checkHousehold = true;
+					}
+				} else if (item.getType().toUpperCase().equals("TPF_Notarization of Family Book".toUpperCase())) {
+					if (!checkHousehold) {
+						if (item.getComment() != null) {
+							doc.put("documentComment", item.getComment());
+						} else {
+							doc.put("documentComment", "");
+						}
+						if (item.getLink() != null) {
+							doc.put("documentId", item.getLink().getUrlPartner());
+							documents.add(doc);
+						}
+
+						checkHousehold = true;
+					}
+				} else if (item.getType().toUpperCase().equals("TPF_Customer Photograph".toUpperCase())) {
+					if (item.getComment() != null) {
+						doc.put("documentComment", item.getComment());
+					} else {
+						doc.put("documentComment", "");
+					}
+					if (item.getLink() != null) {
+						doc.put("documentId", item.getLink().getUrlPartner());
+						documents.add(doc);
+					}
+				} else if (item.getType().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+					if (item.getComment() != null) {
+						doc.put("documentComment", item.getComment());
+					} else {
+						doc.put("documentComment", "");
+					}
+					if (item.getLink() != null) {
+						doc.put("documentId", item.getLink().getUrlPartner());
+						documents.add(doc);
+					}
+				}
+			}
+
+			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", appDB.getApplicationId(), "comment-id", commentModel.getCommentId(),
+					"comment", comment, "documents", documents)), JsonNode.class);
+
+			String partnerId = appDB.getPartnerId();
+			Map partner = getPartner(partnerId);
+			if (StringUtils.isEmpty(partner.get("data"))) {
+				throw new Exception("Not found partner");
+			}
+
+			Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+			String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
+
+			JsonNode responseDG = mapper.createObjectNode();
+
+			if (partnerId.equals("1")) {
+				String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+//							apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+				responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
+			} else if (partnerId.equals("2")) {
+				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+				if (StringUtils.isEmpty(tokenPartner)) {
+					throw new Exception("Not get token saigon-bpo");
+				}
+				responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+			}
+
+			if (!responseDG.path("error-code").textValue().equals("")) {
+				if (!responseDG.path("error-code").textValue().equals("null")) {
+					throw new Exception(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+				}
+			}
+
+			Query queryUpdate = new Query();
+			queryUpdate.addCriteria(Criteria.where("applicationId").is(appRequest.getApplicationId()));
+			Update update = new Update();
+			update.set("status", "PROCESSING");
+			update.set("lastModifiedDate", new Date());
+			Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+
+			Application dataFullApp = mongoTemplate.findOne(query, Application.class);
+			rabbitMQService.send("tpf-service-app",
+					Map.of("func", "updateApp", "reference_id", referenceId,
+							"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+
+			Report report = new Report();
+			report.setQuickLeadId(dataFullApp.getQuickLeadId());
+			report.setApplicationId(appRequest.getApplicationId());
+			report.setFunction("FICO_RETURN_COMMENT");
+			report.setStatus("PROCESSING");
+			report.setCommentDescription(comment);
+			report.setCreatedBy(userName);
+			report.setCreatedDate(new Date());
+
+			report.setPartnerId(dataFullApp.getPartnerId());
+			report.setPartnerName(dataFullApp.getPartnerName());
+
+			mongoTemplate.save(report);
+			return "";
+		} catch (Exception e) {
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			return error;
+		} finally {
+			log.info("{}", logInfo);
+		}
+	}
+
+	private String saveData(CommentModel commentModel, String applicationId, String referenceId, String userName) {
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "saveData");
+		try {
+			if (ThirdPartyType.fromName(commentModel.getType().toUpperCase()) == null){
+				throw new Exception("Comment Type Invalid!");
+			}
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(applicationId));
+
+			Update update = new Update();
+			commentModel.setCreatedDate(new Date());
+			update.push("comment", commentModel);
+			update.set("status", "RETURNED");
+			update.set("lastModifiedDate", new Date());
+			Application dataFullApp = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+			logInfo.put("save-app", "SUCCESS");
+
+			new Thread(() -> {
+				try {
+					String resultInsertORA = insertToOracle_Return(applicationId, commentModel.getCommentId(), commentModel.getType(), commentModel.getRequest(), null,
+							userName, commentModel.getCreatedDate(), null);
+					if (!resultInsertORA.equals("success")) {
+						log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}).start();
+
+//			try {
+//				rabbitMQService.send("tpf-service-app",
+//						Map.of("func", "updateApp", "reference_id", referenceId,
+//								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//			logInfo.put("send-to-app", "SUCCESS");
+
+			Report report = new Report();
+			report.setQuickLeadId(dataFullApp.getQuickLeadId());
+			report.setApplicationId(applicationId);
+			report.setFunction("DIGITEXX_COMMENT");
+			report.setStatus("RETURNED");
+
+			if (StringUtils.hasLength(commentModel.getRequest())) {
+				report.setCommentDescription(commentModel.getRequest());
+			}
+
+			report.setCreatedBy(userName);
+			report.setCreatedDate(new Date());
+
+			if (dataFullApp != null) {
+				report.setPartnerId(dataFullApp.getPartnerId());
+				report.setPartnerName(dataFullApp.getPartnerName());
+			}
+			mongoTemplate.save(report);
+			logInfo.put("save-report", "SUCCESS");
+			return "";
+		}catch (Exception e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			return error;
+		}finally {
+			log.info("{}", logInfo);
+		}
+	}
+
+	private String sendCommentToOtherService(String project, JsonNode request) {
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "sendCommentToOtherService");
+		try {
+			if (StringUtils.isEmpty(project)){
+				throw new Exception("project null");
+			}
+			rabbitMQService.send("tpf-service-" + project, request);
+			logInfo.put("send-to-" + project, "SUCCESS");
+			return "";
+		}catch (Exception e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			return error;
+		}finally {
+			log.info("{}", logInfo);
+		}
+	}
+
+	private String processCommentAfterFullApp(String requestId, String referenceId, CommentModel commentModel, Application appRequest, Application appDB, String userName) {
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "processCommentAfterFullApp");
+		try {
+			logInfo.put("applicationId", appRequest.getApplicationId());
+
+			boolean checkResponseComment = false;
+			String commentDGT = "";
+			String commentDGTLD;
+			String errorAuto = "";
+			String stageAuto = "";
+			List<CommentModel> listComment = appDB.getComment();
+			if (appDB.getError() != null) {
+				errorAuto = appDB.getError();
+			}
+
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(appRequest.getApplicationId()).and("comment.commentId").is(commentModel.getCommentId()));
+
+			for (CommentModel itemComment : listComment) {
+				if (itemComment.getCommentId().equals(commentModel.getCommentId())) {
+					if (itemComment.getResponse() == null) {
+						stageAuto = itemComment.getStage();
+						Update update = new Update();
+						update.set("comment.$.response", commentModel.getResponse());
+						Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
+
+						checkResponseComment = true;
+						commentDGT = commentModel.getResponse().getComment();
+					}
+				}
+			}
+
+			if (!checkResponseComment) {
+				throw new Exception("applicationId can not return comment!");
+			}
+
+			// update automation
+			if (commentModel.getResponse().getData() != null) {
+				Application dataUpdate = commentModel.getResponse().getData();
+				if (appDB.getQuickLead().getDocumentsComment() != null){
+					dataUpdate.setDocuments(appDB.getQuickLead().getDocumentsComment());
+				}
+				dataUpdate.setQuickLead(appDB.getQuickLead());
+
+				dataUpdate.setStage(stageAuto);
+				dataUpdate.setError(errorAuto);
+				if(apiService.chooseAutoOrApiF1() == 1) {
+					new Thread(() -> {
+						try{
+							ObjectNode result = mapper.createObjectNode();
+							result.put("request_id", requestId);
+							result.put("applicationId", dataUpdate.getApplicationId());
+
+							JsonNode response = apiService.callApiF1(urlUpdateApp, convertService.toAppApiF1(dataUpdate));
+							result.set("response", response);
+							if(!response.hasNonNull("errMsg") && response.findPath("responseCode").asInt(1) == 0){
+								Thread.sleep(waitTime);
+								JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", dataUpdate.getApplicationId()), JsonNode.class);
+								JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
+								result.set("stage", getStage);
+							}
+							updateAppErrorApiF1(result);
+						}catch(Exception e){
+							log.info("{}", Map.of("applicationId", dataUpdate.getApplicationId(), "exception", e.toString()));
+						}
+					}).start();
+				}else{
+					rabbitMQService.send(queueAutoSGB,
+							Map.of("func", "updateAppError","body", dataUpdate));
+				}
+
+				commentDGTLD = commentDGT;
+				new Thread(() -> {
+					try {
+						dataUpdate.setQuickLead(appDB.getQuickLead());
+						dataUpdate.setCreatedDate(appDB.getCreatedDate());
+						dataUpdate.setLastModifiedDate(appDB.getLastModifiedDate());
+						String resultInsertORA = insertToOracle_App(dataUpdate);
+						if (!resultInsertORA.equals("success")) {
+							log.info("ReferenceId : " + referenceId + "; Insert to Oracle: " + resultInsertORA);
+						}
+					}
+					catch (Exception e) {}
+					try {
+						String resultInsertORA = insertToOracle_Return(appRequest.getApplicationId(), commentModel.getCommentId(), commentModel.getType(), commentModel.getRequest(), commentDGTLD,
+								userName, null, new Date());
+						if (!resultInsertORA.equals("success")) {
+							log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
+						}
+					}
+					catch (Exception e) {}
+				}).start();
+			}
+
+			Report report = new Report();
+			report.setQuickLeadId(appDB.getQuickLeadId());
+			report.setApplicationId(appDB.getApplicationId());
+			report.setFunction("DIGITEXX_RETURN_COMMENT");
+			report.setStatus("FULL_APP_FAIL");
+			report.setCreatedBy(userName);
+			report.setCreatedDate(new Date());
+
+			report.setPartnerId(appDB.getPartnerId());
+			report.setPartnerName(appDB.getPartnerName());
+
+			mongoTemplate.save(report);
+			return "";
+		}catch (Exception e){
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
+			return error;
+		}finally {
+			log.info("{}", logInfo);
+		}
+	}
+
+	private String saveApp(QuickLead data, String appId, String project) {
 		ObjectNode logInfo = mapper.createObjectNode();
 		logInfo.put("func", "saveApp");
 		try {
@@ -5331,28 +5866,42 @@ public class DataEntryService {
 			Map partner = this.getPartner(data.getPartnerId());
 			Application app = new Application();
 			app.setQuickLeadId(data.getQuickLeadId());
+			if (data.getDocuments().size() <= 0){
+				throw new Exception("document missing");
+			}
+			data.getDocuments().stream().map(qlDocument -> {
+				qlDocument.setOriginalname(qlDocument.getType());
+				return qlDocument;
+			}).collect(Collectors.toList());
 			app.setQuickLead(data);
 			app.setApplicationId(appId);
-			app.setCreateFrom("OTHER");
+			app.setStatus("PROCESSING");
+			app.setCreateFrom(project);
 			app.setPartnerId(mapper.convertValue(partner.get("data"), Map.class).get("partnerId").toString());
 			app.setPartnerName(mapper.convertValue(partner.get("data"), Map.class).get("partnerName").toString());
 			mongoTemplate.save(app);
+			return "";
 		} catch (Exception e){
-			logInfo.put("exception", e.toString());
-			return e.toString();
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
+			return error;
 		} finally {
 			log.info("{}", logInfo);
 		}
-		return "";
 	}
 
-	private String sendFileToPartner(QuickLead data) {
+	private String sendFileToPartner(String partnerId, String applicationId, String quickLeadId) {
 		ObjectNode logInfo = mapper.createObjectNode();
 		logInfo.put("func", "sendFileToPartner");
 		try {
-			Map partner = this.getPartner(data.getPartnerId());
+			Map partner = this.getPartner(partnerId);
 			ObjectNode request = mapper.createObjectNode();
-			request.set("body", mapper.createObjectNode().set("data", mapper.convertValue(Map.of("quickLeadId", data.getQuickLeadId()), JsonNode.class)));
+			if (StringUtils.hasLength(applicationId)){
+				request.set("body", mapper.createObjectNode().set("data", mapper.convertValue(Map.of("applicationId", applicationId), JsonNode.class)));
+			}
+			if (StringUtils.hasLength(quickLeadId)){
+				request.set("body", mapper.createObjectNode().set("data", mapper.convertValue(Map.of("quickLeadId", quickLeadId), JsonNode.class)));
+			}
 
 			logInfo.put("request", request.toString());
 
@@ -5368,7 +5917,7 @@ public class DataEntryService {
 			});
 			for (QLDocument item : dataUpload) {
 				Query queryUpdate = new Query();
-				queryUpdate.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()).and("quickLead.documents.originalname").is(item.getOriginalname()));
+				queryUpdate.addCriteria(Criteria.where("quickLeadId").is(quickLeadId).and("quickLead.documents.originalname").is(item.getOriginalname()));
 
 				Update update = new Update();
 				update.set("quickLead.documents.$.urlid", item.getUrlid());
@@ -5382,6 +5931,43 @@ public class DataEntryService {
 			log.info("{}", logInfo);
 		}
 		return "";
+	}
+
+	private String sendFileToPartner(String quickLeadId, String partnerId, List<QLDocument> documents, boolean isNew){
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", "sendFileToPartner");
+		try {
+			Map partner = this.getPartner(partnerId);
+			JsonNode resultUpload;
+			if (isNew){
+				resultUpload = apiService.uploadFileAppNew(partner, documents);
+			}else{
+				resultUpload = apiService.uploadFileAppExist(partner, documents);
+			}
+
+			if (resultUpload.hasNonNull("error")){
+				throw new Exception(resultUpload.path("error").asText(""));
+			}
+
+			List<QLDocument> dataUpload = mapper.readValue(resultUpload.toString(), new TypeReference<List<QLDocument>>() {
+			});
+			for (QLDocument item : dataUpload) {
+				Query queryUpdate = new Query();
+				queryUpdate.addCriteria(Criteria.where("quickLeadId").is(quickLeadId).and("quickLead.documents.originalname").is(item.getOriginalname()));
+
+				Update update = new Update();
+				update.set("quickLead.documents.$.urlid", item.getUrlid());
+				mongoTemplate.findAndModify(queryUpdate, update, Application.class);
+			}
+			logInfo.put("update-doc-id", dataUpload.toString());
+			return "";
+		}catch (Exception e){
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
+			return error;
+		}finally {
+			log.info("{}", logInfo);
+		}
 	}
 
 	private String sendAppNumberToPartner(Application application) {
@@ -5428,8 +6014,9 @@ public class DataEntryService {
 				logInfo.put("call-api-bpo", node.toString());
 			}
 		} catch (Exception e){
-			logInfo.put("exception", e.toString());
-			return e.toString();
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
+			return error;
 		} finally {
 			log.info("{}", logInfo);
 		}

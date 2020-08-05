@@ -1252,7 +1252,7 @@ public class DataEntryController {
 		String checkDuplicateFile = "";
 
 		Map partner = new HashMap();
-		String partnerIdToGetPartner = "";
+		String partnerIdToGetPartner = partnerId;
 		Long routingId;
 		if (appId.equals("new")) {
 			if(autoRouting){

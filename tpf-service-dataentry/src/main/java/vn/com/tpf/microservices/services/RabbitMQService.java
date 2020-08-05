@@ -233,6 +233,8 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.callApiF1(request));
 				case "sendAppNonWeb":
 					return response(message, payload, dataEntryService.sendAppNonWeb(request));
+				case "commentAppNonWeb":
+					return response(message, payload, dataEntryService.commentAppNonWeb(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
