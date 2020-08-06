@@ -49,6 +49,7 @@ import javax.persistence.StoredProcedureQuery;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -109,6 +110,9 @@ public class RepaymentService {
 
 	@Autowired
 	private FicoTransPayQueueDAO ficoTransPayQueueDAO;
+
+	@Autowired
+	private FicoTransPaySettleDAO ficoTransPaySettleDAO;
 
 	@SuppressWarnings("unchecked")
 
@@ -270,8 +274,21 @@ public class RepaymentService {
 					ficoTransPay.setAmount(requestModel.getData().getAmount());
 					ficoTransPay.setCreateDate(timestamp);
 
-					ficoTransPayDAO.save(ficoTransPay);
+					//ficoTransPayDAO.save(ficoTransPay);
 
+					//update save table settle
+					FicoTransPaySettle ficoTransPaySettle=FicoTransPaySettle.builder()
+														.amount(ficoTransPay.getAmount())
+														.loanId(ficoTransPay.getLoanId())
+														.loanAccountNo(ficoTransPay.getLoanAccountNo())
+														.identificationNumber(ficoTransPay.getIdentificationNumber())
+														.transactionId(ficoTransPay.getTransactionId())
+														.createDate(ficoTransPay.getCreateDate())
+														.transDate(new Date())
+														.iscompleted(0)
+														.flagsettle(1).build();
+
+					ficoTransPaySettleDAO.save(ficoTransPaySettle);
 
 					//check thời gian EOD
 					LocalTime now = LocalTime.now();
@@ -361,6 +378,7 @@ public class RepaymentService {
 						}).start();
 						//END CALL
 					}
+					else
 					{//ghi table queue: status=0; chua upload, 1: upload
 						ficoTransPayQueueDAO.save(FicoTransPayQueue.builder()
 												.amount(ficoTransPay.getAmount())
@@ -1008,17 +1026,27 @@ public class RepaymentService {
 //					Comparator.comparing((FTPFile remoteFile) -> remoteFile.getTimestamp()).reversed());
 
 			FTPFile[] ftpFiles = ftpClient.listFiles();
-			if (ftpFiles.length > 0) {
-				FTPFile file = lastFileModified(ftpFiles);
+
+			//File folder=new File("D:\\testftp");
+
+			File dir = new File("D:\\testftp");
+			File[] files = dir.listFiles();
+			File lastModified = Arrays.stream(files).filter(File::isDirectory).max(Comparator.comparing(File::lastModified)).orElse(null);
+			System.out.println(lastModified);
+
+			if (lastModified !=null) {
+				//FTPFile file = lastFileModified(ftpFiles);
+
+				String folderName=lastModified.getName();
 
 				//check file ton tai hay chua
-				List<FicoCronLogModel> ficoCronLogModelList = ficoCronLogDAO.findByFileName(file.getName());
+				List<FicoCronLogModel> ficoCronLogModelList = ficoCronLogDAO.findByFileName(folderName);
 
 				if (ficoCronLogModelList.size() > 0) {
-					System.out.println("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+					System.out.println("File:  " + folderName + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
 
 					responseModel.setRequest_id(UUID.randomUUID().toString());
-					responseModel.setMessage("File:  " + file.getName() + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+					responseModel.setMessage("File:  " + folderName + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(0);
@@ -1028,9 +1056,9 @@ public class RepaymentService {
 
 				//ghi log
 				FicoCronLogModel ficoCronLogModel = FicoCronLogModel.builder()
-							.fileName(file.getName())
+							.fileName(folderName)
 							.createdDate(new Date())
-							.fileCreatedDate(file.getTimestamp().getTime())
+							.fileCreatedDate(new Date(lastModified.lastModified()))
 							.build();
 				ficoCronLogDAO.save(ficoCronLogModel);
 
@@ -1042,7 +1070,7 @@ public class RepaymentService {
 				//return
 				responseModel.setRequest_id(UUID.randomUUID().toString());
 				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setMessage("File:  " + file.getName() + " complete at " + file.getTimestamp().getTime());
+				responseModel.setMessage("File:  " + folderName + " complete at " + new Date(lastModified.lastModified()));
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(0);
 
@@ -1188,6 +1216,11 @@ public class RepaymentService {
 		return resultData;
 	}
 
+
+
+	// --------------------- END ---------------------------------------
+
+	// ---------------------- API FIN1 ---------------------------------
 	public int updateSyncData(long id){
 
 		SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("id", id));
@@ -1200,9 +1233,6 @@ public class RepaymentService {
 		return resultData;
 	}
 
-	// --------------------- END ---------------------------------------
-
-	// ---------------------- API FIN1 ---------------------------------
 	public void callFin1API(List<FicoTransPayQueue> ficoTransPayQueueList)
 	{
 		for (FicoTransPayQueue fico: ficoTransPayQueueList) {
