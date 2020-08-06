@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -24,7 +26,8 @@ import lombok.Data;
 @Document
 @Builder
 @JsonInclude(Include.NON_NULL)
-
+@AllArgsConstructor
+@NoArgsConstructor
 public class Mobility {
 	@Id
 	private String id;
@@ -63,11 +66,11 @@ public class Mobility {
 	private String userCreatedQueue;
     private Map<String, Object> preChecks;
     private Map<String, Object> returns;
-    private  long partnerId;
 	@CreatedDate
 	private Date createdAt;
 	@LastModifiedDate
 	private Date updatedAt;
+	private long partnerId;
 }
 
 
