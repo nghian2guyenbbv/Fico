@@ -983,17 +983,17 @@ public class CRM_ApplicationInfoPersonalTab {
                 actions.moveToElement(btnSaveAddressElement).click().build().perform();
             }
             else {
-                await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> btnCreateAnotherElement.isEnabled());
                 btnCreateAnotherElement.click();
 
 
-                await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
                 System.out.println("Address Div");
 
-                await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
                 System.out.println("Address Type");
