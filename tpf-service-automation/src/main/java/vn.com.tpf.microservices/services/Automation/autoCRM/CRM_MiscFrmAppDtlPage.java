@@ -169,17 +169,17 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement leadResponseElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'lead_communication_form')]//input[contains(@value,'Add')]")
-    @CacheLookup
-    private WebElement addBtnElement;
-
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'lead_communication_form')]//input[contains(@value,'Save communication details')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'lead_communication_form')]//input[contains(@value,'Submit')]")
     @CacheLookup
     private WebElement saveCommunicationBtnElement;
 
     @FindBy(how = How.ID, using = "lead_addedBy")
     @CacheLookup
     private WebElement addedByElement;
+
+    @FindBy(how = How.ID, using = "Text_lead_contactedBy")
+    @CacheLookup
+    private WebElement contactedByElement;
 
 
 
@@ -295,7 +295,8 @@ public class CRM_MiscFrmAppDtlPage {
         webPortalElement.click();
         Utilities.captureScreenShot(_driver);
 
-        System.out.println("TEST" + addedByElement.getText());
+        contactedByElement.clear();
+        contactedByElement.sendKeys(addedByElement.getAttribute("value"));
 
         actions.moveToElement(leadStatusElement).click().build().perform();
         await("leadStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -305,7 +306,6 @@ public class CRM_MiscFrmAppDtlPage {
         Utilities.captureScreenShot(_driver);
 
         leadResponseElement.sendKeys(communication);
-        addBtnElement.click();
         saveCommunicationBtnElement.click();
         Utilities.captureScreenShot(_driver);
     }
