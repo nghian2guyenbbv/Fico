@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.utilities;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang.StringUtils;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
@@ -18,6 +19,9 @@ import java.util.Map;
 public class DataInitial {
     public static Map<String, Object> getDataFromDE_QL(Application application) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
+        if (StringUtils.isEmpty(application.getQuickLead().getCommunicationTranscript())){
+            application.getQuickLead().setCommunicationTranscript("dummy");
+        }
         map.put("ApplicationDTO", application);
         return map;
     }
