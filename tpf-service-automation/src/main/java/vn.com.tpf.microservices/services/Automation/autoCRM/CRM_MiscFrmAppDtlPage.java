@@ -1,9 +1,12 @@
 package vn.com.tpf.microservices.services.Automation.autoCRM;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
@@ -133,6 +136,53 @@ public class CRM_MiscFrmAppDtlPage {
     @FindBy(how = How.ID, using = "tpf_insurance_fee_frmAppDtl_2")
     private WebElement monthlyFeeElement;
 
+    //------------------ COMMUNICATION-------------------
+    @FindBy(how = How.ID, using = "leadCommHist")
+    @CacheLookup
+    private WebElement communicationElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-small btn-primary']")
+    @CacheLookup
+    private WebElement addCommunicationElement;
+
+    @FindBy(how = How.ID, using = "lead_communication_form")
+    @CacheLookup
+    private WebElement formCommunicationElement;
+
+    @FindBy(how = How.ID, using = "uniform-inperson_mode")
+    @CacheLookup
+    private WebElement webPortalElement;
+
+    @FindBy(how = How.ID, using = "comm_status_chzn")
+    @CacheLookup
+    private WebElement leadStatusElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn_o_')]")
+    @CacheLookup
+    private List<WebElement> leadStatusOptionElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn')]//input")
+    @CacheLookup
+    private WebElement leadStatusInputElement;
+
+    @FindBy(how = How.ID, using = "lead_response")
+    @CacheLookup
+    private WebElement leadResponseElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'lead_communication_form')]//input[contains(@value,'Add')]")
+    @CacheLookup
+    private WebElement addBtnElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'lead_communication_form')]//input[contains(@value,'Save communication details')]")
+    @CacheLookup
+    private WebElement saveCommunicationBtnElement;
+
+    @FindBy(how = How.ID, using = "lead_addedBy")
+    @CacheLookup
+    private WebElement addedByElement;
+
+
+
     public WebElement _getBtnSaveElement() {
         for(WebElement e: btnSaveElement) {
             if(e.isDisplayed() && e.isEnabled()){
@@ -186,8 +236,8 @@ public class CRM_MiscFrmAppDtlPage {
 //        monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
 
-        remarkElement.clear();
-        remarkElement.sendKeys(data.getRemark());
+//        remarkElement.clear();
+//        remarkElement.sendKeys(data.getRemark());
 
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
@@ -227,6 +277,36 @@ public class CRM_MiscFrmAppDtlPage {
 //                loanOfWorkNoElememt.click();
 //            }
 //        }
+//        Utilities.captureScreenShot(_driver);
+    }
+
+    public void updateCommunicationValue(String communication) {
+        //COMMUNICATION
+        Actions actions = new Actions(_driver);
+        communicationElement.click();
+        await("addCommunicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> addCommunicationElement.isDisplayed());
+        addCommunicationElement.click();
+        await("formCommunicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> formCommunicationElement.isDisplayed());
+
+        await("webPortalElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> webPortalElement.isDisplayed());
+        webPortalElement.click();
+        Utilities.captureScreenShot(_driver);
+
+        System.out.println("TEST" + addedByElement.getText());
+
+        actions.moveToElement(leadStatusElement).click().build().perform();
+        await("leadStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> leadStatusOptionElement.size() > 0);
+        leadStatusInputElement.sendKeys("NA");
+        leadStatusInputElement.sendKeys(Keys.ENTER);
+        Utilities.captureScreenShot(_driver);
+
+        leadResponseElement.sendKeys(communication);
+        addBtnElement.click();
+        saveCommunicationBtnElement.click();
         Utilities.captureScreenShot(_driver);
     }
 

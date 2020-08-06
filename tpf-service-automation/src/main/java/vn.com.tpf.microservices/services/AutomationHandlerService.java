@@ -5877,6 +5877,8 @@ public class AutomationHandlerService {
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
             Utilities.captureScreenShot(driver);
 
+//            miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
+
             //tam thoi cho sleep de an notification moi click dc button movetonextstage
             Thread.sleep(15000);
 
@@ -6177,6 +6179,8 @@ public class AutomationHandlerService {
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
             Utilities.captureScreenShot(driver);
+
+//            miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
             //tam thoi cho sleep de an notification moi click dc button movetonextstage
             Thread.sleep(15000);
