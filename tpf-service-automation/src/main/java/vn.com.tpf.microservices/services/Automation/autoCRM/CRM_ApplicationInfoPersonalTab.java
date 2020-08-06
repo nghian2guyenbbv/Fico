@@ -3,7 +3,6 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
-import org.bson.types.ObjectId;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -892,15 +891,14 @@ public class CRM_ApplicationInfoPersonalTab {
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
                 we.click();
 
+                //Đợi load Address Type
+                Thread.sleep(15000);
+
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-                System.out.println("Address Div");
-
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
-
-                System.out.println("Address Type");
 
                 actions.moveToElement(addressTypeElement).click().build().perform();
                 await("addressTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -911,8 +909,6 @@ public class CRM_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-
-                System.out.println("Address Type Done");
 
                 actions.moveToElement(textCountryElement).click().build().perform();
                 await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -987,16 +983,14 @@ public class CRM_ApplicationInfoPersonalTab {
                         .until(() -> btnCreateAnotherElement.isEnabled());
                 btnCreateAnotherElement.click();
 
+                //Đợi load Address Type
+                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-                System.out.println("Address Div");
-
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
-
-                System.out.println("Address Type");
 
                 actions.moveToElement(addressTypeElement).click().build().perform();
                 await("addressTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -1007,8 +1001,6 @@ public class CRM_ApplicationInfoPersonalTab {
                         break;
                     }
                 }
-
-                System.out.println("Address Type Done");
 
                 actions.moveToElement(textCountryElement).click().build().perform();
                 await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
