@@ -288,6 +288,7 @@ public class ConvertService {
 			doc.put("originalname", mobilityDoc.path("originalname").asText());
 			doc.put("filename", mobilityDoc.path("filename").asText());
 			doc.put("md5", mobilityDoc.path("documentMd5").asText());
+			doc.put("contentType", mobilityDoc.path("documentFileExtension").asText());
 			documents.add(doc);
 		});
 
