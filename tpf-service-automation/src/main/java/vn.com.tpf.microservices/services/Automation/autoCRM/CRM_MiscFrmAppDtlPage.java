@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -18,6 +19,7 @@ import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -181,6 +183,12 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement contactedByElement;
 
+    @FindBy(how = How.ID, using = "holder")
+    private WebElement textSelectContactedByContainerElement;
+
+    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_lead_contactedBy0a')]")
+    private List<WebElement> textSelectContactedByOptionElement;
+
 
 
     public WebElement _getBtnSaveElement() {
@@ -297,6 +305,19 @@ public class CRM_MiscFrmAppDtlPage {
 
         contactedByElement.clear();
         contactedByElement.sendKeys(addedByElement.getAttribute("value"));
+
+        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectContactedByContainerElement.isDisplayed());
+
+        await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectContactedByOptionElement.size() > 0);
+
+        for (WebElement e : textSelectContactedByOptionElement) {
+            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(addedByElement.getAttribute("value"))) {
+                e.click();
+                break;
+            }
+        }
 
         actions.moveToElement(leadStatusElement).click().build().perform();
         await("leadStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
