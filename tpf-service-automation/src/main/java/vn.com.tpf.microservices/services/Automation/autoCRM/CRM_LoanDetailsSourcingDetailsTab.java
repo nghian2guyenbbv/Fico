@@ -135,7 +135,7 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         _driver = driver;
     }
 
-    public void setData(String applicationId, CRM_SourcingDetailsDTO data) {
+    public void setData(CRM_SourcingDetailsDTO data) {
         if (StringUtils.isNotBlank(data.getSourcingBranch())) {
             branchElement.clear();
             branchElement.sendKeys(data.getSourcingBranch());
@@ -158,7 +158,7 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         Utilities.chooseDropdownValue(data.getSourcingChannel().toUpperCase(), channelOptionElement);
 
         applicationFormNumberElement.clear();
-        applicationFormNumberElement.sendKeys(applicationId);
+        applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -205,10 +205,10 @@ public class CRM_LoanDetailsSourcingDetailsTab {
         Utilities.chooseDropdownValue(data.getSaleAgentCode(), salesAgentCodeOptionElement);
     }
 
-    public void updateData(String applicationId, CRM_SourcingDetailsDTO data) {
+    public void updateData(CRM_SourcingDetailsDTO data) {
 
         applicationFormNumberElement.clear();
-        applicationFormNumberElement.sendKeys(applicationId);
+        applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
