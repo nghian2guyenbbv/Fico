@@ -5461,7 +5461,7 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
-            stage = "Bank / Credit Card Details";
+            stage = "BANK / CREDIT CARD DETAILS";
             // ==========BANK DETAILS =================
             await("Load Bank details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getBankDetailsTabElement().getAttribute("class").contains("active"));

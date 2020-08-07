@@ -290,6 +290,7 @@ public class CRM_MiscFrmAppDtlPage {
 
     public void updateCommunicationValue(String communication) {
         //COMMUNICATION
+        String stage = "CUSTOMER COMMUNICATION HISTORY";
         Actions actions = new Actions(_driver);
         communicationElement.click();
         await("addCommunicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -329,6 +330,7 @@ public class CRM_MiscFrmAppDtlPage {
         leadResponseElement.sendKeys(communication);
         saveCommunicationBtnElement.click();
         Utilities.captureScreenShot(_driver);
+        System.out.println(stage + ": DONE");
     }
 
 }
