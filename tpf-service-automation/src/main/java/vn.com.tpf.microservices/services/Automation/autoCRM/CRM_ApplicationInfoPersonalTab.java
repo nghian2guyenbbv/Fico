@@ -437,8 +437,8 @@ public class CRM_ApplicationInfoPersonalTab {
         this.lastNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getLastName());
         this.dateOfBirthdaElement.clear();
         this.dateOfBirthdaElement.sendKeys(applicationInfoDTO.getPersonalInfo().getDateOfBirth());
-//        this.placeOfBirthElement.clear();
-//        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().stream().filter(x->x.getIdentificationType().equals("Current National ID")).findAny().get().getPlaceOfIssue());
+        this.placeOfBirthElement.clear();
+        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().stream().filter(x->x.getIdentificationType().equals("Current National ID")).findAny().get().getPlaceOfIssue());
 
         this.maritalStatusElement.click();
         await("maritalStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -546,8 +546,8 @@ public class CRM_ApplicationInfoPersonalTab {
         this.lastNameElement.sendKeys(applicationInfoDTO.getPersonalInfo().getLastName());
         this.dateOfBirthdaElement.clear();
         this.dateOfBirthdaElement.sendKeys(applicationInfoDTO.getPersonalInfo().getDateOfBirth());
-//        this.placeOfBirthElement.clear();
-//        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().stream().filter(x->x.getIdentificationType().equals("Current National ID")).findAny().get().getPlaceOfIssue());
+        this.placeOfBirthElement.clear();
+        this.placeOfBirthElement.sendKeys(applicationInfoDTO.getIdentification().stream().filter(x->x.getIdentificationType().equals("Current National ID")).findAny().get().getPlaceOfIssue());
 
         this.maritalStatusElement.click();
         await("maritalStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
