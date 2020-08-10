@@ -11,12 +11,13 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import vn.com.tpf.microservices.utils.Utils;
 
 @Service
 public class RabbitMQService {
@@ -30,12 +31,14 @@ public class RabbitMQService {
 	private RabbitTemplate rabbitTemplate;
 
 	@Autowired
-	private FinnoneService finnoneService;
-	
+	private MobilityService mobilityService;
+
+	@Autowired
+	private Utils utils;
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(30000);
+		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -71,39 +74,46 @@ public class RabbitMQService {
 
 		return null;
 	}
-
+	
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
-	
+
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 			switch (request.path("func").asText()) {
-			case "getReason":
-				return response(message, payload, finnoneService.getReason(request));
-			case "getLoan":
-				return response(message, payload, finnoneService.getLoan(request));
-			case "getCheckDupApplication":
-				return response(message, payload, finnoneService.getCheckDupApplication(request));	
-			case "getCheckList":
-				return response(message, payload, finnoneService.getCheckList(request));
-			case "getPrecheckList":
-				return response(message, payload, finnoneService.getPreCheckList(request));
-			case "getAppInfo":
-				return response(message, payload, finnoneService.getAppInfo(request)); 
-			case "getDataFields":
-				return response(message, payload, finnoneService.getDataFields(request)); 
-			default:
-				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
-			}
-			
+				case "preCheck1":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.getPreCheck1(request)));
+				case "preCheck2":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.getPreCheck2(request)));
+				case "getAppInfo":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.getAppInfo(request)));	
+				case "returnQuery":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.returnQuery(request)));
+				case "returnQueue":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.returnQueue(request)));
+				case "addDocuments":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.addDocuments((request))));		
+				case "updateAutomation":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.updateAutomation((request))));	
+				case "createField":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.createField((request))));	
+				case "submitField": 
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.submitField((request))));	
+				case "waiveField": 
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.waiveField((request))));	
+					
+				default:
+					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
+							mapper.createObjectNode().put("message", "function not found"))));
+			}				
 
-		} catch (IllegalArgumentException e) {
-			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
-		} catch (DataIntegrityViolationException e) {
-			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
+			return response(message, payload,
+					Map.of("status", 200, "data",
+							utils.getJsonNodeResponse(500, mapper.readTree(new String(payload, "UTF-8")),
+									mapper.createObjectNode().put("message", e.toString()))));
 		}
+
 	}
 
 }

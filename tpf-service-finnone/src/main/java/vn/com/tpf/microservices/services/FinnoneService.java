@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
@@ -24,21 +26,15 @@ public class FinnoneService {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-	
-	
-	 @Autowired
-     public JdbcTemplate jdbcTemplateFicocen;
-	
-	
+
+	@Autowired
+	public JdbcTemplate jdbcTemplateFicocen;
+
 	private JsonNode response(int status, JsonNode data) {
 		ObjectNode response = mapper.createObjectNode();
 		response.put("status", status).set("data", data);
 		return response;
 	}
-	
-	
-	
-
 
 	public JsonNode getReason(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();
@@ -64,9 +60,10 @@ public class FinnoneService {
 	}
 
 	public JsonNode getAppInfo(JsonNode request) {
-		
+
 		try {
-			String query = String.format("SELECT * FROM  V_APP_INFO WHERE APPLICATION_NUMBER = '%s'", request.path("body").path("data").path("appId").asText());
+			String query = String.format("SELECT * FROM  V_APP_INFO WHERE APPLICATION_NUMBER = '%s'",
+					request.path("body").path("data").path("appId").asText());
 			Object rowObjectNode = jdbcTemplateFicocen.queryForObject(query, new Object[] {}, (rs, rowNum) -> {
 				ObjectNode row = mapper.createObjectNode();
 				row.put("appId", rs.getString("APPLICATION_NUMBER"));
@@ -75,7 +72,7 @@ public class FinnoneService {
 //				System.out.println("STATUS");
 				row.put("stage", rs.getString("STAGE").toUpperCase().replace(" ", "_"));
 //				System.out.println("STAGE");
-				row.put("reasonCode", rs.getString("REASON_CODE"));				
+				row.put("reasonCode", rs.getString("REASON_CODE"));
 				row.put("reasonCodeValue", rs.getString("REASON_CODE_VALUE"));
 //				System.out.println("REASON_CODE");
 				row.put("reasonDetail", rs.getString("REASON_DETAIL"));
@@ -107,16 +104,78 @@ public class FinnoneService {
 				row.put("emi", rs.getDouble("EMI"));
 //				System.out.println("EMI");
 				row.put("userName", rs.getString("USER_NAME"));
-			
 				return row;
 			});
-
 			return response(200, mapper.convertValue(rowObjectNode, JsonNode.class));
-
 		} catch (Exception e) {
-
 			return response(500, mapper.createObjectNode().put("message", e.getMessage()));
+		}
+	}
 
+	public JsonNode getDataFields(JsonNode request) {
+
+
+		try {
+			JsonNode apps = request.path("body").path("apps");
+			
+			String input = "";
+			for (JsonNode app : apps) {
+				input += String.format("%s,", app.path("appId").asText());
+			}
+	
+			String query = String.format("SELECT * FROM TABLE(FN_GET_DATA_API_F1('%s'))",
+					 StringUtils.removeEnd(input, ","));
+
+			
+			List<JsonNode> output = jdbcTemplate.query(query, new Object[] {},
+					(rs, rowNum) -> {
+						ObjectNode row = mapper.createObjectNode();
+						row.put("appId", rs.getString("APPLICATION_NUMBER") != null ? rs.getString("APPLICATION_NUMBER"): "*");
+
+						row.put("fullName", rs.getString("CUSTOMER_NAME")!= null ? rs.getString("CUSTOMER_NAME"): "*");
+
+						row.put("phone", rs.getString("PHONE_NUMBER")!= null ? rs.getString("PHONE_NUMBER"): "*");
+
+						row.put("dateOfBirth", rs.getString("DOB")!= null ? rs.getString("DOB"): "*");
+						row.put("sex", rs.getString("GENDER")!= null ? rs.getString("GENDER"): "*");
+
+						row.put("nationalId", rs.getString("CUST_ICARD_NO")!= null ? rs.getString("CUST_ICARD_NO"): "*");
+
+						row.put("bankCard", rs.getString("BANK_CARD")!= null ? rs.getString("BANK_CARD"): "*");
+
+						row.put("spouseName", rs.getString("MEMBER_NAME1")!= null ? rs.getString("MEMBER_NAME1"): "*");
+
+						row.put("spouseIdCard", rs.getString("MEM_ICARD_NO")!= null ? rs.getString("MEM_ICARD_NO"): "*");
+
+						row.put("spousePhone", rs.getString("PHONE_NUMBER_FM")!= null ? rs.getString("PHONE_NUMBER_FM"): "*");
+
+						row.put("homeAddress", rs.getString("HOME_ADDRESS")!= null ? rs.getString("HOME_ADDRESS"): "*");
+
+						row.put("cityCodeHome", rs.getString("HOME_CITY")!= null ? rs.getString("HOME_CITY"): "*");
+
+						row.put("districtCodeHome", rs.getString("HOME_DISTRICT")!= null ? rs.getString("HOME_DISTRICT"): "*");
+
+						row.put("homeCom", rs.getString("COMP_ADDRESS")!= null ? rs.getString("COMP_ADDRESS"): "*");
+
+						row.put("cityCodeCom", rs.getString("COMP_CITY")!= null ? rs.getString("COMP_CITY"): "*");
+
+						row.put("districtCodeCom", rs.getString("COMP_DISTRICT")!= null ? rs.getString("COMP_DISTRICT"): "*");
+
+						row.put("comName", rs.getString("COMP_NAME")!= null ? rs.getString("COMP_NAME"): "*");
+
+						row.put("position", rs.getString("COMP_POSITION")!= null ? rs.getString("COMP_POSITION"): "*");
+
+						row.put("appStatus", rs.getString("APPL_STATUS")!= null ? rs.getString("APPL_STATUS"): "*");
+
+						row.put("appStage", rs.getString("APPL_STAGE")!= null ? rs.getString("APPL_STAGE"): "*");
+						
+						return row;
+					}
+			);
+
+			return response(200, mapper.convertValue(output, JsonNode.class));
+		} catch (Exception e) {
+			return response(500, mapper.createObjectNode().put("message", e.getMessage()));
 		}
 	}
 
