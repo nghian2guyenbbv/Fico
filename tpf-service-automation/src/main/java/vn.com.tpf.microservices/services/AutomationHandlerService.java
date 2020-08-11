@@ -5510,6 +5510,17 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
+            try {
+
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+
+                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
+            } catch (Exception e) {
+                log.info("Vap:" + e.toString());
+            }
+
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -5813,6 +5824,17 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
+
+            try {
+
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+
+                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
+            } catch (Exception e) {
+                log.info("Vap:" + e.toString());
+            }
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
