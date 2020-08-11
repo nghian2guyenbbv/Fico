@@ -108,6 +108,12 @@ public class RepaymentService {
 	@Value("${spring.hostRequest.url}")
 	private String urlAPI;
 
+	@Value("${spring.syncqueue.fromTime}")
+	private String fromTime;
+
+	@Value("${spring.syncqueue.toTime}")
+	private String toTime;
+
 	@Autowired
 	private FicoTransPayQueueDAO ficoTransPayQueueDAO;
 
@@ -292,8 +298,8 @@ public class RepaymentService {
 
 					//check thời gian EOD
 					LocalTime now = LocalTime.now();
-					LocalTime ninePM = LocalTime.parse("14:30");
-					LocalTime fourAM = LocalTime.parse("04:00");
+					LocalTime ninePM = LocalTime.parse(fromTime);
+					LocalTime fourAM = LocalTime.parse(toTime);
 
 					if(now.isBefore(ninePM)&&now.isAfter(fourAM))
 					{
@@ -364,7 +370,7 @@ public class RepaymentService {
 							}finally {
 								//save report
 								try {
-									log.info("REQ:" + mapper.writeValueAsString(requestModel) +" - RES:" + response);
+									log.info("CALL API FIN1 - REQ:" + mapper.writeValueAsString(requestModel) +" - RES:" + response);
 
 									saveReportReceiptPaymentLog(ficoRepaymentModel,response,timestamp,errorMessage);
 								} catch (JsonProcessingException e) {
@@ -982,7 +988,8 @@ public class RepaymentService {
 	private String ftpUser;
 	@Value("${spring.ftp.password}")
 	private String ftpPass;
-
+	@Value("${spring.ftp.folder}")
+	private String folderFtp;
 
 	@Autowired
 	private FicoCronLogDAO ficoCronLogDAO;
@@ -1008,83 +1015,112 @@ public class RepaymentService {
 	}
 
 	@Scheduled(cron = "${spring.ftp.cronconfig}")
+	@Transactional
 	public Map<String, Object> getCron() throws IOException, MessagingException {
 		ResponseModel responseModel = new ResponseModel();
+		String message="";
+		try {
+//
+//		FTPClient ftpClient = new FTPClient();
+//		boolean success = connectFTP(ftpClient);
+//		if (!success) {
+//			System.out.println("Could not login to the server");
+//		} else {
+//			System.out.println("LOGGED IN SERVER");
+////			String[] filesFTP = ftpClient.listNames();
+////			for (String file : filesFTP) {
+////				System.out.println("File:  " +  file);
+////			}
+//
+////			Arrays.sort(ftpClient.listFiles(),
+////					Comparator.comparing((FTPFile remoteFile) -> remoteFile.getTimestamp()).reversed());
+//
+//			FTPFile[] ftpFiles = ftpClient.listFiles();
+//
+//			//File folder=new File("D:\\testftp");
 
-		FTPClient ftpClient = new FTPClient();
-		boolean success = connectFTP(ftpClient);
-		if (!success) {
-			System.out.println("Could not login to the server");
-		} else {
-			System.out.println("LOGGED IN SERVER");
-//			String[] filesFTP = ftpClient.listNames();
-//			for (String file : filesFTP) {
-//				System.out.println("File:  " +  file);
-//			}
-
-//			Arrays.sort(ftpClient.listFiles(),
-//					Comparator.comparing((FTPFile remoteFile) -> remoteFile.getTimestamp()).reversed());
-
-			FTPFile[] ftpFiles = ftpClient.listFiles();
-
-			//File folder=new File("D:\\testftp");
-
-			File dir = new File("D:\\testftp");
+			File dir = new File(folderFtp);
 			File[] files = dir.listFiles();
-			File lastModified = Arrays.stream(files).filter(File::isDirectory).max(Comparator.comparing(File::lastModified)).orElse(null);
-			System.out.println(lastModified);
 
-			if (lastModified !=null) {
-				//FTPFile file = lastFileModified(ftpFiles);
+			if(files.length > 0) {
 
-				String folderName=lastModified.getName();
+				File lastModified = Arrays.stream(files).filter(File::isDirectory).max(Comparator.comparing(File::lastModified)).orElse(null);
+				message += "last folder:" + lastModified;
 
-				//check file ton tai hay chua
-				List<FicoCronLogModel> ficoCronLogModelList = ficoCronLogDAO.findByFileName(folderName);
+				if (lastModified != null) {
+					//FTPFile file = lastFileModified(ftpFiles);
 
-				if (ficoCronLogModelList.size() > 0) {
-					System.out.println("File:  " + folderName + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+					String folderName = lastModified.getName();
 
-					responseModel.setRequest_id(UUID.randomUUID().toString());
-					responseModel.setMessage("File:  " + folderName + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
-					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code(0);
+					//check file ton tai hay chua
+					List<FicoCronLogModel> ficoCronLogModelList = ficoCronLogDAO.findByFileName(folderName);
 
-					return Map.of("status", 200, "data", responseModel);
-				}
+					if (ficoCronLogModelList.size() > 0) {
+						message+="; File:  " + folderName + " exist " + ficoCronLogModelList.get(0).getCreatedDate();
 
-				//ghi log
-				FicoCronLogModel ficoCronLogModel = FicoCronLogModel.builder()
+						responseModel.setRequest_id(UUID.randomUUID().toString());
+						responseModel.setMessage("File:  " + folderName + " exist " + ficoCronLogModelList.get(0).getCreatedDate());
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(0);
+
+						return Map.of("status", 200, "data", responseModel);
+					}
+
+					//ghi log
+					FicoCronLogModel ficoCronLogModel = FicoCronLogModel.builder()
 							.fileName(folderName)
 							.createdDate(new Date())
 							.fileCreatedDate(new Date(lastModified.lastModified()))
 							.build();
-				ficoCronLogDAO.save(ficoCronLogModel);
+					ficoCronLogDAO.save(ficoCronLogModel);
 
-				//call proc sync
+					//call proc sync
+					Session session = entityManager.unwrap(Session.class);
+					session.doWork(new Work() {
+						@Override
+						public void execute(Connection connection) throws SQLException {
+							//connection, finally!
+							String storeProc = String.format("CALL payoo.sp_ora_data_net_amount_by_user();");
+							try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
+								int resuk = stmt.executeUpdate();
+								log.info("cronjob syncdata: Found : " + resuk + "result");
+							}
 
-				//send mail
-				sendMail();
+						}
+					});
 
-				//return
-				responseModel.setRequest_id(UUID.randomUUID().toString());
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setMessage("File:  " + folderName + " complete at " + new Date(lastModified.lastModified()));
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(0);
+					//send mail
+					//sendMail();
 
-				return Map.of("status", 200, "data", responseModel);
+					//return
+					responseModel.setRequest_id(UUID.randomUUID().toString());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setMessage("File:  " + folderName + " complete at " + new Date(lastModified.lastModified()));
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
+
+					message +="; File:  " + folderName + " complete at " + new Date(lastModified.lastModified());
+
+					return Map.of("status", 200, "data", responseModel);
+				}
 			}
+
+			//}
+			responseModel.setRequest_id(UUID.randomUUID().toString());
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+
+			System.out.println("job : " + new Date());
+			return Map.of("status", 200, "data", responseModel);
+		} catch (Exception e) {
+			message +="; ERROR: " + e.toString();
+			return Map.of("status", 500, "data", e.toString());
 		}
-		responseModel.setRequest_id(UUID.randomUUID().toString());
-		responseModel.setReference_id(UUID.randomUUID().toString());
-		responseModel.setDate_time(new Timestamp(new Date().getTime()));
-		responseModel.setResult_code(0);
-
-		System.out.println("job : " + new Date());
-		return Map.of("status", 200, "data", responseModel);
-
+		finally{
+			log.info("GetCron - sync after FCC: " + message);
+		}
 	}
 
 	public static FTPFile lastFileModified(FTPFile[] files) {
@@ -1147,6 +1183,7 @@ public class RepaymentService {
 	@Scheduled(cron = "${spring.syncqueue.cronconfig}")
 	public Map<String, Object> syncDataInQueue()
 	{
+		String message="";
 		Timestamp date_time = new Timestamp(new Date().getTime());
 		try{
 			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getlistqueue");
@@ -1175,8 +1212,7 @@ public class RepaymentService {
 	@Autowired
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplatePosgres;
 
-	public String F1_Fn_get_loan_netamount(String loanAccount)
-	{
+	public String F1_Fn_get_loan_netamount(String loanAccount) {
 		SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("loanAccount", loanAccount);
 		String sql="select serviceapp.fn_get_loan_netamount(:loanAccount) as RESULT from dual";
 
@@ -1216,8 +1252,6 @@ public class RepaymentService {
 		return resultData;
 	}
 
-
-
 	// --------------------- END ---------------------------------------
 
 	// ---------------------- API FIN1 ---------------------------------
@@ -1233,8 +1267,7 @@ public class RepaymentService {
 		return resultData;
 	}
 
-	public void callFin1API(List<FicoTransPayQueue> ficoTransPayQueueList)
-	{
+	public void callFin1API(List<FicoTransPayQueue> ficoTransPayQueueList) {
 		for (FicoTransPayQueue fico: ficoTransPayQueueList) {
 
 			updateSyncData(fico.getId());

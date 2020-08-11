@@ -7,5 +7,5 @@ import vn.com.tpf.microservices.models.FicoTransPaySettle;
 
 @Transactional
 public interface FicoTransPaySettleDAO extends CrudRepository<FicoTransPaySettle, Long> {
-    FicoTransPay findByTransactionId(String id);
+    FicoTransPaySettle findByTransactionId(String id);
 }
