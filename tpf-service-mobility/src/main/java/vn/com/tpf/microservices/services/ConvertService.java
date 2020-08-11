@@ -299,4 +299,25 @@ public class ConvertService {
 		return app;
 	}
 
+	public ObjectNode toReturnQueryNonWebFinnone(Mobility mobility) {
+
+		ObjectNode app = mapper.createObjectNode();
+		app.put("project", "mobility");
+		app.put("transaction_id", mobility.getId());
+		app.put("appId", mobility.getAppId());
+
+		JsonNode lastReturnQuery = mapper.convertValue(mobility.getReturns().get("returnQueries"), ArrayNode.class)
+				.get(0);
+		app.put("commentText", lastReturnQuery.path("comment").asText());
+		ObjectNode dataDocument = mapper.createObjectNode();
+		dataDocument.put("fileName", lastReturnQuery.path("data").path("filename").asText());
+		dataDocument.put("documentName", lastReturnQuery.path("data").path("type").asText());
+		dataDocument.put("originalname", lastReturnQuery.path("data").path("originalname").asText());
+		dataDocument.put("md5", lastReturnQuery.path("data").path("documentMd5").asText());
+		dataDocument.put("contentType", lastReturnQuery.path("data").path("documentFileExtension").asText());
+
+		app.set("dataDocument", dataDocument);
+
+		return app;
+	}
 }

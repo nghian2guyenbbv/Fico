@@ -813,7 +813,7 @@ public class MobilityService {
 				Mobility.class);
 		if(3 != mobility.getPartnerId()){
 			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "commentAppNonWeb", "body",
-					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+					convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 		} else {
 		   rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
 				   convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
