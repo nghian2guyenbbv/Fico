@@ -734,13 +734,13 @@ public class MobilityService {
 		if (mobility == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
-
-		if (!mobility.getStatus().equals(STATUS_T_RETURN))
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message",
-							String.format("data.appId %s not request resubmit query. current stage %s status %s", appId,
-									mobility.getStage(), mobility.getStatus())));
-
+		if(3 == mobility.getPartnerId()) {
+			if (!mobility.getStatus().equals(STATUS_T_RETURN))
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message",
+								String.format("data.appId %s not request resubmit query. current stage %s status %s", appId,
+										mobility.getStage(), mobility.getStatus())));
+		}
 		final String productCode = mobility.getProduct().replace(" ", "_").trim().toLowerCase();
 		final String schemeCode = mobility.getScheme().replace(" ", "_").trim().toLowerCase();
 
