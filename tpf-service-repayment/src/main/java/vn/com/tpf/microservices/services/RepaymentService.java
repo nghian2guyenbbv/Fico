@@ -267,7 +267,8 @@ public class RepaymentService {
                 return Map.of("status", 200, "data", responseModel);
             }
 
-			FicoTransPay getByTransactionId = ficoTransPayDAO.findByTransactionId(requestModel.getData().getTransaction_id());
+			//FicoTransPay getByTransactionId = ficoTransPayDAO.findByTransactionId(requestModel.getData().getTransaction_id());
+            FicoTransPaySettle getByTransactionId = ficoTransPaySettleDAO.findByTransactionId(requestModel.getData().getTransaction_id());
 			if (getByTransactionId == null) {
 				FicoCustomer ficoLoanId = ficoCustomerDAO.findByLoanId(requestModel.getData().getLoan_id());
 				List<FicoCustomer> ficoLoanAcct = ficoCustomerDAO.findByLoanAccountNo(requestModel.getData().getLoan_account_no());
@@ -1237,19 +1238,37 @@ public class RepaymentService {
 
 		String[] listParam=result.split("\\|");
 
-		SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("netamount", Integer.parseInt(listParam[4]),
-																					"installmentamount", Integer.parseInt(listParam[5]),
-																					"duedate",  LocalDate.parse(listParam[6],formatterParseInput),
-																					"syncdate", new Timestamp(new Date().getTime()),
-																					"loanstatus", listParam[7],
-																					"loanAccount", loanAccount));
-		String sql="Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
-				"set net_amount=:netamount, installment_amount=:installmentamount, duedate=:duedate, syncdate=:syncdate, loan_status=:loanstatus " +
-				"where loan_account_no=:loanAccount";
+		if(listParam[7].equals("A"))
+		{
 
-		int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
+			SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("netamount", Integer.parseInt(listParam[4]),
+																						"installmentamount", Integer.parseInt(listParam[5]),
+																						"duedate", LocalDate.parse(listParam[6],formatterParseInput),
+																						"syncdate", new Timestamp(new Date().getTime()),
+																						"loanstatus", listParam[7],
+																						"loanAccount", loanAccount));
+			String sql="Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
+					"set net_amount=:netamount, installment_amount=:installmentamount, duedate=:duedate, syncdate=:syncdate, loan_status=:loanstatus " +
+					"where loan_account_no=:loanAccount";
 
-		return resultData;
+			int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
+
+			return resultData;
+		}
+		else{
+			SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("netamount", Integer.parseInt(listParam[4]),
+					"installmentamount", Integer.parseInt(listParam[5]),
+					"syncdate", new Timestamp(new Date().getTime()),
+					"loanstatus", listParam[7],
+					"loanAccount", loanAccount));
+			String sql="Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
+					"set net_amount=:netamount, installment_amount=:installmentamount, syncdate=:syncdate, loan_status=:loanstatus " +
+					"where loan_account_no=:loanAccount";
+
+			int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
+
+			return resultData;
+		}
 	}
 
 	// --------------------- END ---------------------------------------

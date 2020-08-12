@@ -1,8 +1,10 @@
 package vn.com.tpf.microservices.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -14,6 +16,8 @@ import java.util.Date;
 @Builder
 @Table(name = "fico_trans_pay_settle", schema = "payoo")
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class FicoTransPaySettle {
     @Id
     @Column(name="id")
