@@ -335,6 +335,9 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'dynamic_addedPNO')]//input[contains(@placeholder,'Mobile Phone')]")
     private List<WebElement> listMobileAlternateElement;
 
+    @FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList0_phoneNumber']")
+    private WebElement mobilePhoneNumberCurrentAddressElement;
+
 
     public CRM_ApplicationInfoPersonalTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -827,8 +830,13 @@ public class CRM_ApplicationInfoPersonalTab {
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
             }
             if(data.getMobilePhone() != null){
-                currentAddrMonthsElement.clear();
-                mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+                if ("Current Address".equals(data.getAddressType())){
+                    mobilePhoneNumberCurrentAddressElement.clear();
+                    mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+                }else{
+                    mobilePhoneNumberElement.clear();
+                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+                }
             }
 
             Utilities.captureScreenShot(_driver);
