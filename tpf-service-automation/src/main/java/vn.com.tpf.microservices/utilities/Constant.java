@@ -7,7 +7,7 @@ public class Constant {
     public static int TIME_OUT_5_M = 300;
     public static int ACCOUNT_AVAILABLE_TIMEOUT = 120; //600
     public static int TOTAL_TIME_OUT_S = 1200;
-    public static int THREAD_NUM = 10;
+    public static int THREAD_NUM = 50;
     public static int INPUT_TIMES = 3;
     public static int WAIT_ACCOUNT_TIMEOUT = 20000; // milis
     public static int WAIT_ACCOUNT_GET_NULL = 2000; // milis
