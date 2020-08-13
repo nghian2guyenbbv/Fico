@@ -5510,6 +5510,8 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
+            Thread.sleep(15000);
+
             try {
 
                 await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -5824,6 +5826,8 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
+
+            Thread.sleep(15000);
 
             try {
 
