@@ -1227,48 +1227,46 @@ public class RepaymentService {
 		return "";
 	}
 
-	public int updateDataLoanFromF1(String result,String loanAccount){
+	public int updateDataLoanFromF1(String result, String loanAccount) {
 
-		if(StringUtils.isEmpty(result))
-		{
+		if (StringUtils.isEmpty(result)) {
 			return 0;
 		}
 
-		DateTimeFormatter formatterParseInput= new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
+		DateTimeFormatter formatterParseInput = new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern("dd-MMM-yyyy").toFormatter(Locale.ENGLISH);
 
-		String[] listParam=result.split("\\|");
+		String[] listParam = result.split("\\|");
 
-		if(listParam[7].equals("A"))
-		{
 
-			SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("netamount", Integer.parseInt(listParam[4]),
-																						"installmentamount", Integer.parseInt(listParam[5]),
-																						"duedate", LocalDate.parse(listParam[6],formatterParseInput),
-																						"syncdate", new Timestamp(new Date().getTime()),
-																						"loanstatus", listParam[7],
-																						"loanAccount", loanAccount));
-			String sql="Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
-					"set net_amount=:netamount, installment_amount=:installmentamount, duedate=:duedate, syncdate=:syncdate, loan_status=:loanstatus " +
-					"where loan_account_no=:loanAccount";
-
-			int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
-
-			return resultData;
-		}
-		else{
+		if (listParam[7].equals("C") || StringUtils.isEmpty(listParam[6])) {
 			SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("netamount", Integer.parseInt(listParam[4]),
 					"installmentamount", Integer.parseInt(listParam[5]),
 					"syncdate", new Timestamp(new Date().getTime()),
 					"loanstatus", listParam[7],
 					"loanAccount", loanAccount));
-			String sql="Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
+			String sql = "Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
 					"set net_amount=:netamount, installment_amount=:installmentamount, syncdate=:syncdate, loan_status=:loanstatus " +
 					"where loan_account_no=:loanAccount";
 
-			int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
+			int resultData = namedParameterJdbcTemplatePosgres.update(sql, namedParameters);
 
 			return resultData;
 		}
+
+		SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("netamount", Integer.parseInt(listParam[4]),
+				"installmentamount", Integer.parseInt(listParam[5]),
+				"duedate", LocalDate.parse(listParam[6], formatterParseInput),
+				"syncdate", new Timestamp(new Date().getTime()),
+				"loanstatus", listParam[7],
+				"loanAccount", loanAccount));
+		String sql = "Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
+				"set net_amount=:netamount, installment_amount=:installmentamount, duedate=:duedate, syncdate=:syncdate, loan_status=:loanstatus " +
+				"where loan_account_no=:loanAccount";
+
+		int resultData = namedParameterJdbcTemplatePosgres.update(sql, namedParameters);
+
+		return resultData;
+
 	}
 
 	// --------------------- END ---------------------------------------
