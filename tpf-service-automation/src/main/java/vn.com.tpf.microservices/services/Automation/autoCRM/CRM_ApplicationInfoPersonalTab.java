@@ -978,6 +978,10 @@ public class CRM_ApplicationInfoPersonalTab {
                     currentAddrMonthsElement.clear();
                     currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
                 }
+                if(data.getMobilePhone() != null){
+                    currentAddrMonthsElement.clear();
+                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+                }
 
                 Utilities.captureScreenShot(_driver);
                 actions.moveToElement(btnSaveAddressElement).click().build().perform();
@@ -1070,6 +1074,10 @@ public class CRM_ApplicationInfoPersonalTab {
                 if(data.getResidentDurationMonth() != null) {
                     currentAddrMonthsElement.clear();
                     currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+                }
+                if(data.getMobilePhone() != null){
+                    currentAddrMonthsElement.clear();
+                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 }
 
                 Utilities.captureScreenShot(_driver);
