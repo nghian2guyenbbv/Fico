@@ -21,6 +21,7 @@ public class CRM_AddressDTO {
     public String yearsInCurrentAddress;
     public String monthsInCurrentAddress;
     public String phoneNumbers;
+    public String phoneNumber;
 
 //    public List<CRM_PhonenumberDTO> phoneNumbers = null;
 
