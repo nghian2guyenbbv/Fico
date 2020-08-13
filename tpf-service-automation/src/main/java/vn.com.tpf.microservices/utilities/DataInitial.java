@@ -798,7 +798,7 @@ public class DataInitial {
                         .addressLandmark(address.getLandMark())
                         .residentDurationYear(address.getYearsInCurrentAddress())
                         .residentDurationMonth(address.getMonthsInCurrentAddress())
-                        .mobilePhone(address.getPhoneNumbers())
+                        .mobilePhone(address.getPhoneNumber())
                         .build();
                 addressDTOs.add(addressDTO);
             }

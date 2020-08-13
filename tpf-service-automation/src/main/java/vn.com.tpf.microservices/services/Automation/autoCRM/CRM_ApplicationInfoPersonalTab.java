@@ -743,7 +743,7 @@ public class CRM_ApplicationInfoPersonalTab {
 
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
-            mobilePhoneNumberElement.click();
+
             await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressTypeElement.isDisplayed());
 
@@ -825,6 +825,10 @@ public class CRM_ApplicationInfoPersonalTab {
             if(data.getResidentDurationMonth() != null) {
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+            }
+            if(data.getMobilePhone() != null){
+                currentAddrMonthsElement.clear();
+                mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             }
 
             Utilities.captureScreenShot(_driver);
