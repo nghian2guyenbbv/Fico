@@ -93,7 +93,7 @@ public class DataInitial {
                 .employmentType(employmentDetails.getEmploymentType())
                 .durationYears(employmentDetails.getYearsInJob())
                 .durationMonths(employmentDetails.getMonthsInJob())
-                .otherCompanyTaxCode(employmentDetails.getOtherCompanyTaxCode())
+                .otherCompanyTaxCode(employmentDetails.getOtherCompanyTaxCode().equals("0")?"":employmentDetails.getOtherCompanyTaxCode())
                 .totalMonthsInOccupation(employmentDetails.getTotalMonthsInOccupation().isEmpty()?0:Integer.parseInt(employmentDetails.getTotalMonthsInOccupation()))
                 .totalYearsInOccupation(employmentDetails.getTotalYearsInOccupation().isEmpty()?0:Integer.parseInt(employmentDetails.getTotalYearsInOccupation()))
                 .isMajorEmployment(employmentDetails.getIsMajorEmployment())
