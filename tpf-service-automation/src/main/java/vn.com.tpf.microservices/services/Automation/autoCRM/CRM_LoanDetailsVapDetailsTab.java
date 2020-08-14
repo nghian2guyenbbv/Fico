@@ -77,7 +77,7 @@ public class CRM_LoanDetailsVapDetailsTab {
         //vap product
         Utilities.captureScreenShot(_driver);
         if (deleteVapElement.size() > 0){
-            for (int i=0; i<deleteVapElement.size()-1; i++) {
+            for (int i=0; i<deleteVapElement.size(); i++) {
                 WebElement var = deleteVapElement.get(i);
                 var.click();
             }
