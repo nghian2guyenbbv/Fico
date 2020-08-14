@@ -479,6 +479,10 @@ public class CRM_ApplicationInfoPersonalTab {
                         WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
                         new Select(type).selectByVisibleText("Other National ID");
                     }
+                    if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
+                        WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                        new Select(type).selectByVisibleText("Spouse Other National ID");
+                    }
                     WebElement country = _driver.findElement(By.id("idDetail_country" + i));
                     new Select(country).selectByVisibleText("Vietnam");
                 }
@@ -588,12 +592,16 @@ public class CRM_ApplicationInfoPersonalTab {
                     if (optionIdentificationTypeLabel.equals("Other National ID")){
                         deleteDetailsId.click();
                     }
-                    if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
+                    if (optionIdentificationTypeLabel.equals("Spouse Other National ID")){
                         deleteDetailsId.click();
                     }
                     if (optionIdentificationTypeLabel.equals("Current National ID")){
                         WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
                         new Select(type).selectByVisibleText("Other National ID");
+                    }
+                    if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
+                        WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                        new Select(type).selectByVisibleText("Spouse Other National ID");
                     }
                 }
             }
