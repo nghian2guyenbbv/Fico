@@ -255,7 +255,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 
             departmentNameElement.sendKeys(data.getDepartment());
 
-            otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
+            if (!data.getOtherCompanyTaxCode().isEmpty() || !"0".equals(data.getOtherCompanyTaxCode())){
+                otherCompanyTaxCodeElement.clear();
+                otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
+            }
 
             employmentStatusElement.click();
             await("employmentStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -350,8 +353,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         departmentNameElement.clear();
         departmentNameElement.sendKeys(data.getDepartment());
 
-        otherCompanyTaxCodeElement.clear();
-        otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
+        if (!data.getOtherCompanyTaxCode().isEmpty() || !"0".equals(data.getOtherCompanyTaxCode())){
+            otherCompanyTaxCodeElement.clear();
+            otherCompanyTaxCodeElement.sendKeys(data.getOtherCompanyTaxCode());
+        }
 
         employmentStatusElement.click();
         await("employmentStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
