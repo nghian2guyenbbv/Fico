@@ -339,8 +339,6 @@ public class AutomationService {
 		AutomationThreadService automationThreadService = null;
 		if("smartnet".equals(projectJson)) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
-		}else if("mobility".equals(projectJson)) {
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
 		}else{
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery",projectJson);
 		}
@@ -375,8 +373,6 @@ public class AutomationService {
 		AutomationThreadService automationThreadService = null;
 		if(projectJson.equals("smartnet")) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
-		}else if(projectJson.equals("mobility")) {
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","MOBILITY_FIELD");
 		}else{
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue",projectJson);
 		}
