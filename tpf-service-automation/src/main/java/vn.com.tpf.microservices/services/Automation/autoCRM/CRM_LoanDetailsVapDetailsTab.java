@@ -75,13 +75,14 @@ public class CRM_LoanDetailsVapDetailsTab {
 
     public void setData(CRM_VapDetailsDTO data) {
         //vap product
+        Utilities.captureScreenShot(_driver);
         if (deleteVapElement.size() > 0){
-            for (int i=0; i<deleteVapElement.size()-1; i++) {
+            for (int i=0; i<deleteVapElement.size(); i++) {
                 WebElement var = deleteVapElement.get(i);
                 var.click();
             }
         }
-
+        Utilities.captureScreenShot(_driver);
         vapProductElement.click();
         Utilities.captureScreenShot(_driver);
         await("vapProductOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
