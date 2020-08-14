@@ -588,6 +588,9 @@ public class CRM_ApplicationInfoPersonalTab {
                     if (optionIdentificationTypeLabel.equals("Other National ID")){
                         deleteDetailsId.click();
                     }
+                    if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
+                        deleteDetailsId.click();
+                    }
                     if (optionIdentificationTypeLabel.equals("Current National ID")){
                         WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
                         new Select(type).selectByVisibleText("Other National ID");
