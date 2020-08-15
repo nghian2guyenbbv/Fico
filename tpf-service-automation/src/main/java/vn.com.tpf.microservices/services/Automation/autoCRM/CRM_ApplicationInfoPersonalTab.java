@@ -1103,6 +1103,15 @@ public class CRM_ApplicationInfoPersonalTab {
                     currentAddrMonthsElement.clear();
                     mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 }
+                if(data.getMobilePhone() != null){
+                    if ("Current Address".equals(data.getAddressType())){
+                        mobilePhoneNumberCurrentAddressElement.clear();
+                        mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+                    }else{
+                        mobilePhoneNumberElement.clear();
+                        mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+                    }
+                }
 
                 Utilities.captureScreenShot(_driver);
                 actions.moveToElement(btnSaveAddressElement).click().build().perform();
