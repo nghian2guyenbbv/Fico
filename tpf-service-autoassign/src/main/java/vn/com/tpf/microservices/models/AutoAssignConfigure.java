@@ -50,4 +50,5 @@ public class AutoAssignConfigure {
     public AutoAssignConfigure() {
     }
 
+    private String createdBy;
 }

@@ -3,7 +3,7 @@ spring:
     name: tpf-service-autoassign
   cloud:
     config:
-      uri: http://127.0.0.1:8888
+      uri: http://10.131.31.202:8888
 ---
 spring:
   profiles: dev

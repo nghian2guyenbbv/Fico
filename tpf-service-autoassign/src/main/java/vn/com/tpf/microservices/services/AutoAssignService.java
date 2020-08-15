@@ -11,6 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -38,6 +42,8 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class AutoAssignService {
@@ -116,9 +122,20 @@ public class AutoAssignService {
 			List<AutoAssignConfigure> resultConfigInDay = new ArrayList<>();
 			resultConfigInDay = autoAssignConfigureDAO.findConfigureByCreatedDate(request.path("data").path("searchDay").textValue());
 
+			if(resultConfigInDay.size()==0)
+			{
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Không có config");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
 			responseModel.setData(resultConfigInDay);
 		}
 		catch (Exception e) {
@@ -128,8 +145,6 @@ public class AutoAssignService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -166,15 +181,17 @@ public class AutoAssignService {
 						createAssign.setVendorName(item.getVendorName());
 						createAssign.setPriority(item.getPriority());
 						createAssign.setAssign(true);
+						createAssign.setCreatedBy("system");
 
 						inputDataInsert.add(createAssign);
 					}
 					List<AutoAssignConfigure> result = autoAssignConfigureDAO.saveAll(inputDataInsert);
 
+					//ghi log
 					AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
 					autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
 					autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
-					autoAssignConfigureHistory.setData(inputDataInsert.toString());
+					autoAssignConfigureHistory.setData( mapper.writeValueAsString(inputDataInsert));
 					AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
 				}
 				int result = autoAssignConfigureDAO.updateSeq();
@@ -196,12 +213,13 @@ public class AutoAssignService {
 		String request_id = null;
 		try{
 			RequestModel requestModel = mapper.treeToValue(request, RequestModel.class);
+			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
 
 			if (requestModel.getData() == null){
 				responseModel.setRequest_id(requestModel.getRequest_id());
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(0);
+				responseModel.setResult_code(1);
 				responseModel.setMessage("data null!");
 				return Map.of("status", 200, "data", responseModel);
 			}
@@ -210,9 +228,19 @@ public class AutoAssignService {
 			List<AutoAssignConfigure> inputDataInsert = new ArrayList<>();
 			DateTimeFormatter formatterParseInput = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-//			List<AutoAssignConfigure> resultConfigurePreOne = autoAssignConfigureDAO.findConfigureByCreatedDate(formatterParseInput.format(LocalDate.now().plusDays(-1)));
+			//List<AutoAssignConfigure> resultConfigurePreOne = autoAssignConfigureDAO.findConfigureByCreatedDate(formatterParseInput.format(LocalDate.now().plusDays(-1)));
 			List<AutoAssignConfigure> resultConfigure = autoAssignConfigureDAO.findConfigureByCreatedDate(formatterParseInput.format(LocalDate.now()));
 
+			if(resultConfigure.size()>0)
+			{
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(201);
+				responseModel.setMessage("Đã tồn tại config");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
 			if (resultConfigure.size() <= 0) {
 				for (AutoAssignConfigure item : requestModel.getData()) {
 
@@ -235,16 +263,25 @@ public class AutoAssignService {
 					createAssign.setVendorName(item.getVendorName());
 					createAssign.setPriority(item.getPriority());
 					createAssign.setAssign(true);
+					createAssign.setCreatedBy(token.path("user_name").textValue());
 
 					inputDataInsert.add(createAssign);
 				}
 				List<AutoAssignConfigure> result = autoAssignConfigureDAO.saveAll(inputDataInsert);
+
+				//ghi log
+				AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
+				autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
+				autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
+				autoAssignConfigureHistory.setData( mapper.writeValueAsString(inputDataInsert));
+				AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
 			}
 
 			responseModel.setRequest_id(requestModel.getRequest_id());
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
 
 		}
 		catch (Exception e) {
@@ -341,7 +378,7 @@ public class AutoAssignService {
 					if (item.getTotalQuanlity() >= resultConfigById.getActualTotalQuanlity() &&
 							item.getQuanlityInDay() >= resultConfigById.getActualQuanlityInDay()){
 						int result = autoAssignConfigureDAO.updateConfigure(item.getTotalQuanlity(), item.getQuanlityInDay(),
-								item.getPriority(), true, item.getId(), resultConfigById.getIdSeq());
+								item.getPriority(), true, item.getId(), resultConfigById.getIdSeq(),token.path("user_name").textValue());
 					}
 				}
 			}
@@ -478,4 +515,90 @@ public class AutoAssignService {
 
 		return null;
 	}
+
+	//---------------- UPDATE ------------------------------------
+	public Map<String, Object> getHistory(Map<String, String> param) {
+		int page = Integer.parseInt(param.getOrDefault("page","1"));
+		int limit = Integer.parseInt(param.getOrDefault("limit","10"));
+		String[] sort = param.getOrDefault("sort","created_date,desc").split(",");
+
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			List<AutoAssignConfigure> resultConfig = new ArrayList<>();
+
+			Pageable paging = PageRequest.of(page, limit, Sort.by(sort[1].equals("desc")? Sort.Direction.DESC: Sort.Direction.ASC,sort[0]));
+			resultConfig = autoAssignConfigureDAO.getHistory(paging);
+
+			if(resultConfig.size()==0) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Không có danh sác");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			int total=autoAssignConfigureDAO.totalRow();
+			int totalPage= total / limit;
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
+			responseModel.setData(Map.of("result",resultConfig,"total", total,"totalpage",totalPage));
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getQuickReport() {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			DateTimeFormatter formatterParseInput = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			List<AutoAssignConfigure> resultConfigInDay = new ArrayList<>();
+			resultConfigInDay = autoAssignConfigureDAO.findConfigureByCreatedDate(formatterParseInput.format(LocalDate.now()));
+
+			if(resultConfigInDay.size()==0)
+			{
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Không có config");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
+			responseModel.setData(resultConfigInDay.stream()
+					.map(temp->{
+						return QuickReportModel.builder().actualQuanlityInDay(temp.getActualQuanlityInDay())
+								.actualTotalQuanlity(temp.getActualTotalQuanlity())
+								.vendorId(temp.getVendorId())
+								.vendorName(temp.getVendorName()).build();
+					})
+					.collect(Collectors.toList()));
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 }

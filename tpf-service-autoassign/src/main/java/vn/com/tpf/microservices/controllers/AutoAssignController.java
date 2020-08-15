@@ -12,10 +12,7 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.services.AutoAssignService;
 import vn.com.tpf.microservices.services.RabbitMQService;
@@ -120,6 +117,24 @@ public class AutoAssignController {
 
 		return ResponseEntity.status(200).body(Map.of("result_code", 0, "request_id", reqId,"reference_id", refId, "date_time", new Timestamp(new Date().getTime()),
 				"data", Map.of("vendorName", responseConfig.get("vendorName"), "vendorId", responseConfig.get("vendorId"), "routingId", responseConfig.get("routingId"))));
+	}
+
+	@GetMapping("/gethistory")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> getHistory(@RequestHeader("Authorization") String token,@RequestParam Map<String, String> param)
+			throws Exception {
+		Map<String, Object> response = autoAssignService.getHistory(param);
+		return ResponseEntity.status(200)
+				.header("x-pagination-total", "0").body(response.get("data"));
+	}
+
+	@GetMapping("/getquickreport")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> getQuickReport(@RequestHeader("Authorization") String token,@RequestParam Map<String, String> param)
+			throws Exception {
+		Map<String, Object> response = autoAssignService.getQuickReport();
+		return ResponseEntity.status(200)
+				.header("x-pagination-total", "0").body(response.get("data"));
 	}
 
 }
