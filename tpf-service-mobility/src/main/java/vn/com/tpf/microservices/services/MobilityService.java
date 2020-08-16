@@ -759,12 +759,13 @@ public class MobilityService {
 
 		HashMap<String, Object> returnQuery = new HashMap<>();
 		JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
-		if (returns.hasNonNull("returnQueries")
-				&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
-						.asBoolean())
-			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-					String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
-
+		if(3 == mobility.getPartnerId()) {
+			if (returns.hasNonNull("returnQueries")
+					&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
+					.asBoolean())
+				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+						String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
+		}
 		JsonNode document = data.path("document");
 		if (document != null) {
 			ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"),
