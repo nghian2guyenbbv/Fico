@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Builder
-@Document(collection="automation_return_smartnet")
+@Document(collection="automation_crm")
 public class CRM_SaleQueueDTO {
     private String appId;
     private String userAuto;
