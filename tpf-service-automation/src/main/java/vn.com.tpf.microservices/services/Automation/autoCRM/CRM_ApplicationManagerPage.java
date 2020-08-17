@@ -1,5 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.autoCRM;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.By;
@@ -12,6 +14,7 @@ import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -87,7 +90,7 @@ public class CRM_ApplicationManagerPage {
         _driver = driver;
     }
 
-    public void setData(String appId, String user) {
+    public void setData(String appId, String user) throws JsonParseException, JsonMappingException, IOException {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
