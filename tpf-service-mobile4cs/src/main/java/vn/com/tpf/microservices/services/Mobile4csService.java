@@ -164,6 +164,7 @@ public class Mobile4csService {
                 data.put("repaymentAmount", dataSql.getLong("repayAmount"));
                 data.put("loanStatus", dataSql.getString("loanStatus"));
                 data.put("dueDate", dataSql.getString("dueDate"));
+                data.put("dueDateEMI", dataSql.getLong("dueDateEMI"));
                 data.put("effectiveInterestRate", dataSql.getString("effRate"));
                 data.put("beneficiaryAccount", dataSql.getString("benAcct"));
                 ArrayNode dataScheduleNode = mapper.createArrayNode();
@@ -280,11 +281,8 @@ public class Mobile4csService {
 
     public JsonNode sendSms(JsonNode request) throws Exception {
         ResponseModel responseModel = new ResponseModel();
-        Map<String, Object> requestRabbit = new HashMap<>();
         try {
-            requestRabbit.put("func", "sendSms");
-            requestRabbit.put("body", request);
-            JsonNode response = rabbitMQService.sendAndReceive("tpf-service-sms", requestRabbit);
+            JsonNode response = rabbitMQService.sendAndReceive("tpf-service-sms", request);
             String resul_code = response.get("resultCode").asText();
             if (resul_code.equals("0")) {
                 responseModel.setResult_code(ResultData.SUCCESS.getResultCode());
