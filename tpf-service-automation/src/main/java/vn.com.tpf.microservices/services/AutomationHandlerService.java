@@ -5449,6 +5449,7 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
+                Thread.sleep(15000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
@@ -5765,6 +5766,7 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
+                Thread.sleep(15000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
