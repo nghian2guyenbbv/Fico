@@ -78,11 +78,10 @@ public class CRM_LoanDetailsVapDetailsTab {
         //vap product
         //Delete row VAP product
         Utilities.captureScreenShot(_driver);
-        int count = _driver.findElements(By.xpath("//div[@id = 'vap_details_Table_wrapper']//table[@id = 'vap_details_Table']//img[@id = 'delete']")).size();
+        int count = deleteVapElement.size();
         if (count > 0) {
             Utilities.captureScreenShot(_driver);
-            List<WebElement> deleteVap = _driver.findElements(By.xpath("//div[@id = 'vap_details_Table_wrapper']//table[@id = 'vap_details_Table']//img[@id = 'delete']"));
-            for(WebElement we : deleteVap.subList(1,deleteVap.size()))
+            for(WebElement we : deleteVapElement.subList(0, count))
             {
                 we.click();
             }
