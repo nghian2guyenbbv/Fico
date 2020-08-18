@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import lombok.Getter;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -75,13 +76,18 @@ public class CRM_LoanDetailsVapDetailsTab {
 
     public void setData(CRM_VapDetailsDTO data) {
         //vap product
+        //Delete row VAP product
         Utilities.captureScreenShot(_driver);
-        if (deleteVapElement.size() > 0){
-            for (int i=0; i<deleteVapElement.size(); i++) {
-                WebElement var = deleteVapElement.get(i);
-                var.click();
+        int count = _driver.findElements(By.xpath("//div[@id = 'vap_details_Table_wrapper']//table[@id = 'vap_details_Table']//img[@id = 'delete']")).size();
+        if (count > 0) {
+            Utilities.captureScreenShot(_driver);
+            List<WebElement> deleteVap = _driver.findElements(By.xpath("//div[@id = 'vap_details_Table_wrapper']//table[@id = 'vap_details_Table']//img[@id = 'delete']"));
+            for(WebElement we : deleteVap.subList(1,deleteVap.size()))
+            {
+                we.click();
             }
         }
+
         Utilities.captureScreenShot(_driver);
         vapProductElement.click();
         Utilities.captureScreenShot(_driver);

@@ -5701,6 +5701,7 @@ public class AutomationHandlerService {
 
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
             crm_applicationManagerPage.setData(applicationId, accountDTO.getUserName());
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);

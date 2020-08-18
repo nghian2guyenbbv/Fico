@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -90,7 +91,8 @@ public class CRM_ApplicationManagerPage {
         _driver = driver;
     }
 
-    public void setData(String appId, String user) throws JsonParseException, JsonMappingException, IOException {
+    @SneakyThrows
+    public void setData(String appId, String user) {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
@@ -121,8 +123,11 @@ public class CRM_ApplicationManagerPage {
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserOptionElement.size() > 0);
+        int listUserOption = textSelectUserOptionElement.size();
+
+        await("No User Auto Found timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> listUserOption > 0);
+
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
                 e.click();
