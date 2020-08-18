@@ -202,13 +202,19 @@ public class GetDataF1Service {
         return executeQuery(sql, namedParameters);
     }
 
-    public String getVapTreatment(String vapProduct){
-        SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("vapProduct", vapProduct);
-        String sql = "SELECT gp.code FROM NEO_CM_GA25_GIR_SD.GENERIC_PARAMETER gp \n" +
-                "join NEO_CM_GA25_GIR_SD.amount_computation_mapping acm on gp.id = acm.treatment_type\n" +
-                "join NEO_CM_GA25_GIR_SD.vap_policy_mapping vpm on acm.vap_amt_comp_fk = vpm.amt_comp_policy\n" +
-                "join NEO_CM_GA25_GIR_SD.vap_parameter_policy vpp on vpm.vap_parameter_policy = vpp.id\n" +
-                "and vpp.name=:vapProduct and vpm.approval_status=0 and vpp.approval_status=0";
+    public String getVapTreatment(String vapProduct, String productCode){
+        SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("vapProduct", vapProduct, "productCode", productCode));
+        String sql = "select gp.code from\n" +
+                "NEO_CM_GA25_GIR_SD.GENERIC_PARAMETER gp \n" +
+                "join NEO_CM_GA25_GIR_SD.AMOUNT_COMPUTATION_MAPPING acm on gp.id = acm.treatment_type\n" +
+                "join NEO_CM_GA25_GIR_SD.VAP_POLICY_MAPPING vpm on acm.vap_amt_comp_fk = vpm.amt_comp_policy\n" +
+                "join NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY vpp on vpm.vap_parameter_policy = vpp.id\n" +
+                "join NEO_CM_GA25_GIR_SD.PRODUCT_POLICY pp on pp.loan_policy = vpm.fk_vap_policy\n" +
+                "join NEO_CM_GA25_GIR_SD.LOAN_PRODUCT lp on lp.id = pp.product_fk\n" +
+                "and vpp.name=:vapProduct and vpm.approval_status=0\n" +
+                "and vpp.approval_status=0\n" +
+                "and pp.policy_type = (select id from NEO_CM_GA25_GIR_SD.generic_parameter where code='VapPolicy')\n" +
+                "and lp.product_code=:productCode and lp.approval_status=0";
         try {
             boolean hasNull = checkNull(namedParameters);
             if (hasNull) return "";
@@ -221,15 +227,21 @@ public class GetDataF1Service {
         }
     }
 
-    public String getInsuranceCompany(String vapProduct){
-        SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("vapProduct", vapProduct);
-        String sql = "SELECT DISTINCT BP.CODE FROM NEO_CM_GA25_GIR_SD.VAP_COMPUT_POLICY_SET_MAPPING VPSM \n" +
-                "JOIN NEO_CM_GA25_GIR_SD.VAP_POLICY_MAPPING VPM ON VPSM.LOAN_POLICY_FK = VPM.PAY_OUT_COMP_POLICY \n" +
-                "JOIN NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY VPP ON VPM.VAP_PARAMETER_POLICY = VPP.ID \n" +
-                "JOIN NEO_CM_GA25_GIR_SD.BUSINESS_PARTNER_TYPE BPT ON BPT.ID = VPSM.BUSINESS_PARTNER_TYPE \n" +
-                "JOIN NEO_CM_GA25_GIR_SD.BUSINESS_PARTNER BP ON BP.ID = VPSM.BP_ID \n" +
-                "AND VPP.NAME = :vapProduct AND BPT.CODE = 'Insurance_Company'\n" +
-                "AND VPM.APPROVAL_STATUS=0 AND VPP.APPROVAL_STATUS=0";
+    public String getInsuranceCompany(String vapProduct, String productCode){
+        SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("vapProduct", vapProduct, "productCode", productCode));
+        String sql = "select bp.code from\n" +
+                "NEO_CM_GA25_GIR_SD.VAP_COMPUT_POLICY_SET_MAPPING vpsm\n" +
+                "join NEO_CM_GA25_GIR_SD.VAP_POLICY_MAPPING vpm on vpsm.loan_policy_fk = vpm.pay_out_comp_policy\n" +
+                "join NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY vpp on vpm.vap_parameter_policy = vpp.id\n" +
+                "join NEO_CM_GA25_GIR_SD.BUSINESS_PARTNER_TYPE bpt on bpt.id = vpsm.business_partner_type\n" +
+                "join NEO_CM_GA25_GIR_SD.BUSINESS_PARTNER bp on bp.id = vpsm.bp_id\n" +
+                "join NEO_CM_GA25_GIR_SD.PRODUCT_POLICY pp on pp.loan_policy = vpm.fk_vap_policy\n" +
+                "join NEO_CM_GA25_GIR_SD.LOAN_PRODUCT lp on lp.id = pp.product_fk\n" +
+                "and vpp.name=:vapProduct and bpt.code='Insurance_Company'\n" +
+                "and vpm.approval_status=0\n" +
+                "and vpp.approval_status=0\n" +
+                "and pp.policy_type = (select id from NEO_CM_GA25_GIR_SD.generic_parameter where code='VapPolicy')\n" +
+                "and lp.product_code=:productCode and lp.approval_status=0";
         return executeQuery(sql, namedParameters);
     }
 
@@ -255,7 +267,7 @@ public class GetDataF1Service {
 
     public String getIncomeSource(String dayOfSalaryPayment){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("dayOfSalaryPayment", dayOfSalaryPayment);
-        String sql = "select code from NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER where name = :dayOfSalaryPayment and dtype='IncomeSource'";
+        String sql = "select code from NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER where name = :dayOfSalaryPayment and dtype='IncomeSource' and persistence_status=0";
         try {
             List<String> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, String.class);
             if (result.size() <= 0) return "";
@@ -290,17 +302,18 @@ public class GetDataF1Service {
         return queryForList(sql);
     }
 
-    public Map<String, Object> getAmtCompPolicy(String vapProduct, String schemeCode){
-        SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("vapProduct", vapProduct, "schemeCode", schemeCode));
-        String sql = "SELECT DISTINCT AMT_COMP_POLICY,\n" +
-                "    (SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_POLICY WHERE DTYPE='AmountComputationPolicy' AND APPROVAL_STATUS=0 AND ID=AMT_COMP_POLICY) CODE_AMT_COMP,\n" +
-                "    PAY_OUT_COMP_POLICY,\n" +
-                "    (SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_POLICY WHERE DTYPE='VapComputationPolicy' AND APPROVAL_STATUS=0 AND ID=PAY_OUT_COMP_POLICY) CODE_PAY_OUT\n" +
-                "FROM NEO_CAS_LMS_GA25_GIR_SD.VAP_POLICY_MAPPING \n" +
-                "WHERE VAP_PARAMETER_POLICY IN (SELECT ID FROM NEO_CAS_LMS_GA25_GIR_SD.VAP_PARAMETER_POLICY WHERE NAME=:vapProduct AND APPROVAL_STATUS=0) AND\n" +
-                "FK_VAP_POLICY = (SELECT ID FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_POLICY WHERE CODE=(SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_POLICY WHERE APPROVAL_STATUS=0 AND DTYPE='VapPolicy' \n" +
-                "AND ID IN (SELECT SCHEME_POLICIES FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_SCHEME_SCHEME_POLICIES WHERE LOAN_SCHEME=(SELECT ID FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_SCHEME WHERE\n" +
-                "SCHEME_CODE=:schemeCode AND APPROVAL_STATUS=0))) AND APPROVAL_STATUS=0) AND APPROVAL_STATUS =0";
+    public Map<String, Object> getAmtCompPolicy(String vapProduct, String productCode){
+        SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("vapProduct", vapProduct, "productCode", productCode));
+        String sql = "SELECT vpm.AMT_COMP_POLICY,\n" +
+                "(SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.Loan_policy where APPROVAL_STATUS=0 AND ID=VPM.AMT_COMP_POLICY) CODE_AMT_COMP,\n" +
+                "vpm.PAY_OUT_COMP_POLICY,\n" +
+                "(SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.Loan_policy WHERE APPROVAL_STATUS=0 AND ID=VPM.PAY_OUT_COMP_POLICY) CODE_PAY_OUT\n" +
+                "FROM NEO_CAS_LMS_GA25_GIR_SD.vap_policy_mapping vpm \n" +
+                "WHERE vpm.VAP_PARAMETER_POLICY IN (SELECT ID FROM NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY \n" +
+                "WHERE NAME=:vapProduct AND APPROVAL_STATUS=0) AND\n" +
+                "vpm.fk_vap_policy = \n" +
+                "(select loan_policy from NEO_CM_GA25_GIR_SD.PRODUCT_POLICY where product_fk=(select id from NEO_CM_GA25_GIR_SD.LOAN_PRODUCT where product_code=:productCode  and approval_status=0) and \n" +
+                "policy_type=(select id from NEO_CM_GA25_GIR_SD.generic_parameter where code='VapPolicy')) AND APPROVAL_STATUS =0";
         try {
             boolean hasNull = checkNull(namedParameters);
             if(hasNull) return Map.of("CODE_AMT_COMP", "", "CODE_PAY_OUT", "");

@@ -147,8 +147,8 @@ public class ConvertService {
 			/*-------------------------dummy-------------------------*/
 			personInfo.setLeadApplicantId("");
 			personInfo.setApplicantRole("");
-			personInfo.setMobilePhoneNumber("123456789");
-			personInfo.setMobilePhoneIsdCode("84");
+			personInfo.setMobilePhoneNumber("1900585885");
+			personInfo.setMobilePhoneIsdCode("+84");
 			personInfo.setBorrowerType("");
 			personInfo.setFieldPerInfo1("");
 			personInfo.setFieldPerInfo2("");
@@ -207,7 +207,7 @@ public class ConvertService {
 			leadCreationRequest.getPersonInfoType().add(personInfo);
 
 			/*---------------------------------------------------productProcessor---------------------------------------------------- */
-			leadCreationRequest.setProductProcessor("EXTERNAL");
+			leadCreationRequest.setUserName("system");
 
 			/*-----------------------------------------------------documents------------------------------------------------------ */
 			application.getQuickLead().getDocuments().stream().forEach(qlDocument -> {
@@ -290,16 +290,16 @@ public class ConvertService {
 
 			/*---------------------------------------------------communicationDetails---------------------------------------------------- */
 			CommunicationDetails communicationDetails = new CommunicationDetails();
-			communicationDetails.setModeOfCommunication("PHONE");
+			communicationDetails.setModeOfCommunication("Web-Portal Comments");
 			communicationDetails.setLeadStatus(getDataF1Service.getLeadStatus(application.getQuickLead().getLeadStatus()));
-			communicationDetails.setAddComment(application.getQuickLead().getComment());
-			communicationDetails.setContactedBy("System");
+			communicationDetails.setAddComment(application.getQuickLead().getCommunicationTranscript());
+			communicationDetails.setContactedBy("system");
 			cal.setTime(new Date());
 			communicationDetails.setDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
 
 			/*-------------------------dummy-------------------------*/
-			communicationDetails.setPhoneNumber("others");
-			communicationDetails.setNotificationType("TP_SMS");
+//			communicationDetails.setPhoneNumber("others");
+//			communicationDetails.setNotificationType("TP_SMS");
 
 			leadCreationRequest.setCommunicationDetails(communicationDetails);
 
@@ -332,7 +332,7 @@ public class ConvertService {
 			AppParameter appParameter = new AppParameter();
 			appParameter.setProductProcessor("EXTERNAL");
 			appParameter.setApplicationNumber(application.getApplicationId());
-			appParameter.setUserName("System");
+			appParameter.setUserName("system");
 			appParameter.setMoveToNextStageFlag(true);
 
 			/*-------------------------------------------customerDet-------------------------------------------*/
@@ -532,7 +532,8 @@ public class ConvertService {
 		/*-------------------------------------------SOURCING DETAILS-------------------------------------------*/
 		UpdateSourcingDetail sourcingDetail = new UpdateSourcingDetail();
 		LoanInfo loanInfo = new LoanInfo();
-		loanInfo.setProductCode(getDataF1Service.getLoanProduct(application.getLoanDetails().getSourcingDetails().getSchemeCode()));
+		String productCode = getDataF1Service.getLoanProduct(application.getLoanDetails().getSourcingDetails().getSchemeCode());
+		loanInfo.setProductCode(productCode);
 		String schemeCode = getDataF1Service.getScheme(application.getLoanDetails().getSourcingDetails().getSchemeCode());
 		loanInfo.setSchemeCode(schemeCode);
 		MoneyType amountRequested = new MoneyType();
@@ -556,8 +557,13 @@ public class ConvertService {
 		applicationDetails.setApplicationFormNumber(application.getLoanDetails().getSourcingDetails().getChassisApplicationNum());
 		applicationDetails.setLoanApplicationType(getDataF1Service.getLoanApplicationType(application.getLoanDetails().getSourcingDetails().getLoanApplicationType()));
 		applicationDetails.setOfficer(getDataF1Service.getOfficer(application.getLoanDetails().getSourcingDetails().getSaleAgentCode()));
-		if (StringUtils.hasLength(application.getQuickLead().getSourcingChannel()))
-			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
+//		if (StringUtils.hasLength(application.getQuickLead().getSourcingChannel()))
+//			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
+		if (application.getPartnerId().equals("3")){
+			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
+		}else{
+			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
+		}
 		sourcingDetail.setApplicationDetails(applicationDetails);
 
 		/*-------------------------------------------VAP DETAILS-------------------------------------------*/
@@ -566,9 +572,9 @@ public class ConvertService {
 		if (StringUtils.hasLength(application.getLoanDetails().getVapDetails().getVapProduct())){
 			String vapProductApi = getDataF1Service.getVapProduct(application.getLoanDetails().getVapDetails().getVapProduct());
 			updateVapDetail.setVapProduct(vapProductApi);
-			updateVapDetail.setVapTreatment(getDataF1Service.getVapTreatment(application.getLoanDetails().getVapDetails().getVapProduct()));
-			updateVapDetail.setInsuranceCompany(getDataF1Service.getInsuranceCompany(application.getLoanDetails().getVapDetails().getVapProduct()));
-			Map<String, Object> amtPayOut = getDataF1Service.getAmtCompPolicy(application.getLoanDetails().getVapDetails().getVapProduct(), schemeCode);
+			updateVapDetail.setVapTreatment(getDataF1Service.getVapTreatment(application.getLoanDetails().getVapDetails().getVapProduct(), productCode));
+			updateVapDetail.setInsuranceCompany(getDataF1Service.getInsuranceCompany(application.getLoanDetails().getVapDetails().getVapProduct(), productCode));
+			Map<String, Object> amtPayOut = getDataF1Service.getAmtCompPolicy(application.getLoanDetails().getVapDetails().getVapProduct(), productCode);
 			updateVapDetail.setAmtCompPolicy(amtPayOut.get("CODE_AMT_COMP").toString());
 			updateVapDetail.setPayOutCompPolicy(amtPayOut.get("CODE_PAY_OUT").toString());
 			MoneyType amount = new MoneyType();
@@ -819,6 +825,68 @@ public class ConvertService {
 			return application;
 		}catch (Exception e){
 			return null;
+		}
+	}
+
+	public String toApplication(JsonNode node, Application application) {
+		try {
+			String comment = node.findPath("commentText").asText("");
+			if (StringUtils.isEmpty(comment)){
+				throw new Exception("comment null");
+			}
+			if (node.findPath("dataDocument").isMissingNode()){
+				throw new Exception("dataDocument null");
+			}
+			String fileName = node.findPath("dataDocument").path("fileName").asText("");
+			if (StringUtils.isEmpty(fileName)){
+				throw new Exception("fileName null");
+			}
+			String documentName = node.findPath("dataDocument").path("documentName").asText("");
+			if (StringUtils.isEmpty(documentName)){
+				throw new Exception("documentName null");
+			}
+			String extension = node.findPath("dataDocument").path("contentType").asText("");
+			if (StringUtils.isEmpty(extension)){
+				throw new Exception("contentType null");
+			}
+			String md5 = node.findPath("dataDocument").path("md5").asText("");
+			if (StringUtils.isEmpty(extension)){
+				throw new Exception("md5 null");
+			}
+			CommentModel commentModel = new CommentModel();
+			CommentResponseModel commentResponseModel = new CommentResponseModel();
+			commentResponseModel.setComment(comment);
+			fileName = fileName.trim();
+
+			Link link = new Link();
+			link.setUrlFico(fileName);
+			vn.com.tpf.microservices.models.Document document = new vn.com.tpf.microservices.models.Document();
+			document.setType(documentName);
+			document.setOriginalname(documentName + "." + extension);
+			document.setFilename(fileName);
+			document.setLink(link);
+			commentResponseModel.setDocuments(Arrays.asList(document));
+			commentModel.setResponse(commentResponseModel);
+
+			QuickLead quickLead = new QuickLead();
+			QLDocument qlDocument = new QLDocument();
+			qlDocument.setFilename(fileName);
+			qlDocument.setType(documentName);
+			qlDocument.setOriginalname(documentName + "." + extension);
+			qlDocument.setMd5(md5);
+			qlDocument.setContentType(extension);
+			quickLead.setDocumentsComment(Arrays.asList(qlDocument));
+
+			String applicationId = node.findPath("appId").asText("");
+			application.setApplicationId(applicationId);
+			String project = node.findPath("project").asText("");
+			application.setCreateFrom(project);
+			application.setComment(Arrays.asList(commentModel));
+			application.setQuickLead(quickLead);
+			return "";
+		}catch (Exception e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			return "func: " + new Throwable().getStackTrace()[0].getMethodName() + error;
 		}
 	}
 }
