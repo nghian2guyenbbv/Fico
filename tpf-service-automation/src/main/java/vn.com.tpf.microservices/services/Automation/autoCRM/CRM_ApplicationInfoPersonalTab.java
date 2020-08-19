@@ -826,20 +826,6 @@ public class CRM_ApplicationInfoPersonalTab {
             address3Element.sendKeys(data.getWard());
 
 
-            if(!data.getAddressLandmark().isEmpty()) {
-                //update them landmard
-                addressLandmark.clear();
-                addressLandmark.sendKeys(data.getAddressLandmark());
-            }
-
-            if(!data.getResidentDurationYear().isEmpty()) {
-                currentAddrYearsElement.clear();
-                currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
-            }
-            if(!data.getResidentDurationMonth().isEmpty()) {
-                currentAddrMonthsElement.clear();
-                currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
-            }
             if(!data.getMobilePhone().isEmpty()){
                 if ("Current Address".equals(data.getAddressType())){
                     mobilePhoneNumberCurrentAddressElement.clear();
@@ -982,21 +968,6 @@ public class CRM_ApplicationInfoPersonalTab {
                 address3Element.sendKeys(data.getWard());
                 System.out.println("Address Ward");
 
-
-                if(!data.getAddressLandmark().isEmpty()) {
-                    //update them landmard
-                    addressLandmark.clear();
-                    addressLandmark.sendKeys(data.getAddressLandmark());
-                }
-
-                if(!data.getResidentDurationYear().isEmpty()) {
-                    currentAddrYearsElement.clear();
-                    currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
-                }
-                if(!data.getResidentDurationMonth().isEmpty()) {
-                    currentAddrMonthsElement.clear();
-                    currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
-                }
                 if(!data.getMobilePhone().isEmpty()){
                     if ("Current Address".equals(data.getAddressType())){
                         mobilePhoneNumberCurrentAddressElement.clear();
@@ -1085,20 +1056,6 @@ public class CRM_ApplicationInfoPersonalTab {
                 address3Element.sendKeys(data.getWard());
                 System.out.println("Address Ward");
 
-                if(!data.getAddressLandmark().isEmpty()) {
-                    //update them landmard
-                    addressLandmark.clear();
-                    addressLandmark.sendKeys(data.getAddressLandmark());
-                }
-
-                if(!data.getResidentDurationYear().isEmpty()) {
-                    currentAddrYearsElement.clear();
-                    currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
-                }
-                if(!data.getResidentDurationMonth().isEmpty()) {
-                    currentAddrMonthsElement.clear();
-                    currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
-                }
                 if(!data.getMobilePhone().isEmpty()){
                     if ("Current Address".equals(data.getAddressType())){
                         mobilePhoneNumberCurrentAddressElement.clear();
