@@ -2206,6 +2206,7 @@ public class CrmService {
 					addressUpload.put("addressLine3", address.path("addressLine3").asText());
 					addressUpload.put("area", address.path("area").asText());
 					addressUpload.put("city", address.path("city").asText());
+					addressUpload.put("phoneNumber", address.path("phoneNumber").asText());
 					addressesUpload.add(addressUpload);
 				}
 			}
