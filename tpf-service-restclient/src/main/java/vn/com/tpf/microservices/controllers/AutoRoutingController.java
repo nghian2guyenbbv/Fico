@@ -16,7 +16,7 @@ public class AutoRoutingController {
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
-	@GetMapping("/tpf-service-autorouting/check")
+	@GetMapping("/tpf-service-autorouting/check_routing")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-autorouting','tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> check(@RequestHeader("Authorization") String token, @RequestParam Map<String, String> param)
 			throws Exception {
@@ -30,7 +30,7 @@ public class AutoRoutingController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/tpf-service-autorouting/setRouting")
+	@PostMapping("/tpf-service-autorouting/set_config_routing")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-autorouting','tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> setRouting(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -43,7 +43,7 @@ public class AutoRoutingController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
-	@PostMapping("/tpf-service-autorouting/getRouting/{id}")
+	@PostMapping("/tpf-service-autorouting/get_config_routing/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-autorouting','tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> getRouting(@RequestHeader("Authorization") String token, @PathVariable String id,
 			@RequestBody JsonNode body) throws Exception {
@@ -57,12 +57,12 @@ public class AutoRoutingController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
-	@DeleteMapping("/tpf-service-autorouting/logRouting/{id}")
+	@DeleteMapping("/tpf-service-autorouting/log_choice_routing/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-autorouting','tpf-service-root','tpf-service-authorization') and hasAnyAuthority('role_root')")
 	public ResponseEntity<?> logRouting(@RequestHeader("Authorization") String token, @PathVariable String id)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "deleteAccount");
+		request.put("func", "logRouting");
 		request.put("token", token);
 		request.put("param", Map.of("id", id));
 

@@ -29,7 +29,7 @@ public class AutoRoutingService {
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	public Map<String, Object> check(JsonNode request) {
+	public Map<String, Object> checkRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		return Map.of("status", 200, "data", responseModel);
 	}
