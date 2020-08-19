@@ -452,6 +452,7 @@ public class ConvertService {
 				dataDocument.put("addressLine3", data.path("addressLine3").asText());
 				dataDocument.put("area", data.path("area").asText());
 				dataDocument.put("city", data.path("city").asText());
+				dataDocument.put("phoneNumber", data.path("phoneNumber").asText());
 				addresses.add(dataDocument);
 			}
 		}
