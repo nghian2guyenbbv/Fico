@@ -826,21 +826,21 @@ public class CRM_ApplicationInfoPersonalTab {
             address3Element.sendKeys(data.getWard());
 
 
-            if(data.getAddressLandmark() != null) {
+            if(!data.getAddressLandmark().isEmpty()) {
                 //update them landmard
                 addressLandmark.clear();
                 addressLandmark.sendKeys(data.getAddressLandmark());
             }
 
-            if(data.getResidentDurationYear() != null) {
+            if(!data.getResidentDurationYear().isEmpty()) {
                 currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
             }
-            if(data.getResidentDurationMonth() != null) {
+            if(!data.getResidentDurationMonth().isEmpty()) {
                 currentAddrMonthsElement.clear();
                 currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
             }
-            if(data.getMobilePhone() != null){
+            if(!data.getMobilePhone().isEmpty()){
                 if ("Current Address".equals(data.getAddressType())){
                     mobilePhoneNumberCurrentAddressElement.clear();
                     mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
@@ -983,21 +983,21 @@ public class CRM_ApplicationInfoPersonalTab {
                 System.out.println("Address Ward");
 
 
-                if(data.getAddressLandmark() != null) {
+                if(!data.getAddressLandmark().isEmpty()) {
                     //update them landmard
                     addressLandmark.clear();
                     addressLandmark.sendKeys(data.getAddressLandmark());
                 }
 
-                if(data.getResidentDurationYear() != null) {
+                if(!data.getResidentDurationYear().isEmpty()) {
                     currentAddrYearsElement.clear();
                     currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 }
-                if(data.getResidentDurationMonth() != null) {
+                if(!data.getResidentDurationMonth().isEmpty()) {
                     currentAddrMonthsElement.clear();
                     currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
                 }
-                if(data.getMobilePhone() != null){
+                if(!data.getMobilePhone().isEmpty()){
                     if ("Current Address".equals(data.getAddressType())){
                         mobilePhoneNumberCurrentAddressElement.clear();
                         mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
@@ -1085,25 +1085,21 @@ public class CRM_ApplicationInfoPersonalTab {
                 address3Element.sendKeys(data.getWard());
                 System.out.println("Address Ward");
 
-                if(data.getAddressLandmark() != null) {
+                if(!data.getAddressLandmark().isEmpty()) {
                     //update them landmard
                     addressLandmark.clear();
                     addressLandmark.sendKeys(data.getAddressLandmark());
                 }
 
-                if(data.getResidentDurationYear() != null) {
+                if(!data.getResidentDurationYear().isEmpty()) {
                     currentAddrYearsElement.clear();
                     currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 }
-                if(data.getResidentDurationMonth() != null) {
+                if(!data.getResidentDurationMonth().isEmpty()) {
                     currentAddrMonthsElement.clear();
                     currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
                 }
-                if(data.getMobilePhone() != null){
-                    currentAddrMonthsElement.clear();
-                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
-                }
-                if(data.getMobilePhone() != null){
+                if(!data.getMobilePhone().isEmpty()){
                     if ("Current Address".equals(data.getAddressType())){
                         mobilePhoneNumberCurrentAddressElement.clear();
                         mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
