@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: tpf-service-autorouting
+  cloud:
+    config:
+      uri: http://10.131.31.202:8888
+---
+spring:
+  profiles: dev
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: uat
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: pro
+  cloud:
+    config:
+      uri: http://10.1.64.41:8888
