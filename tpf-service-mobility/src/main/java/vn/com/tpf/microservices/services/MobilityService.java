@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1186,7 +1187,7 @@ public class MobilityService {
 		requestSend.put("func", "waiveField");
 		ObjectNode body = mapper.createObjectNode();
 		body.put("project", "mobility");
-		body.put("transaction_id", "transaction_waive_field");
+		body.put("transaction_id", UUID.randomUUID().toString());
 		body.set("data", mobilityWaiveFields);
 		requestSend.put("body", body);
 		requestSend.put("reference_id", request.path("body").path("reference_id"));
@@ -1506,7 +1507,7 @@ public class MobilityService {
 		requestSend.put("func", "submitField");
 		ObjectNode bodySender = mapper.createObjectNode();
 		bodySender.put("project", "mobility");
-		bodySender.put("transaction_id", "transaction_submit_field");
+		bodySender.put("transaction_id", UUID.randomUUID().toString());
 		bodySender.set("data", mobilitySubmitFields);
 		requestSend.put("body", bodySender);
 		requestSend.put("reference_id", request.path("body").path("reference_id"));
