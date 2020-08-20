@@ -4488,7 +4488,6 @@ public class AutomationHandlerService {
 
                     if (resultUpdate == null) {
                         Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
-                        System.out.println("Wait to get account...");
                         accountDTONew = null;
                     } else {
                         loginDTOList.add(accountDTONew);
