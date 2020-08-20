@@ -258,19 +258,11 @@ public class AutomationHandlerService {
                     break;
                 case "runAutomation_Waive_Field":
                     String funcWaiveField = "Waive_Field";
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
 //                    runAutomation_Waive_Field(driver, mapValue, project, browser, funcString);
                     runAutomation_Field(driver, mapValue, project, browser, funcWaiveField);
                     break;
                 case "runAutomation_Submit_Field":
                     String funcSubmitField = "Submit_Field";
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
 //                    runAutomation_Submit_Field(driver, mapValue, project, browser);
                     runAutomation_Field(driver, mapValue, project, browser, funcSubmitField);
                     break;
