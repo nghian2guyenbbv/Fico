@@ -27,6 +27,8 @@ public class ConvertService {
 	private final String PreferredModeOfCommunication = "Web-Portal Comments";
 	private final String LeadStatus = "Converted";
 	private final String CommunicationTranscript = "communicationTranscript";
+	private final String AlternateChannel = "ALTERNATE_CHANNEL";
+	private final String mCas = "mCAS";
 
 	public ObjectNode toAppDisplay(Mobility mobility) {
 		ObjectNode app = mapper.createObjectNode();
@@ -170,7 +172,7 @@ public class ConvertService {
 		quickLead.put("firstName", mobility.getFirstName());
 		quickLead.put("lastName", mobility.getLastName());
 		quickLead.put("city", mobility.getCityFinnOne());
-		quickLead.put("sourcingChannel", mobility.getChanel());
+		quickLead.put("sourcingChannel", AlternateChannel);
 		quickLead.put("dateOfBirth", mobility.getDateOfBirth());
 		quickLead.put("sourcingBranch", mobility.getBranch());
 		quickLead.put("natureOfOccupation", NatureOfOccupation);
@@ -179,6 +181,7 @@ public class ConvertService {
 		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
 		quickLead.put("leadStatus", LeadStatus);
 		quickLead.put("communicationTranscript", mobility.getCommunicationTranscript());
+		quickLead.put("alternateChannelMode",mCas);
 
 		ArrayNode documents = mapper.createArrayNode();
 
