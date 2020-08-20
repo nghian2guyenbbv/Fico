@@ -4539,14 +4539,15 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            Query query = new Query();
+            query.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
+            checkResultExist = mongoTemplate.find(query, WaiveFieldDTO.class);
+            if (checkResultExist.size() < 1){
+                mongoTemplate.insert(waiveFieldDTOList, WaiveFieldDTO.class);
+            }
+
             do {
                 try {
-                    Query query = new Query();
-                    query.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
-                    checkResultExist = mongoTemplate.find(query, WaiveFieldDTO.class);
-                    if (checkResultExist.size() < 1){
-                        mongoTemplate.insert(waiveFieldDTOList, WaiveFieldDTO.class);
-                    }
                     query = new Query();
                     query.addCriteria(Criteria.where("status").is(0).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
                     waiveFieldDTO = mongoTemplate.findOne(query, WaiveFieldDTO.class);
@@ -4704,14 +4705,15 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            Query query = new Query();
+            query.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
+            checkResultExist = mongoTemplate.find(query, SubmitFieldDTO.class);
+            if (checkResultExist.size() < 1){
+                mongoTemplate.insert(submitFieldDTOList, WaiveFieldDTO.class);
+            }
+
             do {
                 try {
-                    Query query = new Query();
-                    query.addCriteria(Criteria.where("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
-                    checkResultExist = mongoTemplate.find(query, SubmitFieldDTO.class);
-                    if (checkResultExist.size() < 1){
-                        mongoTemplate.insert(submitFieldDTOList, WaiveFieldDTO.class);
-                    }
                     query = new Query();
                     query.addCriteria(Criteria.where("status").is(0).and("transaction_id").is(transaction_id).and("reference_id").is(reference_id).and("project").is(projectField));
                     submitFieldDTO = mongoTemplate.findOne(query, SubmitFieldDTO.class);
