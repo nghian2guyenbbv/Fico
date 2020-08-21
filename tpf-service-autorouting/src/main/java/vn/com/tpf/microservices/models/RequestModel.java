@@ -6,6 +6,9 @@ public class RequestModel{
 //    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm a z")
     private String date_time;
 
+    private ConfigRouting data;
+    private LogChoiceRouting logChoiceRouting;
+
     public RequestModel() {
     }
 
@@ -25,5 +28,12 @@ public class RequestModel{
         this.date_time = date_time;
     }
 
+    public ConfigRouting getData() {
+        return data;
+    }
+
+    public LogChoiceRouting getLogChoiceRouting() {
+        return logChoiceRouting;
+    }
 }
 

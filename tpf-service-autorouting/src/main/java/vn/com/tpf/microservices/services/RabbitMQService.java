@@ -83,8 +83,8 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
-			case "check":
-				return response(message, payload, autoRoutingServiceService.check(request));
+			case "checkRouting":
+				return response(message, payload, autoRoutingServiceService.checkRouting(request));
 			case "setRouting":
 				return response(message, payload, autoRoutingServiceService.setRouting(request));
 			case "getRouting":
