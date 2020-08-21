@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -422,4 +423,16 @@ public class GetDataF1Service {
         log.info("{}", objectNode);
     }
 
+    public List<Map<String, Object>> getListReasonToCancel() {
+        String sql = "SELECT a.name,a.DESCRIPTION from NEO_CM_GA25_GIR_SD.decision_reason a, NEO_CM_GA25_GIR_SD.DECISION_REASON_MAPPING b\n" +
+                "where a.action='Cancel' and a.REASON_FK=b.id and b.stage='cancel_application' and b.approval_status=0 ORDER BY a.NAME";
+        try {
+            List<Map<String, Object>> result = jdbcTemplateF1.queryForList(sql);
+            return result;
+        }catch (Exception e){
+            log("getListReasonToCancel", sql, e.toString());
+            return new ArrayList<>();
+        }
+
+    }
 }

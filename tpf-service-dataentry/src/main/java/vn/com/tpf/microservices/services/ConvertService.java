@@ -889,4 +889,21 @@ public class ConvertService {
 			return "func: " + new Throwable().getStackTrace()[0].getMethodName() + error;
 		}
 	}
+
+    public JsonNode toCancelApiF1(Application application) {
+		ObjectNode objectNode = mapper.createObjectNode();
+		try {
+			List<String> reasonCodeList = Arrays.asList(application.getReasonCancel().split(";"));
+			/*-----------------default-------------------*/
+			objectNode.put("applicationNumber", application.getApplicationId());
+			objectNode.set("reasonCodelist", mapper.convertValue(reasonCodeList, ArrayNode.class));
+			objectNode.put("comment", application.getDescription());
+			objectNode.put("operationFlag", "CANCEL");
+			objectNode.put("userID", "casadmin");
+			objectNode.put("productProcessor", "EXTERNAL");
+		}catch (Exception e){
+			log.error(e.getMessage(), e);
+		}
+		return objectNode;
+    }
 }
