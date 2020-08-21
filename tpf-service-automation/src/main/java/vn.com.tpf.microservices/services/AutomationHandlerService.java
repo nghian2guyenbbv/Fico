@@ -258,12 +258,12 @@ public class AutomationHandlerService {
                     break;
                 case "runAutomation_Waive_Field":
                     String funcWaiveField = "Waive_Field";
-//                    runAutomation_Waive_Field(driver, mapValue, project, browser, funcString);
+//                    runAutomation_Field_Old(driver, mapValue, project, browser, funcWaiveField);
                     runAutomation_Field(driver, mapValue, project, browser, funcWaiveField);
                     break;
                 case "runAutomation_Submit_Field":
                     String funcSubmitField = "Submit_Field";
-//                    runAutomation_Submit_Field(driver, mapValue, project, browser);
+//                    runAutomation_Field_Old(driver, mapValue, project, browser, funcSubmitField);
                     runAutomation_Field(driver, mapValue, project, browser, funcSubmitField);
                     break;
                 case "MOBILITY_quickLead":
@@ -4436,6 +4436,99 @@ public class AutomationHandlerService {
     //------------------------ FIELD -----------------------------------------------------
     public void runAutomation_Field(WebDriver driver, Map<String, Object> mapValue, String project, String browser, String funcString) throws Exception {
         String stage = "";
+        String transaction_id = "";
+        String reference_id = "";
+        String project_id = "";
+        try {
+            stage = "INIT DATA";
+
+            List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do {
+                //get list account finone available
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if (resultUpdate == null) {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew = null;
+                    } else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew = null;
+            } while (!Objects.isNull(accountDTONew));
+
+            //*************************** GET DATA *********************//
+            if ("Waive_Field".equals(funcString)){
+                RequestAutomationDTO RequestAutomationWaiveFieldDTOList = (RequestAutomationDTO) mapValue.get("RequestAutomationWaiveFieldList");
+                transaction_id = RequestAutomationWaiveFieldDTOList.getTransaction_id();
+                reference_id = RequestAutomationWaiveFieldDTOList.getReference_id();
+                project_id = RequestAutomationWaiveFieldDTOList.getProject();
+                List<WaiveFieldDTO> waiveFieldDTOList = RequestAutomationWaiveFieldDTOList.getWaiveFieldDTO();
+                for (int i = 0; i < waiveFieldDTOList.size(); i++){
+                    waiveFieldDTOList.get(i).setProject(project_id);
+                    waiveFieldDTOList.get(i).setTransaction_id(transaction_id);
+                    waiveFieldDTOList.get(i).setReference_id(reference_id);
+                }
+                //insert data
+                mongoTemplate.insert(waiveFieldDTOList, WaiveFieldDTO.class);
+            } else if ("Submit_Field".equals(funcString)){
+                RequestAutomationDTO RequestAutomationSubmitFieldDTOList = (RequestAutomationDTO) mapValue.get("RequestAutomationSubmitFieldList");
+                transaction_id = RequestAutomationSubmitFieldDTOList.getTransaction_id();
+                reference_id = RequestAutomationSubmitFieldDTOList.getReference_id();
+                project_id = RequestAutomationSubmitFieldDTOList.getProject();
+                List<SubmitFieldDTO> submitFieldDTOList = RequestAutomationSubmitFieldDTOList.getSubmitFieldDTO();
+                for (int i = 0; i < submitFieldDTOList.size(); i++){
+                    submitFieldDTOList.get(i).setProject(project_id);
+                    submitFieldDTOList.get(i).setTransaction_id(transaction_id);
+                    submitFieldDTOList.get(i).setReference_id(reference_id);
+                }
+                //insert data
+                mongoTemplate.insert(submitFieldDTOList, SubmitFieldDTO.class);
+            }
+            //*************************** END GET DATA *********************//
+
+            if (loginDTOList.size() > 0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO : loginDTOList) {
+                    String finalTransaction_id = transaction_id;
+                    String finalReference_id = reference_id;
+                    String finalProject_id = project_id;
+                    workerThreadPoolDE.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            if ("Waive_Field".equals(funcString)){
+                                runAutomation_Waive_Field_run(loginDTO, browser, project, finalTransaction_id, finalReference_id, finalProject_id);
+                            }else if ("Submit_Field".equals(funcString)){
+                                runAutomation_Submit_Field_run(loginDTO, browser, project, finalTransaction_id, finalReference_id, finalProject_id);
+                            }
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        }
+    }
+
+    public void runAutomation_Field_Old(WebDriver driver, Map<String, Object> mapValue, String project, String browser, String funcString) throws Exception {
+        String stage = "";
         try {
             stage = "INIT DATA";
 
@@ -4476,9 +4569,9 @@ public class AutomationHandlerService {
                         @Override
                         public void run() {
                             if ("Waive_Field".equals(funcString)){
-                                runAutomation_Waive_Field_run(browser, loginDTO, project, mapValue);
+                                runAutomation_Waive_Field_run_Old(browser, loginDTO, project, mapValue);
                             }else if ("Submit_Field".equals(funcString)){
-                                runAutomation_Submit_Field_run(browser, loginDTO, project, mapValue);
+                                runAutomation_Submit_Field_run_Old(browser, loginDTO, project, mapValue);
                             }
                         }
                     });
@@ -4495,7 +4588,167 @@ public class AutomationHandlerService {
     //------------------------ END FIELD -----------------------------------------------------
 
     //------------------------ WAIVE FIELD -----------------------------------------------------
-    private void runAutomation_Waive_Field_run(String browser, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
+    private void runAutomation_Waive_Field_run(LoginDTO accountDTO, String browser, String project, String finalTransaction_id, String finalReference_id, String finalProject_id) {
+        WebDriver driver = null;
+        Instant start = Instant.now();
+        String stage = "";
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        WaiveFieldDTO waiveFieldDTO = WaiveFieldDTO.builder().build();
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        try {
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
+
+            //get account run
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            Utilities.captureScreenShot(driver);
+
+            do {
+                try {
+                    Instant startIn = Instant.now();
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    waiveFieldDTO = mongoTemplate.findOne(query, WaiveFieldDTO.class);
+
+                    if (!Objects.isNull(waiveFieldDTO)) {
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0)
+                                .and("appId").is(waiveFieldDTO.getAppId())
+                                .and("reference_id").is(waiveFieldDTO.getReference_id())
+                                .and("project").is(waiveFieldDTO.getProject()));
+                        Update update = new Update();
+                        update.set("userAuto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        WaiveFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
+
+                        if (resultUpdate == null) {
+                            continue;
+                        }
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " +  " - App: " + waiveFieldDTO.getAppId() +  " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        stage = "HOME PAGE";
+                        HomePage homePage = new HomePage(driver);
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+
+                        // ========== APPLICATIONS =================
+                        homePage.getMenuApplicationElement().click();
+
+                        // ========== CHECK STAGE APPLICATIONS =================
+                        stage = "CHECK STAGE APPLICATION";
+                        FV_CheckStageApplicationManager fv_CheckStageApplicationManager = new FV_CheckStageApplicationManager(driver);
+                        fv_CheckStageApplicationManager.getMenuApplicationElement().click();
+                        fv_CheckStageApplicationManager.getApplicationManagerElement().click();
+                        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Manager"));
+                        await("Application Manager Form visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> fv_CheckStageApplicationManager.getApplicationManagerFormElement().isDisplayed());
+                        fv_CheckStageApplicationManager.getApplicationNumberElement().sendKeys(waiveFieldDTO.getAppId());
+                        fv_CheckStageApplicationManager.getSearchApplicationElement().click();
+                        await("Table Application Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> fv_CheckStageApplicationManager.getTdApplicationElement().size() > 2);
+
+                        await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> "FII".equals(fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText()));
+
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+
+                        // ========== WAIVE OFF ALL =================
+                        stage = "WAIVE OFF ALL";
+                        FV_WaiveFieldPage fv_WaiveFieldPage = new FV_WaiveFieldPage(driver);
+                        fv_WaiveFieldPage.setData(waiveFieldDTO, accountDTO.getUserName().toLowerCase());
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2)
+                                .and("appId").is(waiveFieldDTO.getAppId())
+                                .and("userAuto").is(accountDTO.getUserName())
+                                .and("reference_id").is(waiveFieldDTO.getReference_id())
+                                .and("project").is(waiveFieldDTO.getProject()));
+                        Update update1 = new Update();
+                        update1.set("userAuto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        update1.set("automation_result", "WAIVE_FIELD_PASS");
+                        update1.set("automation_result_message", "DONE");
+                        mongoTemplate.findAndModify(queryUpdate1, update1, WaiveFieldDTO.class);
+                        System.out.println("AUTO - WAIVE FIELD PASS: " + stage + " - " + " App: " + waiveFieldDTO.getAppId() + " - User: " + accountDTO.getUserName());
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(2)
+                            .and("appId").is(waiveFieldDTO.getAppId())
+                            .and("userAuto").is(accountDTO.getUserName())
+                            .and("reference_id").is(waiveFieldDTO.getReference_id())
+                            .and("project").is(waiveFieldDTO.getProject()));
+                    Update update = new Update();
+                    update.set("userAuto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    update.set("automation_result", "WAIVE_FIELD_FAILED");
+                    update.set("automation_result_message", ex.getMessage());
+                    mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
+                    System.out.println("AUTO - WAIVE FIELD FAILED: " + ex.getMessage() + " - " + stage + " - " + " App: " + waiveFieldDTO.getAppId() + " - User: " + accountDTO.getUserName());
+                    Utilities.captureScreenShot(driver);
+                }
+            } while (!Objects.isNull(waiveFieldDTO));
+        } catch (Exception e) {
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("status").is(0)
+                    .and("appId").is(waiveFieldDTO.getAppId())
+                    .and("userAuto").is(accountDTO.getUserName())
+                    .and("reference_id").is(waiveFieldDTO.getReference_id())
+                    .and("project").is(waiveFieldDTO.getProject()));
+            Update update = new Update();
+            update.set("userAuto", accountDTO.getUserName());
+            update.set("status", 3);
+            update.set("automation_result", "WAIVE_FIELD_FAILED");
+            update.set("automation_result_message", e.getMessage());
+            mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
+            System.out.println("AUTO - WAIVE FIELD FAILED: " + e.getMessage() + " - " + stage + " - " + " App: " + waiveFieldDTO.getAppId() + " - User: " + accountDTO.getUserName());
+            Utilities.captureScreenShot(driver);
+
+        } finally {
+            Query queryUpdateFailed = new Query();
+            queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(finalReference_id)
+                    .and("transaction_id").is(finalTransaction_id)
+                    .and("project").is(finalProject_id));
+            List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
+
+            responseModel.setReference_id(finalReference_id);
+            responseModel.setProject(finalProject_id);
+            responseModel.setTransaction_id(finalTransaction_id);
+            responseModel.setData(resultRespone);
+
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver,accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, project);
+            try {
+                autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
+            } catch (Exception e) {
+                System.out.println("UPDATE STATUS RABBIT: FAILED - MESSAGE: " + e.getMessage() + "\n TRACE: " + e.toString());
+                e.printStackTrace();
+            }
+            System.out.println("AUTO - WAIVE FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+        }
+    }
+
+    private void runAutomation_Waive_Field_run_Old(String browser, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
         WebDriver driver = null;
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
@@ -4662,7 +4915,183 @@ public class AutomationHandlerService {
     //------------------------ END WAIVE FIELD -----------------------------------------------------
 
     //------------------------ SUBMIT FIELD -----------------------------------------------------
-    private void runAutomation_Submit_Field_run(String browser, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
+    private void runAutomation_Submit_Field_run(LoginDTO accountDTO, String browser, String project, String finalTransaction_id, String finalReference_id, String finalProject_id) {
+        WebDriver driver = null;
+        Instant start = Instant.now();
+        String stage = "";
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        SubmitFieldDTO submitFieldDTO = SubmitFieldDTO.builder().build();
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        try {
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
+            //get account run
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            Utilities.captureScreenShot(driver);
+
+            do {
+                try {
+                    Instant startIn = Instant.now();
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    submitFieldDTO = mongoTemplate.findOne(query, SubmitFieldDTO.class);
+
+                    if (!Objects.isNull(submitFieldDTO)) {
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0)
+                                .and("appId").is(submitFieldDTO.getAppId())
+                                .and("reference_id").is(submitFieldDTO.getReference_id())
+                                .and("project").is(submitFieldDTO.getProject()));
+                        Update update = new Update();
+                        update.set("userAuto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        SubmitFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, SubmitFieldDTO.class);
+
+                        if (resultUpdate == null) {
+                            continue;
+                        }
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + submitFieldDTO.getAppId() + " - User: " + submitFieldDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        stage = "HOME PAGE";
+                        HomePage homePage = new HomePage(driver);
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+
+                        // ========== APPLICATIONS =================
+                        homePage.getMenuApplicationElement().click();
+
+                        // ========== CHECK STAGE APPLICATIONS =================
+                        stage = "CHECK STAGE APPLICATION";
+                        FV_CheckStageApplicationManager fv_CheckStageApplicationManager = new FV_CheckStageApplicationManager(driver);
+                        fv_CheckStageApplicationManager.getMenuApplicationElement().click();
+                        fv_CheckStageApplicationManager.getApplicationManagerElement().click();
+                        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Manager"));
+                        await("Application Manager Form visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> fv_CheckStageApplicationManager.getApplicationManagerFormElement().isDisplayed());
+                        fv_CheckStageApplicationManager.getApplicationNumberElement().sendKeys(submitFieldDTO.getAppId());
+                        fv_CheckStageApplicationManager.getSearchApplicationElement().click();
+                        await("Table Application Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> fv_CheckStageApplicationManager.getTdApplicationElement().size() > 2);
+
+                        String stageApplication = fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText();
+
+                        System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+                        if ("FII".equals(stageApplication)){
+                            // ========== FIELD VERIFICATION =================
+                            stage = "FIELD VERIFICATION";
+                            FV_FieldVerificationPage fv_FieldVerificationPage = new FV_FieldVerificationPage(driver);
+                            fv_FieldVerificationPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL, start);
+                            System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+                            stageApplication = "FIV";
+                        }
+                        if ("FIV".equals(stageApplication)){
+                            // ========== FIELD INVESTIGATION VERIFICATION =================
+                            stage = "FIELD INVESTIGATION VERIFICATION";
+                            FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(driver);
+                            fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL, accountDTO.getUserName());
+                            System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+                            stageApplication = "FIC";
+                        }
+                        if ("FIC".equals(stageApplication)){
+                            // ========== FIELD INVESTIGATION DETAILS =================
+                            stage = "FIELD INVESTIGATION DETAILS";
+                            FV_FieldInvestigationDetailsPage fv_FieldInvestigationDetailsPage = new FV_FieldInvestigationDetailsPage(driver);
+                            fv_FieldInvestigationDetailsPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase());
+                            System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+                        } else {
+                            await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() -> "FII".equals(fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText()));
+                        }
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2)
+                                .and("appId").is(submitFieldDTO.getAppId())
+                                .and("userAuto").is(accountDTO.getUserName())
+                                .and("reference_id").is(submitFieldDTO.getReference_id())
+                                .and("project").is(submitFieldDTO.getProject()));
+                        Update update1 = new Update();
+                        update1.set("userAuto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        update1.set("automation_result", "SUBMIT_FIELD_PASS");
+                        update1.set("automation_result_message", "DONE");
+                        mongoTemplate.findAndModify(queryUpdate1, update1, SubmitFieldDTO.class);
+                        System.out.println("AUTO - SUBMIT FIELD PASS: " + stage + " - " + " App: " + submitFieldDTO.getAppId() + " - User: " + accountDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(2)
+                            .and("appId").is(submitFieldDTO.getAppId())
+                            .and("userAuto").is(accountDTO.getUserName())
+                            .and("reference_id").is(submitFieldDTO.getReference_id())
+                            .and("project").is(submitFieldDTO.getProject()));
+                    Update update = new Update();
+                    update.set("userAuto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    update.set("automation_result", "SUBMIT_FIELD_FAILED");
+                    update.set("automation_result_message", ex.getMessage());
+                    mongoTemplate.findAndModify(queryUpdate, update, SubmitFieldDTO.class);
+                    System.out.println("AUTO - SUBMIT FIELD FAILED: " + ex.getMessage() + " - " + stage + " - " + " App: " + submitFieldDTO.getAppId() + " - User: " + accountDTO.getUserName());
+                    Utilities.captureScreenShot(driver);
+                }
+            } while (!Objects.isNull(submitFieldDTO));
+        } catch (Exception e) {
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("status").is(0)
+                    .and("appId").is(submitFieldDTO.getAppId())
+                    .and("userAuto").is(accountDTO.getUserName())
+                    .and("reference_id").is(submitFieldDTO.getReference_id())
+                    .and("project").is(submitFieldDTO.getProject()));
+            Update update = new Update();
+            update.set("userAuto", accountDTO.getUserName());
+            update.set("status", 3);
+            update.set("automation_result", "SUBMIT_FIELD_FAILED");
+            update.set("automation_result_message", e.getMessage());
+            mongoTemplate.findAndModify(queryUpdate, update, SubmitFieldDTO.class);
+            System.out.println("AUTO - SUBMIT FIELD FAILED: " + e.getMessage() + " - " + stage + " - " + " App: " + submitFieldDTO.getAppId() + " - User: " + accountDTO.getUserName());
+            Utilities.captureScreenShot(driver);
+
+        } finally {
+            Query queryUpdateFailed = new Query();
+            queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(finalReference_id)
+                    .and("transaction_id").is(finalTransaction_id)
+                    .and("project").is(finalProject_id));
+            List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
+
+            responseModel.setReference_id(finalReference_id);
+            responseModel.setProject(finalProject_id);
+            responseModel.setTransaction_id(finalTransaction_id);
+            responseModel.setData(resultRespone);
+
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver,accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, project);
+            try {
+                autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
+            } catch (Exception e) {
+                System.out.println("UPDATE STATUS RABBIT: FAILED - MESSAGE: " + e.getMessage() + "\n TRACE: " + e.toString());
+                e.printStackTrace();
+            }
+            System.out.println("AUTO - SUBMIT FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+        }
+    }
+
+    private void runAutomation_Submit_Field_run_Old(String browser, LoginDTO accountDTO, String project, Map<String, Object> mapValue) {
         WebDriver driver = null;
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
