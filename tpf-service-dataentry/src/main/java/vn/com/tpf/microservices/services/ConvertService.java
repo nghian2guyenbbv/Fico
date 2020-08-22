@@ -207,6 +207,7 @@ public class ConvertService {
 			leadCreationRequest.getPersonInfoType().add(personInfo);
 
 			/*---------------------------------------------------productProcessor---------------------------------------------------- */
+			leadCreationRequest.setProductProcessor("EXTERNAL");
 			leadCreationRequest.setUserName("system");
 
 			/*-----------------------------------------------------documents------------------------------------------------------ */
