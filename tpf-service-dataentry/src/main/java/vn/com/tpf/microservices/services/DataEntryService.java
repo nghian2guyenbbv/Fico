@@ -5064,7 +5064,7 @@ public class DataEntryService {
 
 			List<String> statusValid = Arrays.asList("COMPLETE", "CANCEL", "MANUALLY");
 			boolean match = statusValid.stream().anyMatch(s -> s.contains(applications.get(0).getStatus()));
-			if(!match){
+			if(match){
 				throw new DataEntryException(2, "status appDB not valid");
 			}
 
@@ -5072,12 +5072,12 @@ public class DataEntryService {
 				throw new DataEntryException(2, "Application stage is not LEAD_DETAILS");
 			}
 
-			if (!"3".equals(applications.get(0).getPartnerId())){
-				String error = callCancelApiPartner(applicationId, reasonCancels, applications.get(0).getPartnerId());
-				if (StringUtils.hasLength(error)){
-					throw new DataEntryException(2, error);
-				}
-			}
+//			if (!"3".equals(applications.get(0).getPartnerId())){
+//				String error = callCancelApiPartner(applicationId, reasonCancels, applications.get(0).getPartnerId());
+//				if (StringUtils.hasLength(error)){
+//					throw new DataEntryException(2, error);
+//				}
+//			}
 			applications.get(0).setReasonCancel(reasonCancels);
 			applications.get(0).setStatus("CANCEL");
 			applications.get(0).setLastModifiedDate(new Date());
