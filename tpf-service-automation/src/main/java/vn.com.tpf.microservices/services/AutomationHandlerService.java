@@ -4488,6 +4488,7 @@ public class AutomationHandlerService {
                     String finalReference_id = reference_id;
                     String finalProject_id = project_id;
                     workerThreadPoolDE.execute(new Runnable() {
+                        @SneakyThrows
                         @Override
                         public void run() {
                             if ("Waive_Field".equals(funcString)){
@@ -4568,7 +4569,7 @@ public class AutomationHandlerService {
     //------------------------ END FIELD -----------------------------------------------------
 
     //------------------------ WAIVE FIELD -----------------------------------------------------
-    private void runAutomation_Waive_Field_run(LoginDTO accountDTO, String browser, String project, String finalTransaction_id, String finalReference_id, String finalProject_id) {
+    private void runAutomation_Waive_Field_run(LoginDTO accountDTO, String browser, String project, String finalTransaction_id, String finalReference_id, String finalProject_id) throws Exception {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
@@ -4711,19 +4712,14 @@ public class AutomationHandlerService {
 
             responseModel.setReference_id(finalReference_id);
             responseModel.setProject(finalProject_id);
-            responseModel.setTransaction_id(finalTransaction_id);
+            responseModel.setTransaction_id("transaction_waive_field");
             responseModel.setData(resultRespone);
 
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
             pushAccountToQueue(accountDTO, project);
-            try {
-                autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
-            } catch (Exception e) {
-                System.out.println("UPDATE STATUS RABBIT: FAILED - MESSAGE: " + e.getMessage() + "\n TRACE: " + e.toString());
-                e.printStackTrace();
-            }
+            autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
             System.out.println("AUTO - WAIVE FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         }
     }
@@ -4891,11 +4887,10 @@ public class AutomationHandlerService {
             System.out.println("AUTO - WAIVE FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         }
     }
-
     //------------------------ END WAIVE FIELD -----------------------------------------------------
 
     //------------------------ SUBMIT FIELD -----------------------------------------------------
-    private void runAutomation_Submit_Field_run(LoginDTO accountDTO, String browser, String project, String finalTransaction_id, String finalReference_id, String finalProject_id) {
+    private void runAutomation_Submit_Field_run(LoginDTO accountDTO, String browser, String project, String finalTransaction_id, String finalReference_id, String finalProject_id) throws Exception {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
@@ -5054,19 +5049,14 @@ public class AutomationHandlerService {
 
             responseModel.setReference_id(finalReference_id);
             responseModel.setProject(finalProject_id);
-            responseModel.setTransaction_id(finalTransaction_id);
+            responseModel.setTransaction_id("transaction_submit_field");
             responseModel.setData(resultRespone);
 
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
             pushAccountToQueue(accountDTO, project);
-            try {
-                autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
-            } catch (Exception e) {
-                System.out.println("UPDATE STATUS RABBIT: FAILED - MESSAGE: " + e.getMessage() + "\n TRACE: " + e.toString());
-                e.printStackTrace();
-            }
+            autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
             System.out.println("AUTO - SUBMIT FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         }
     }
