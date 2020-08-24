@@ -19,6 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -89,6 +90,30 @@ public class AutoRoutingService {
 
 	public Map<String, Object> getRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			List<ConfigRouting> configRoutingList = configRoutingDAO.findAll();
+
+			if (configRoutingList.size() > 0) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(200);
+				responseModel.setMessage("Success");
+				responseModel.setData(configRoutingList);
+			}
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
+		}
+
 		return Map.of("status", 200, "data", responseModel);
 	}
 
