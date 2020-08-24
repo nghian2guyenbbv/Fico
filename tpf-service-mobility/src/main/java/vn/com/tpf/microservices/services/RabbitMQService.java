@@ -100,7 +100,9 @@ public class RabbitMQService {
 				case "submitField": 
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.submitField((request))));	
 				case "waiveField": 
-					return response(message, payload, Map.of("status", 200, "data", mobilityService.waiveField((request))));	
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.waiveField((request))));
+				case "commentApp":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.commentApp((request))));
 					
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,

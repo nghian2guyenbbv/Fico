@@ -1536,4 +1536,14 @@ public class MobilityService {
 
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
+
+	public JsonNode commentApp(JsonNode request) throws Exception {
+		return response(200, mapper.convertValue("", JsonNode.class), 0);
+	}
+
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
+	}
 }
