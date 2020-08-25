@@ -258,10 +258,12 @@ public class AutomationHandlerService {
                     break;
                 case "runAutomation_Waive_Field":
                     String funcWaiveField = "Waive_Field";
+//                    runAutomation_Field_Old(driver, mapValue, project, browser, funcWaiveField);
                     runAutomation_Field(driver, mapValue, project, browser, funcWaiveField);
                     break;
                 case "runAutomation_Submit_Field":
                     String funcSubmitField = "Submit_Field";
+//                    runAutomation_Field_Old(driver, mapValue, project, browser, funcSubmitField);
                     runAutomation_Field(driver, mapValue, project, browser, funcSubmitField);
                     break;
                 case "MOBILITY_quickLead":
@@ -4715,7 +4717,7 @@ public class AutomationHandlerService {
                         Update update1 = new Update();
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
-                        update.set("checkUpdate", 1);
+                        update1.set("checkUpdate", 1);
                         update1.set("automation_result", "WAIVE_FIELD_PASS");
                         update1.set("automation_result_message", "DONE");
                         mongoTemplate.findAndModify(queryUpdate1, update1, WaiveFieldDTO.class);
