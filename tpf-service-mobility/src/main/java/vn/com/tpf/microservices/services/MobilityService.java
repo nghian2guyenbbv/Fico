@@ -1556,7 +1556,7 @@ public class MobilityService {
 
 		commentAppObject.put("createdAt", new Date());
 
-		commentAppObject.put("commentApp3P", body.path("data").asText());
+		commentAppObject.put("commentApp3P", body.path("data"));
 
 		LinkedList<Map> commentApps3PNew = mapper.convertValue(mobilityCommentApp.getCommentApp3P(),
 				LinkedList.class);
