@@ -4614,9 +4614,7 @@ public class AutomationHandlerService {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
-        String finalReferenceId = "";
-        String finalTransactionId = "";
-        String finalProject = "";
+        String autoAssign = "";
         int checkUpdateAuto = 0;
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         WaiveFieldDTO waiveFieldDTO = WaiveFieldDTO.builder().build();
@@ -4636,21 +4634,25 @@ public class AutomationHandlerService {
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
 
+            Query countQuery = new Query();
+            countQuery.addCriteria(Criteria.where("status").is(0)
+                    .and("reference_id").is(finalReference_id)
+                    .and("transaction_id").is(finalTransaction_id)
+                    .and("project").is(finalProject_id)
+            );
+            checkUpdateAuto = mongoTemplate.find(countQuery, WaiveFieldDTO.class).size();
+
             do {
                 try {
                     Instant startIn = Instant.now();
                     System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
-                    finalReferenceId = finalReference_id;
-                    finalTransactionId = finalTransaction_id;
-                    finalProject = finalProject_id;
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0)
-                            .and("reference_id").is(finalReferenceId)
-                            .and("transaction_id").is(finalTransactionId)
-                            .and("project").is(finalProject)
+                            .and("reference_id").is(finalReference_id)
+                            .and("transaction_id").is(finalTransaction_id)
+                            .and("project").is(finalProject_id)
                     );
                     waiveFieldDTO = mongoTemplate.findOne(query, WaiveFieldDTO.class);
-                    checkUpdateAuto = mongoTemplate.find(query, WaiveFieldDTO.class).size();
 
                     if (!Objects.isNull(waiveFieldDTO)) {
                         //update app
@@ -4663,6 +4665,7 @@ public class AutomationHandlerService {
                         update.set("userAuto", accountDTO.getUserName());
                         update.set("status", 2);
                         WaiveFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
+                        autoAssign = accountDTO.getUserName();
 
                         if (resultUpdate == null) {
                             continue;
@@ -4761,7 +4764,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
             pushAccountToQueue(accountDTO, project);
-            if (!finalReferenceId.isEmpty()){
+            if (accountDTO.getUserName().equals(autoAssign)){
                 Query queryUpdateFailed = new Query();
                 queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(finalReference_id)
                         .and("transaction_id").is(finalTransaction_id)
