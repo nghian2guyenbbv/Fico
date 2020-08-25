@@ -9,4 +9,5 @@ public class MobilityFieldReponeDTO {
     private String appId;
     private String automation_result;
     private String automation_result_message;
+    private int checkUpdate;
 }
