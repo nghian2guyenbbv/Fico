@@ -258,10 +258,10 @@ public class FV_FieldInvestigationDetailsPage {
 
         Thread.sleep(40000);
 
-//        JavascriptExecutor jseMoveNextStage = (JavascriptExecutor) _driver;
-//        jseMoveNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        JavascriptExecutor jseMoveNextStage = (JavascriptExecutor) _driver;
+        jseMoveNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-        btnMoveToNextStageElement.click();
+//        btnMoveToNextStageElement.click();
 
         Utilities.captureScreenShot(_driver);
 
