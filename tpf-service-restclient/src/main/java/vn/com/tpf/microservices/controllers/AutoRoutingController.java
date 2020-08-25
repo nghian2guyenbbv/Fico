@@ -16,14 +16,14 @@ public class AutoRoutingController {
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
-	@GetMapping("/tpf-service-autorouting/check-routing")
+	@PostMapping("/tpf-service-autorouting/check-routing")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> check(@RequestHeader("Authorization") String token, @RequestParam Map<String, String> param)
+	public ResponseEntity<?> check(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "checkRouting");
 		request.put("token", token);
-		request.put("param", param);
+		request.put("body", body);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autorouting", request);
 		return ResponseEntity.status(response.path("status").asInt(500))

@@ -1,13 +1,15 @@
 package vn.com.tpf.microservices.models;
 
-public class RequestModel{
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.io.Serializable;
+
+public class RequestModel<T> implements Serializable {
     private String request_id;
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d{4}-[01]d-[0-3]dT[0-2]d:[0-5]d:[0-5]d(?:.d+)?Z?", locale = "en_GB")
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm a z")
     private String date_time;
 
-    private ConfigRouting data;
-    private LogChoiceRouting logChoiceRouting;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private LogChoiceRouting data;
 
     public RequestModel() {
     }
@@ -28,12 +30,9 @@ public class RequestModel{
         this.date_time = date_time;
     }
 
-    public ConfigRouting getData() {
+    public LogChoiceRouting getData() {
         return data;
     }
 
-    public LogChoiceRouting getLogChoiceRouting() {
-        return logChoiceRouting;
-    }
 }
 
