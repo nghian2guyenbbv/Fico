@@ -4437,15 +4437,6 @@ public class DataEntryService {
 			logInfo.put("exception", error);
 			responseModel.setResult_code(String.valueOf(e.getType()));
 			responseModel.setMessage(error);
-			return Map.of("status", 200, "data", responseModel);
-		}catch (Exception e){
-			error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
-			logInfo.put("exception", error);
-			responseModel.setResult_code("3");
-			responseModel.setMessage("Others error");
-			return Map.of("status", 200, "data", responseModel);
-		}finally {
-			log.info("{}", logInfo);
 			if (StringUtils.hasLength(createFrom) && !"WEB".equals(createFrom.toUpperCase())){
 				rabbitMQService.send("tpf-service-esb",
 						Map.of("func", "updateAutomation", "reference_id", referenceId, "body", Map.of("app_id", appId != null ? appId : "",
@@ -4455,6 +4446,26 @@ public class DataEntryService {
 								"transaction_id", quickLeadId,
 								"automation_account", "")));
 			}
+
+			return Map.of("status", 200, "data", responseModel);
+		}catch (Exception e){
+			error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			logInfo.put("exception", error);
+			responseModel.setResult_code("3");
+			responseModel.setMessage("Others error");
+
+			if (StringUtils.hasLength(createFrom) && !"WEB".equals(createFrom.toUpperCase())){
+				rabbitMQService.send("tpf-service-esb",
+						Map.of("func", "updateAutomation", "reference_id", referenceId, "body", Map.of("app_id", appId != null ? appId : "",
+								"project", createFrom,
+								"automation_result", "RESPONSEQUERY FAILED",
+								"description", error,
+								"transaction_id", quickLeadId,
+								"automation_account", "")));
+			}
+			return Map.of("status", 200, "data", responseModel);
+		}finally {
+			log.info("{}", logInfo);
 		}
 	}
 
@@ -4512,19 +4523,29 @@ public class DataEntryService {
 				}
 				err = sendCommentToPartner(referenceId, commentModel, appRequest, appDB, project);
 				logInfo.put("send-to-partner", StringUtils.hasLength(err) ? err : "SUCCESS");
+				if (StringUtils.isEmpty(err)){
+					if (StringUtils.hasLength(appDB.getCreateFrom()) && !"WEB".equals(appDB.getCreateFrom().toUpperCase())){
+						String account = request.path("body").path("automationAcc").asText("");
+						try {
+							rabbitMQService.send("tpf-service-esb",
+									Map.of("func", "updateAutomation", "reference_id", referenceId, "body", Map.of("app_id", appDB.getApplicationId() != null ? appDB.getApplicationId() : "",
+											"project", appDB.getCreateFrom(),
+											"automation_result", "RESPONSEQUERY PASS",
+											"description", "Thanh cong",
+											"transaction_id", appDB.getQuickLeadId(),
+											"automation_account", account)));
+						} catch (Exception e) {
+							err = e.getMessage();
+						}
+					}
+				}
 				return err;
 			}).collect(Collectors.joining());
 
 			if (StringUtils.hasLength(errMsg)){
 				throw new DataEntryException(2, errMsg);
 			}
-
 			responseModel.setResult_code("0");
-			if (StringUtils.hasLength(appDB.getCreateFrom()) && !"WEB".equals(appDB.getCreateFrom().toUpperCase())){
-				automationAcc = request.path("body").path("automationAcc").asText("");
-				automationResult = "RESPONSEQUERY PASS";
-				description = "Thanh cong";
-			}
 		} catch (DataEntryException e){
 			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
 			description = error;
@@ -4532,17 +4553,6 @@ public class DataEntryService {
 			responseModel.setResult_code(String.valueOf(e.getType()));
 			responseModel.setMessage(error);
 			automationResult = "RESPONSEQUERY FAILED";
-			rollBackApp(appRequest, appDB);
-		} catch (Exception e){
-			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
-			description = error;
-			logInfo.put("exception", error);
-			responseModel.setResult_code("3");
-			responseModel.setMessage("Others error");
-			automationResult = "RESPONSEQUERY FAILED";
-			rollBackApp(appRequest, appDB);
-		} finally {
-			log.info("{}", logInfo);
 			if (StringUtils.hasLength(appDB.getCreateFrom()) && !"WEB".equals(appDB.getCreateFrom().toUpperCase())){
 				rabbitMQService.send("tpf-service-esb",
 						Map.of("func", "updateAutomation", "reference_id", referenceId, "body", Map.of("app_id", appDB.getApplicationId() != null ? appDB.getApplicationId() : "",
@@ -4552,6 +4562,26 @@ public class DataEntryService {
 								"transaction_id", appDB.getQuickLeadId(),
 								"automation_account", automationAcc)));
 			}
+			rollBackApp(appRequest, appDB);
+		} catch (Exception e){
+			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
+			description = error;
+			logInfo.put("exception", error);
+			responseModel.setResult_code("3");
+			responseModel.setMessage("Others error");
+			automationResult = "RESPONSEQUERY FAILED";
+			if (StringUtils.hasLength(appDB.getCreateFrom()) && !"WEB".equals(appDB.getCreateFrom().toUpperCase())){
+				rabbitMQService.send("tpf-service-esb",
+						Map.of("func", "updateAutomation", "reference_id", referenceId, "body", Map.of("app_id", appDB.getApplicationId() != null ? appDB.getApplicationId() : "",
+								"project", appDB.getCreateFrom(),
+								"automation_result", automationResult,
+								"description", description,
+								"transaction_id", appDB.getQuickLeadId(),
+								"automation_account", automationAcc)));
+			}
+			rollBackApp(appRequest, appDB);
+		} finally {
+			log.info("{}", logInfo);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -4850,7 +4880,6 @@ public class DataEntryService {
 
 	private String saveApp(QuickLead data, String project) {
 		try {
-
 			Query query = new Query();
 			query.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
 			boolean exist = mongoTemplate.exists(query, Application.class);
@@ -4863,11 +4892,26 @@ public class DataEntryService {
 			Application app = new Application();
 			app.setQuickLeadId(data.getQuickLeadId());
 			app.setQuickLead(data);
-			app.setStatus("PROCESSING");
+			app.setStatus("UPLOADFILE");
+			app.setUserName(project);
 			app.setCreateFrom(project);
 			app.setPartnerId(mapper.convertValue(partner.get("data"), Map.class).get("partnerId").toString());
 			app.setPartnerName(mapper.convertValue(partner.get("data"), Map.class).get("partnerName").toString());
 			mongoTemplate.save(app);
+
+			Report report = new Report();
+			report.setQuickLeadId(app.getQuickLeadId());
+			report.setFunction("UPLOADFILE");
+			report.setStatus("UPLOADFILE");
+			report.setDescription("upload success");
+			report.setCreatedBy(project);
+			report.setCreatedDate(new Date());
+
+			report.setPartnerId(app.getPartnerId());
+			report.setPartnerName(app.getPartnerName());
+
+			mongoTemplate.save(report);
+
 			return "";
 		} catch (Exception e){
 			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
@@ -5085,7 +5129,7 @@ public class DataEntryService {
 			if ("LEAD_DETAILS".equals(applications.get(0).getStageF1())){
 				JsonNode result = apiService.callApiF1(urlCancel, convertService.toCancelApiF1(applications.get(0)));
 				if (result.hasNonNull("errMsg")){
-					throw new DataEntryException(2, "Error call esb - " + result.path("errMsg"));
+					throw new DataEntryException(3, "Error call esb - " + result.path("errMsg"));
 				}
 			}
 			mongoTemplate.save(applications.get(0));
