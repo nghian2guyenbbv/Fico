@@ -4689,9 +4689,6 @@ public class AutomationHandlerService {
                         stage = "WAIVE OFF ALL";
                         FV_WaiveFieldPage fv_WaiveFieldPage = new FV_WaiveFieldPage(driver);
                         fv_WaiveFieldPage.setData(waiveFieldDTO, accountDTO.getUserName().toLowerCase());
-                        fv_WaiveFieldPage.getBtnMoveToNextStageElement().click();
-                        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(driver::getTitle, is("Application Grid"));
                         System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========= UPDATE DB ============================
@@ -4758,7 +4755,6 @@ public class AutomationHandlerService {
                 queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(finalReference_id)
                         .and("transaction_id").is(finalTransaction_id)
                         .and("project").is(finalProject_id)
-                        .and("checkUpdate").is(1)
                 );
                 List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
 
