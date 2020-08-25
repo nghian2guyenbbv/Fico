@@ -45,6 +45,9 @@ public class AutoRoutingService {
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	@Autowired
+	private RedisService redisService;
+
 	public Map<String, Object> checkRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
