@@ -28,5 +28,4 @@ public class WaiveFieldDTO {
     private String project;
     private String transaction_id;
     private String automation_result;
-    private int checkUpdate = 0;
 }

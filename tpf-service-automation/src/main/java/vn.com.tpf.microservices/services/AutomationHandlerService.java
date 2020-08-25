@@ -4614,6 +4614,7 @@ public class AutomationHandlerService {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
+        int checkUpdateAuto = 0;
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         WaiveFieldDTO waiveFieldDTO = WaiveFieldDTO.builder().build();
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
@@ -4706,6 +4707,7 @@ public class AutomationHandlerService {
                         update1.set("automation_result", "WAIVE_FIELD_PASS");
                         update1.set("automation_result_message", "DONE");
                         mongoTemplate.findAndModify(queryUpdate1, update1, WaiveFieldDTO.class);
+                        checkUpdateAuto = 1;
                         System.out.println("AUTO - WAIVE FIELD PASS: " + stage + " - " + " App: " + waiveFieldDTO.getAppId() + " - User: " + accountDTO.getUserName());
                     }
                 } catch (Exception ex) {
@@ -4721,6 +4723,7 @@ public class AutomationHandlerService {
                     update.set("automation_result", "WAIVE_FIELD_FAILED");
                     update.set("automation_result_message", ex.getMessage());
                     mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
+                    checkUpdateAuto = 1;
                     System.out.println("AUTO - WAIVE FIELD FAILED: " + ex.getMessage() + " - " + stage + " - " + " App: " + waiveFieldDTO.getAppId() + " - User: " + accountDTO.getUserName());
                     Utilities.captureScreenShot(driver);
                 }
@@ -4728,9 +4731,7 @@ public class AutomationHandlerService {
         } catch (Exception e) {
             System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
-
             Utilities.captureScreenShot(driver);
-
 
             Query queryUpdate = new Query();
             queryUpdate.addCriteria(Criteria.where("status").is(0)
@@ -4748,34 +4749,25 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
         } finally {
-            Query queryUpdateFailed = new Query();
-            queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(finalReference_id)
-                    .and("transaction_id").is(finalTransaction_id)
-                    .and("project").is(finalProject_id)
-                    .and("checkUpdate").is(0)
-            );
-            List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
-
-            responseModel.setReference_id(finalReference_id);
-            responseModel.setProject(finalProject_id);
-            responseModel.setTransaction_id("transaction_waive_field");
-            responseModel.setData(resultRespone);
-
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
             pushAccountToQueue(accountDTO, project);
-            if (resultRespone.get(0).getCheckUpdate() == 0){
-                autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
-                Query queryUpdate = new Query();
-                queryUpdate.addCriteria(Criteria.where("reference_id").is(finalReference_id)
+            if (checkUpdateAuto == 1){
+                Query queryUpdateFailed = new Query();
+                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(finalReference_id)
                         .and("transaction_id").is(finalTransaction_id)
                         .and("project").is(finalProject_id)
-                        .and("checkUpdate").is(0)
+                        .and("checkUpdate").is(1)
                 );
-                Update update = new Update();
-                update.set("checkUpdate", 1);
-                mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
+                List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
+
+                responseModel.setReference_id(finalReference_id);
+                responseModel.setProject(finalProject_id);
+                responseModel.setTransaction_id("transaction_waive_field");
+                responseModel.setData(resultRespone);
+                autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
+                checkUpdateAuto = 0;
             }
             System.out.println("AUTO - WAIVE FIELD" + ": END" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
         }
