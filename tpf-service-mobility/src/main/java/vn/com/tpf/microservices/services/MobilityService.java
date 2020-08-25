@@ -1541,9 +1541,7 @@ public class MobilityService {
 		JsonNode body = request.path("body");
 		if (!request.hasNonNull("body"))
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "body not null"));
-		if (body.path("data").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "body.data not null"));
+
 		if (body.path("data").path("applicationId").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "body.data.applicationId not null"));
