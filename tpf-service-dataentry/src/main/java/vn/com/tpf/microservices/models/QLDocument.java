@@ -1,8 +1,10 @@
 package vn.com.tpf.microservices.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class QLDocument {
 //    private String documentName;
     private String type;
