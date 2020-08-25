@@ -4674,7 +4674,7 @@ public class AutomationHandlerService {
                         Update update1 = new Update();
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
-                        update.set("checkUpdate", 1);
+                        update1.set("checkUpdate", 1);
                         update1.set("automation_result", "WAIVE_FIELD_PASS");
                         update1.set("automation_result_message", "DONE");
                         mongoTemplate.findAndModify(queryUpdate1, update1, WaiveFieldDTO.class);
