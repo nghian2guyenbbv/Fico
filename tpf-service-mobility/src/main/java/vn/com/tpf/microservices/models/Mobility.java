@@ -71,6 +71,8 @@ public class Mobility {
 	@LastModifiedDate
 	private Date updatedAt;
 	private long partnerId;
+	@Builder.Default
+	private List<Object> commentApp3P = Arrays.asList();
 }
 
 

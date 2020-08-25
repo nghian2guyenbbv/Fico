@@ -435,7 +435,7 @@ public class MobilityService {
 				Mobility.class);
 
 		JsonNode vendorAutoassign = rabbitMQService.sendAndReceive("tpf-service-autoassign", Map.of("func", "configureVendor", "request_id",
-				body.path("reference_id").asText()));
+				body.path("reference_id").asText(), "schemeCode", mobility.getSchemeFinnOne(),"project","mobility"));
 		long partnerId = 0;
 		if (!vendorAutoassign.path("data").path("data").path("vendorId").asText().isBlank()) {
 			partnerId = vendorAutoassign.path("data").path("data").path("vendorId").asLong();
@@ -1538,6 +1538,38 @@ public class MobilityService {
 	}
 
 	public JsonNode commentApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		if (!request.hasNonNull("body"))
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "body not null"));
+		if (body.path("data").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.data not null"));
+		if (body.path("data").path("applicationId").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.data.applicationId not null"));
+		Query query = Query.query(Criteria.where("appId").is(body.path("data").path("applicationId").asText()));
+
+		Mobility mobilityCommentApp = mobilityTemplate.findOne(query, Mobility.class);
+		if (mobilityCommentApp == null)
+			return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
+					String.format("id %s mobilityCommentApp not exits", body.path("data").path("applicationId").asText())));
+
+		HashMap<String, Object> commentAppObject = new HashMap<>();
+
+		commentAppObject.put("createdAt", new Date());
+
+		commentAppObject.put("commentApp3P", body.path("data").asText());
+
+		LinkedList<Map> commentApps3PNew = mapper.convertValue(mobilityCommentApp.getCommentApp3P(),
+				LinkedList.class);
+		if (commentApps3PNew == null)
+			commentApps3PNew = new LinkedList<Map>();
+		commentApps3PNew.push(commentAppObject);
+		Update update = new Update().set("updatedAt", new Date());
+		update.set("commentApps3PNew", commentApps3PNew);
+
+		mobilityCommentApp = mobilityTemplate.findAndModify(query, update,
+				new FindAndModifyOptions().returnNew(true), Mobility.class);
 		return response(200, mapper.convertValue("", JsonNode.class), 0);
 	}
 
