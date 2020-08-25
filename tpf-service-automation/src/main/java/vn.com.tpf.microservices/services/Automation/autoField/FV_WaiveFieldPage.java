@@ -271,13 +271,13 @@ public class FV_WaiveFieldPage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        btnMoveToNextStageElement.click();
+//        btnMoveToNextStageElement.click();
 
 //        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
 //        btnMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Grid"));
+//        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(_driver::getTitle, is("Application Grid"));
 
         Utilities.captureScreenShot(_driver);
 
