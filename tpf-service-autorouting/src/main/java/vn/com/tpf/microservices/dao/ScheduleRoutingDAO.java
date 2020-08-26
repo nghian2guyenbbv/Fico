@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.Query;
 import vn.com.tpf.microservices.models.ScheduleRoute;
 
 import java.util.List;
-import java.util.Map;
 
-public interface ScheduleRoutingDAO extends JpaRepository<ScheduleRoute, Long> {
-    //List<ScheduleRoute> findByIdConfig(String idConfig);
+public interface ScheduleRoutingDAO extends JpaRepository<ScheduleRoute, String> {
     List<ScheduleRoute> findAllByDayId(String dayId);
+
+    @Query("SELECT s FROM ScheduleRoute s WHERE s.configRouting.idConfig = ?1")
+    List<ScheduleRoute> findByIdConfig(String idConfig);
+
 }

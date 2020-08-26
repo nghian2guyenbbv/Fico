@@ -1,28 +1,26 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.java.Log;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import vn.com.tpf.microservices.dao.ConfigRoutingDAO;
+import vn.com.tpf.microservices.dao.HistoryConfigDAO;
 import vn.com.tpf.microservices.dao.LogChoiceRoutingDAO;
-import vn.com.tpf.microservices.models.ConfigRouting;
-import vn.com.tpf.microservices.models.LogChoiceRouting;
-import vn.com.tpf.microservices.models.RequestModel;
-import vn.com.tpf.microservices.models.ResponseModel;
+import vn.com.tpf.microservices.dao.ScheduleRoutingDAO;
+import vn.com.tpf.microservices.models.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class AutoRoutingService {
@@ -48,6 +46,12 @@ public class AutoRoutingService {
 
 	@Autowired
 	private RedisService redisService;
+
+	@Autowired
+	private ScheduleRoutingDAO scheduleRoutingDAO;
+
+	@Autowired
+	private HistoryConfigDAO historyConfigDAO;
 
 	public Map<String, Object> checkRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
@@ -99,6 +103,27 @@ public class AutoRoutingService {
 
 	public Map<String, Object> setRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
+		try {
+			List<ConfigRouting> configRoutingList = mapper.readValue(request.get("body").toString(),
+					new TypeReference<List<ConfigRouting>>(){});
+
+			configRoutingList.forEach( c -> {
+				boolean isNew = true;
+				List<ScheduleRoute> scheduleRouteList = scheduleRoutingDAO.findByIdConfig(c.getIdConfig());
+				if (scheduleRouteList.size() > 0) {
+					saveHistoryConfig(scheduleRouteList, c.getIdConfig());
+					isNew = false;
+				}
+				changeInfoScheduleRoute(c.getScheduleRoutes(), c.getIdConfig(), isNew);
+				List<ScheduleRoute> scheduleRouteListNew = c.getScheduleRoutes();
+				Iterable<ScheduleRoute> scheduleRouteIterable = scheduleRouteListNew;
+				scheduleRoutingDAO.saveAll(scheduleRouteIterable);
+			});
+			responseModel.setData("Save Success");
+		} catch (Exception e) {
+			log.info("Error: " + e);
+		}
+
 		return Map.of("status", 200, "data", responseModel);
 	}
 
@@ -198,4 +223,42 @@ public class AutoRoutingService {
 		}
 		return chanelNumber;
 	}
+
+	public void saveHistoryConfig(List<ScheduleRoute> scheduleRouteList, String idConfig) {
+		List<HistoryConfig> historyConfigs = new ArrayList<>();
+
+		for (ScheduleRoute scheduleRoute : scheduleRouteList) {
+			HistoryConfig historyConfig = new HistoryConfig();
+			historyConfig.setQuota(scheduleRoute.getQuota());
+			historyConfig.setTimeStart(scheduleRoute.getTimeStart());
+			historyConfig.setTimeEnd(scheduleRoute.getTimeEnd());
+			historyConfig.setDayId(scheduleRoute.getDayId());
+			historyConfig.setChanelConfig(scheduleRoute.getChanelConfig());
+			historyConfig.setDayName(scheduleRoute.getDayName());
+			historyConfig.setCreateDate(scheduleRoute.getCreateDate());
+			historyConfig.setUpdateDate(scheduleRoute.getUpdateDate());
+			historyConfig.setUserUpdated(scheduleRoute.getUserUpdated());
+			historyConfig.setUserUpdateDate(scheduleRoute.getUserUpdateDate());
+			historyConfig.setIdConfig(idConfig);
+			historyConfigs.add(historyConfig);
+		}
+		Iterable<HistoryConfig> historyConfigIterable = historyConfigs;
+		historyConfigDAO.saveAll(historyConfigIterable);
+
+	}
+
+	public void changeInfoScheduleRoute(List<ScheduleRoute> scheduleRouteList, String idConfig, boolean isNew) {
+		Date dateToday = new Date();
+		Timestamp tsToDay = new Timestamp(dateToday.getTime());
+		for (ScheduleRoute scheduleRoute : scheduleRouteList) {
+			ConfigRouting configRouting = new ConfigRouting();
+			configRouting.setIdConfig(idConfig);
+			scheduleRoute.setConfigRouting(configRouting);
+			if (!isNew) {
+				scheduleRoute.setUpdateDate(tsToDay);
+				scheduleRoute.setUserUpdateDate(tsToDay);
+			}
+		}
+	}
+
 }

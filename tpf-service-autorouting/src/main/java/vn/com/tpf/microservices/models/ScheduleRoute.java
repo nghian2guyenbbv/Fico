@@ -5,7 +5,6 @@ import lombok.Data;
 
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Entity
@@ -15,9 +14,7 @@ public class ScheduleRoute {
 
     @Id
     @Column(name = "id_schedule")
-    @JsonIgnore
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private BigDecimal idSchedule;
+    private String idSchedule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_config", nullable = false)
@@ -42,26 +39,17 @@ public class ScheduleRoute {
     @Column(name = "day_name")
     private String dayName;
 
-    @JsonIgnore
     @Column(name = "create_date")
     private Timestamp createDate;
 
-    @JsonIgnore
     @Column(name = "update_date")
     private Timestamp updateDate;
 
-    @Override
-    public String toString() {
-        return "ScheduleRoute{" +
-                "idSchedule=" + idSchedule +
-                ", quota=" + quota +
-                ", timeStart=" + timeStart +
-                ", timeEnd=" + timeEnd +
-                ", dayId='" + dayId + '\'' +
-                ", chanelConfig='" + chanelConfig + '\'' +
-                ", dayName='" + dayName + '\'' +
-                ", createDate=" + createDate +
-                ", updateDate=" + updateDate +
-                '}';
-    }
+
+    @Column(name = "user_updated")
+    private String userUpdated;
+
+
+    @Column(name = "user_update_date")
+    private Timestamp userUpdateDate;
 }

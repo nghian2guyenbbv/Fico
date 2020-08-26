@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -13,16 +14,13 @@ public class HistoryConfig {
     @Id
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
     @Column(name = "id_history")
-    private String idHistory;
+    private Long idHistory;
 
-    @Column(name = "chanel_name")
-    private String chanelName;
-
-    @Column(name = "chanel_config")
-    private String chanelConfig;
+    @Column(name = "id_config")
+    private String idConfig;
 
     @Column(name = "quota")
-    private String quota;
+    private Long quota;
 
     @Column(name = "chanel_start")
     private Timestamp timeStart;
@@ -31,11 +29,27 @@ public class HistoryConfig {
     private Timestamp timeEnd;
 
     @Column(name = "day_id")
-    private Timestamp dayId;
+    private String dayId;
 
+    @Column(name = "chanel_config")
+    private String chanelConfig;
+
+    @Column(name = "day_name")
+    private String dayName;
+
+    @JsonIgnore
+    @Column(name = "create_date")
+    private Timestamp createDate;
+
+    @JsonIgnore
     @Column(name = "update_date")
     private Timestamp updateDate;
 
-    @Column(name = "user_udapte")
-    private Timestamp userUpdate;
+
+    @Column(name = "user_updated")
+    private String userUpdated;
+
+
+    @Column(name = "user_update_date")
+    private Timestamp userUpdateDate;
 }
