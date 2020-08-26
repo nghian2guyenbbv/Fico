@@ -39,7 +39,7 @@ public class AutoRoutingController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autorouting", request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autorouting1", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
@@ -65,6 +65,18 @@ public class AutoRoutingController {
 		request.put("body", body);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autorouting", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
+	@PostMapping("/tpf-service-autorouting/get-history-config/")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> getHistoryConfig(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "historyConfig");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autorouting1", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 

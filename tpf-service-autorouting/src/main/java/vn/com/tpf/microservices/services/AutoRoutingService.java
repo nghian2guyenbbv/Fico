@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
@@ -222,6 +224,34 @@ public class AutoRoutingService {
 			}
 		}
 		return chanelNumber;
+	}
+
+	public Map<String, Object> getHistoryConfig(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			int page = request.path("body").path("page").asInt();
+			String idConfig = request.path("body").path("idConfig").asText();
+			Pageable pagination = PageRequest.of(page - 1 , 5);
+			List<HistoryConfig> historyConfigList = historyConfigDAO.findAllByIdConfig(idConfig, pagination);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Success");
+			responseModel.setData(historyConfigList);
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
+
+		}
+		return Map.of("status", 200, "data", responseModel);
 	}
 
 	public void saveHistoryConfig(List<ScheduleRoute> scheduleRouteList, String idConfig) {
