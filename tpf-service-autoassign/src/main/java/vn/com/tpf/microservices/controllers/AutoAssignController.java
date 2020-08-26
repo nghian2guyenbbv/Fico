@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jboss.logging.annotations.Pos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,4 +138,50 @@ public class AutoAssignController {
 				.header("x-pagination-total", "0").body(response.get("data"));
 	}
 
+	@GetMapping("/getscheme")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> getScheme(@RequestHeader("Authorization") String token,@RequestParam Map<String, String> param)
+			throws Exception {
+		Map<String, Object> response = autoAssignService.getScheme();
+		return ResponseEntity.status(200)
+				.header("x-pagination-total", "0").body(response.get("data"));
+	}
+
+	@GetMapping("/getschemebyid")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> getSchemeById(@RequestHeader("Authorization") String token,@RequestParam Map<String, String> param)
+			throws Exception {
+		Map<String, Object> response = autoAssignService.getSchemeById(param);
+		return ResponseEntity.status(200)
+				.header("x-pagination-total", "0").body(response.get("data"));
+	}
+
+	@PostMapping("/insertscheme")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> insertScheme(@RequestHeader("Authorization") String token,@RequestBody ObjectNode body)
+			throws Exception {
+		body.put("token", token);
+		Map<String, Object> response = autoAssignService.insertScheme(body);
+		return ResponseEntity.status(200)
+				.header("x-pagination-total", "0").body(response.get("data"));
+	}
+
+	@PostMapping("/updatescheme")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> updateScheme(@RequestHeader("Authorization") String token,@RequestBody ObjectNode body)
+			throws Exception {
+		body.put("token", token);
+		Map<String, Object> response = autoAssignService.updateScheme(body);
+		return ResponseEntity.status(200)
+				.header("x-pagination-total", "0").body(response.get("data"));
+	}
+
+	@GetMapping("/deletescheme")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> deleteScheme(@RequestHeader("Authorization") String token,@RequestParam Map<String, String> param)
+			throws Exception {
+		Map<String, Object> response = autoAssignService.deleteSchemeById(param);
+		return ResponseEntity.status(200)
+				.header("x-pagination-total", "0").body(response.get("data"));
+	}
 }

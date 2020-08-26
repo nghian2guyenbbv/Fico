@@ -82,6 +82,9 @@ public class AutoAssignService {
 	@Autowired
 	private TransactionTemplate transactionTemplate;
 
+	@Autowired
+	private AutoAssignConfigureSchemeDAO autoAssignConfigureSchemeDAO;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -192,6 +195,7 @@ public class AutoAssignService {
 					autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
 					autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
 					autoAssignConfigureHistory.setData( mapper.writeValueAsString(inputDataInsert));
+					autoAssignConfigureHistory.setCreatedBy("system");
 					AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
 				}
 				int result = autoAssignConfigureDAO.updateSeq();
@@ -373,8 +377,7 @@ public class AutoAssignService {
 //			List<AutoAssignConfigure> inputData = requestModel.getData();
 			for (AutoAssignConfigure item :	inputData) {
 				AutoAssignConfigure resultConfigById = autoAssignConfigureDAO.findConfigureById(item.getId());
-				if (formatterParseInput.format(resultConfigById.getCreatedDate().toLocalDateTime()).equals(formatterParseInput.format(LocalDate.now())) &&
-						resultConfigById.getVendorId() != 3){
+				if (formatterParseInput.format(resultConfigById.getCreatedDate().toLocalDateTime()).equals(formatterParseInput.format(LocalDate.now()))){
 					if (item.getTotalQuanlity() >= resultConfigById.getActualTotalQuanlity() &&
 							item.getQuanlityInDay() >= resultConfigById.getActualQuanlityInDay()){
 						int result = autoAssignConfigureDAO.updateConfigure(item.getTotalQuanlity(), item.getQuanlityInDay(),
@@ -386,7 +389,7 @@ public class AutoAssignService {
 			AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
 			autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
 			autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
-			autoAssignConfigureHistory.setData(inputData.toString());
+			autoAssignConfigureHistory.setData(mapper.writeValueAsString(inputData));
 			autoAssignConfigureHistory.setCreatedBy(token.path("user_name").textValue());
 			AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
 
@@ -445,6 +448,10 @@ public class AutoAssignService {
 			RequestApplicationModel requestApplicationModel = mapper.treeToValue(request, RequestApplicationModel.class);
 			request_id = requestApplicationModel.getRequest_id();
 			reference_id = requestApplicationModel.getReference_id();
+
+			//get scheme
+			String scheme= request.hasNonNull("schemeCode")?request.path("schemeCode").asText():"";
+
 			if (StringUtils.isEmpty(reference_id)){
 				reference_id = UUID.randomUUID().toString();
 			}
@@ -452,7 +459,7 @@ public class AutoAssignService {
 			if (exist){
 				reference_id += "-" + new Date().getTime();
 			}
-			List<Object> resultGetVendorConfig = autoAssignConfigureDAO.getVendorConfigApplication(request_id, reference_id);
+			List<Object> resultGetVendorConfig = autoAssignConfigureDAO.getVendorConfigApplicationNew(request_id, reference_id,scheme);
 			if (resultGetVendorConfig != null){
 				vendorId = Integer.parseInt(resultGetVendorConfig.get(0).toString());
 
@@ -525,21 +532,21 @@ public class AutoAssignService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try{
-			List<AutoAssignConfigure> resultConfig = new ArrayList<>();
+			List<AutoAssignConfigureHistory> resultConfig = new ArrayList<>();
 
 			Pageable paging = PageRequest.of(page, limit, Sort.by(sort[1].equals("desc")? Sort.Direction.DESC: Sort.Direction.ASC,sort[0]));
-			resultConfig = autoAssignConfigureDAO.getHistory(paging);
+			resultConfig = autoAssignConfigureHistoryDAO.getHistory(paging);
 
 			if(resultConfig.size()==0) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(1);
-				responseModel.setMessage("Không có danh sác");
+				responseModel.setMessage("Không có danh sách");
 
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			int total=autoAssignConfigureDAO.totalRow();
+			int total=autoAssignConfigureHistoryDAO.totalRow();
 			int totalPage= total / limit;
 
 			responseModel.setReference_id(UUID.randomUUID().toString());
@@ -601,4 +608,209 @@ public class AutoAssignService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+
+	//---------------- UPDATE SCHEME ------------------------------
+	public Map<String, Object> getScheme() {
+
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			List<AutoAssignScheme> resultConfig = new ArrayList<>();
+
+			resultConfig = autoAssignConfigureSchemeDAO.findAll();
+
+			if(resultConfig.size()==0) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Không có danh sách scheme");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
+			responseModel.setData(Map.of("result",resultConfig));
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getSchemeById(Map<String, String> param) {
+		int id = Integer.parseInt(param.getOrDefault("id","1"));
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			AutoAssignScheme resultConfig = autoAssignConfigureSchemeDAO.findAutoAssignSchemeById(id);
+
+			if(resultConfig==null) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Không có kết quả");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
+			responseModel.setData(Map.of("result",resultConfig));
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	@Transactional
+	public Map<String, Object> insertScheme(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			RequestSchemeModel requestModel = mapper.treeToValue(request, RequestSchemeModel.class);
+			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
+
+			if (requestModel.getData() == null){
+				responseModel.setRequest_id(requestModel.getRequest_id());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("data null!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			List<AutoAssignScheme> list=requestModel.getData();
+			//list.stream().forEach(u->u.setCreateddate(new Timestamp(new Date().getTime())));
+			list.stream().map(autoAssignScheme -> {
+				autoAssignScheme.setCreateddate(new Timestamp(new Date().getTime()));
+				autoAssignScheme.setCreatedby(token.path("user_name").asText());
+				return autoAssignScheme;
+			}).collect(Collectors.toList());
+
+
+			autoAssignConfigureSchemeDAO.saveAll(list);
+
+			responseModel.setRequest_id(requestModel.getRequest_id());
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
+
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	@Transactional
+	public Map<String, Object> updateScheme(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			JsonNode token = checkToken(request.path("token").asText("Bearer ").split(" "));
+
+			int id=request.path("data").path("id").asInt();
+
+			AutoAssignScheme autoAssignScheme=autoAssignConfigureSchemeDAO.findAutoAssignSchemeById(id);
+
+			if(autoAssignScheme==null)
+			{
+				responseModel.setRequest_id(request.path("request_id").asText());
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("data null!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			AutoAssignScheme scheme=mapper.treeToValue(request.get("data"), AutoAssignScheme.class);
+
+			autoAssignScheme.setScheme(scheme.getScheme());
+			autoAssignScheme.setStatus(scheme.getStatus());
+			autoAssignScheme.setLastdate(new Timestamp(new Date().getTime()));
+			autoAssignScheme.setCreatedby(token.path("user_name").asText());
+
+			autoAssignConfigureSchemeDAO.save(autoAssignScheme);
+
+			responseModel.setRequest_id(request.path("request_id").asText());
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
+
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> deleteSchemeById(Map<String, String> param) {
+		int id = Integer.parseInt(param.getOrDefault("id","1"));
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try{
+			AutoAssignScheme resultConfig = autoAssignConfigureSchemeDAO.findAutoAssignSchemeById(id);
+
+			if(resultConfig==null) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(1);
+				responseModel.setMessage("Không có kết quả");
+
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			autoAssignConfigureSchemeDAO.deleteById(id);
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(0);
+			responseModel.setMessage("Thành công");
+			responseModel.setData(Map.of("result",resultConfig));
+		}
+		catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+	//---------------- END ----------------------------------------
 }
