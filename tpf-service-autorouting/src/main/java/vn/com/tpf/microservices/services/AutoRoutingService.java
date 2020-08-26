@@ -214,7 +214,7 @@ public class AutoRoutingService {
 		String chanelConfig  = redisService.getValueFromCache("chanelConfig",request.getChanelId()+"Config" );
 		if (!chanelConfig.equals("0")) {
 			String timeStart  = redisService.getValueFromCache("chanelTimeStart",request.getChanelId()+"TimeStart" );
-			String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeStart" );
+			String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
 			long timeLocal = 	System.currentTimeMillis();
 			if (timeLocal > Long.parseLong(timeStart) || timeLocal < Long.parseLong(timeEnd)) {
 				String quota  = redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota" );
