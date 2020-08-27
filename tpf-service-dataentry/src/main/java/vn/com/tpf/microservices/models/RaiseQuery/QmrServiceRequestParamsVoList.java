@@ -6,9 +6,11 @@ import lombok.Builder;
 public class QmrServiceRequestParamsVoList
 {
     private QueryModuleLocationDetailsVO queryModuleLocationDetailsVO;
+    private QueryModuleDocumentDetailsVO queryModuleDocumentDetailsVO;
     private String queryCode;
     private String applicationNumber;
     private String responseBy;
     private String queryId;
     private String response;
 }
+
