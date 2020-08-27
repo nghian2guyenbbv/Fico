@@ -6722,7 +6722,7 @@ public class AutomationHandlerService {
                         await("Search Options loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAllocationReassignPage.getSearchOptionsElement().isDisplayed());
 
-                        new Select(autoAllocationReassignPage.getSearchOptionsElement()).selectByVisibleText("Product Name");
+                        new Select(autoAllocationReassignPage.getSearchOptionsElement()).selectByVisibleText("Stage");
 
                         Utilities.captureScreenShot(driver);
 
