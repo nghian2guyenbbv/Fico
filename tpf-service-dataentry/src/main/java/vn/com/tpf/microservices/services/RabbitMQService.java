@@ -53,6 +53,9 @@ public class RabbitMQService {
 	@Autowired
 	private DataEntryService dataEntryService;
 
+	@Autowired
+	private RaiseQueryService raiseQueryService;
+
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
@@ -225,6 +228,8 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.sendAppNonWeb(request));
 				case "commentAppNonWeb":
 					return response(message, payload, dataEntryService.commentAppNonWeb(request));
+				case "raiseQueryData":
+					return response(message, payload, raiseQueryService.addRaiseQuery(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
