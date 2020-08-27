@@ -57,6 +57,9 @@ public class RaiseQueryService {
 
             mongoTemplate.insert(requestModel);
 
+            //call function add comment cua Trung here, de gia lap hien thi tren porta IH
+            //end call
+
             responseModel.setRequest_id(referenceId);
             responseModel.setReference_id(referenceId);
             responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -121,7 +124,6 @@ public class RaiseQueryService {
 
             List<QmrServiceRequestParamsVoList> lists = new ArrayList<QmrServiceRequestParamsVoList>();
             lists.add(qmrServiceRequestParamsVoList);
-
 
             JsonNode response = apiService.callApiF1(urlResponseQuery, mapper.convertValue(lists, JsonNode.class));
 
