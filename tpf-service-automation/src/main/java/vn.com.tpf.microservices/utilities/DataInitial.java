@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.utilities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.StringUtils;
 import vn.com.tpf.microservices.models.*;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoReassignUserDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
@@ -1115,6 +1117,27 @@ public class DataInitial {
     public static Map<String, Object> getDataFromCRM_QL(CRM_ExistingCustomerDTO application) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("ApplicationDTO", application);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_Auto_Allocation(AutoAllocationDTO autoAllocationDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("AutoAllocationList", autoAllocationDTOList);
+
+        ////********************************REASSIGN USER************************************////
+        List<AutoReassignUserDTO> autoReassignUserDTOs = new ArrayList<>();
+        for(AutoReassignUserDTO autoReassignUser : autoAllocationDTOList.getReassign()) {
+            AutoReassignUserDTO autoReassignUserDTO = AutoReassignUserDTO.builder()
+                    .project(autoAllocationDTOList.getProject())
+                    .reference_id(autoAllocationDTOList.getReference_id())
+                    .amountApp(autoReassignUser.getAmountApp())
+                    .stageApp(autoReassignUser.getStageApp())
+                    .reassignUser(autoReassignUser.getReassignUser())
+                    .build();
+            autoReassignUserDTOs.add(autoReassignUserDTO);
+        }
+        map.put("AutoReassignUser", autoReassignUserDTOs);
+
         return map;
     }
 }

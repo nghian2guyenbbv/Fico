@@ -10,6 +10,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoReassignUserDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_ExistingCustomerDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_SaleQueueDTO;
@@ -672,4 +674,33 @@ public class AutomationService {
 	//------------------------ END - QUICK LEAD WITH ASSIGN POOL -------------------------------------
 
 	//------------------------ END - PROJECT CRM  -------------------------------
+
+
+	//------------------------ AUTO ALLOCATION  -------------------------------
+	public Map<String, Object> AutoAllocation_Reassign_User(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		AutoAllocationDTO autoAllocationDTOList = mapper.treeToValue(request.path("body"), AutoAllocationDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutoAllocation_Reassign_User(autoAllocationDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, autoAllocationDTOList);
+	}
+
+	private void runAutoAllocation_Reassign_User(AutoAllocationDTO autoAllocationDTOList) throws Exception {
+		String browser = "chrome";
+		String projectJson = autoAllocationDTOList.getProject();
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Auto_Allocation(autoAllocationDTOList);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Auto_Allocation",projectJson.toUpperCase());
+
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
 }
