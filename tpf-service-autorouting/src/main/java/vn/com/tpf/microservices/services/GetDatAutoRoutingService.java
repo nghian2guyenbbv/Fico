@@ -11,7 +11,7 @@ import vn.com.tpf.microservices.models.ScheduleRoute;
 import java.util.*;
 
 @Service
-public class GetDataF1Service {
+public class GetDatAutoRoutingService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired

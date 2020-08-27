@@ -53,6 +53,11 @@ public class AutoRoutingService {
 	@Autowired
 	private HistoryConfigDAO historyConfigDAO;
 
+	/**
+	 * To check rule and return config rule to inhouse service
+	 * @param request
+	 * @return 0: Robot, 1: API
+	 */
 	public Map<String, Object> checkRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
@@ -155,7 +160,11 @@ public class AutoRoutingService {
 
 		return Map.of("status", 200, "data", responseModel);
 	}
-
+	/**
+	 * To save log when inhouse call this service
+	 * @param request
+	 * @return
+	 */
 	public Map<String, Object> logRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
@@ -207,10 +216,15 @@ public class AutoRoutingService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+	/**
+	 * To check rule and return config rule to inhouse service
+	 * @param request
+	 * @return
+	 */
 	public String checkRule (LogChoiceRouting request) {
 		String chanelNumber = "0";
 		String chanelConfig  = redisService.getValueFromCache("chanelConfig",request.getChanelId()+"Config" );
-		if (!chanelConfig.equals("0")) {
+		if (!chanelConfig.isEmpty() && !chanelConfig.equals("0")) {
 			String timeStart  = redisService.getValueFromCache("chanelTimeStart",request.getChanelId()+"TimeStart" );
 			String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
 			long timeLocal = 	System.currentTimeMillis();

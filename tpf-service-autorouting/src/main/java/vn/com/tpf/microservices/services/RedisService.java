@@ -21,7 +21,7 @@ public class RedisService implements CommandLineRunner {
     private RedisTemplate<String, String> redisTemplate;
 
     @Autowired
-    private GetDataF1Service getDataF1Service;
+    private GetDatAutoRoutingService getDatAutoRoutingService;
 
     @PostConstruct
     private void init(){
@@ -39,19 +39,19 @@ public class RedisService implements CommandLineRunner {
 
     public void initAllCache() {
         if (!hasKey("chanelConfig")){
-            initCache("chanelConfig", getDataF1Service.getChanelConfig(), 1);
+            initCache("chanelConfig", getDatAutoRoutingService.getChanelConfig(), 1);
         }
 
         if (!hasKey("chanelQuota")){
-            initCache("chanelQuota", getDataF1Service.getQuota(), 1);
+            initCache("chanelQuota", getDatAutoRoutingService.getQuota(), 1);
         }
 
         if(!hasKey("chanelTimeStart")){
-            initCache("chanelTimeStart", getDataF1Service.getTimeStart(), 1);
+            initCache("chanelTimeStart", getDatAutoRoutingService.getTimeStart(), 1);
         }
 
         if(!hasKey("chanelTimeEnd")){
-            initCache("chanelTimeEnd", getDataF1Service.getTimeEnd(), 1);
+            initCache("chanelTimeEnd", getDatAutoRoutingService.getTimeEnd(), 1);
         }
     }
 
