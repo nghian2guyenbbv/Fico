@@ -181,24 +181,14 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getBranchByUser(request, info.path("data")));
 				case "firstCheck":
 					return response(message, payload, dataEntryService.firstCheck(request, token));
-				case "old_quickLead":
-					return response(message, payload, dataEntryService.oldQuickLead(request, token));
 				case "sendApp":
 					return response(message, payload, dataEntryService.sendApp(request, token));
 				case "updateApp":
 					return response(message, payload, dataEntryService.updateApp(request, token));
-				case "old_commentApp":
-					return response(message, payload, dataEntryService.oldCommentApp(request, token));
 				case "cancelApp":
 					return response(message, payload, dataEntryService.updateStatus(request, token));
 				case "uploadFile":
 					return response(message, payload, dataEntryService.uploadFile(request, token));
-				case "old_updateAutomation":
-					return response(message, payload, dataEntryService.oldUpdateAutomation(request, token));
-				case "old_updateFullApp":
-					return response(message, payload, dataEntryService.oldUpdateFullApp(request, token));
-				case "old_updateAppError":
-					return response(message, payload, dataEntryService.oldUpdateAppError(request, token));
 				case "uploadDigiTex":
 					return response(message, payload, dataEntryService.uploadDigiTex(request, token));
 				case "getTATReport":
