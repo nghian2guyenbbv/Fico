@@ -1933,5 +1933,19 @@ public class DataEntryController {
 		}
 		return null;
 	}
+
+	@PostMapping("/v1/dataentry/raiseQueryData")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> raiseQueryData(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("body", body);
+		request.put("func", "raiseQueryData");
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
 }
 
