@@ -441,7 +441,7 @@ public class ConvertService {
 		lifeInsuranceInformation.put("insurance_company", application.getDynamicForm().get(0).getCompanyName());
 		lifeInsuranceInformation.put("insurance_company_contract", application.getDynamicForm().get(0).getContractNumber());
 		if (StringUtils.hasLength(application.getDynamicForm().get(0).getMonthlyFee())) {
-			BigDecimal monthlyFee = new BigDecimal(application.getDynamicForm().get(0).getMonthlyFee().replace(",", ""));
+			String monthlyFee = application.getDynamicForm().get(0).getMonthlyFee().replace(",", "");
 			lifeInsuranceInformation.put("tpf_insurance_fee", monthlyFee);
 		}
 		objectNode.set("life_insurance_information", lifeInsuranceInformation);

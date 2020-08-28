@@ -4399,6 +4399,9 @@ public class DataEntryService {
 			createFrom = appDB.get(0).getCreateFrom();
 			appId = appDB.get(0).getApplicationId();
 			quickLeadId = appDB.get(0).getQuickLeadId();
+			if (appDB.get(0).getComment() == null){
+				throw new DataEntryException(1, "comment appDB null");
+			}
 			Optional opt = appDB.get(0).getComment()
 					.stream()
 					.filter(commentModel -> commentModel.getResponse() == null).findAny();
