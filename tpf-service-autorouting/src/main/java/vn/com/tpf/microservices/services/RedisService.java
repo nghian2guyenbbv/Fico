@@ -38,23 +38,22 @@ public class RedisService implements CommandLineRunner {
     }
 
     public void initAllCache() {
-//        if (!hasKey("chanelConfig")){
-//            initCache("chanelConfig", getDataF1Service.getChanelConfig(), 1);
-//        }
-//
-//        if (!hasKey("chanelQuota")){
-//            initCache("chanelQuota", getDataF1Service.getQuota(), 1);
-//        }
-//
-//        if(!hasKey("chanelTimeStart")){
-//            initCache("chanelTimeStart", getDataF1Service.getTimeStart(), 1);
-//        }
-//
-//        if(!hasKey("chanelTimeEnd")){
-//            initCache("chanelTimeEnd", getDataF1Service.getTimeEnd(), 1);
-//        }
+        if (!hasKey("chanelConfig")){
+            initCache("chanelConfig", getDatAutoRoutingService.getChanelConfig(), 1);
+        }
 
-//        String a = redisTemplate.opsForHash().get("productType", "productType").toString();
+        if (!hasKey("chanelQuota")){
+            initCache("chanelQuota", getDatAutoRoutingService.getQuota(), 1);
+        }
+
+        if(!hasKey("chanelTimeStart")){
+            initCache("chanelTimeStart", getDatAutoRoutingService.getTimeStart(), 1);
+        }
+
+        if(!hasKey("chanelTimeEnd")){
+            initCache("chanelTimeEnd", getDatAutoRoutingService.getTimeEnd(), 1);
+        }
+
         if (!hasKey("routingConfigInfo")) {
             initCache("routingConfigInfo", getDatAutoRoutingService.getAllRoutingConfig(), 1);
         }
