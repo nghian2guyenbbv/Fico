@@ -105,6 +105,9 @@ public class DataEntryService {
 	@Autowired
 	private GetDataF1Service getDataF1Service;
 
+	@Autowired
+	private RaiseQueryService raiseQueryService;
+
 	@PostConstruct
 	private void init() {
 		ClientHttpRequestFactory factory = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
@@ -940,7 +943,7 @@ public class DataEntryService {
 							new Thread(() -> {
 								try {
 									String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), null,
-											token.path("user_name").textValue(), item.getCreatedDate(), null);
+											token.path("user_name").asText(""), item.getCreatedDate(), null);
 									if (!resultInsertORA.equals("success")) {
 										log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
 									}
@@ -1156,7 +1159,18 @@ public class DataEntryService {
 				rabbitMQService.send("tpf-service-app",
 						Map.of("func", "updateApp", "reference_id", referenceId,
 								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
-
+				new Thread(() -> {
+					try {
+						Map<String, Object> result = raiseQueryService.responseQuery(data);
+						Map<String, Object> dataResult = (Map<String, Object>) result.get("data");
+						if (dataResult.get("result_code").equals("1")){
+							throw new Exception(dataResult.get("message").toString());
+						}
+					} catch (Exception e) {
+						log.info("exception: ---------------> {}", StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString());
+						e.printStackTrace();
+					}
+				}).start();
 
 				Report report = new Report();
 				report.setQuickLeadId(dataFullApp.getQuickLeadId());

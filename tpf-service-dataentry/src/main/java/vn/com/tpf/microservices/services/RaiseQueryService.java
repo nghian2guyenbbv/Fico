@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -20,6 +19,7 @@ import vn.com.tpf.microservices.models.RaiseQuery.*;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RaiseQueryService {
@@ -43,6 +43,9 @@ public class RaiseQueryService {
     @Autowired
     private ApiService apiService;
 
+    @Autowired
+    private DataEntryService dataEntryService;
+
     @Value("${spring.url.esb.responsequery}")
     private String urlResponseQuery;
 
@@ -58,6 +61,7 @@ public class RaiseQueryService {
             mongoTemplate.insert(requestModel);
 
             //call function add comment cua Trung here, de gia lap hien thi tren porta IH
+            callCommentApp();
             //end call
 
             responseModel.setRequest_id(referenceId);
@@ -147,5 +151,45 @@ public class RaiseQueryService {
             log.info("{}",slog);
         }
         return Map.of("status", 200, "data", responseModel);
+    }
+
+    private void callCommentApp() {
+        try {
+            List<RaiseQueryModel> raiseQueryModel = mongoTemplate.findAll(RaiseQueryModel.class);
+
+            Set<String> listAppId = raiseQueryModel.stream().map(raiseQueryModel1 -> raiseQueryModel1.getApplicationNo()).collect(Collectors.toSet());
+
+            Query query = new Query();
+            query.addCriteria(Criteria.where("applicationId").in(listAppId).and("createFrom").is(null).orOperator(Criteria.where("createFrom").in("WEB", "web")));
+            List<Application> applications = mongoTemplate.find(query, Application.class);
+
+            applications.stream().map(application -> {
+                raiseQueryModel.stream().filter(raiseQueryModel1 -> raiseQueryModel1.getApplicationNo().equals(application.getApplicationId())).findAny().ifPresent(raiseQueryModel1 -> {
+                    CommentModel commentModel = new CommentModel();
+                    commentModel.setCommentId("ih-" + UUID.randomUUID().toString().substring(0, 10));
+                    commentModel.setStage("");
+                    commentModel.setCode("IN-HOUSE");
+                    commentModel.setType("IN-HOUSE");
+                    commentModel.setRequest(raiseQueryModel1.getComment());
+                    commentModel.setCreatedDate(raiseQueryModel1.getCreatedDate());
+                    application.setComment(Arrays.asList(commentModel));
+                });
+
+                new Thread(() -> {
+                    RequestModel requestModel = new RequestModel();
+                    requestModel.setDate_time(new Timestamp(new Date().getTime()));
+                    requestModel.setRequest_id(UUID.randomUUID().toString());
+                    requestModel.setData(application);
+                    JsonNode request = mapper.convertValue(requestModel, JsonNode.class);
+                    JsonNode token = mapper.createObjectNode();
+                    dataEntryService.commentApp(request, token);
+                }).start();
+
+                return application;
+            }).collect(Collectors.toList());
+        }catch (Exception e){
+            throw e;
+        }
+
     }
 }
