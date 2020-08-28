@@ -85,6 +85,8 @@ public class ApiService {
 
 	private RestTemplate restTemplateESB;
 
+	private RestTemplate restTemplate3P;
+
 	@PostConstruct
 	private void init() {
 		ClientHttpRequestFactory factoryDow = new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory());
@@ -100,6 +102,8 @@ public class ApiService {
 		ClientHttpRequestFactory factoryCall3P = new BufferingClientHttpRequestFactory(scrfCall3P);
 		restTemplate = new RestTemplate(factoryCall3P);
 		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
+
+		restTemplate3P = new RestTemplate(factoryCall3P);
 
 		SimpleClientHttpRequestFactory scrf = new SimpleClientHttpRequestFactory();
 		scrf.setConnectTimeout(1000*120);
@@ -2263,12 +2267,12 @@ public class ApiService {
 			log.put("type", "[==REQUEST-ESB==]");
 			log.put("url", url);
 			log.put("headers", headers.toString());
-            ObjectNode appLog = application.deepCopy();
+			ObjectNode appLog = application.deepCopy();
 
 			if (appLog.hasNonNull("documents")){
 				appLog.put("documents", "have document");
 			}
-            log.set("body", appLog);
+			log.set("body", appLog);
 			logInfo.set("request", log);
 
 			ResponseEntity<String> response = restTemplateESB.postForEntity(url, payload , String.class);
@@ -2717,8 +2721,11 @@ public class ApiService {
 				HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 				logInfo.put("send-to-partner", entity_DT.toString());
-				ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(urlPartner, entity_DT, Object.class);
+				logInfo.put("urlPartner", urlPartner);
+				log.info("{}", logInfo);
+				ResponseEntity<?> res_DT = restTemplate3P.postForEntity(urlPartner, entity_DT, Object.class);
 				logInfo.put("response-from-partner", res_DT.toString());
+				log.info("{}", logInfo);
 
 				Object map = mapper.valueToTree(res_DT.getBody());
 
@@ -2738,8 +2745,11 @@ public class ApiService {
 				HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 				logInfo.put("send-to-partner", entity_DT.toString());
-				ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(urlPartner, entity_DT, Object.class);
+				logInfo.put("urlPartner", urlPartner);
+				log.info("{}", logInfo);
+				ResponseEntity<?> res_DT = restTemplate3P.postForEntity(urlPartner, entity_DT, Object.class);
 				logInfo.put("response-from-partner", res_DT.toString());
+				log.info("{}", logInfo);
 
 				Object map = mapper.valueToTree(res_DT.getBody());
 

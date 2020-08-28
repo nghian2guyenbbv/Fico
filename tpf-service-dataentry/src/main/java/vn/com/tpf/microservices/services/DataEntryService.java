@@ -4508,9 +4508,7 @@ public class DataEntryService {
 			if (appRequest.getComment() == null || appRequest.getComment().size() <= 0){
 				throw new DataEntryException(1, "comments null");
 			}
-			if (appRequest.getQuickLead() == null || appRequest.getQuickLead().getDocumentsComment() == null || appRequest.getQuickLead().getDocumentsComment().size() <= 0){
-				throw new DataEntryException(1, "document comment null");
-			}
+
 			appRequest.setLastModifiedDate(new Timestamp(new Date().getTime()));
 			String project = appDB.getCreateFrom();
 			String errMsg = appRequest.getComment().stream().map(commentModel -> {
@@ -4532,6 +4530,9 @@ public class DataEntryService {
 					return err;
 				}
 				//fico comment to partner
+				if (appRequest.getQuickLead() == null || appRequest.getQuickLead().getDocumentsComment() == null || appRequest.getQuickLead().getDocumentsComment().size() <= 0){
+					return "document comment null";
+				}
 				err = sendFileToPartner(appDB.getQuickLeadId(), appDB.getPartnerId(), appRequest.getQuickLead().getDocumentsComment(), false);
 				if (StringUtils.hasLength(err)){
 					return err;
