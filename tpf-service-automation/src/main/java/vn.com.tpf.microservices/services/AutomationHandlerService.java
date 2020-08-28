@@ -21,7 +21,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
-import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
 import vn.com.tpf.microservices.models.AutoAllocation.AutoReassignUserDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
@@ -6730,10 +6729,10 @@ public class AutomationHandlerService {
 
                         autoAllocationReassignPage.getSearchTextsElement().sendKeys(autoReassignUserDTO.getStageApp());
 
+                        Thread.sleep(5000);
+
                         await("table Application Assigned Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAllocationReassignPage.getTableSearchApplicationElement().size() > 2);
-
-                        Thread.sleep(10000);
 
                         Utilities.captureScreenShot(driver);
 
