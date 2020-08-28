@@ -137,6 +137,11 @@ public class AutoRoutingService {
 			}
 			getDatAutoRoutingService.updateRoutingConfig(configRoutingList);
 
+			getDatAutoRoutingService.getChanelConfig();
+			getDatAutoRoutingService.getQuota();
+			getDatAutoRoutingService.getTimeEnd();
+			getDatAutoRoutingService.getTimeStart();
+
 			responseModel.setData("Save Success");
 
 		} catch (Exception e) {
