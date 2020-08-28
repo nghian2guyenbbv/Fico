@@ -117,6 +117,12 @@ public class AutoRoutingService {
 			ConfigRouting configRoutingUpdated = mapper.readValue(request.get("body").toString(),
 					new TypeReference<ConfigRouting>(){});
 			boolean isNew = true;
+
+			Date now = new Date();
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(now);
+			String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK) - 1);
+
 			List<ScheduleRoute> scheduleRouteList = scheduleRoutingDAO.findByIdConfig(configRoutingUpdated.getIdConfig());
 			if (scheduleRouteList.size() > 0) {
 				saveHistoryConfig(scheduleRouteList, configRoutingUpdated.getIdConfig());
@@ -127,20 +133,28 @@ public class AutoRoutingService {
 			Iterable<ScheduleRoute> scheduleRouteIterable = scheduleRouteListNew;
 			scheduleRoutingDAO.saveAll(scheduleRouteIterable);
 			// Update Cache
-			List<Map<String, Object>> configRoutingList = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
-			for (Map<String, Object> stringObjectMap : configRoutingList) {
+			List<Map<String, Object>> configRoutingListCache = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
+			for (Map<String, Object> stringObjectMap : configRoutingListCache) {
 				if (stringObjectMap.get("idConfig").equals(configRoutingUpdated.getIdConfig())) {
 					stringObjectMap.put("chanelConfig", configRoutingUpdated.getChanelConfig());
 					stringObjectMap.put("quota", configRoutingUpdated.getQuota());
-					stringObjectMap.put("scheduleRoutes", configRoutingUpdated.getScheduleRoutes());
+					List<ScheduleRoute> scheduleRoutes = configRoutingUpdated.getScheduleRoutes();
+					stringObjectMap.put("scheduleRoutes", scheduleRoutes);
+					for (ScheduleRoute scheduleRoute : scheduleRoutes) {
+						if (scheduleRoute.getDayId().equals(day)) {
+							redisService.updateCache("chanelConfig",
+									configRoutingUpdated.getIdConfig() + "Config", scheduleRoute.getChanelConfig());
+							redisService.updateCache("chanelQuota",
+									configRoutingUpdated.getIdConfig() + "Quota", scheduleRoute.getQuota());
+							redisService.updateCache("chanelTimeStart",
+									configRoutingUpdated.getIdConfig() + "TimeStart", scheduleRoute.getTimeStart());
+							redisService.updateCache("chanelTimeEnd",
+									configRoutingUpdated.getIdConfig() + "TimeEnd", scheduleRoute.getTimeEnd());
+						}
+					}
 				}
 			}
-			getDatAutoRoutingService.updateRoutingConfig(configRoutingList);
-
-			getDatAutoRoutingService.getChanelConfig();
-			getDatAutoRoutingService.getQuota();
-			getDatAutoRoutingService.getTimeEnd();
-			getDatAutoRoutingService.getTimeStart();
+			getDatAutoRoutingService.updateRoutingConfig(configRoutingListCache);
 
 			responseModel.setData("Save Success");
 

@@ -65,7 +65,7 @@ public class GetDatAutoRoutingService {
         Date now = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
-        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK));
+        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK - 1));
         List<ScheduleRoute> scheduleRouteList  = scheduleRoutingDAO.findAllByDayId(day);
         for ( ScheduleRoute scheduleRoute: scheduleRouteList) {
             Map<String, Object> setDataMap = new HashMap<>();
@@ -85,7 +85,7 @@ public class GetDatAutoRoutingService {
         Date now = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
-        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK));
+        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK - 1));
         List<ScheduleRoute> scheduleRouteList  = scheduleRoutingDAO.findAllByDayId(day);
         for ( ScheduleRoute scheduleRoute: scheduleRouteList) {
             Map<String, Object> setDataMap = new HashMap<>();
@@ -106,7 +106,7 @@ public class GetDatAutoRoutingService {
         Date now = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
-        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK));
+        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK - 1));
         List<ScheduleRoute> scheduleRouteList  = scheduleRoutingDAO.findAllByDayId(day);
         for ( ScheduleRoute scheduleRoute: scheduleRouteList) {
             Map<String, Object> setDataMap = new HashMap<>();
@@ -125,7 +125,7 @@ public class GetDatAutoRoutingService {
         Date now = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
-        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK));
+        String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK - 1));
         List<ScheduleRoute> scheduleRouteList  = scheduleRoutingDAO.findAllByDayId(day);
         for ( ScheduleRoute scheduleRoute: scheduleRouteList) {
             Map<String, Object> setDataMap = new HashMap<>();
