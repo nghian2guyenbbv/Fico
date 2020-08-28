@@ -142,6 +142,7 @@ public class GetDatAutoRoutingService {
         Map<String, Object> setDataMap = new HashMap<>();
         setDataMap.put("KEY", "CONFIG_ROUTING_KEY");
         setDataMap.put("VALUE", configRoutingList);
+        result.add(setDataMap);
         return result;
     }
 
