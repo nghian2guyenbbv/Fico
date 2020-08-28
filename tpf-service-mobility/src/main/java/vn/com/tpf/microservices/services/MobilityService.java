@@ -1568,6 +1568,23 @@ public class MobilityService {
 
 		mobilityCommentApp = mobilityTemplate.findAndModify(query, update,
 				new FindAndModifyOptions().returnNew(true), Mobility.class);
+
+		new Thread(() -> {
+			try {
+				int sendCount = 0;
+				do {
+					JsonNode result = apiService.pushCommentApp(body);
+					if (result.path("resultCode").asText().equals("200")) {
+						return;
+					}
+					sendCount++;
+					Thread.sleep(5 * 60 * 1000);
+				} while (sendCount >= 2);
+			} catch (Exception e) {
+				log.info("{}", utils.getJsonNodeResponse(0, body,
+						mapper.createObjectNode().put("message", e.getMessage())));
+			}
+		}).start();
 		return response(200, mapper.convertValue("", JsonNode.class), 0);
 	}
 

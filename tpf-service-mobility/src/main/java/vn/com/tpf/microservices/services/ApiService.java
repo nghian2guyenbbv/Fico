@@ -61,6 +61,9 @@ public class ApiService {
 	@Value("${spring.url.uploadfile}")
 	private String urlUploadfile;
 
+	@Value("${spring.url.mobility-push-comment-app}")
+	private String urlMobilityPushCommentApp;
+
 	@Autowired
 	private RabbitMQService rabbitMQService;
 
@@ -269,6 +272,65 @@ public class ApiService {
 		}
 	}
 
+	public ObjectNode pushCommentApp(JsonNode CommentApp) {
+		ObjectNode request = mapper.createObjectNode();
+
+		try {
+
+			HttpHeaders requestHeaders = new HttpHeaders();
+			requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+			requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+
+			requestHeaders.set("clientId", "1");
+			requestHeaders.set("sign", "1");
+			ObjectNode data = mapper.createObjectNode();
+			data.put("commentId",  CommentApp.path("data").path("comment").path(0).path("commentId"));
+			data.put("type",  CommentApp.path("data").path("comment").path(0).path("type"));
+			data.put("code",  CommentApp.path("data").path("comment").path(0).path("code"));
+			data.put("stage",  CommentApp.path("data").path("comment").path(0).path("stage"));
+			data.put("request",  CommentApp.path("data").path("comment").path(0).path("request"));
+			request.set("applicationId", CommentApp.path("data").path("applicationId"));
+			request.set("comment", data);
+
+			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(request, requestHeaders);
+
+			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityPushCommentApp, HttpMethod.POST,
+					requestEntity, ObjectNode.class);
+
+			ObjectNode dataLogReq = mapper.createObjectNode();
+			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
+			dataLogReq.put("method", "POST");
+			dataLogReq.put("bodyRequest", urlMobilityPushCommentApp + request);
+			dataLogReq.put("func", "[Req] Push comment app to ESB");
+			dataLogReq.set("payload", request);
+			log.info("{}", dataLogReq);
+
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-Mobility==]");
+			dataLogReq.put("func", "[Res] Push comment app  to ESB");
+			dataLogRes.set("status", mapper.convertValue(responseEntity.getStatusCode(), JsonNode.class));
+			dataLogRes.set("Body response", mapper.convertValue(responseEntity.getBody(), JsonNode.class));
+			dataLogRes.set("payload", request);
+			log.info("{}", dataLogRes);
+
+			ObjectNode response = mapper.createObjectNode();
+			if (responseEntity.getStatusCode().is2xxSuccessful())
+				response.put("resultCode", 200);
+			else
+				response.put("resultCode", responseEntity.getStatusCodeValue());
+			return response;
+		} catch (Exception e) {
+			ObjectNode dataLogRes = mapper.createObjectNode();
+			dataLogRes.put("type", "[==HTTP-LOG-RESPONSE-Mobility==]");
+			dataLogRes.put("status", 500);
+			dataLogRes.put("result", e.toString());
+			dataLogRes.set("payload", request);
+			log.info("{}", dataLogRes);
+			ObjectNode response = mapper.createObjectNode();
+			response.put("resultCode", 500);
+			return response;
+		}
+	}
 
 //	private ObjectNode getPartnerAccessToken() {
 //		ObjectNode user = mapper.createObjectNode();
