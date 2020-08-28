@@ -114,23 +114,30 @@ public class AutoRoutingService {
 	public Map<String, Object> setRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
-			List<ConfigRouting> configRoutingList = mapper.readValue(request.get("body").toString(),
-					new TypeReference<List<ConfigRouting>>(){});
-
-			configRoutingList.forEach( c -> {
-				boolean isNew = true;
-				List<ScheduleRoute> scheduleRouteList = scheduleRoutingDAO.findByIdConfig(c.getIdConfig());
-				if (scheduleRouteList.size() > 0) {
-					saveHistoryConfig(scheduleRouteList, c.getIdConfig());
-					isNew = false;
+			ConfigRouting configRoutingUpdated = mapper.readValue(request.get("body").toString(),
+					new TypeReference<ConfigRouting>(){});
+			boolean isNew = true;
+			List<ScheduleRoute> scheduleRouteList = scheduleRoutingDAO.findByIdConfig(configRoutingUpdated.getIdConfig());
+			if (scheduleRouteList.size() > 0) {
+				saveHistoryConfig(scheduleRouteList, configRoutingUpdated.getIdConfig());
+				isNew = false;
+			}
+			changeInfoScheduleRoute(configRoutingUpdated.getScheduleRoutes(), configRoutingUpdated.getIdConfig(), isNew);
+			List<ScheduleRoute> scheduleRouteListNew = configRoutingUpdated.getScheduleRoutes();
+			Iterable<ScheduleRoute> scheduleRouteIterable = scheduleRouteListNew;
+			scheduleRoutingDAO.saveAll(scheduleRouteIterable);
+			// Update Cache
+			List<Map<String, Object>> configRoutingList = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
+			for (Map<String, Object> stringObjectMap : configRoutingList) {
+				if (stringObjectMap.get("idConfig").equals(configRoutingUpdated.getIdConfig())) {
+					stringObjectMap.put("chanelConfig", configRoutingUpdated.getChanelConfig());
+					stringObjectMap.put("quota", configRoutingUpdated.getQuota());
+					stringObjectMap.put("scheduleRoutes", configRoutingUpdated.getScheduleRoutes());
 				}
-				changeInfoScheduleRoute(c.getScheduleRoutes(), c.getIdConfig(), isNew);
-				List<ScheduleRoute> scheduleRouteListNew = c.getScheduleRoutes();
-				Iterable<ScheduleRoute> scheduleRouteIterable = scheduleRouteListNew;
-				scheduleRoutingDAO.saveAll(scheduleRouteIterable);
-			});
-			responseModel.setData("Save Success");
+			}
 			getDatAutoRoutingService.updateRoutingConfig(configRoutingList);
+
+			responseModel.setData("Save Success");
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
@@ -248,7 +255,8 @@ public class AutoRoutingService {
 		try {
 			int page = request.path("body").path("page").asInt();
 			String idConfig = request.path("body").path("idConfig").asText();
-			Pageable pagination = PageRequest.of(page - 1 , 5);
+			int limit = request.path("body").path("limit").asInt();
+			Pageable pagination = PageRequest.of(page - 1 , limit);
 			List<HistoryConfig> historyConfigList = historyConfigDAO.findAllByIdConfig(idConfig, pagination);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
