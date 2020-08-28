@@ -160,11 +160,18 @@ public class RaiseQueryService {
             Set<String> listAppId = raiseQueryModel.stream().map(raiseQueryModel1 -> raiseQueryModel1.getApplicationNo()).collect(Collectors.toSet());
 
             Query query = new Query();
-            query.addCriteria(Criteria.where("applicationId").in(listAppId).and("createFrom").is(null).orOperator(Criteria.where("createFrom").in("WEB", "web")));
+            Criteria criteria = Criteria.where("applicationId").in(listAppId);
+            criteria = criteria.where("createFrom").in(null, "WEB", "web");
+            criteria = criteria.and("partnerId").is("3");
+            criteria = criteria.andOperator(new Criteria().orOperator(Criteria.where("comment").is(null), Criteria.where("comment.response").ne(null)));
+            query.addCriteria(criteria);
             List<Application> applications = mongoTemplate.find(query, Application.class);
 
             applications.stream().map(application -> {
-                raiseQueryModel.stream().filter(raiseQueryModel1 -> raiseQueryModel1.getApplicationNo().equals(application.getApplicationId())).findAny().ifPresent(raiseQueryModel1 -> {
+                raiseQueryModel
+                        .stream()
+                        .filter(raiseQueryModel1 -> raiseQueryModel1.getApplicationNo().equals(application.getApplicationId()))
+                        .findAny().ifPresent(raiseQueryModel1 -> {
                     CommentModel commentModel = new CommentModel();
                     commentModel.setCommentId("ih-" + UUID.randomUUID().toString().substring(0, 10));
                     commentModel.setStage("");
@@ -172,22 +179,24 @@ public class RaiseQueryService {
                     commentModel.setType("IN-HOUSE");
                     commentModel.setRequest(raiseQueryModel1.getComment());
                     commentModel.setCreatedDate(raiseQueryModel1.getCreatedDate());
-                    application.setComment(Arrays.asList(commentModel));
+
+                    Application application1 = new Application();
+                    application1.setApplicationId(application.getApplicationId());
+                    application1.setComment(Arrays.asList(commentModel));
+                    new Thread(() -> {
+                        RequestModel requestModel = new RequestModel();
+                        requestModel.setDate_time(new Timestamp(new Date().getTime()));
+                        requestModel.setRequest_id(UUID.randomUUID().toString());
+                        requestModel.setData(application1);
+                        JsonNode request = mapper.convertValue(Map.of("body", requestModel), JsonNode.class);
+                        JsonNode token = mapper.createObjectNode();
+                        dataEntryService.commentApp(request, token);
+                    }).start();
                 });
-
-                new Thread(() -> {
-                    RequestModel requestModel = new RequestModel();
-                    requestModel.setDate_time(new Timestamp(new Date().getTime()));
-                    requestModel.setRequest_id(UUID.randomUUID().toString());
-                    requestModel.setData(application);
-                    JsonNode request = mapper.convertValue(requestModel, JsonNode.class);
-                    JsonNode token = mapper.createObjectNode();
-                    dataEntryService.commentApp(request, token);
-                }).start();
-
                 return application;
             }).collect(Collectors.toList());
         }catch (Exception e){
+            log.info("exception ----------------> {}", e.toString());
             throw e;
         }
 
