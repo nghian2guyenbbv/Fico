@@ -55,6 +55,9 @@ public class AutoRoutingService {
 	@Autowired
 	private HistoryConfigDAO historyConfigDAO;
 
+	@Autowired
+	private GetDatAutoRoutingService getDatAutoRoutingService;
+
 	/**
 	 * To check rule and return config rule to inhouse service
 	 * @param request
@@ -127,6 +130,8 @@ public class AutoRoutingService {
 				scheduleRoutingDAO.saveAll(scheduleRouteIterable);
 			});
 			responseModel.setData("Save Success");
+			getDatAutoRoutingService.updateRoutingConfig(configRoutingList);
+
 		} catch (Exception e) {
 			log.info("Error: " + e);
 		}
@@ -138,16 +143,13 @@ public class AutoRoutingService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
-			List<ConfigRouting> configRoutingList = configRoutingDAO.findAll();
-
-			if (configRoutingList.size() > 0) {
-				responseModel.setRequest_id(request_id);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(200);
-				responseModel.setMessage("Success");
-				responseModel.setData(configRoutingList);
-			}
+			Object configRouting = redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Success");
+			responseModel.setData(configRouting);
 
 		} catch (Exception e) {
 			log.info("Error: " + e);

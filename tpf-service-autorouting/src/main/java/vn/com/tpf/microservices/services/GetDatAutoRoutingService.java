@@ -5,7 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import vn.com.tpf.microservices.dao.ConfigRoutingDAO;
 import vn.com.tpf.microservices.dao.ScheduleRoutingDAO;
+import vn.com.tpf.microservices.models.ConfigRouting;
 import vn.com.tpf.microservices.models.ScheduleRoute;
 
 import java.util.*;
@@ -22,6 +24,9 @@ public class GetDatAutoRoutingService {
 
     @Autowired
     private ScheduleRoutingDAO scheduleRoutingDAO;
+
+    @Autowired
+    private ConfigRoutingDAO configRoutingDAO;
 
     public String getChanelConfig(String chanelId){
         if(redisService.hasKey("chanelConfig")){
@@ -129,5 +134,18 @@ public class GetDatAutoRoutingService {
             result.add(setDataMap);
         }
         return result;
+    }
+
+    public List<Map<String, Object>> getAllRoutingConfig() {
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        List<ConfigRouting> configRoutingList = configRoutingDAO.findAll();
+        Map<String, Object> setDataMap = new HashMap<>();
+        setDataMap.put("KEY", "CONFIG_ROUTING_KEY");
+        setDataMap.put("VALUE", configRoutingList);
+        return result;
+    }
+
+    public void updateRoutingConfig(Object dataUpdated) {
+        redisService.updateCache("routingConfigInfo", "CONFIG_ROUTING_KEY", dataUpdated);
     }
 }

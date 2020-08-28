@@ -24,35 +24,41 @@ public class RedisService implements CommandLineRunner {
     private GetDatAutoRoutingService getDatAutoRoutingService;
 
     @PostConstruct
-    private void init(){
-    Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-    redisTemplate.setHashKeySerializer(jackson2JsonRedisSerializer);
-    redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
+    private void init() {
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        redisTemplate.setHashKeySerializer(jackson2JsonRedisSerializer);
+        redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
     }
 
     @Override
     public void run(String... args) throws Exception {
         initAllCache();
-        String a = getValueFromCache("chanelConfig","DEConfig");
-        System.out.println(a.toString());
+//        String a = getValueFromCache("chanelConfig","DEConfig");
+//        System.out.println(a.toString());
     }
 
     public void initAllCache() {
-        if (!hasKey("chanelConfig")){
-            initCache("chanelConfig", getDatAutoRoutingService.getChanelConfig(), 1);
+//        if (!hasKey("chanelConfig")){
+//            initCache("chanelConfig", getDataF1Service.getChanelConfig(), 1);
+//        }
+//
+//        if (!hasKey("chanelQuota")){
+//            initCache("chanelQuota", getDataF1Service.getQuota(), 1);
+//        }
+//
+//        if(!hasKey("chanelTimeStart")){
+//            initCache("chanelTimeStart", getDataF1Service.getTimeStart(), 1);
+//        }
+//
+//        if(!hasKey("chanelTimeEnd")){
+//            initCache("chanelTimeEnd", getDataF1Service.getTimeEnd(), 1);
+//        }
+
+//        String a = redisTemplate.opsForHash().get("productType", "productType").toString();
+        if (!hasKey("routingConfigInfo")) {
+            initCache("routingConfigInfo", getDatAutoRoutingService.getAllRoutingConfig(), 1);
         }
 
-        if (!hasKey("chanelQuota")){
-            initCache("chanelQuota", getDatAutoRoutingService.getQuota(), 1);
-        }
-
-        if(!hasKey("chanelTimeStart")){
-            initCache("chanelTimeStart", getDatAutoRoutingService.getTimeStart(), 1);
-        }
-
-        if(!hasKey("chanelTimeEnd")){
-            initCache("chanelTimeEnd", getDatAutoRoutingService.getTimeEnd(), 1);
-        }
     }
 
     /**
@@ -96,6 +102,10 @@ public class RedisService implements CommandLineRunner {
         return redisTemplate.opsForHash().get(parent, child).toString();
     }
 
+    public Object getObjectValueFromCache(String parent, String child){
+        return redisTemplate.opsForHash().get(parent, child);
+    }
+
     public String getValueFromCache(String key) {
         return redisTemplate.opsForValue().get(key).toString();
     }
@@ -118,4 +128,8 @@ public class RedisService implements CommandLineRunner {
         return redisTemplate.opsForValue().size(parent) > 0;
     }
 
+
+    public void updateCache(String parent, String child,Object dataUpdated){
+        redisTemplate.opsForHash().put(parent, child, dataUpdated);
+    }
 }
