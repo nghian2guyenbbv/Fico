@@ -1159,18 +1159,7 @@ public class DataEntryService {
 				rabbitMQService.send("tpf-service-app",
 						Map.of("func", "updateApp", "reference_id", referenceId,
 								"param", Map.of("project", "dataentry", "id", dataFullApp.getId()), "body", convertService.toAppDisplay(dataFullApp)));
-				new Thread(() -> {
-					try {
-						Map<String, Object> result = raiseQueryService.responseQuery(data);
-						Map<String, Object> dataResult = (Map<String, Object>) result.get("data");
-						if (dataResult.get("result_code").equals("1")){
-							throw new Exception(dataResult.get("message").toString());
-						}
-					} catch (Exception e) {
-						log.info("exception: ---------------> {}", StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString());
-						e.printStackTrace();
-					}
-				}).start();
+
 
 				Report report = new Report();
 				report.setQuickLeadId(dataFullApp.getQuickLeadId());
@@ -1276,46 +1265,64 @@ public class DataEntryService {
 					}
 				}
 
-				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
-						"comment", comment, "documents", documents)), JsonNode.class);
-
 				Map partner = getPartner(partnerId);
 				if (StringUtils.isEmpty(partner.get("data"))) {
 					return Map.of("result_code", 3, "message", "Not found partner");
 				}
-				try {
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
 
-					JsonNode responseDG = mapper.createObjectNode();
-
-					if (partnerId.equals("1")) {
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
-//						responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
-					} else if (partnerId.equals("2")) {
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						if (StringUtils.isEmpty(tokenPartner)) {
-							return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+				if ("3".equals(partnerId)){
+					new Thread(() -> {
+						try {
+							Map<String, Object> result = raiseQueryService.responseQuery(data);
+							Map<String, Object> dataResult = (Map<String, Object>) result.get("data");
+							if (dataResult.get("result_code").equals("1")){
+								throw new Exception(dataResult.get("message").toString());
+							}
+						} catch (Exception e) {
+							log.info("exception: ---------------> {}", StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString());
+							e.printStackTrace();
 						}
-						responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
-					}
+					}).start();
+				} else {
+					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
+							"comment", comment, "documents", documents)), JsonNode.class);
 
-					if (!responseDG.path("error-code").textValue().equals("")) {
-						if (!responseDG.path("error-code").textValue().equals("null")) {
-							log.info("ReferenceId : " + referenceId);
-							responseModel.setRequest_id(requestId);
-							responseModel.setReference_id(referenceId);
-							responseModel.setDate_time(new Timestamp(new Date().getTime()));
-							responseModel.setResult_code("1");
-							responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
 
-							return Map.of("status", 200, "data", responseModel);
+					try {
+						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+						String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
+
+						JsonNode responseDG = mapper.createObjectNode();
+
+						if (partnerId.equals("1")) {
+							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+	//						responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
+						} else if (partnerId.equals("2")) {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+							}
+							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
 						}
-					}
-				} catch (Exception ex) {}
+
+						if (!responseDG.path("error-code").textValue().equals("")) {
+							if (!responseDG.path("error-code").textValue().equals("null")) {
+								log.info("ReferenceId : " + referenceId);
+								responseModel.setRequest_id(requestId);
+								responseModel.setReference_id(referenceId);
+								responseModel.setDate_time(new Timestamp(new Date().getTime()));
+								responseModel.setResult_code("1");
+								responseModel.setMessage(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+
+								return Map.of("status", 200, "data", responseModel);
+							}
+						}
+					} catch (Exception ex) {}
+				}
+
 
 				Query queryUpdate = new Query();
 				queryUpdate.addCriteria(Criteria.where("applicationId").is(data.getApplicationId()));
