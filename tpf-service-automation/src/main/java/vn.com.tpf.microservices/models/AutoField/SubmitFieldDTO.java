@@ -43,6 +43,7 @@ public class SubmitFieldDTO {
     private String reference_id;
     private String project;
     private String transaction_id;
+    private int checkUpdate = 0;
 
     private String stageApplication;
 }
