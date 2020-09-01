@@ -1271,22 +1271,15 @@ public class DataEntryService {
 				}
 
 				if ("3".equals(partnerId)){
-					new Thread(() -> {
-						try {
-							Map<String, Object> result = raiseQueryService.responseQuery(data);
-							Map<String, Object> dataResult = (Map<String, Object>) result.get("data");
-							if (dataResult.get("result_code").equals("1")){
-								throw new Exception(dataResult.get("message").toString());
-							}
-						} catch (Exception e) {
-							log.info("exception: ---------------> {}", StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString());
-							e.printStackTrace();
-						}
-					}).start();
+					Map<String, Object> result = raiseQueryService.responseQuery(data);
+					log.info("result ---------------> {}", result.toString());
+					ResponseModel responseModel1 = (ResponseModel) result.get("data");
+					if (!responseModel1.getResult_code().equals("0")){
+						throw new Exception(responseModel1.getMessage());
+					}
 				} else {
 					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "comment-id", commentId,
 							"comment", comment, "documents", documents)), JsonNode.class);
-
 
 					try {
 						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
@@ -4794,9 +4787,11 @@ public class DataEntryService {
 		try {
 			Query query = new Query();
 			query.addCriteria(Criteria.where("quickLeadId").is(data.getQuickLeadId()));
-			boolean exist = mongoTemplate.exists(query, Application.class);
-
-			if (exist){
+			List<Application> applications = mongoTemplate.find(query, Application.class);
+			if (applications.size() > 0){
+				if (StringUtils.isEmpty(applications.get(0).getApplicationId())){
+					return "";
+				}
 				data.setQuickLeadId(data.getQuickLeadId() + "-" + new Date().getTime());
 			}
 
@@ -4818,12 +4813,9 @@ public class DataEntryService {
 			report.setDescription("upload success");
 			report.setCreatedBy(project);
 			report.setCreatedDate(new Date());
-
 			report.setPartnerId(app.getPartnerId());
 			report.setPartnerName(app.getPartnerName());
-
 			mongoTemplate.save(report);
-
 			return "";
 		} catch (Exception e){
 			String error =  StringUtils.hasLength(e.getMessage()) ? e.getMessage(): e.toString();
