@@ -5116,12 +5116,12 @@ public class DataEntryService {
 				throw new DataEntryException(2, "Application stage is not LEAD_DETAILS");
 			}
 
-//			if (!"3".equals(applications.get(0).getPartnerId())){
-//				String error = callCancelApiPartner(applicationId, reasonCancels, applications.get(0).getPartnerId());
-//				if (StringUtils.hasLength(error)){
-//					throw new DataEntryException(2, error);
-//				}
-//			}
+			if (!"3".equals(applications.get(0).getPartnerId())){
+				String error = callCancelApiPartner(applicationId, reasonCancels, applications.get(0).getPartnerId());
+				if (StringUtils.hasLength(error)){
+					throw new DataEntryException(2, error);
+				}
+			}
 			applications.get(0).setReasonCancel(reasonCancels);
 			applications.get(0).setStatus("CANCEL");
 			applications.get(0).setLastModifiedDate(new Date());
@@ -5183,8 +5183,8 @@ public class DataEntryService {
 
 	private String callCancelApiPartner(String applicationId, String reasonCancel, String partnerId) {
 		try {
-			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "CANCEL",
-					"description", reasonCancel)), JsonNode.class);
+			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "errors", reasonCancel, "status", "CANCEL",
+					"comment-id", UUID.randomUUID().toString().substring(0, 10))), JsonNode.class);
 
 			Map partner = getPartner(partnerId);
 			if (StringUtils.isEmpty(partner.get("data"))) {
@@ -5192,7 +5192,7 @@ public class DataEntryService {
 			}
 
 			Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-			String cancelApi = (String) mapper.convertValue(url, Map.class).get("cancelApi");
+			String cancelApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
 
 			JsonNode responseDG = mapper.createObjectNode();
 
