@@ -147,8 +147,8 @@ public class RaiseQueryService {
 
             slog+=", response: " + response.asText();
 
-            String status = response.path("responseData").path("status").asText("");
-            if (response.hasNonNull("errMsg") || (StringUtils.hasLength(status) && status.trim().equals("Failure"))){
+            String status = response.path("responseData").path("status").asText("Failure");
+            if (response.hasNonNull("errMsg") || status.trim().equals("Failure")){
                 throw new Exception("Fail");
             }
 

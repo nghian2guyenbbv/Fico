@@ -2287,7 +2287,11 @@ public class ApiService {
 			log = mapper.createObjectNode();
 			log.put("type", "[==RESPONSE-ESB==]");
 			log.put("headers", headers.toString());
-			log.put("body", response.toString());
+			if (StringUtils.hasLength(response.toString()) && response.toString().length() >= 2000){
+				log.put("body", response.toString().substring(0, 2000));
+			}else{
+				log.put("body", response.toString());
+			}
 			logInfo.set("response", log);
 
 			String bodyString = response.getBody();
