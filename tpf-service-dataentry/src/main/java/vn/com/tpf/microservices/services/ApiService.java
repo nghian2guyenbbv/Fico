@@ -117,8 +117,8 @@ public class ApiService {
 		restTemplateFirstCheck.setInterceptors(Arrays.asList(new HttpLogService()));
 
 		SimpleClientHttpRequestFactory callESB = new SimpleClientHttpRequestFactory();
-		scrfCall3P.setConnectTimeout(30_000);
-		scrfCall3P.setReadTimeout(30_000);
+		scrfCall3P.setConnectTimeout(600_000);
+		scrfCall3P.setReadTimeout(600_000);
 		restTemplateESB = new RestTemplate(callESB);
 	}
 
@@ -2275,6 +2275,9 @@ public class ApiService {
 
 			if (appLog.hasNonNull("documents")){
 				appLog.put("documents", "have document");
+			}
+			if (!appLog.findPath("queryModuleDocumentDetailsVO").isMissingNode() && appLog.findPath("queryModuleDocumentDetailsVO").hasNonNull("document")){
+				appLog.findParent("document").put("document", "have document");
 			}
 			log.set("body", appLog);
 			logInfo.set("request", log);

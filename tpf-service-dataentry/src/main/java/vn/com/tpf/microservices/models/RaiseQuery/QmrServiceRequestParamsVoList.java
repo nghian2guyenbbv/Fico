@@ -1,8 +1,10 @@
 package vn.com.tpf.microservices.models.RaiseQuery;
 
 import lombok.Builder;
+import lombok.Data;
 
 @Builder
+@Data
 public class QmrServiceRequestParamsVoList
 {
     private QueryModuleLocationDetailsVO queryModuleLocationDetailsVO;
