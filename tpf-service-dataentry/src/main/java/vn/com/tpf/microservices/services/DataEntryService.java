@@ -26,12 +26,15 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.exception.DataEntryException;
 import vn.com.tpf.microservices.models.*;
+import vn.com.tpf.microservices.models.GetAppStatus.AppStatusModel;
 import vn.com.tpf.microservices.shared.ThirdPartyType;
 
 import javax.annotation.PostConstruct;
@@ -52,6 +55,7 @@ import java.util.stream.Collectors;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregationOptions;
 
 @Service
+@EnableScheduling
 public class DataEntryService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -4925,6 +4929,52 @@ public class DataEntryService {
 			return error;
 		}finally {
 			log.info("{}", logInfo);
+		}
+	}
+
+	@Scheduled(cron = "${spring.cron.config}")
+	public void jobUpdateStatusIH()
+	{
+		try{
+			//get all app IH with status "PROCESSING" để update status
+			Query query = new Query();
+			query.addCriteria(Criteria.where("partnerId").is(3).andOperator(Criteria.where("status").is("PROCESSING")));
+			List<Application> list = mongoTemplate.find(query, Application.class);
+
+			//loop get status
+			for (Application app: list) {
+				JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", app.getApplicationId()), JsonNode.class);
+				JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
+
+				//convert , log DB
+				AppStatusModel appStatusModel=mapper.convertValue(getStage,AppStatusModel.class);
+				mongoTemplate.save(appStatusModel);
+
+				//check stage : POLICY_EXECUTION, LOGIN_ACCEPTANCE
+				if(appStatusModel.getResponseCode().equals("0"))
+				{
+					if(appStatusModel.getResponseData().getOtherInfo()!=null&&!StringUtils.isEmpty(appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage())){
+						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
+
+						//update status app dataentry
+						if (stage.indexOf("POLICY_EXECUTION") > 0 || stage.indexOf("LOGIN_ACCEPTANCE")>0)
+						{
+							Query queryUpdate = new Query();
+							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
+
+							Update update = new Update();
+							update.set("status", "COMPLETED");
+							update.set("lastModifiedDate", new Date());
+							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+						}
+					}
+				}
+
+			}
+
+		}catch (Exception e)
+		{
+			log.info("jobUpdateStatusIH:" + e.toString());
 		}
 	}
 
