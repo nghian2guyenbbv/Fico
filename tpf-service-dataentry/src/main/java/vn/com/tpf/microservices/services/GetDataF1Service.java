@@ -422,4 +422,16 @@ public class GetDataF1Service {
         log.info("{}", objectNode);
     }
 
+    public List<Map<String, Object>> getListReasonToCancel() {
+        String sql = "SELECT a.name,a.DESCRIPTION from NEO_CM_GA25_GIR_SD.decision_reason a, NEO_CM_GA25_GIR_SD.DECISION_REASON_MAPPING b\n" +
+                "where a.action='Cancel' and a.REASON_FK=b.id and b.stage='cancel_application' and b.approval_status=0 ORDER BY a.NAME";
+        try {
+            List<Map<String, Object>> result = jdbcTemplateF1.queryForList(sql);
+            return result;
+        }catch (Exception e){
+            log("getListReasonToCancel", sql, e.toString());
+            return new ArrayList<>();
+        }
+
+    }
 }

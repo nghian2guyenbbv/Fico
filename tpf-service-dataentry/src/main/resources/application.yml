@@ -21,6 +21,7 @@ spring:
       create-lead: https://tpfesbuat.tpb.vn/api/v2/f1/leadCreation
       update-app: https://tpfesbuat.tpb.vn/api/v2/f1/updateApp
       get-status: https://tpfesbuat.tpb.vn/api/v2/f1/getAppStatus
+      cancel: https://tpfesbuat.tpb.vn/esb/app/f1/rejectOrCancelCASApplication
       responsequery: https://tpfesbuat.tpb.vn/api/v2/f1/responseQuery
       wait-time: 30000
   redis:

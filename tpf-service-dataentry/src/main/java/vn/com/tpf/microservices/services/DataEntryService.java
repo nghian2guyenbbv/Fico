@@ -80,6 +80,9 @@ public class DataEntryService {
 	@Value("${spring.url.esb.get-status}")
 	private String urlGetStatus;
 
+	@Value("${spring.url.esb.cancel}")
+	private String urlCancel;
+
 	@Value("${spring.url.esb.wait-time}")
 	private long waitTime;
 
@@ -4383,7 +4386,7 @@ public class DataEntryService {
 		String createFrom = null;
 		String appId = null;
 		String quickLeadId = null;
-		String error;
+		String error = null;
 		ResponseModel responseModel = new ResponseModel();
 		responseModel.setRequest_id(requestId);
 		responseModel.setReference_id(referenceId);
@@ -4967,6 +4970,249 @@ public class DataEntryService {
 		}catch (Exception e)
 		{
 			log.info("jobUpdateStatusIH:" + e.toString());
+		}
+	}
+
+	public Map<String, Object> getListReason(JsonNode token) {
+		ResponseModel responseModel = new ResponseModel();
+		String referenceId = UUID.randomUUID().toString();
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", new Throwable().getStackTrace()[0].getMethodName());
+		try {
+			List<Map<String, Object>> listReason = getDataF1Service.getListReasonToCancel();
+			if (listReason == null || listReason.size() <= 0){
+				throw new DataEntryException(1, "listReason database null");
+			}
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			responseModel.setData(listReason);
+			logInfo.put("user", token.path("user_name").asText(""));
+		}catch (DataEntryException e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(String.valueOf(e.getType()));
+			responseModel.setMessage(error);
+		}catch (Exception e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("System error");
+			responseModel.setMessage(error);
+		}finally {
+			log.info("{}", logInfo);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getStageF1(JsonNode request, JsonNode token) {
+		ResponseModel responseModel = new ResponseModel();
+		String referenceId = UUID.randomUUID().toString();
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", new Throwable().getStackTrace()[0].getMethodName());
+		logInfo.put("request", request.toString());
+		try {
+			logInfo.put("user", token.path("user_name").asText(""));
+			String applicationId = request.path("body").path("data").path("applicationId").asText("");
+			if (StringUtils.isEmpty(applicationId)){
+				throw new DataEntryException(1, "applicationId null");
+			}
+			JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", applicationId), JsonNode.class);
+			JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
+			if (getStage.hasNonNull("errMsg")){
+				throw new DataEntryException(3, "Error call esb - " + getStage.path("errMsg"));
+			}
+			String stageResponse = getStage.findPath("otherInfo").path("currentProcessingStage").asText("");
+			String stage = StringUtils.hasLength(stageResponse.split(",")[0]) ? stageResponse.split(",")[0].trim() : "";
+			if (StringUtils.isEmpty(stageResponse) || StringUtils.isEmpty(stage)) {
+				throw new DataEntryException(3, "stage null");
+			}
+			if (!"LEAD_DETAILS".equals(stage) && !"CANCELLATION".equals(stage)){
+				responseModel.setReference_id(referenceId);
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code("3");
+				responseModel.setMessage("Application stage is not LEAD_DETAILS");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(applicationId));
+			Update update = new Update();
+			update.set("stageF1", stage);
+			mongoTemplate.findAndModify(query, update, Application.class);
+
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			responseModel.setData(stage);
+		}catch (DataEntryException e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(String.valueOf(e.getType()));
+			responseModel.setMessage(error);
+		}catch (Exception e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("3");
+			responseModel.setMessage("System error");
+		}finally {
+			log.info("{}", logInfo);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> cancelF1(JsonNode request, JsonNode token) {
+		ResponseModel responseModel = new ResponseModel();
+		String requestId = null;
+		String referenceId = UUID.randomUUID().toString();
+		ObjectNode logInfo = mapper.createObjectNode();
+		logInfo.put("func", new Throwable().getStackTrace()[0].getMethodName());
+		logInfo.put("request", request.toString());
+		try {
+			RequestModel2 requestModel = mapper.treeToValue(request.get("body"), RequestModel2.class);
+			requestId = requestModel.getRequest_id();
+			String applicationId = (String) ((LinkedHashMap) requestModel.getData()).get("applicationId");
+			if (StringUtils.isEmpty(applicationId)){
+				throw new DataEntryException(1, "applicationId null");
+			}
+			String description = (String) ((LinkedHashMap) requestModel.getData()).get("description");
+			List reason = (List) ((LinkedHashMap) requestModel.getData()).get("reasonCancel");
+			if (reason == null || reason.isEmpty()){
+				throw new DataEntryException(1, "reasonCancel null");
+			}
+			Optional optional = reason.stream().filter(o -> ((LinkedHashMap) o).isEmpty() || StringUtils.isEmpty(((LinkedHashMap) o).get("code"))).findAny();
+			if (optional.isPresent()){
+				throw new DataEntryException(1, "reasonCode null");
+			}
+			String reasonCancels = (String) reason.stream().map(o -> {
+				LinkedHashMap linkedHashMap = (LinkedHashMap) o;
+				return linkedHashMap.get("code").toString();
+			}).collect(Collectors.joining(";"));
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationId").is(applicationId));
+			List<Application> applications = mongoTemplate.find(query, Application.class);
+			if (applications == null || applications.size() <= 0){
+				throw new DataEntryException(2, "application not exist");
+			}
+
+			List<String> statusValid = Arrays.asList("COMPLETE", "CANCEL", "MANUALLY");
+			boolean match = statusValid.stream().anyMatch(s -> s.contains(applications.get(0).getStatus()));
+			if(match){
+				throw new DataEntryException(2, "status appDB not valid");
+			}
+
+			if (!"LEAD_DETAILS".equals(applications.get(0).getStageF1()) && !"CANCELLATION".equals(applications.get(0).getStageF1())){
+				throw new DataEntryException(2, "Application stage is not LEAD_DETAILS");
+			}
+
+			if (!"3".equals(applications.get(0).getPartnerId())){
+				String error = callCancelApiPartner(applicationId, reasonCancels, applications.get(0).getPartnerId());
+				if (StringUtils.hasLength(error)){
+					throw new DataEntryException(2, error);
+				}
+			}
+			applications.get(0).setReasonCancel(reasonCancels);
+			applications.get(0).setStatus("CANCEL");
+			applications.get(0).setLastModifiedDate(new Date());
+			applications.get(0).setDescription(description);
+			if ("LEAD_DETAILS".equals(applications.get(0).getStageF1())){
+				JsonNode result = apiService.callApiF1(urlCancel, convertService.toCancelApiF1(applications.get(0)));
+				if (result.hasNonNull("errMsg")){
+					throw new DataEntryException(3, "Error call esb - " + result.path("errMsg"));
+				}
+			}
+			mongoTemplate.save(applications.get(0));
+
+			rabbitMQService.send("tpf-service-app",
+					Map.of("func", "updateApp","reference_id", referenceId,
+							"param", Map.of("project", "dataentry", "id", applications.get(0).getId()),"body", convertService.toAppDisplay(applications.get(0))));
+
+			Report report = new Report();
+			report.setQuickLeadId(applications.get(0).getQuickLeadId());
+			report.setApplicationId(applications.get(0).getApplicationId());
+			report.setFunction("UPDATESTATUS");
+			report.setStatus(applications.get(0).getStatus().toUpperCase());
+			report.setCreatedBy(token.path("user_name").asText(""));
+			report.setCreatedDate(new Date());
+
+			if(applications.get(0) != null){
+				report.setPartnerId(applications.get(0).getPartnerId());
+				report.setPartnerName(applications.get(0).getPartnerName());
+			}
+
+			report.setDescription(applications.get(0).getReasonCancel());
+			mongoTemplate.save(report);
+
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			logInfo.put("user", token.path("user_name").asText(""));
+		} catch (DataEntryException e){
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(String.valueOf(e.getType()));
+			responseModel.setMessage(error);
+		} catch (Exception e) {
+			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
+			logInfo.put("exception", error);
+			responseModel.setRequest_id(requestId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("3");
+			responseModel.setMessage("System error");
+		} finally {
+			log.info("{}", logInfo);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	private String callCancelApiPartner(String applicationId, String reasonCancel, String partnerId) {
+		try {
+			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "errors", reasonCancel, "status", "CANCEL",
+					"comment-id", UUID.randomUUID().toString().substring(0, 10))), JsonNode.class);
+
+			Map partner = getPartner(partnerId);
+			if (StringUtils.isEmpty(partner.get("data"))) {
+				throw new Exception("not found partner");
+			}
+
+			Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+			String cancelApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+
+			JsonNode responseDG = mapper.createObjectNode();
+
+			if (partnerId.equals("1")) {
+				String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+				responseDG = apiService.callApiPartner(cancelApi, dataSend, tokenPartner, partnerId);
+			} else if (partnerId.equals("2")) {
+				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+				if (StringUtils.isEmpty(tokenPartner)) {
+					throw new Exception("Not get token saigon-bpo");
+				}
+				responseDG = apiService.callApiPartner(cancelApi, dataSend, tokenPartner, partnerId);
+			}
+
+			if (!responseDG.path("error-code").textValue().equals("")) {
+				if (!responseDG.path("error-code").textValue().equals("null")) {
+					throw new Exception(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+				}
+			}
+			return "";
+		}catch (Exception e){
+			return e.getMessage();
 		}
 	}
 
