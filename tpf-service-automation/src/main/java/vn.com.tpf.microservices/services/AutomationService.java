@@ -339,8 +339,8 @@ public class AutomationService {
 		AutomationThreadService automationThreadService = null;
 		if("smartnet".equals(projectJson)) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
-		}else{
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery",projectJson);
+		}else if("mobility".equals(projectJson)) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
 		}
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
@@ -373,8 +373,8 @@ public class AutomationService {
 		AutomationThreadService automationThreadService = null;
 		if(projectJson.equals("smartnet")) {
 			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
-		}else{
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue",projectJson);
+		}else if(projectJson.equals("mobility")) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","MOBILITY_FIELD");
 		}
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);

@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import okhttp3.internal.Util;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
@@ -727,6 +728,7 @@ public class AutomationHandlerService {
             await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
             referencesPage.getTabReferencesElement().click();
+            Thread.sleep(10000);
             referencesPage.setData(referenceDTO);
             referencesPage.getSaveBtnElement().click();
 
