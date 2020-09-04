@@ -337,13 +337,14 @@ public class AutomationService {
 		String projectJson = deResponseQueryDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQuery(deResponseQueryDTOList);
 		AutomationThreadService automationThreadService = null;
-		if("smartnet".equals(projectJson)) {
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
-		}else if("mobility".equals(projectJson)) {
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","MOBILITY_FIELD");
-		}
+        if("smartnet".equals(projectJson)) {
+            automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery","RETURN");
+        }else{
+            automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQuery",projectJson.toUpperCase());
+        }
 
-		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
 	//------------------------ END - DE_RESPONSE_QUERY - FUNCTION -------------------------------------
@@ -371,11 +372,11 @@ public class AutomationService {
 		String projectJson = deSaleQueueDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_SaleQueue(deSaleQueueDTOList);
 		AutomationThreadService automationThreadService = null;
-		if(projectJson.equals("smartnet")) {
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
-		}else if(projectJson.equals("mobility")) {
-			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","MOBILITY_FIELD");
-		}
+        if(projectJson.equals("smartnet")) {
+            automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue","RETURN");
+        }else{
+            automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_SaleQueue",projectJson.toUpperCase());
+        }
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
