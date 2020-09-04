@@ -22,16 +22,16 @@ public class AutoAllocationReassignPage {
     @CacheLookup
     private WebElement menuApplicationsLiElement;
 
+    @FindBy(how = How.ID, using = "applicationManagerForm1")
+    private WebElement applicationManagerFormElement;
+
     @FindBy(how = How.ID, using = "searchOptions")
-    @CacheLookup
     private WebElement searchOptionsElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'LoanApplication_Assigned_filter']//select[@id = 'searchOptions']//option")
-    @CacheLookup
     private List<WebElement> searchOptionsListElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
-    @CacheLookup
     private WebElement searchTextsElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")

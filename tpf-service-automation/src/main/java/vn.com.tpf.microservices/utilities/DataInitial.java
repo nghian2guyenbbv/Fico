@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.StringUtils;
 import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAssignAllocationDTO;
 import vn.com.tpf.microservices.models.AutoAllocation.AutoReassignUserDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
@@ -1138,6 +1139,12 @@ public class DataInitial {
         }
         map.put("AutoReassignUser", autoReassignUserDTOs);
 
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_AutoAssign_Allocation(List<AutoAssignAllocationDTO> autoAssignAllocationDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("AutoAssignAllocationList", autoAssignAllocationDTOList);
         return map;
     }
 }
