@@ -3937,7 +3937,16 @@ public class AutomationHandlerService {
 
                 }
             }else{
-                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
+                de_applicationManagerPage.getMenuApplicationElement().click();
+
+                de_applicationManagerPage.getApplicationManagerElement().click();
+
+                // ========== APPLICATION MANAGER =================
+                stage = "APPLICATION MANAGER";
+
+                await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Manager"));
                 //Service Acc đang lấy cho team DE tại ngày 04/09/2020
                 de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
             }
