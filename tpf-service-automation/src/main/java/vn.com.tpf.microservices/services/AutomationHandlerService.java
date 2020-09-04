@@ -38,6 +38,7 @@ import vn.com.tpf.microservices.services.Automation.autoAllocation.AutoAllocatio
 import vn.com.tpf.microservices.services.Automation.autoAllocation.AutoAssignAllocationPage;
 import vn.com.tpf.microservices.services.Automation.autoCRM.*;
 import vn.com.tpf.microservices.services.Automation.autoField.*;
+import vn.com.tpf.microservices.services.Automation.deReturn.AssignManagerSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
@@ -3905,14 +3906,83 @@ public class AutomationHandlerService {
 
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
-                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
                 //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
                 if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent())
                 {
-                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
+                    de_applicationManagerPage.getMenuApplicationElement().click();
+
+                    de_applicationManagerPage.getApplicationManagerElement().click();
+
+                    // ========== APPLICATION MANAGER =================
+                    stage = "APPLICATION MANAGER";
+
+                    await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
+
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName());
+
+                    de_applicationManagerPage.getMenuApplicationElement().click();
+
+                    de_applicationManagerPage.getApplicationElement().click();
+
+                    await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Grid"));
+
+                    de_applicationManagerPage.getApplicationAssignedNumberElement().clear();
+
+                    de_applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(deSaleQueueDTO.getAppId());
+
+                    await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getTbApplicationAssignedElement().size() > 2);
+
+                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
+
+                    await("webAssignElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> applicationIdAssignedNumberElement.isDisplayed());
+
+                    applicationIdAssignedNumberElement.click();
+
+                    de_applicationManagerPage.getBtnMoveToNextStageElement().click();
+
+                    de_applicationManagerPage.getMenuApplicationElement().click();
+
+                    de_applicationManagerPage.getApplicationManagerElement().click();
+
+                    // ========== APPLICATION MANAGER =================
+                    stage = "APPLICATION MANAGER";
+
+                    await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
+
+                    await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+                    de_applicationManagerPage.getApplicationNumberElement().sendKeys(deSaleQueueDTO.getAppId());
+                    de_applicationManagerPage.getSearchApplicationElement().click();
+
+                    await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getTdApplicationElement().size() > 0);
+
+                    await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getShowTaskElement().isDisplayed());
+
+                    if ("LOGIN_ACCEPTANCE".equals(de_applicationManagerPage.getTdCheckStageApplicationElement().getText())) {
+                        de_applicationManagerPage.setDataACCA(deSaleQueueDTO.getUserCreatedSalesQueue());
+                    }
+
                 }
             }else{
-                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
+                de_applicationManagerPage.getMenuApplicationElement().click();
+
+                de_applicationManagerPage.getApplicationManagerElement().click();
+
+                // ========== APPLICATION MANAGER =================
+                stage = "APPLICATION MANAGER";
+
+                await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Manager"));
                 //Service Acc đang lấy cho team DE tại ngày 04/09/2020
                 de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
             }
