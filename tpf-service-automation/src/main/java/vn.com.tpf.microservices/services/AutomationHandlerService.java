@@ -3875,6 +3875,9 @@ public class AutomationHandlerService {
                 {
                     de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                 }
+            }else{
+                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
             }
 
             deSaleQueueDTO.setStatus("OK");
