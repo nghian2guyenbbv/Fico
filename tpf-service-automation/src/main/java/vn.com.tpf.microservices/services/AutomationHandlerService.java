@@ -3877,6 +3877,7 @@ public class AutomationHandlerService {
                 }
             }else{
                 DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                //Service Acc đang lấy cho team DE tại ngày 04/09/2020
                 de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
             }
 
