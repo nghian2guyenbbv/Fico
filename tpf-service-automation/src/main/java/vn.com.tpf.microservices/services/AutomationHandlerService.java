@@ -3898,29 +3898,17 @@ public class AutomationHandlerService {
 
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
-                if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent()){
-                    DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-
-                    await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                            .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
-
-                    de_applicationManagerPage.getBackBtnElement().click();
-
-                    await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                            .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-
-                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
-                }
-            }
-
-            /*if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())){
                 DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
                 //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
                 if(!deSaleQueueDTO.getDataDocuments().stream().filter(c->c.getDocumentName().contains("(ACCA)")).findAny().isPresent())
                 {
                     de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), deSaleQueueDTO.getUserCreatedSalesQueue());
                 }
-            }*/
+            }else{
+                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                //Service Acc đang lấy cho team DE tại ngày 04/09/2020
+                de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
+            }
 
             deSaleQueueDTO.setStatus("OK");
             deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
