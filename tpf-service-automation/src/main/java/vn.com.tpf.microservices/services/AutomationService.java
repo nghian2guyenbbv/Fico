@@ -443,7 +443,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFromDE_QL(application);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"MOBILITY_quickLead","MOBILITY_FIELD");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"MOBILITY_quickLead","MOBILITY");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 
@@ -477,7 +477,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY_FIELD");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -510,7 +510,7 @@ public class AutomationService {
 		String browser = "chrome";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Submit_Field(submitFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY_FIELD");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY");
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
