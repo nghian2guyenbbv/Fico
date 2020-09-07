@@ -11,12 +11,13 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import vn.com.tpf.microservices.utils.Utils;
 
 @Service
 public class RabbitMQService {
@@ -30,11 +31,14 @@ public class RabbitMQService {
 	private RabbitTemplate rabbitTemplate;
 
 	@Autowired
-	private AppService appService;
+	private CrmService crmService;
+
+	@Autowired
+	private Utils utils;
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(60000);
+		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -70,50 +74,51 @@ public class RabbitMQService {
 
 		return null;
 	}
-
+	
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
+
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
-
 			switch (request.path("func").asText()) {
-			case "createApp":
-				return response(message, payload, appService.createApp(request));
-			case "createQuickLeadApp":
-				return response(message, payload, appService.createQuickLeadApp(request));
-			case "waiveField":
-				return response(message, payload, appService.waiveField(request));
-			case "submitField":
-				return response(message, payload, appService.submitField(request));
-			case "updateApp":
-				return response(message, payload, appService.updateApp(request));
-			case "updateAutomation":
-				return response(message, payload, appService.updateAutomation(request));
-			case "deResponseQuery":
-				return response(message, payload, appService.deResponseQuery(request));
-			case "deSaleQueue":
-				return response(message, payload, appService.deSaleQueue(request));
-			case "getReason":
-				return response(message, payload, appService.getReason(request));
-			case "getLoan":
-				return response(message, payload, appService.getLoan(request));
-			case "getCheckList":
-				return response(message, payload, appService.getCheckList(request));
-			case "createQuickLeadAppWithCustId":
-				return response(message, payload, appService.createQuickLeadAppWithCustId(request));
-            case "saleQueueWithFullInfo":
-            	return response(message, payload, appService.saleQueueWithFullInfo(request));
-			default:
-				return response(message, payload, appService.sendFinnOne(request));
-			}
+				case "preCheck1":
+					return response(message, payload, Map.of("status", 200, "data", crmService.getPreCheck1(request)));
+				case "preCheck2":
+					return response(message, payload, Map.of("status", 200, "data", crmService.getPreCheck2(request)));
+				case "getAppInfo":
+					return response(message, payload, Map.of("status", 200, "data", crmService.getAppInfo(request)));	
+				case "returnQuery":
+					return response(message, payload, Map.of("status", 200, "data", crmService.returnQuery(request)));
+				case "returnQueue":
+					return response(message, payload, Map.of("status", 200, "data", crmService.returnQueue(request)));
+				case "addDocuments":
+					return response(message, payload, Map.of("status", 200, "data", crmService.addDocuments((request))));
+				case "addDocumentsWithCustId":
+					return response(message, payload, Map.of("status", 200, "data", crmService.addDocumentsWithCustId((request))));
+				case "addDocumentsWithCustIdAndFullApp":
+					return response(message, payload, Map.of("status", 200, "data", crmService.addDocumentsWithCustIdAndFullApp((request))));
+				case "updateAutomation":
+					return response(message, payload, Map.of("status", 200, "data", crmService.updateAutomation((request))));	
+				case "createField":
+					return response(message, payload, Map.of("status", 200, "data", crmService.createField((request))));	
+				case "submitField": 
+					return response(message, payload, Map.of("status", 200, "data", crmService.submitField((request))));	
+				case "waiveField": 
+					return response(message, payload, Map.of("status", 200, "data", crmService.waiveField((request))));
+				case "returnQueueAndSendBack":
+					return response(message, payload, Map.of("status", 200, "data", crmService.returnQueueAndSendBack(request)));
+				default:
+					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
+							mapper.createObjectNode().put("message", "function not found"))));
+			}				
 
-		} catch (IllegalArgumentException e) {
-			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
-		} catch (DataIntegrityViolationException e) {
-			return response(message, payload, Map.of("status", 409, "data", Map.of("message", "Conflict")));
 		} catch (Exception e) {
-			return response(message, payload, Map.of("status", 500, "data", Map.of("message", e.toString())));
+			return response(message, payload,
+					Map.of("status", 200, "data",
+							utils.getJsonNodeResponse(500, mapper.readTree(new String(payload, "UTF-8")),
+									mapper.createObjectNode().put("message", e.toString()))));
 		}
+
 	}
 
 }
