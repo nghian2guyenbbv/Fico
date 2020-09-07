@@ -257,6 +257,8 @@ public class FV_FieldVerificationPage {
 
             if(tableFiiBtnAddElement.size() < 2){
 
+                btnInverse.click();
+
                 JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
                 btnInverseJE.executeScript("arguments[0].click();", btnInverse);
 
@@ -299,10 +301,10 @@ public class FV_FieldVerificationPage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
-        jseMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+//        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
+//        jseMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-//        btnMoveToNextStageElement.click();
+        btnMoveToNextStageElement.click();
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
