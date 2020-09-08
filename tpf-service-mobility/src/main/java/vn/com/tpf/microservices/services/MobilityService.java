@@ -425,18 +425,21 @@ public class MobilityService {
 			docUpload.put("filename", uploadResult.path("data").path("filename").asText());
 			filesUpload.add(docUpload);
 		}
+		//Default value for IH
+		long partnerId = 3;
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
-				.set("filesUpload", filesUpload);
+				.set("filesUpload", filesUpload)
+				.set("partnerId", partnerId);
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 
 		JsonNode vendorAutoassign = rabbitMQService.sendAndReceive("tpf-service-autoassign", Map.of("func", "configureVendor", "request_id",
 				body.path("reference_id").asText(), "schemeCode", mobility.getSchemeFinnOne(),"project","mobility"));
-		long partnerId = 0;
+
 		if (!vendorAutoassign.path("data").path("data").path("vendorId").asText().isBlank()) {
 			partnerId = vendorAutoassign.path("data").path("data").path("vendorId").asLong();
 		}
@@ -821,8 +824,8 @@ public class MobilityService {
 			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "commentAppNonWeb", "body",
 					convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 		} else {
-		   rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
-				   convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
+					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 		}
 
 
