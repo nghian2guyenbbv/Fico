@@ -12,6 +12,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.SessionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -5803,6 +5805,7 @@ public class AutomationHandlerService {
         String cifNo = "";
         String idNo = "";
         CRM_ExistingCustomerDTO existingCustomerDTO = CRM_ExistingCustomerDTO.builder().build();
+        SessionId session = ((RemoteWebDriver)driver).getSessionId();
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -6148,7 +6151,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session + " - " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -6179,6 +6182,7 @@ public class AutomationHandlerService {
         String stage = "";
         String applicationId = "";
         CRM_SaleQueueDTO saleQueueDTO = CRM_SaleQueueDTO.builder().build();
+        SessionId session = ((RemoteWebDriver)driver).getSessionId();
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -6469,7 +6473,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(saleQueueDTO.getReference_id());
             responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + e.getMessage());
+            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session + " - " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
