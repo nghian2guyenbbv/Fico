@@ -8,8 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
@@ -276,13 +278,18 @@ public class AutoRoutingService {
 			String idConfig = request.path("body").path("idConfig").asText();
 			int limit = request.path("body").path("limit").asInt();
 			Pageable pagination = PageRequest.of(page - 1 , limit);
-			List<HistoryConfig> historyConfigList = historyConfigDAO.findAllByIdConfig(idConfig, pagination);
+			Page<HistoryConfig> historyConfigList = historyConfigDAO
+					.findAllByIdConfigOrderByCreateDateDesc(idConfig, pagination);
+			Map<String, Object> historyConfigResponse = new HashMap<>();
+			historyConfigResponse.put("totalRecords", historyConfigList.getTotalElements());
+			historyConfigResponse.put("data", historyConfigList.getContent());
+			historyConfigResponse.put("totalPages", historyConfigList.getTotalPages());
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
 			responseModel.setMessage("Success");
-			responseModel.setData(historyConfigList);
+			responseModel.setData(historyConfigResponse);
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
