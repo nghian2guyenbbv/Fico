@@ -2283,6 +2283,20 @@ public class AutomationHandlerService {
 
             employmentDetailsTab.updateData(applicationInfoDTO.getEmploymentDetails());
             employmentDetailsTab.getDoneBtnElement().click();
+
+            // check error sau khi click done - employee detail , update 8-9-2020
+            List<WebElement> checkError=driver.findElements(By.xpath("//span[contains(text(), 'This field is required.')]"));
+
+            if(checkError!=null && checkError.size()>0)
+            {
+                //UPDATE STATUS
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("Error at employment detail");
+                return;
+            }
+            // end check error
+
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
