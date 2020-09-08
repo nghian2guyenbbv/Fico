@@ -82,8 +82,8 @@ public class AutomationHandlerService {
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
-//    @Value("${spring.url.rabbitIdRes}")
-//    private String rabbitIdRes;
+    @Value("${spring.url.rabbitIdRes}")
+    private String rabbitIdRes;
 
     private LoginDTO pollAccountFromQueue_OLD(Queue<LoginDTO> accounts, String project) throws Exception {
         LoginDTO accountDTO = null;
@@ -1110,9 +1110,9 @@ public class AutomationHandlerService {
 //                Map.of("func", func, "token",
 //                        String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
 
-//        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
-//                Map.of("func", func, "body", application));
-//        System.out.println("rabit:=>" + jsonNode.toString());
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+                Map.of("func", func, "body", application));
+        System.out.println("rabit:=>" + jsonNode.toString());
 
 
     }
@@ -6798,33 +6798,32 @@ public class AutomationHandlerService {
 
                         Utilities.captureScreenShot(driver);
 
-                        int sizeListApplicationReassign = autoAllocationReassignPage.getCheckboxApplicationAssignedElement().size();
-                        int sizeListApplicationAmount = Integer.parseInt(autoReassignUserDTO.getAmountApp());
-                        int sizeCheckboxReassign = 0;
+                        int sizeListApplicationReassign = autoAllocationReassignPage.getListColApplicationTableElement().size();
+                        int sizeCheckboxReassign = Integer.parseInt(autoReassignUserDTO.getAmountApp());
 
-                        if (sizeListApplicationReassign < sizeListApplicationAmount){
+
+                        if (sizeListApplicationReassign < sizeCheckboxReassign){
                             sizeCheckboxReassign = sizeListApplicationReassign;
-                            amountReassignedAppId = String.valueOf(sizeListApplicationAmount - sizeListApplicationReassign);
-                        }else{
-                            sizeCheckboxReassign = sizeListApplicationAmount;
                         }
 
                         Thread.sleep(5000);
 
+                        listAppId = new ArrayList<>();
+
                         for (int i = 0; i < sizeCheckboxReassign; i++){
-                            autoAllocationReassignPage.getCheckboxApplicationAssignedElement().get(i).click();
+                            WebElement inQueueStatusElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td//*[contains(text(),'" + autoAllocationReassignPage.getListColApplicationTableElement().get(i).getText() + "')]//ancestor::tr//td[8]"));
+                            if (autoReassignUserDTO.getInQueueStatus().equals(inQueueStatusElement.getText())){
+                                WebElement checkBoxAssignedElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td//*[contains(text(),'" + autoAllocationReassignPage.getListColApplicationTableElement().get(i).getText() + "')]//ancestor::tr//td[8][text() = '" + autoReassignUserDTO.getInQueueStatus() + "']//ancestor::tr//td//input[@id = 'selectThis_LoanApplication_Assigned']"));
+                                checkBoxAssignedElement.click();
+                                listAppId.add(autoAllocationReassignPage.getListColApplicationTableElement().get(i).getText());
+                            }
+//                            autoAllocationReassignPage.getCheckboxApplicationAssignedElement().get(i).click();
                         }
 
                         await("Reassign For User Button Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAllocationReassignPage.getBtnReassignForUserElement().isDisplayed());
 
                         Thread.sleep(5000);
-
-                        listAppId = new ArrayList<>();
-
-                        for (int j = 0; j < autoAllocationReassignPage.getListApplicationAssignedElement().size(); j++){
-                            listAppId.add(autoAllocationReassignPage.getListApplicationAssignedElement().get(j).getText());
-                        }
 
                         Utilities.captureScreenShot(driver);
 

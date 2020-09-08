@@ -25,6 +25,7 @@ public class AutoReassignUserDTO {
     private String reference_id;
     private String project;
     private String stageApp;
+    private String inQueueStatus;
     private String amountApp;
     private String amountReassignedApp;
     private String reassignUser;

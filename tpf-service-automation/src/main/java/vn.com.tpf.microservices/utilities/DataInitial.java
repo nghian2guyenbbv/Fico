@@ -1133,6 +1133,7 @@ public class DataInitial {
                     .reference_id(autoAllocationDTOList.getReference_id())
                     .amountApp(autoReassignUser.getAmountApp())
                     .stageApp(autoReassignUser.getStageApp())
+                    .inQueueStatus(autoReassignUser.getInQueueStatus())
                     .reassignUser(autoReassignUser.getReassignUser())
                     .build();
             autoReassignUserDTOs.add(autoReassignUserDTO);
@@ -1142,9 +1143,20 @@ public class DataInitial {
         return map;
     }
 
-    public static Map<String, Object> getDataFrom_AutoAssign_Allocation(List<AutoAssignAllocationDTO> autoAssignAllocationDTOList) throws JsonProcessingException {
+    public static Map<String, Object> getDataFrom_AutoAssign_Allocation(AutoAllocationDTO autoAssignAllocationDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("AutoAssignAllocationList", autoAssignAllocationDTOList);
+        ////********************************REASSIGN USER************************************////
+        List<AutoAssignAllocationDTO> autoAssignAllocationDTOs = new ArrayList<>();
+        for(AutoAssignAllocationDTO autoAssignAllocation : autoAssignAllocationDTOList.getAutoAssign()) {
+            AutoAssignAllocationDTO autoAssignAllocationDTO = AutoAssignAllocationDTO.builder()
+                    .project(autoAssignAllocationDTOList.getProject())
+                    .appId(autoAssignAllocation.getAppId())
+                    .userName(autoAssignAllocation.getUserName())
+                    .build();
+            autoAssignAllocationDTOs.add(autoAssignAllocationDTO);
+        }
+        map.put("AutoAssignAllocation", autoAssignAllocationDTOs);
         return map;
     }
 }

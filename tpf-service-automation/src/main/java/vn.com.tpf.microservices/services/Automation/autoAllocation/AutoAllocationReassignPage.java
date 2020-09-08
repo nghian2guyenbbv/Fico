@@ -40,6 +40,9 @@ public class AutoAllocationReassignPage {
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td//input[@id = 'selectThis_LoanApplication_Assigned']")
     private List<WebElement> checkboxApplicationAssignedElement;
 
+    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td[2]")
+    private List<WebElement> listColApplicationTableElement;
+
 //    @FindBy(how = How.XPATH, using = "//div[@id = 'commonButton_LoanApplication_Assigned']//button[@id = 'ReassignForUserLoanApplication_AssignedBttn']")
 //    @FindBy(how = How.XPATH, using = "(//table[@id='LoanApplication_Assigned']//tbody//ancestor::tr[contains(@class, 'bg-skyBlue_imp')]//td//img[@id = 'ReassignForUser'])[1]")
     @FindBy(how = How.ID, using = "ReassignForUserLoanApplication_AssignedBttn")
@@ -63,8 +66,6 @@ public class AutoAllocationReassignPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'reason-form-reassign' and @aria-hidden = 'false']//a[contains(text(),'Done')]")
     private WebElement btnDoneDecisionReasonForReassignElement;
 
-    @FindBy(how = How.XPATH, using = " //table[@id='LoanApplication_Assigned']//tbody//ancestor::tr[contains(@class, 'bg-skyBlue_imp')]//td[2]")
-    private List<WebElement> listApplicationAssignedElement;
 
     public AutoAllocationReassignPage(WebDriver driver) {
         PageFactory.initElements(driver, this);

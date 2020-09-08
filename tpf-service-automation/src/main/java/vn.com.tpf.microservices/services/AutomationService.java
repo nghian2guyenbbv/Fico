@@ -707,12 +707,9 @@ public class AutomationService {
 
     public Map<String, Object> AutoAssign_Allocation(JsonNode request) throws Exception {
         JsonNode body = request.path("body");
-        String reference_id = request.path("reference_id").asText();
-
         System.out.println(request);
-
         Assert.notNull(request.get("body"), "no body");
-        List<AutoAssignAllocationDTO> autoAssignAllocationDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<AutoAssignDTO>>(){});
+		AutoAllocationDTO autoAssignAllocationDTOList = mapper.treeToValue(request.path("body"), AutoAllocationDTO.class);
 
         new Thread(() -> {
             try {
@@ -725,12 +722,12 @@ public class AutomationService {
         return response(0, body, autoAssignAllocationDTOList);
     }
 
-    private void runAutomation_AutoAssign_Allocation(List<AutoAssignAllocationDTO> autoAssignAllocationDTOList) throws Exception {
+    private void runAutomation_AutoAssign_Allocation(AutoAllocationDTO autoAssignAllocationDTOList) throws Exception {
         String browser = "chrome";
-//        String projectJson = autoAssignAllocationDTOList.getProject();
+        String projectJson = autoAssignAllocationDTOList.getProject();
         Map<String, Object> mapValue = DataInitial.getDataFrom_AutoAssign_Allocation(autoAssignAllocationDTOList);
 
-        AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_AutoAssign_Allocation","ALLOCATION");
+        AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_AutoAssign_Allocation",projectJson.toUpperCase());
         applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
         workerThreadPool.submit(automationThreadService);
     }
