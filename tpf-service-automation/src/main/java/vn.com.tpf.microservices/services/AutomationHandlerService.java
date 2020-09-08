@@ -640,8 +640,49 @@ public class AutomationHandlerService {
             await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
 
+            //validate data truoc khi update: employee detail, update 8-9-2020
+            if (!applicationInfoDTO.getEmploymentDetails().getOccupationType().equals("Others"))
+            {
+                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
+                {
+                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
+                    if(taxCode<=0)
+                    {
+                        //UPDATE STATUS
+                        application.setStatus("ERROR");
+                        application.setStage(stage);
+                        application.setDescription("Other Company Tax Code must > 0");
+                        return;
+                    }
+                }
+
+                if(StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getIndustry()))
+                {
+                    //UPDATE STATUS
+                    application.setStatus("ERROR");
+                    application.setStage(stage);
+                    application.setDescription("Industry must have value");
+                    return;
+                }
+            }
+            //end validate
+
             employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetails());
             employmentDetailsTab.getDoneBtnElement().click();
+
+            // check error sau khi click done - employee detail , update 8-9-2020
+            List<WebElement> checkError=driver.findElements(By.xpath("//span[contains(text(), 'This field is required.')]"));
+
+            if(checkError!=null && checkError.size()>0)
+            {
+                //UPDATE STATUS
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("Error at employment detail");
+                return;
+            }
+            // end check error
+            
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
