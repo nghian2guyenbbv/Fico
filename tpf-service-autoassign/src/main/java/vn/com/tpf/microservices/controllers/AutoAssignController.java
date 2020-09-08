@@ -46,9 +46,10 @@ public class AutoAssignController {
 
 	@PostMapping("/getallvendor")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> getAllVendor(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> getAllVendor(@RequestHeader("Authorization") String token, @RequestBody ObjectNode body)
 //	public ResponseEntity<?> getAllVendor(@RequestBody JsonNode body)
 			throws Exception {
+				body.put("token", token);
 		Map<String, Object> response = autoAssignService.getVendor();
 		return ResponseEntity.status(200)
 				.header("x-pagination-total", "0").body(response.get("data"));
@@ -56,9 +57,10 @@ public class AutoAssignController {
 
 	@PostMapping("/getConfigInDay")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> addProduct(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> addProduct(@RequestHeader("Authorization") String token, @RequestBody ObjectNode body)
 //	public ResponseEntity<?> addProduct(@RequestBody JsonNode body)
 			throws Exception {
+				body.put("token", token);
 		Map<String, Object> response = autoAssignService.getConfigInDay(body);
 		return ResponseEntity.status(200)
 				.header("x-pagination-total", "0").body(response.get("data"));
@@ -66,9 +68,10 @@ public class AutoAssignController {
 
 	@PostMapping("/createdConfigure")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> createdConfigure(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> createdConfigure(@RequestHeader("Authorization") String token, @RequestBody ObjectNode body)
 //	public ResponseEntity<?> createdConfigure(@RequestBody JsonNode body)
 			throws Exception {
+		body.put("token", token);
 		Map<String, Object> response = autoAssignService.createdConfigure(body);
 
 		return ResponseEntity.status(200)
@@ -92,6 +95,7 @@ public class AutoAssignController {
 	public ResponseEntity<?> configureApplication(@RequestHeader("Authorization") String token, @RequestBody ObjectNode body)
 //	public ResponseEntity<?> configureApplication(@RequestBody ObjectNode body)
 			throws Exception {
+				body.put("token", token);
 		String reqId = body.get("request_id").textValue();
 		String refId = UUID.randomUUID().toString();
 		body.put("reference_id", refId);
@@ -111,6 +115,7 @@ public class AutoAssignController {
 	public ResponseEntity<?> configureVendor(@RequestHeader("Authorization") String token, @RequestBody ObjectNode body)
 //	public ResponseEntity<?> configureVendor(@RequestBody ObjectNode body)
 			throws Exception {
+				body.put("token", token);
 		String reqId = body.get("request_id").textValue();
 		String refId = UUID.randomUUID().toString();
 		body.put("reference_id", refId);

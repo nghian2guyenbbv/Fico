@@ -267,7 +267,7 @@ public class AutoAssignService {
 					createAssign.setVendorName(item.getVendorName());
 					createAssign.setPriority(item.getPriority());
 					createAssign.setAssign(true);
-					createAssign.setCreatedBy(token.path("user_name").textValue());
+					createAssign.setCreatedBy(token.path("user_name").asText(""));
 
 					inputDataInsert.add(createAssign);
 				}
@@ -390,7 +390,7 @@ public class AutoAssignService {
 			autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
 			autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
 			autoAssignConfigureHistory.setData(mapper.writeValueAsString(inputData));
-			autoAssignConfigureHistory.setCreatedBy(token.path("user_name").textValue());
+			autoAssignConfigureHistory.setCreatedBy(token.path("user_name").asText(""));
 			AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
 
 			responseModel.setRequest_id(requestModel.getRequest_id());
@@ -701,7 +701,7 @@ public class AutoAssignService {
 			//list.stream().forEach(u->u.setCreateddate(new Timestamp(new Date().getTime())));
 			list.stream().map(autoAssignScheme -> {
 				autoAssignScheme.setCreateddate(new Timestamp(new Date().getTime()));
-				autoAssignScheme.setCreatedby(token.path("user_name").asText());
+				autoAssignScheme.setCreatedby(token.path("user_name").asText(""));
 				return autoAssignScheme;
 			}).collect(Collectors.toList());
 
@@ -754,7 +754,7 @@ public class AutoAssignService {
 			autoAssignScheme.setScheme(scheme.getScheme());
 			autoAssignScheme.setStatus(scheme.getStatus());
 			autoAssignScheme.setLastdate(new Timestamp(new Date().getTime()));
-			autoAssignScheme.setCreatedby(token.path("user_name").asText());
+			autoAssignScheme.setCreatedby(token.path("user_name").asText(""));
 
 			autoAssignConfigureSchemeDAO.save(autoAssignScheme);
 
