@@ -27,7 +27,7 @@ public class AutoReassignUserDTO {
     private String stageApp;
     private String inQueueStatus;
     private String amountApp;
-    private String amountReassignedApp;
+    private String amountRemainingApp;
     private String reassignUser;
     private List<String> appId = null;
     private String automation_result;

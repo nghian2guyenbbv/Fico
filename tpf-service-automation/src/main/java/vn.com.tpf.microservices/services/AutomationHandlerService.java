@@ -6729,7 +6729,7 @@ public class AutomationHandlerService {
         Instant start = Instant.now();
         String stage = "";
         List<String> listAppId = new ArrayList<>();
-        String amountReassignedAppId = "";
+        int amountRemainingApp = 0;
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
@@ -6749,6 +6749,7 @@ public class AutomationHandlerService {
             AutoAllocationReassignPage autoAllocationReassignPages = new AutoAllocationReassignPage(driver);
             autoAllocationReassignPages.getMenuApplicationsElement().click();
             autoAllocationReassignPages.getMenuApplicationsLiElement().click();
+
 
             AutoReassignUserDTO autoReassignUserDTO = null;
             do {
@@ -6831,6 +6832,9 @@ public class AutomationHandlerService {
 
                         Utilities.captureScreenShot(driver);
 
+                        if (listAppId.size() < Integer.parseInt(autoReassignUserDTO.getAmountApp()))
+                            amountRemainingApp = Integer.parseInt(autoReassignUserDTO.getAmountApp()) - listAppId.size();
+
                         autoAllocationReassignPage.getBtnReassignForUserElement().click();
 
                         await("Dialog Form Users Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6880,7 +6884,7 @@ public class AutomationHandlerService {
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
                         update1.set("appId", listAppId);
-                        update1.set("amountReassignedApp", amountReassignedAppId);
+                        update1.set("amountReassignedApp", String.valueOf(amountRemainingApp));
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoReassignUserDTO.class);
                         System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     }
@@ -6891,7 +6895,7 @@ public class AutomationHandlerService {
                     update.set("userAuto", accountDTO.getUserName());
                     update.set("status", 3);
                     update.set("appId", listAppId);
-                    update.set("amountReassignedApp", amountReassignedAppId);
+                    update.set("amountReassignedApp", String.valueOf(amountRemainingApp));
                     mongoTemplate.findAndModify(queryUpdate, update, AutoReassignUserDTO.class);
                     System.out.println(ex.getMessage());
                 }
