@@ -643,18 +643,18 @@ public class AutomationHandlerService {
             //validate data truoc khi update: employee detail, update 8-9-2020
             if (!applicationInfoDTO.getEmploymentDetails().getOccupationType().equals("Others"))
             {
-                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
-                {
-                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
-                    if(taxCode<=0)
-                    {
-                        //UPDATE STATUS
-                        application.setStatus("ERROR");
-                        application.setStage(stage);
-                        application.setDescription("Other Company Tax Code must > 0");
-                        return;
-                    }
-                }
+//                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
+//                {
+//                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
+//                    if(taxCode<=0)
+//                    {
+//                        //UPDATE STATUS
+//                        application.setStatus("ERROR");
+//                        application.setStage(stage);
+//                        application.setDescription("Other Company Tax Code must > 0");
+//                        return;
+//                    }
+//                }
 
                 if(StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getIndustry()))
                 {
@@ -1658,18 +1658,18 @@ public class AutomationHandlerService {
             //validate data truoc khi update: employee detail, update 8-9-2020
             if (!applicationInfoDTO.getEmploymentDetails().getOccupationType().equals("Others"))
             {
-                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
-                {
-                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
-                    if(taxCode<=0)
-                    {
-                        //UPDATE STATUS
-                        application.setStatus("ERROR");
-                        application.setStage(stage);
-                        application.setDescription("Other Company Tax Code must > 0");
-                        return;
-                    }
-                }
+//                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
+//                {
+//                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
+//                    if(taxCode<=0)
+//                    {
+//                        //UPDATE STATUS
+//                        application.setStatus("ERROR");
+//                        application.setStage(stage);
+//                        application.setDescription("Other Company Tax Code must > 0");
+//                        return;
+//                    }
+//                }
 
                 if(StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getIndustry()))
                 {
@@ -2257,18 +2257,18 @@ public class AutomationHandlerService {
             //validate data truoc khi update: employee detail, update 8-9-2020
             if (!applicationInfoDTO.getEmploymentDetails().getOccupationType().equals("Others"))
             {
-                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
-                {
-                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
-                    if(taxCode<=0)
-                    {
-                        //UPDATE STATUS
-                        application.setStatus("ERROR");
-                        application.setStage(stage);
-                        application.setDescription("Other Company Tax Code must > 0");
-                        return;
-                    }
-                }
+//                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
+//                {
+//                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
+//                    if(taxCode<=0)
+//                    {
+//                        //UPDATE STATUS
+//                        application.setStatus("ERROR");
+//                        application.setStage(stage);
+//                        application.setDescription("Other Company Tax Code must > 0");
+//                        return;
+//                    }
+//                }
 
                 if(StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getIndustry()))
                 {
