@@ -456,7 +456,7 @@ public class MobilityService {
 		}
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
-				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
+				"body", convertService.toAppDisplayAndPartnerId(mobility,vendorAutoassign.path("data").path("data").path("vendorId").asLong(),vendorAutoassign.path("data").path("data").path("vendorName").asText()).put("reference_id", body.path("reference_id").asText())));
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
