@@ -191,6 +191,8 @@ public class RabbitMQService {
 				return response(message, payload, automationService.Sale_Queue_With_FullInfo(request));
 			case "autoReassignForUser":
 					return response(message, payload, automationService.AutoAllocation_Reassign_User(request));
+			case "autoAssignUser":
+					return response(message, payload, automationService.AutoAssign_Allocation(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

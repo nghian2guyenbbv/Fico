@@ -311,6 +311,9 @@ public class AutomationHandlerService {
                 case "runAutomation_Auto_Allocation":
                     runAutomation_autoAllocation(driver, mapValue, project, browser);
                     break;
+                case "runAutomation_AutoAssign_Allocation":
+                    runAutomation_autoAssignAllocation(driver, mapValue, project, browser);
+                    break;
             }
 
         } catch (Exception e) {
@@ -6773,10 +6776,13 @@ public class AutomationHandlerService {
         String stage = "";
         List<String> listAppId = new ArrayList<>();
         int amountRemainingApp = 0;
+//        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+//        AutoReassignUserDTO responseAutoReassignUserDTO = null;
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
+            SessionId session = ((RemoteWebDriver)driver).getSessionId();
             //get account run
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
@@ -6807,9 +6813,9 @@ public class AutomationHandlerService {
 
                         //update app
                         Query queryUpdate = new Query();
-                        queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(autoReassignUserDTO.getId())).and("status").is(0).and("reference_id").is(autoReassignUserDTO.getReference_id()).and("project").is(autoReassignUserDTO.getProject()));
+                        queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(autoReassignUserDTO.getId())).and("status").is(0).and("reassignUser").is(autoReassignUserDTO.getReassignUser()).and("project").is(autoReassignUserDTO.getProject()));
                         Update update = new Update();
-                        update.set("userauto", accountDTO.getUserName());
+                        update.set("userAuto", accountDTO.getUserName());
                         update.set("status", 2);
                         AutoReassignUserDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoReassignUserDTO.class);
 
@@ -6922,23 +6928,27 @@ public class AutomationHandlerService {
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
-                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("reference_id").is(autoReassignUserDTO.getReference_id()).and("project").is(autoReassignUserDTO.getProject()));
+                        queryUpdate1.addCriteria(Criteria.where("_id").is(new ObjectId(autoReassignUserDTO.getId())).and("status").is(2).and("reassignUser").is(autoReassignUserDTO.getReassignUser()).and("userAuto").is(accountDTO.getUserName()).and("project").is(autoReassignUserDTO.getProject()));
                         Update update1 = new Update();
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
                         update1.set("appId", listAppId);
                         update1.set("amountReassignedApp", String.valueOf(amountRemainingApp));
+                        update.set("automation_result", "ALLOCATION_PASS");
+                        update.set("automation_result_message", "Session ID:" + session );
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoReassignUserDTO.class);
                         System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
                     Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("reference_id").is(autoReassignUserDTO.getReference_id()).and("project").is(autoReassignUserDTO.getProject()));
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("project").is(autoReassignUserDTO.getProject()));
                     Update update = new Update();
                     update.set("userAuto", accountDTO.getUserName());
                     update.set("status", 3);
                     update.set("appId", listAppId);
                     update.set("amountReassignedApp", String.valueOf(amountRemainingApp));
+                    update.set("automation_result", "ALLOCATION_FAILED");
+                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
                     mongoTemplate.findAndModify(queryUpdate, update, AutoReassignUserDTO.class);
                     System.out.println(ex.getMessage());
                 }
@@ -6951,6 +6961,15 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
+//            if (!Objects.isNull(responseAutoReassignUserDTO)){
+//                Query queryResponse = new Query();
+//                queryResponse.addCriteria(Criteria.where("reference_id").is(responseAutoReassignUserDTO.getReference_id())
+//                        .and("project").is(responseAutoReassignUserDTO.getProject())
+//                        .and("status").in("2","3")
+//                );
+//                List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryResponse, MobilityFieldReponeDTO.class);
+//                autoUpdateStatusRabbit(responseModel, "updateAutomation");
+//            }
             pushAccountToQueue(accountDTO, project);
         }
     }
@@ -6960,7 +6979,7 @@ public class AutomationHandlerService {
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
-            List<AutoAssignAllocationDTO> autoAssignAllocationDTOList = (List<AutoAssignAllocationDTO>) mapValue.get("AutoAssignAllocationList");
+            List<AutoAssignAllocationDTO> autoAssignAllocationDTOList = (List<AutoAssignAllocationDTO>) mapValue.get("AutoAssignAllocation");
             //*************************** END GET DATA *********************//
             List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
 
@@ -7020,6 +7039,7 @@ public class AutomationHandlerService {
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
+            SessionId session = ((RemoteWebDriver)driver).getSessionId();
             //get account run
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
@@ -7048,8 +7068,7 @@ public class AutomationHandlerService {
                 try {
                     Instant startIn = Instant.now();
 
-
-                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    System.out.println("Auto: " + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0));
                     autoAssignAllocationDTO = mongoTemplate.findOne(query, AutoAssignAllocationDTO.class);
@@ -7068,7 +7087,7 @@ public class AutomationHandlerService {
                             continue;
                         }
 
-                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
                         String appID = autoAssignAllocationDTO.getAppId();
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
@@ -7095,15 +7114,19 @@ public class AutomationHandlerService {
                         Update update1 = new Update();
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
+                        update.set("automation_result", "AUTOASSIGN_PASS");
+                        update.set("automation_result_message", "Session ID:" + session);
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
                         System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
                     Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
+                    queryUpdate.addCriteria(Criteria.where("status").in(0, 2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                     Update update = new Update();
                     update.set("userAuto", accountDTO.getUserName());
                     update.set("status", 3);
+                    update.set("automation_result", "AUTOASSIGN_FAILED");
+                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
                     mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
 
                     System.out.println(ex.getMessage());

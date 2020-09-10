@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.autoAllocation;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -72,6 +73,7 @@ public class AutoAssignAllocationPage {
         _driver = driver;
     }
 
+    @SneakyThrows
     public void setData(String appId,String user) {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
@@ -103,8 +105,11 @@ public class AutoAssignAllocationPage {
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserOptionElement.size() > 0);
+        int listUserAssigned = textSelectUserOptionElement.size();
+
+        await("No User Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> listUserAssigned > 0);
+
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
                 e.click();
