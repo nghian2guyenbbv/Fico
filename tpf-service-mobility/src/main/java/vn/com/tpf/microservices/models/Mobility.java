@@ -71,6 +71,7 @@ public class Mobility {
 	@LastModifiedDate
 	private Date updatedAt;
 	private long partnerId;
+	private String partnerName;
 	@Builder.Default
 	private List<Object> commentApps3PNew = Arrays.asList();
 }

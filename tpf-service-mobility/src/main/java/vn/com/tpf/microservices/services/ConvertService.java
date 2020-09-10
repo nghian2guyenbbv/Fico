@@ -58,6 +58,8 @@ public class ConvertService {
 		app.set("documents", documents);
 		ObjectNode optional = mapper.createObjectNode();
 		optional.put("stage", mobility.getStage());
+		optional.put("partnerId", mobility.getPartnerId());
+		optional.put("partnerName", mobility.getPartnerName());
 
 		app.set("optional", optional);
 		return app;
@@ -150,6 +152,8 @@ public class ConvertService {
 		ObjectNode app = mapper.createObjectNode();
 		ObjectNode optional = mapper.createObjectNode();
 		optional.put("stage", mobility.getStage());
+		optional.put("partnerId", mobility.getPartnerId());
+		optional.put("partnerName", mobility.getPartnerName());
 		app.set("optional", optional);
 		return app;
 	}
@@ -321,36 +325,4 @@ public class ConvertService {
 		return app;
 	}
 
-	public ObjectNode toAppDisplayAndPartnerId(Mobility mobility,long partnerId, String partnerName) {
-		ObjectNode app = mapper.createObjectNode();
-		app.put("project", "mobility");
-		app.put("uuid", mobility.getId());
-		if (mobility.getAppId() != null)
-			app.put("appId", mobility.getAppId());
-		app.put("partnerId", mobility.getLeadId());
-		app.put("status", mobility.getStatus());
-		if (mobility.getAutomationResults().size() != 0)
-			app.put("automationResult", mapper.convertValue(mobility.getAutomationResults().get(0), JsonNode.class)
-					.path("automationResult").asText());
-		app.put("fullName", (mobility.getLastName() + " " + mobility.getFirstName()).replaceAll("\\s+", " "));
-		ArrayNode documents = mapper.createArrayNode();
-
-		mobility.getFilesUpload().forEach(e -> {
-			JsonNode mobilityDoc = mapper.convertValue(e, JsonNode.class);
-			ObjectNode doc = mapper.createObjectNode();
-			doc.put("documentType", mobilityDoc.path("documentCode").asText());
-			doc.put("viewUrl", mobilityDoc.path("documentUrlDownload").asText());
-			doc.put("downloadUrl", mobilityDoc.path("documentUrlDownload").asText());
-			doc.put("updatedAt", mobility.getUpdatedAt().toString());
-			documents.add(doc);
-		});
-		app.set("documents", documents);
-		ObjectNode optional = mapper.createObjectNode();
-		optional.put("stage", mobility.getStage());
-		optional.put("partnerId", partnerId);
-		optional.put("partnerName", partnerName);
-
-		app.set("optional", optional);
-		return app;
-	}
 }

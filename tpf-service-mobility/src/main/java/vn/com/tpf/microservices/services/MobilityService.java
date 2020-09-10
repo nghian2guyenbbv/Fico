@@ -427,13 +427,15 @@ public class MobilityService {
 		}
 		//Default value for IH
 		long partnerId = 3;
+		String partnerName = "IN-HOUSE";
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
 				.set("filesUpload", filesUpload)
-				.set("partnerId", partnerId);
+				.set("partnerId", partnerId)
+				.set("partnerName",partnerName);
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 
@@ -442,8 +444,10 @@ public class MobilityService {
 
 		if (!vendorAutoassign.path("data").path("data").path("vendorId").asText().isBlank()) {
 			partnerId = vendorAutoassign.path("data").path("data").path("vendorId").asLong();
+			partnerName = vendorAutoassign.path("data").path("data").path("vendorName").asText();
 		}
 		update.set("partnerId", partnerId);
+		update.set("partnerName", partnerName);
 		if(1 == partnerId || 2 == partnerId) {
 			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
 					convertService.toSendAppNonWebFinnone(mobility, partnerId ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
@@ -456,7 +460,7 @@ public class MobilityService {
 		}
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
-				"body", convertService.toAppDisplayAndPartnerId(mobility,vendorAutoassign.path("data").path("data").path("vendorId").asLong(),vendorAutoassign.path("data").path("data").path("vendorName").asText()).put("reference_id", body.path("reference_id").asText())));
+				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
