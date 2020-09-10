@@ -73,7 +73,6 @@ public class AutoAssignAllocationPage {
         _driver = driver;
     }
 
-    @SneakyThrows
     public void setData(String appId,String user) {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());

@@ -7066,9 +7066,8 @@ public class AutomationHandlerService {
 
             do {
                 try {
-                    Instant startIn = Instant.now();
-
-                    System.out.println("Auto: " + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+//                    Instant startIn = Instant.now();
+                    System.out.println("Auto: " + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0));
                     autoAssignAllocationDTO = mongoTemplate.findOne(query, AutoAssignAllocationDTO.class);
@@ -7087,7 +7086,7 @@ public class AutomationHandlerService {
                             continue;
                         }
 
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
                         String appID = autoAssignAllocationDTO.getAppId();
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
@@ -7106,7 +7105,7 @@ public class AutomationHandlerService {
                         await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(driver::getTitle, is("Application Manager"));
 
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
@@ -7117,7 +7116,7 @@ public class AutomationHandlerService {
                         update.set("automation_result", "AUTOASSIGN_PASS");
                         update.set("automation_result_message", "Session ID:" + session);
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
                     Query queryUpdate = new Query();
@@ -7128,6 +7127,11 @@ public class AutomationHandlerService {
                     update.set("automation_result", "AUTOASSIGN_FAILED");
                     update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
                     mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
+
+                    AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
+                    autoAssignAllocationFailedPage.getBackBtnElement().click();
+                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
 
                     System.out.println(ex.getMessage());
                 }
