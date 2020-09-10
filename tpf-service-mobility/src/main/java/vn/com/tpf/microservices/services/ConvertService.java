@@ -114,7 +114,8 @@ public class ConvertService {
 					.path("automationResult").asText());
 		ObjectNode optional = mapper.createObjectNode();
 		optional.put("stage", mobility.getStage());
-
+		optional.put("partnerId", mobility.getPartnerId());
+		optional.put("partnerName", mobility.getPartnerName());
 		app.set("optional", optional);
 		return app;
 	}
