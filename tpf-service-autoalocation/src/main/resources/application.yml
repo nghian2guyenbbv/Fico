@@ -1,0 +1,22 @@
+spring:
+  rabbitmq:
+    host: 10.131.31.202
+  datasource:
+#      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
+    url: jdbc:postgresql://10.1.66.30:5435/ficodb
+  redis:
+    host: 10.131.31.202
+    port: 6379
+    timeout: 10000
+security:
+  oauth2:
+    client:
+      access-token-uri: http://10.131.31.202:1100/oauth/token
+    resource:
+      token-info-uri: http://10.131.31.202:1100/oauth/check_token
+eureka:
+  client:
+    serviceUrl:
+      defaultZone:  http://10.131.31.202:8761/eureka
+  instance:
+    hostname: 10.131.21.159
