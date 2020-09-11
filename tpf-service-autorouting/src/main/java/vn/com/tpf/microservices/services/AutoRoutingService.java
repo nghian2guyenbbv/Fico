@@ -118,17 +118,61 @@ public class AutoRoutingService {
 		ResponseModel responseModel = new ResponseModel();
 		try {
 			ConfigRouting configRoutingUpdated = mapper.readValue(request.get("body").toString(),
-					new TypeReference<ConfigRouting>(){});
+					new TypeReference<ConfigRouting>() {
+					});
 			boolean isNew = true;
 
 			Date now = new Date();
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(now);
 			String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK) - 1);
+			if (validateDataInsert(configRoutingUpdated, responseModel)) {
+				List<ScheduleRoute> scheduleRouteList = scheduleRoutingDAO
+						.findByIdConfig(configRoutingUpdated.getIdConfig());
+				if (scheduleRouteList.size() > 0) {
+					saveHistoryConfig(scheduleRouteList, configRoutingUpdated.getIdConfig());
+					isNew = false;
+				}
+				changeInfoScheduleRoute(configRoutingUpdated.getScheduleRoutes(),
+						configRoutingUpdated.getIdConfig(), isNew);
+
+				List<ScheduleRoute> scheduleRouteListNew = configRoutingUpdated.getScheduleRoutes();
+				Iterable<ScheduleRoute> scheduleRouteIterable = scheduleRouteListNew;
+				scheduleRoutingDAO.saveAll(scheduleRouteIterable);
+				// Update Cache
+				List<Map<String, Object>> configRoutingListCache = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
+				for (Map<String, Object> stringObjectMap : configRoutingListCache) {
+					if (stringObjectMap.get("idConfig").equals(configRoutingUpdated.getIdConfig())) {
+						stringObjectMap.put("chanelConfig", configRoutingUpdated.getChanelConfig());
+						stringObjectMap.put("quota", configRoutingUpdated.getQuota());
+						List<ScheduleRoute> scheduleRoutes = configRoutingUpdated.getScheduleRoutes();
+						stringObjectMap.put("scheduleRoutes", scheduleRoutes);
+						for (ScheduleRoute scheduleRoute : scheduleRoutes) {
+							if (scheduleRoute.getDayId().equals(day)) {
+								redisService.updateCache("chanelConfig",
+										configRoutingUpdated.getIdConfig() + "Config", scheduleRoute.getChanelConfig());
+								redisService.updateCache("chanelQuota",
+										configRoutingUpdated.getIdConfig() + "Quota", scheduleRoute.getQuota());
+								redisService.updateCache("chanelTimeStart",
+										configRoutingUpdated.getIdConfig() + "TimeStart", scheduleRoute.getTimeStart());
+								redisService.updateCache("chanelTimeEnd",
+										configRoutingUpdated.getIdConfig() + "TimeEnd", scheduleRoute.getTimeEnd());
+							}
+						}
+					}
+				}
+				getDatAutoRoutingService.updateRoutingConfig(configRoutingListCache);
+
+				responseModel.setData("Save Success");
+			}
 
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
 		}
 
 		return Map.of("status", 200, "data", responseModel);
@@ -241,22 +285,26 @@ public class AutoRoutingService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
+			if (validateHistoryConfig(request.path("body").path("page").asText(),
+					request.path("body").path("limit").asText(), request.path("body").path("idConfig").asText(),
+					responseModel)) {
 			int page = request.path("body").path("page").asInt();
 			String idConfig = request.path("body").path("idConfig").asText();
 			int limit = request.path("body").path("limit").asInt();
 			Pageable pagination = PageRequest.of(page - 1 , limit);
-			Page<HistoryConfig> historyConfigList = historyConfigDAO
-					.findAllByIdConfigOrderByCreateDateDesc(idConfig, pagination);
-			Map<String, Object> historyConfigResponse = new HashMap<>();
-			historyConfigResponse.put("totalRecords", historyConfigList.getTotalElements());
-			historyConfigResponse.put("data", historyConfigList.getContent());
-			historyConfigResponse.put("totalPages", historyConfigList.getTotalPages());
-			responseModel.setRequest_id(request_id);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(200);
-			responseModel.setMessage("Success");
-			responseModel.setData(historyConfigResponse);
+				Page<HistoryConfig> historyConfigList = historyConfigDAO
+						.findAllByIdConfigOrderByCreateDateDesc(idConfig, pagination);
+				Map<String, Object> historyConfigResponse = new HashMap<>();
+				historyConfigResponse.put("totalRecords", historyConfigList.getTotalElements());
+				historyConfigResponse.put("data", historyConfigList.getContent());
+				historyConfigResponse.put("totalPages", historyConfigList.getTotalPages());
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(200);
+				responseModel.setMessage("Success");
+				responseModel.setData(historyConfigResponse);
+			}
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
@@ -306,6 +354,206 @@ public class AutoRoutingService {
 				scheduleRoute.setUserUpdateDate(tsToDay);
 			}
 		}
+	}
+	private boolean validateDataInsert(ConfigRouting configRouting, ResponseModel responseModel) {
+		if (configRouting.getIdConfig() == null && configRouting.getIdConfig().isEmpty() ||
+				!Arrays.asList(ID_COFIG).contains(configRouting.getIdConfig())) {
+			log.info("Error: " + "Get ID Config is null/empty or ID config invalid");
+			responseModel.setMessage("ID config invalid");
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			return false;
+		}
+		if (!validateChanelConfig(configRouting.getChanelConfig())) {
+			log.info("Error: " + "Invalid Chanel Config");
+			responseModel.setMessage("Chanel Config is 1 or 0 and required");
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			return false;
+		}
+		Set<String> checkScheduleId = new HashSet<>();
+		for (ScheduleRoute scheduleRoute: configRouting.getScheduleRoutes()) {
+			if (!checkScheduleId.add(scheduleRoute.getIdSchedule())) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Id Scheduled is duplicated");
+				return false;
+			}
+
+			if (!validateScheduleId(scheduleRoute.getIdSchedule())) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Id Scheduled is not valid");
+				return false;
+			}
+			if (!validateDayId(scheduleRoute.getDayId())) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Day Id is not valid");
+				return false;
+			}
+			if (!validateQuotaSchedule(scheduleRoute.getQuota())) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Quota is not number and required");
+				return false;
+			}
+			if (!validateTime(scheduleRoute.getTimeStart())) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Time Start is not valid and required");
+				return false;
+			}
+			if (!validateTime(scheduleRoute.getTimeEnd())) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Time End is not valid and required");
+				return false;
+			}
+			if (!validateChanelConfig(scheduleRoute.getChanelConfig())) {
+				log.info("Error: " + "Invalid Chanel Config");
+				responseModel.setMessage("Chanel Config is 1 or 0 and required");
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				return false;
+			}
+			return validateRangeStartEnd(scheduleRoute.getTimeStart(),
+					scheduleRoute.getTimeEnd(), responseModel);
+
+		}
+		return true;
+	}
+	private boolean validateScheduleId(String idSchedule) {
+		if (idSchedule == null && idSchedule.isEmpty()) {
+			return false;
+		} else {
+			int dayId = Integer.valueOf(idSchedule.split("_")[1]);
+			log.info("DayID: " + dayId);
+			return dayId < 0 || dayId > 6 ? false : true;
+		}
+
+	}
+
+	private boolean validateChanelConfig(String chanelConfig) {
+		if (chanelConfig == null && chanelConfig.isEmpty()) {
+			return false;
+		} else {
+			String regex = "[0-9]+";
+			if (!chanelConfig.matches(regex)) {
+				return false;
+			} else {
+				int config = Integer.valueOf(chanelConfig);
+				if (config < 0 || config > 1) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean validateQuotaSchedule(Long quota) {
+		if (quota == null || quota < 0) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean validateTime(Timestamp time) {
+		if (time == null) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean validateRangeStartEnd(Timestamp start, Timestamp end, ResponseModel responseModel) {
+		String errorMessage = "";
+		boolean isFlag = true;
+		Date dateStart =new Date(start.getTime());
+		Date dateEnd =new Date(end.getTime());
+		if (!dateStart.before(dateEnd)) {
+			errorMessage = "Time Start needs before Time Start";
+			isFlag = false;
+		}
+		if (!isFlag) {
+			responseModel.setMessage(errorMessage);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			return false;
+		}
+		return true;
+	}
+
+	private boolean validateDayId(String dayId) {
+		if (dayId == null && dayId.isEmpty()) {
+			return false;
+		} else {
+			String regex = "[0-9]+";
+			if (!dayId.matches(regex)) {
+				return false;
+			} else {
+				int dayIdInt = Integer.valueOf(dayId);
+				if (dayIdInt < 0 || dayIdInt > 6) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean validateHistoryConfig(String page, String limit, String idConfig,
+										  ResponseModel responseModel) {
+		if (idConfig == null && idConfig.isEmpty() ||
+				!Arrays.asList(ID_COFIG).contains(idConfig)) {
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Id Config is invalid");
+			return false;
+		}
+
+		if (page == null && page.isEmpty()) {
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Page is invalid");
+			return false;
+		} else {
+			String regex = "[0-9]+";
+			if (!page.matches(regex)) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Page is invalid");
+				return false;
+			}
+		}
+		if (limit == null && limit.isEmpty()) {
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Limit is invalid");
+			return false;
+		} else {
+			String regex = "[0-9]+";
+			if (!limit.matches(regex)) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Limit is invalid");
+				return false;
+			}
+		}
+		return true;
 	}
 
 }
