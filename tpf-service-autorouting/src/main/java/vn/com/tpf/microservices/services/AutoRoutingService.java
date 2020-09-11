@@ -29,6 +29,7 @@ import java.util.*;
 @Service
 public class AutoRoutingService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	private static final String[] ID_COFIG = {"DE", "M4S", "SNET", "CRM"};
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -125,40 +126,6 @@ public class AutoRoutingService {
 			calendar.setTime(now);
 			String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK) - 1);
 
-			List<ScheduleRoute> scheduleRouteList = scheduleRoutingDAO.findByIdConfig(configRoutingUpdated.getIdConfig());
-			if (scheduleRouteList.size() > 0) {
-				saveHistoryConfig(scheduleRouteList, configRoutingUpdated.getIdConfig());
-				isNew = false;
-			}
-			changeInfoScheduleRoute(configRoutingUpdated.getScheduleRoutes(), configRoutingUpdated.getIdConfig(), isNew);
-			List<ScheduleRoute> scheduleRouteListNew = configRoutingUpdated.getScheduleRoutes();
-			Iterable<ScheduleRoute> scheduleRouteIterable = scheduleRouteListNew;
-			scheduleRoutingDAO.saveAll(scheduleRouteIterable);
-			// Update Cache
-			List<Map<String, Object>> configRoutingListCache = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
-			for (Map<String, Object> stringObjectMap : configRoutingListCache) {
-				if (stringObjectMap.get("idConfig").equals(configRoutingUpdated.getIdConfig())) {
-					stringObjectMap.put("chanelConfig", configRoutingUpdated.getChanelConfig());
-					stringObjectMap.put("quota", configRoutingUpdated.getQuota());
-					List<ScheduleRoute> scheduleRoutes = configRoutingUpdated.getScheduleRoutes();
-					stringObjectMap.put("scheduleRoutes", scheduleRoutes);
-					for (ScheduleRoute scheduleRoute : scheduleRoutes) {
-						if (scheduleRoute.getDayId().equals(day)) {
-							redisService.updateCache("chanelConfig",
-									configRoutingUpdated.getIdConfig() + "Config", scheduleRoute.getChanelConfig());
-							redisService.updateCache("chanelQuota",
-									configRoutingUpdated.getIdConfig() + "Quota", scheduleRoute.getQuota());
-							redisService.updateCache("chanelTimeStart",
-									configRoutingUpdated.getIdConfig() + "TimeStart", scheduleRoute.getTimeStart());
-							redisService.updateCache("chanelTimeEnd",
-									configRoutingUpdated.getIdConfig() + "TimeEnd", scheduleRoute.getTimeEnd());
-						}
-					}
-				}
-			}
-			getDatAutoRoutingService.updateRoutingConfig(configRoutingListCache);
-
-			responseModel.setData("Save Success");
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
