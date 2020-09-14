@@ -1,27 +1,47 @@
-#spring:
-#  rabbitmq:
-#    host: 127.0.0.1
-#  data:
-#    mongodb:
-#      #      uri: mongodb://10.131.21.234:27017/tpfdb
-#      uri: mongodb://127.0.0.1:27017/tpfdb
-#  datasource:
-#    url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
-#    username: ServiceApp
-#    password: UATServiceApp#Test2019#
-#    driver-class-name: oracle.jdbc.OracleDriver
-#security:
-#  oauth2:
-#    client:
-#      client-id: tpf-service-root
-#      client-secret: tpf-service-root
-#    resource:
-#      token-info-uri: http://127.0.0.1:1100/oauth/check_token
-#  eureka:
-#    client:
-#      registerWithEureka: true
-#      fetchRegistry: true
-#      serviceUrl:
-#        defaultZone: http://127.0.0.1:8761/eureka
-#    instance:
-#      hostname: 127.0.0.1
+spring:
+  rabbitmq:
+    host: 10.131.31.202
+  data:
+    mongodb:
+      #      uri: mongodb://10.131.21.234:27017/tpfdb
+      uri: mongodb://10.131.31.202:27017/tpfdb
+  f1-datasource:
+    jdbc-url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
+    username: ServiceApp
+    password: UATServiceApp#Test2019#
+    driver-class-name: oracle.jdbc.OracleDriver
+  ih-datasource:
+    jdbc-url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
+    username: ServiceApp
+    password: UATServiceApp#Test2019#
+    driver-class-name: oracle.jdbc.OracleDriver
+  url:
+    uploadfile: http://10.131.31.202:3001/v1/file/
+    esb:
+      create-lead: https://tpfesbuat.tpb.vn/api/v2/f1/leadCreation
+      update-app: https://tpfesbuat.tpb.vn/api/v2/f1/updateApp
+      get-status: https://tpfesbuat.tpb.vn/api/v2/f1/getAppStatus
+      cancel: https://tpfesbuat.tpb.vn/esb/app/f1/rejectOrCancelCASApplication
+      responsequery: https://tpfesbuat.tpb.vn/api/v2/f1/responseQuery
+      wait-time: 30000
+  redis:
+    host: 10.131.31.202
+    port: 6379
+    timeout: 10000
+  cron:
+    config: "0 0 0/1 ? * *"
+security:
+  oauth2:
+    client:
+      client-id: tpf-service-root
+      client-secret: tpf-service-root
+    resource:
+      token-info-uri: http://10.131.31.202:1100/oauth/check_token
+eureka:
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://10.131.31.202:8761/eureka
+  instance:
+    hostname: 10.131.21.57

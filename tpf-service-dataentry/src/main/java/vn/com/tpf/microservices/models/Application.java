@@ -50,4 +50,7 @@ public class Application {
 //    private boolean isHolding = false;
 
     private String reasonCancel;
+    private String createFrom;
+    private Long routingId;
+    private String stageF1;
 }
