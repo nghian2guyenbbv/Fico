@@ -4274,7 +4274,7 @@ public class DataEntryService {
 		ResponseModel responseModel = new ResponseModel();
 		ObjectNode logInfo = mapper.createObjectNode();
 		logInfo.put("func", new Throwable().getStackTrace()[0].getMethodName());
-		logInfo.put("request", request);
+		logInfo.set("request", request);
 		try{
 			RequestQuickLeadModel requestModel = mapper.treeToValue(request.get("body"), RequestQuickLeadModel.class);
 
@@ -4380,7 +4380,7 @@ public class DataEntryService {
 	public  Map<String, Object> commentAppNonWeb(JsonNode request) throws Exception {
 		ObjectNode logInfo = mapper.createObjectNode();
 		logInfo.put("func", new Throwable().getStackTrace()[0].getMethodName());
-		logInfo.put("request", request.toString());
+		logInfo.set("request", request);
 		String requestId = request.findPath("request_Id").asText(UUID.randomUUID().toString());
 		String referenceId = UUID.randomUUID().toString();
 		String createFrom = null;
@@ -4946,24 +4946,25 @@ public class DataEntryService {
 				mongoTemplate.save(appStatusModel);
 
 				//check stage : POLICY_EXECUTION, LOGIN_ACCEPTANCE
-				if(appStatusModel.getResponseCode().equals("0"))
-				{
-					if(appStatusModel.getResponseData().getOtherInfo()!=null&&!StringUtils.isEmpty(appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage())){
-						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
-
-						//update status app dataentry
-						if (stage.indexOf("POLICY_EXECUTION") > 0 || stage.indexOf("LOGIN_ACCEPTANCE")>0)
-						{
-							Query queryUpdate = new Query();
-							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
-
-							Update update = new Update();
-							update.set("status", "COMPLETED");
-							update.set("lastModifiedDate", new Date());
-							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
-						}
-					}
-				}
+				//tam thoi comment update stattus voi nhung app IH tao tu PORTAL
+//				if(appStatusModel.getResponseCode().equals("0"))
+//				{
+//					if(appStatusModel.getResponseData().getOtherInfo()!=null&&!StringUtils.isEmpty(appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage())){
+//						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
+//
+//						//update status app dataentry
+//						if (stage.indexOf("POLICY_EXECUTION") > 0 || stage.indexOf("LOGIN_ACCEPTANCE")>0)
+//						{
+//							Query queryUpdate = new Query();
+//							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
+//
+//							Update update = new Update();
+//							update.set("status", "COMPLETED");
+//							update.set("lastModifiedDate", new Date());
+//							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+//						}
+//					}
+//				}
 
 			}
 
