@@ -42,7 +42,8 @@
         <module>tpf-service-search-file</module>
         <module>tpf-service-mobile4cs</module>
 		<module>tpf-service-mobility</module>
-	</modules>
+        <module>tpf-service-autoassign</module>
+    </modules>
 
 
 
