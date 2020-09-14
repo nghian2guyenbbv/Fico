@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -24,7 +26,8 @@ import lombok.Data;
 @Document
 @Builder
 @JsonInclude(Include.NON_NULL)
-
+@AllArgsConstructor
+@NoArgsConstructor
 public class Mobility {
 	@Id
 	private String id;
@@ -68,6 +71,10 @@ public class Mobility {
 	@LastModifiedDate
 	private Date updatedAt;
 	private String communicationTranscript;
+	private long partnerId;
+	private String partnerName;
+	@Builder.Default
+	private List<Object> commentApps3PNew = Arrays.asList();
 }
 
 

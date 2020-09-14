@@ -426,18 +426,41 @@ public class MobilityService {
 			docUpload.put("filename", uploadResult.path("data").path("filename").asText());
 			filesUpload.add(docUpload);
 		}
+		//Default value for IH
+		long partnerId = 3;
+		String partnerName = "IN-HOUSE";
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
 				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
 				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
 				.set("filesUpload", filesUpload)
-				.set("communicationTranscript", data.path("communicationTranscript").asText());
+				.set("communicationTranscript", data.path("communicationTranscript").asText())
+				.set("partnerId", partnerId)
+				.set("partnerName",partnerName);
+
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 
-		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
-				convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+		JsonNode vendorAutoassign = rabbitMQService.sendAndReceive("tpf-service-autoassign", Map.of("func", "configureVendor", "request_id",
+				body.path("reference_id").asText(), "schemeCode", mobility.getSchemeFinnOne(),"project","mobility"));
+
+		if (!vendorAutoassign.path("data").path("data").path("vendorId").asText().isBlank()) {
+			partnerId = vendorAutoassign.path("data").path("data").path("vendorId").asLong();
+			partnerName = vendorAutoassign.path("data").path("data").path("vendorName").asText();
+		}
+		update.set("partnerId", partnerId);
+		update.set("partnerName", partnerName);
+		if(1 == partnerId || 2 == partnerId) {
+			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
+					convertService.toSendAppNonWebFinnone(mobility, partnerId ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+
+			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+					Mobility.class);
+		} else {
+			rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
+					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+		}
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
@@ -620,6 +643,7 @@ public class MobilityService {
 							mapper.createObjectNode().put("message", e.getMessage())));
 				}
 			}).start();
+
 		}
 		if (automationResult.contains(AUTOMATION_QUICKLEAD_FAILED)) {
 			update.set("stage", STAGE_QUICKLEAD_FAILED_AUTOMATION);
@@ -725,13 +749,13 @@ public class MobilityService {
 		if (mobility == null)
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
-
-		if (!mobility.getStatus().equals(STATUS_T_RETURN))
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message",
-							String.format("data.appId %s not request resubmit query. current stage %s status %s", appId,
-									mobility.getStage(), mobility.getStatus())));
-
+		if(3 == mobility.getPartnerId()) {
+			if (!mobility.getStatus().equals(STATUS_T_RETURN))
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message",
+								String.format("data.appId %s not request resubmit query. current stage %s status %s", appId,
+										mobility.getStage(), mobility.getStatus())));
+		}
 		final String productCode = mobility.getProduct().replace(" ", "_").trim().toLowerCase();
 		final String schemeCode = mobility.getScheme().replace(" ", "_").trim().toLowerCase();
 
@@ -745,12 +769,13 @@ public class MobilityService {
 
 		HashMap<String, Object> returnQuery = new HashMap<>();
 		JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
-		if (returns.hasNonNull("returnQueries")
-				&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
-						.asBoolean())
-			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-					String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
-
+		if(3 == mobility.getPartnerId()) {
+			if (returns.hasNonNull("returnQueries")
+					&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
+					.asBoolean())
+				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+						String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
+		}
 		JsonNode document = data.path("document");
 		if (document != null) {
 			ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"),
@@ -802,9 +827,14 @@ public class MobilityService {
 
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
+		if(3 != mobility.getPartnerId()){
+			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "commentAppNonWeb", "body",
+					convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+		} else {
+			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
+					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+		}
 
-		rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
-				convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
@@ -1515,5 +1545,62 @@ public class MobilityService {
 		rabbitMQService.send("tpf-service-esb", requestSend);
 
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
+	}
+
+	public JsonNode commentApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		if (!request.hasNonNull("body"))
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "body not null"));
+
+		if (body.path("data").path("applicationId").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.data.applicationId not null"));
+		Query query = Query.query(Criteria.where("appId").is(body.path("data").path("applicationId").asText()));
+
+		Mobility mobilityCommentApp = mobilityTemplate.findOne(query, Mobility.class);
+		if (mobilityCommentApp == null)
+			return utils.getJsonNodeResponse(500, body, mapper.createObjectNode().put("message",
+					String.format("id %s mobilityCommentApp not exits", body.path("data").path("applicationId").asText())));
+
+		HashMap<String, Object> commentAppObject = new HashMap<>();
+
+		commentAppObject.put("createdAt", new Date());
+
+		commentAppObject.put("commentApp3P", body.path("data").toString());
+
+		LinkedList<Map> commentApps3PNew = mapper.convertValue(mobilityCommentApp.getCommentApps3PNew(),
+				LinkedList.class);
+		if (commentApps3PNew == null)
+			commentApps3PNew = new LinkedList<Map>();
+		commentApps3PNew.push(commentAppObject);
+		Update update = new Update().set("updatedAt", new Date());
+		update.set("commentApps3PNew", commentApps3PNew);
+
+		mobilityCommentApp = mobilityTemplate.findAndModify(query, update,
+				new FindAndModifyOptions().returnNew(true), Mobility.class);
+
+		new Thread(() -> {
+			try {
+				int sendCount = 0;
+				do {
+					JsonNode result = apiService.pushCommentApp(body);
+					if (result.path("resultCode").asText().equals("200")) {
+						return;
+					}
+					sendCount++;
+					Thread.sleep(5 * 60 * 1000);
+				} while (sendCount >= 2);
+			} catch (Exception e) {
+				log.info("{}", utils.getJsonNodeResponse(0, body,
+						mapper.createObjectNode().put("message", e.getMessage())));
+			}
+		}).start();
+		return response(200, mapper.convertValue("", JsonNode.class), 0);
+	}
+
+	private JsonNode response(int status, JsonNode data, long total) {
+		ObjectNode response = mapper.createObjectNode();
+		response.put("status", status).put("total", total).set("data", data);
+		return response;
 	}
 }

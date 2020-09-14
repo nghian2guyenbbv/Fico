@@ -13,6 +13,10 @@ import vn.com.tpf.microservices.models.Mobility;
 import vn.com.tpf.microservices.models.MobilityField;
 import vn.com.tpf.microservices.models.MobilityWaiveField;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class ConvertService {
 	@Autowired
@@ -56,6 +60,8 @@ public class ConvertService {
 		app.set("documents", documents);
 		ObjectNode optional = mapper.createObjectNode();
 		optional.put("stage", mobility.getStage());
+		optional.put("partnerId", mobility.getPartnerId());
+		optional.put("partnerName", mobility.getPartnerName());
 
 		app.set("optional", optional);
 		return app;
@@ -110,7 +116,8 @@ public class ConvertService {
 					.path("automationResult").asText());
 		ObjectNode optional = mapper.createObjectNode();
 		optional.put("stage", mobility.getStage());
-
+		optional.put("partnerId", mobility.getPartnerId());
+		optional.put("partnerName", mobility.getPartnerName());
 		app.set("optional", optional);
 		return app;
 	}
@@ -148,6 +155,8 @@ public class ConvertService {
 		ObjectNode app = mapper.createObjectNode();
 		ObjectNode optional = mapper.createObjectNode();
 		optional.put("stage", mobility.getStage());
+		optional.put("partnerId", mobility.getPartnerId());
+		optional.put("partnerName", mobility.getPartnerName());
 		app.set("optional", optional);
 		return app;
 	}
@@ -245,6 +254,77 @@ public class ConvertService {
 		} else {
 			app.set("dataDocuments", mapper.createArrayNode());
 		}
+
+		return app;
+	}
+
+	public ObjectNode toSendAppNonWebFinnone(Mobility mobility, long partnerId, String requestId) {
+
+		ObjectNode app = mapper.createObjectNode();
+		app.put("request_id", requestId);
+		app.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+
+		ObjectNode quickLead = mapper.createObjectNode();
+		quickLead.put("project", "mobility");
+		quickLead.put("partnerId", partnerId);
+		quickLead.put("appId", mobility.getAppId());
+		quickLead.put("quickLeadId", mobility.getId());
+		quickLead.put("identificationNumber", mobility.getNationalId());
+		quickLead.put("productTypeCode", ProductTypeCode);
+		quickLead.put("customerType", CustomerType);
+		quickLead.put("productCode", mobility.getProductFinnOne());
+		quickLead.put("loanAmountRequested", mobility.getLoanRequest());
+		quickLead.put("firstName", mobility.getFirstName());
+		quickLead.put("lastName", mobility.getLastName());
+		quickLead.put("city", mobility.getCityFinnOne());
+		quickLead.put("sourcingChannel", mobility.getChanel());
+		quickLead.put("dateOfBirth", mobility.getDateOfBirth());
+		quickLead.put("sourcingBranch", mobility.getBranch());
+		quickLead.put("natureOfOccupation", NatureOfOccupation);
+		quickLead.put("schemeCode", mobility.getSchemeFinnOne());
+		quickLead.put("comment", Comment);
+		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
+		quickLead.put("leadStatus", LeadStatus);
+		quickLead.put("communicationTranscript", CommunicationTranscript);
+
+		ArrayNode documents = mapper.createArrayNode();
+
+		mobility.getFilesUpload().forEach(e -> {
+			JsonNode mobilityDoc = mapper.convertValue(e, JsonNode.class);
+			ObjectNode doc = mapper.createObjectNode();
+			doc.put("type", mobilityDoc.path("type").asText());
+			doc.put("originalname", mobilityDoc.path("originalname").asText());
+			doc.put("filename", mobilityDoc.path("filename").asText());
+			doc.put("md5", mobilityDoc.path("documentMd5").asText());
+			doc.put("contentType", mobilityDoc.path("documentFileExtension").asText());
+			documents.add(doc);
+		});
+
+		quickLead.set("documents", documents);
+
+		app.set("data", quickLead);
+
+		return app;
+	}
+
+	public ObjectNode toReturnQueryNonWebFinnone(Mobility mobility) {
+
+		ObjectNode app = mapper.createObjectNode();
+		app.put("project", "mobility");
+		app.put("transaction_id", mobility.getId());
+		app.put("appId", mobility.getAppId());
+
+		JsonNode lastReturnQuery = mapper.convertValue(mobility.getReturns().get("returnQueries"), ArrayNode.class)
+				.get(0);
+		app.put("commentText", lastReturnQuery.path("comment").asText());
+		ObjectNode dataDocument = mapper.createObjectNode();
+		dataDocument.put("fileName", lastReturnQuery.path("data").path("filename").asText());
+		dataDocument.put("documentName", lastReturnQuery.path("data").path("type").asText());
+		dataDocument.put("originalname", lastReturnQuery.path("data").path("originalname").asText());
+		dataDocument.put("md5", lastReturnQuery.path("data").path("documentMd5").asText());
+		dataDocument.put("contentType", lastReturnQuery.path("data").path("documentFileExtension").asText());
+
+		app.set("dataDocument", dataDocument);
 
 		return app;
 	}
