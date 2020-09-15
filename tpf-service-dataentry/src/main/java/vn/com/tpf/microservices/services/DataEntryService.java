@@ -705,6 +705,9 @@ public class DataEntryService {
 						update.set("applicationInformation", data.getApplicationInformation());
 						update.set("loanDetails", data.getLoanDetails());
 						update.set("references", data.getReferences());
+						data.getDynamicForm()
+								.stream().filter(dynamicForm -> StringUtils.hasLength(dynamicForm.getMonthlyFee()))
+								.findAny().ifPresent(dynamicForm -> dynamicForm.setMonthlyFee(dynamicForm.getMonthlyFee().replace(",", "")));
 						update.set("dynamicForm", data.getDynamicForm());
 						update.set("lastModifiedDate", new Date());
 						Application resultUpdate = mongoTemplate.findAndModify(query, update, Application.class);
@@ -4932,52 +4935,52 @@ public class DataEntryService {
 		}
 	}
 
-	@Scheduled(cron = "${spring.cron.config}")
-	public void jobUpdateStatusIH()
-	{
-		try{
-			//get all app IH with status "PROCESSING" để update status
-			Query query = new Query();
-			query.addCriteria(Criteria.where("partnerId").is(3).andOperator(Criteria.where("status").is("PROCESSING")));
-			List<Application> list = mongoTemplate.find(query, Application.class);
-
-			//loop get status
-			for (Application app: list) {
-				JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", app.getApplicationId()), JsonNode.class);
-				JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
-
-				//convert , log DB
-				AppStatusModel appStatusModel=mapper.convertValue(getStage,AppStatusModel.class);
-				mongoTemplate.save(appStatusModel);
-
-				//check stage : POLICY_EXECUTION, LOGIN_ACCEPTANCE
-				//tam thoi comment update stattus voi nhung app IH tao tu PORTAL
-//				if(appStatusModel.getResponseCode().equals("0"))
-//				{
-//					if(appStatusModel.getResponseData().getOtherInfo()!=null&&!StringUtils.isEmpty(appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage())){
-//						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
+//	@Scheduled(cron = "${spring.cron.config}")
+//	public void jobUpdateStatusIH()
+//	{
+//		try{
+//			//get all app IH with status "PROCESSING" để update status
+//			Query query = new Query();
+//			query.addCriteria(Criteria.where("partnerId").is("3").and("status").is("PROCESSING"));
+//			List<Application> list = mongoTemplate.find(query, Application.class);
 //
-//						//update status app dataentry
-//						if (stage.indexOf("POLICY_EXECUTION") > 0 || stage.indexOf("LOGIN_ACCEPTANCE")>0)
-//						{
-//							Query queryUpdate = new Query();
-//							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
+//			//loop get status
+//			for (Application app: list) {
+//				JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", app.getApplicationId()), JsonNode.class);
+//				JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
 //
-//							Update update = new Update();
-//							update.set("status", "COMPLETED");
-//							update.set("lastModifiedDate", new Date());
-//							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
-//						}
-//					}
-//				}
-
-			}
-
-		}catch (Exception e)
-		{
-			log.info("jobUpdateStatusIH:" + e.toString());
-		}
-	}
+//				//convert , log DB
+//				AppStatusModel appStatusModel=mapper.convertValue(getStage,AppStatusModel.class);
+//				mongoTemplate.save(appStatusModel);
+//
+//				//check stage : POLICY_EXECUTION, LOGIN_ACCEPTANCE
+//				//tam thoi comment update stattus voi nhung app IH tao tu PORTAL
+////				if(appStatusModel.getResponseCode().equals("0"))
+////				{
+////					if(appStatusModel.getResponseData().getOtherInfo()!=null&&!StringUtils.isEmpty(appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage())){
+////						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
+////
+////						//update status app dataentry
+////						if (stage.indexOf("POLICY_EXECUTION") > 0 || stage.indexOf("LOGIN_ACCEPTANCE")>0)
+////						{
+////							Query queryUpdate = new Query();
+////							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
+////
+////							Update update = new Update();
+////							update.set("status", "COMPLETED");
+////							update.set("lastModifiedDate", new Date());
+////							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+////						}
+////					}
+////				}
+//
+//			}
+//
+//		}catch (Exception e)
+//		{
+//			log.info("jobUpdateStatusIH:" + e.toString());
+//		}
+//	}
 
 	public Map<String, Object> getListReason(JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();
