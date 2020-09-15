@@ -7,7 +7,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "HISTORY_ALLOCATION", schema = "${spring.datasource.schema-username}")
+@Table(name = "HISTORY_ALLOCATION")
 @Data
 public class HistoryAllocation {
 

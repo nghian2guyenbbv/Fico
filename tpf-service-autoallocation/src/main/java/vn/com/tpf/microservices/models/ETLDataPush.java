@@ -6,13 +6,14 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_ETL_DATAPUSH", schema = "${spring.datasource.schema-username}")
+@Table(name = "ALLOCATION_ETL_DATAPUSH")
 @Data
 public class ETLDataPush {
 
     @Id
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
     @Column(name = "ID")
-    private String id;
+    private long id;
 
     @Column(name = "APP_NUMBER")
     private String appNumber;
@@ -27,7 +28,7 @@ public class ETLDataPush {
     private Timestamp suorceChanel;
 
     @Column(name = "CREATE_DATE")
-    private Timestamp createDate;
+    private String createDate;
 
     @Column(name = "STATUS")
     private Timestamp status;
