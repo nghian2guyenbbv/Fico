@@ -6783,7 +6783,7 @@ public class AutomationHandlerService {
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
-            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": LOGIN DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
@@ -6801,8 +6801,7 @@ public class AutomationHandlerService {
 
             do {
                 try {
-//                    Instant startIn = Instant.now();
-                    System.out.println("Auto: " + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                    System.out.println("Auto: " + accountDTO.getUserName() + " - AUTO BEGIN " + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                     Query query = new Query();
                     query.addCriteria(Criteria.where("status").is(0));
                     autoAssignAllocationDTO = mongoTemplate.findOne(query, AutoAssignAllocationDTO.class);
@@ -6821,13 +6820,15 @@ public class AutomationHandlerService {
                             continue;
                         }
 
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - GET DATA DONE " + " - "  + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
                         String appID = autoAssignAllocationDTO.getAppId();
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
                         await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getApplicationManagerFormElement().isDisplayed());
                         autoAssignAllocationPage.setData(appID, autoAssignAllocationDTO.getUserName().toLowerCase());
+
+                        System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - APPLICATION MANAGER " + " - "  + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
                         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getTdApplicationElement().size() > 0);
@@ -6840,7 +6841,7 @@ public class AutomationHandlerService {
                         await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(driver::getTitle, is("Application Manager"));
 
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - AUTO FINISH " + " - " + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
@@ -6851,7 +6852,7 @@ public class AutomationHandlerService {
                         update.set("automation_result", "AUTOASSIGN_PASS");
                         update.set("automation_result_message", "Session ID:" + session);
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
-                        System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + autoAssignAllocationDTO.getAppId() + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                        System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - UPDATE STATUS " + " - " + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                     }
                 } catch (Exception ex) {
                     Query queryUpdate = new Query();
@@ -6883,6 +6884,269 @@ public class AutomationHandlerService {
             pushAccountToQueue(accountDTO, project);
         }
     }
+
+    public void runAutomation_autoAllocation(WebDriver driver, Map<String, Object> mapValue, String project, String browser) throws Exception {
+        String stage = "";
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            List<AutoReassignUserDTO> autoReassignUserDTOList = (List<AutoReassignUserDTO>) mapValue.get("AutoReassignUser");
+            //*************************** END GET DATA *********************//
+            List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do {
+                //get list account finone available
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if (resultUpdate == null) {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew = null;
+                    } else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew = null;
+            } while (!Objects.isNull(accountDTONew));
+
+            //insert data
+            mongoTemplate.insert(autoReassignUserDTOList, AutoReassignUserDTO.class);
+
+            if (loginDTOList.size() > 0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO : loginDTOList) {
+                    workerThreadPoolDE.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            runAutomation_autoAllocation_run(loginDTO, browser, project);
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        }
+    }
+
+    private void runAutomation_autoAllocation_run(LoginDTO accountDTO, String browser, String project) {
+        WebDriver driver = null;
+        Instant start = Instant.now();
+        String stage = "";
+        List<String> listAppId = new ArrayList<>();
+        int amountRemainingApp = 0;
+//        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+//        AutoReassignUserDTO responseAutoReassignUserDTO = null;
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        try {
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
+            SessionId session = ((RemoteWebDriver)driver).getSessionId();
+            //get account run
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            Utilities.captureScreenShot(driver);
+
+            AutoAllocationReassignPage autoAllocationReassignPages = new AutoAllocationReassignPage(driver);
+            autoAllocationReassignPages.getMenuApplicationsElement().click();
+            autoAllocationReassignPages.getMenuApplicationsLiElement().click();
+
+
+            AutoReassignUserDTO autoReassignUserDTO = null;
+            do {
+                try {
+                    Instant startIn = Instant.now();
+                    System.out.println("Auto:" + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    autoReassignUserDTO = mongoTemplate.findOne(query, AutoReassignUserDTO.class);
+
+                    if (!Objects.isNull(autoReassignUserDTO)) {
+
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(autoReassignUserDTO.getId())).and("status").is(0).and("reassignUser").is(autoReassignUserDTO.getReassignUser()).and("project").is(autoReassignUserDTO.getProject()));
+                        Update update = new Update();
+                        update.set("userAuto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        AutoReassignUserDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoReassignUserDTO.class);
+
+                        if (resultUpdate == null) {
+                            continue;
+                        }
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DATA DONE " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        stage = "APPLICATION ASSIGNED";
+
+                        AutoAllocationReassignPage autoAllocationReassignPage = new AutoAllocationReassignPage(driver);
+
+                        await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Grid"));
+
+                        Utilities.captureScreenShot(driver);
+
+                        await("Search Options loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAllocationReassignPage.getSearchOptionsElement().isDisplayed());
+
+                        new Select(autoAllocationReassignPage.getSearchOptionsElement()).selectByVisibleText("Stage");
+
+                        Utilities.captureScreenShot(driver);
+
+                        autoAllocationReassignPage.getSearchTextsElement().clear();
+
+                        autoAllocationReassignPage.getSearchTextsElement().sendKeys(autoReassignUserDTO.getStageApp());
+
+                        Thread.sleep(5000);
+
+                        await("table Application Assigned Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAllocationReassignPage.getTableSearchApplicationElement().size() > 2);
+
+                        Utilities.captureScreenShot(driver);
+
+                        int sizeListApplicationReassign = autoAllocationReassignPage.getListColApplicationTableElement().size();
+                        int sizeCheckboxReassign = Integer.parseInt(autoReassignUserDTO.getAmountApp());
+
+
+                        if (sizeListApplicationReassign < sizeCheckboxReassign){
+                            sizeCheckboxReassign = sizeListApplicationReassign;
+                        }
+
+                        Thread.sleep(5000);
+
+                        listAppId = new ArrayList<>();
+
+                        for (int i = 0; i < sizeCheckboxReassign; i++){
+                            WebElement inQueueStatusElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td//*[contains(text(),'" + autoAllocationReassignPage.getListColApplicationTableElement().get(i).getText() + "')]//ancestor::tr//td[8]"));
+                            if (autoReassignUserDTO.getInQueueStatus().equals(inQueueStatusElement.getText())){
+                                WebElement checkBoxAssignedElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td//*[contains(text(),'" + autoAllocationReassignPage.getListColApplicationTableElement().get(i).getText() + "')]//ancestor::tr//td[8][text() = '" + autoReassignUserDTO.getInQueueStatus() + "']//ancestor::tr//td//input[@id = 'selectThis_LoanApplication_Assigned']"));
+                                checkBoxAssignedElement.click();
+                                listAppId.add(autoAllocationReassignPage.getListColApplicationTableElement().get(i).getText());
+                            }
+//                            autoAllocationReassignPage.getCheckboxApplicationAssignedElement().get(i).click();
+                        }
+
+                        await("Reassign For User Button Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAllocationReassignPage.getBtnReassignForUserElement().isDisplayed());
+
+                        Thread.sleep(5000);
+
+                        Utilities.captureScreenShot(driver);
+
+                        if (listAppId.size() < Integer.parseInt(autoReassignUserDTO.getAmountApp()))
+                            amountRemainingApp = Integer.parseInt(autoReassignUserDTO.getAmountApp()) - listAppId.size();
+
+                        autoAllocationReassignPage.getBtnReassignForUserElement().click();
+
+                        await("Dialog Form Users Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAllocationReassignPage.getDialogFormUsersElement().isDisplayed());
+
+                        Utilities.captureScreenShot(driver);
+
+                        await("Dialog Form Users Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAllocationReassignPage.getTableUserAssignedElement().size() > 2);
+
+                        WebElement btnSelectedUserElement = driver.findElement(By.xpath("//div[@id = 'dialog-form-users' and @aria-hidden = 'false']//div[@id = 'example']//table//tbody[@id = 'searchData']//tr//td[contains(text(),'" + autoReassignUserDTO.getReassignUser() +"')]//ancestor::tr//*[contains(@id,'selected_user')]"));
+
+                        btnSelectedUserElement.click();
+
+                        String UserId = driver.findElement(By.xpath("//div[@id = 'dialog-form-users' and @aria-hidden = 'false']//div[@id = 'example']//table//tbody[@id = 'searchData']//tr//td[contains(text(),'"+ autoReassignUserDTO.getReassignUser() +"')]//ancestor::tr//*[contains(@class,'usr_id')]")).getText();
+
+                        WebElement selectedUsersElement = driver.findElement(By.xpath("//div[@id = 'dialog-form-users' and @aria-hidden = 'false']//div[@id = 'selectedDiv']//div[@id = 'selected']//div[@id = '"+ UserId +"']"));
+
+                        await("Selected Users Timeout Loading!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> selectedUsersElement.isDisplayed());
+
+                        Utilities.captureScreenShot(driver);
+
+                        autoAllocationReassignPage.getBtnDoneDialogFormUsersElement().click();
+
+                        await("Selected Users Timeout Loading!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAllocationReassignPage.getDialogDecisionReasonElement().isDisplayed());
+
+                        Utilities.captureScreenShot(driver);
+
+                        new Select(autoAllocationReassignPage.getSelectDecisionReasonElement()).selectByVisibleText("Reassign");
+
+//                        autoAllocationReassignPage.getBtnDoneDecisionReasonForReassignElement().click();
+
+                        JavascriptExecutor btnDoneReasonForReassign = (JavascriptExecutor) driver;
+                        btnDoneReasonForReassign.executeScript("arguments[0].click();", autoAllocationReassignPage.getBtnDoneDecisionReasonForReassignElement());
+
+                        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Grid"));
+
+                        System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("_id").is(new ObjectId(autoReassignUserDTO.getId())).and("status").is(2).and("reassignUser").is(autoReassignUserDTO.getReassignUser()).and("userAuto").is(accountDTO.getUserName()).and("project").is(autoReassignUserDTO.getProject()));
+                        Update update1 = new Update();
+                        update1.set("userAuto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        update1.set("appId", listAppId);
+                        update1.set("amountReassignedApp", String.valueOf(amountRemainingApp));
+                        update.set("automation_result", "ALLOCATION_PASS");
+                        update.set("automation_result_message", "Session ID:" + session );
+                        mongoTemplate.findAndModify(queryUpdate1, update1, AutoReassignUserDTO.class);
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").is(0).and("project").is(autoReassignUserDTO.getProject()));
+                    Update update = new Update();
+                    update.set("userAuto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    update.set("appId", listAppId);
+                    update.set("amountReassignedApp", String.valueOf(amountRemainingApp));
+                    update.set("automation_result", "ALLOCATION_FAILED");
+                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
+                    mongoTemplate.findAndModify(queryUpdate, update, AutoReassignUserDTO.class);
+                    System.out.println(ex.getMessage());
+                }
+            } while (!Objects.isNull(autoReassignUserDTO));
+        } catch (Exception e) {
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver,accountDTO.getUserName());
+//            if (!Objects.isNull(responseAutoReassignUserDTO)){
+//                Query queryResponse = new Query();
+//                queryResponse.addCriteria(Criteria.where("reference_id").is(responseAutoReassignUserDTO.getReference_id())
+//                        .and("project").is(responseAutoReassignUserDTO.getProject())
+//                        .and("status").in("2","3")
+//                );
+//                List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryResponse, MobilityFieldReponeDTO.class);
+//                autoUpdateStatusRabbit(responseModel, "updateAutomation");
+//            }
+            pushAccountToQueue(accountDTO, project);
+        }
+    }
+
     //------------------------ END AUTO ALLOCATION -----------------------------------------------------
 
 
