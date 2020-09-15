@@ -8,9 +8,6 @@ public class RequestModel<T> implements Serializable {
     private String request_id;
     private String date_time;
 
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private LogChoiceRouting data;
-
     public RequestModel() {
     }
 
@@ -28,10 +25,6 @@ public class RequestModel<T> implements Serializable {
 
     public void setDate_time(String date_time) {
         this.date_time = date_time;
-    }
-
-    public LogChoiceRouting getData() {
-        return data;
     }
 
 }

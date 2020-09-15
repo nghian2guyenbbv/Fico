@@ -3,11 +3,9 @@ spring:
     host: 10.131.31.202
   datasource:
 #      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
-    url: jdbc:postgresql://10.1.66.30:5435/ficodb
-  redis:
-    host: 10.131.31.202
-    port: 6379
-    timeout: 10000
+    jdbc-url: jdbc:oracle:thin:@10.1.66.32:1521:FICOCEN
+    username: MIS
+    password: Luanpv1#mis#2020
 security:
   oauth2:
     client:

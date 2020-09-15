@@ -83,14 +83,6 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
-				case "checkRouting":
-					return response(message, payload, autoRoutingServiceService.checkRouting(request));
-				case "setRouting":
-					return response(message, payload, autoRoutingServiceService.setRouting(request));
-				case "getRouting":
-					return response(message, payload, autoRoutingServiceService.getRouting(request));
-				case "logRouting":
-					return response(message, payload, autoRoutingServiceService.logRouting(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
