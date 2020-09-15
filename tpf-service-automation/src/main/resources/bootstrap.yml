@@ -1,6 +1,6 @@
 spring:
   application:
-    name: tpf-service-automation-sgb
+    name: tpf-service-automation
   cloud:
     config:
       #uri: http://localhost:8888
