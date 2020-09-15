@@ -70,6 +70,8 @@ public class DE_ReferencesPage {
 
         int index = 0;
         for (ReferenceDTO data : datas) {
+
+            
         	_driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
 
             WebElement relationship = _driver.findElement(By.id("customer_references_relationship_" + index + "_chzn"));

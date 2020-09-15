@@ -1212,6 +1212,7 @@ public class DE_ApplicationInfoPersonalTab {
             await("listMobileAlternateElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> listMobileAlternateElement.size() > 0);
 
+            listMobileAlternateElement.get(0).clear();
             listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
             Utilities.captureScreenShot(_driver);
         }

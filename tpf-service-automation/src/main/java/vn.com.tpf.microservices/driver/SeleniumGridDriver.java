@@ -37,6 +37,13 @@ public class SeleniumGridDriver {
             chromeOptions.addArguments("--incognito");
             chromeOptions.addArguments("--disable-gpu");
             chromeOptions.addArguments("--disable-dev-shm-usage");
+            //chromeOptions.addArguments("start-maximized");
+            chromeOptions.addArguments("window-size=2560x3000");
+            //chromeOptions.addArguments("window-size=1920x1080");
+//            chromeOptions.addArguments("start-maximized");
+            chromeOptions.addArguments("window-size=2560x3000");
+//          chromeOptions.addArguments("window-size=1920x1080");
+
 //          chromeOptions.addArguments("start-maximized");
             chromeOptions.addArguments("window-size=2560x3000");
             //chromeOptions.addArguments("window-size=1920x1080");
