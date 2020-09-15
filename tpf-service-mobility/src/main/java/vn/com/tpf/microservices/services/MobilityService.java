@@ -449,9 +449,13 @@ public class MobilityService {
 		update.set("partnerId", partnerId);
 		update.set("partnerName", partnerName);
 		if(1 == partnerId || 2 == partnerId) {
-			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
-					convertService.toSendAppNonWebFinnone(mobility, partnerId ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
-
+			if(1 == partnerId){
+				rabbitMQService.send("tpf-service-dataentry", Map.of("func", "sendAppNonWeb", "body",
+						convertService.toSendAppNonWebFinnone(mobility, partnerId ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+			} else {
+				rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
+						convertService.toSendAppNonWebFinnone(mobility, partnerId, body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+			}
 			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 					Mobility.class);
 		} else {
@@ -825,8 +829,13 @@ public class MobilityService {
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 		if(3 != mobility.getPartnerId()){
-			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "commentAppNonWeb", "body",
-					convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			if(1 == mobility.getPartnerId()){
+				rabbitMQService.send("tpf-service-dataentry", Map.of("func", "commentAppNonWeb", "body",
+						convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			} else {
+				rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "commentAppNonWeb", "body",
+						convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			}
 		} else {
 			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
 					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
