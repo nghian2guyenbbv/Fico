@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "ALLOCATION_USER_DETAIL", schema = "${spring.datasource.schema-username}")
+@Table(name = "ALLOCATION_USER_DETAIL")
 @Data
 public class UserDetail {
 

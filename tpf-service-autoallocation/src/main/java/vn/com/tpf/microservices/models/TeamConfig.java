@@ -2,20 +2,18 @@ package vn.com.tpf.microservices.models;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_USER_DETAIL", schema = "${spring.datasource.schema-username}")
+@Table(name = "ALLOCATION_USER_DETAIL")
 @Data
 public class TeamConfig {
 
     @Id
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
     @Column(name = "ID")
-    private String id;
+    private Long id;
 
     @Column(name = "TEAM_NAME")
     private String teamName;

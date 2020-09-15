@@ -9,7 +9,7 @@ import javax.persistence.Table;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_USER_DETAIL", schema = "${spring.datasource.schema-username}")
+@Table(name = "ALLOCATION_USER_DETAIL")
 @Data
 public class UserChecking {
 
