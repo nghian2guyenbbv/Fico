@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -16,6 +17,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.models.Document;
+import vn.com.tpf.microservices.models.FileUploadDoc;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -23,10 +25,7 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -153,15 +152,12 @@ public class LeadDetailPage {
     private List<WebElement> docNameElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'photoimg')]")
-    @CacheLookup
     private List<WebElement> photoElement;
 
     @FindBy(how = How.ID, using = "saveButtonLeadToSaveDocuments")
-    @CacheLookup
     private WebElement saveDocBtnElement;
 
     @FindBy(how = How.ID, using = "moveToApplication1")
-    @CacheLookup
     private WebElement moveAppBtnElement;
 
     @FindBy(how = How.ID, using = "moveToAppConfirmDialog")
@@ -172,12 +168,16 @@ public class LeadDetailPage {
     @CacheLookup
     private WebElement modalBtnConfirmElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'c_docStatus')]")
+    private List<WebElement> checkBoxFileElement;
+
     public LeadDetailPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
 
-    public void setData(QuickLead quickLead, String leadId,String downLoadFileURL) {
+    public boolean setData(QuickLead quickLead, String leadId,String downLoadFileURL) {
+        boolean flag=true;
         try {
             ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
             Actions actions = new Actions(_driver);
@@ -284,6 +284,9 @@ public class LeadDetailPage {
                     "TPF_Transcript","TPF_Representatives "); //
             Utilities.captureScreenShot(_driver);
 
+            //update count file upload
+            List<FileUploadDoc> listIndexDoc=new ArrayList<FileUploadDoc>();
+
             for (WebElement element : docNameElement) {
                 final int _tempIndex = index;
                 String docName = element.getText();
@@ -307,10 +310,14 @@ public class LeadDetailPage {
                             String photoUrl = file.getAbsolutePath();
                             System.out.println("paht;" + photoUrl);
                             // Added sleep to make you see the difference.
-                            Thread.sleep(2000);
+                            Thread.sleep(3000);
 
                             photoElement.get(_tempIndex).sendKeys(photoUrl);
-                            Utilities.captureScreenShot(_driver);
+
+                            //add object
+                            listIndexDoc.add(FileUploadDoc.builder().index(_tempIndex).urlPhoto(photoUrl).build());
+
+                            //Utilities.captureScreenShot(_driver);
 //                        // Added sleep to make you see the difference.
 //                        Thread.sleep(2000);
                         }
@@ -319,11 +326,42 @@ public class LeadDetailPage {
                 index++;
             }
 
+            Thread.sleep(3000);
             saveDocBtnElement.click();
-            Utilities.captureScreenShot(_driver);
 
             await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> moveAppBtnElement.isDisplayed());
+
+            Utilities.captureScreenShot(_driver);
+
+            // -------------------- update count, get nhung file da duoc upload
+            List<WebElement> listCheckBoxUpload=_driver.findElements(By.xpath("//*[contains(@id, 'c_docStatus') and contains(@value,'2')]"));
+
+            if(listCheckBoxUpload.size()!=listIndexDoc.size())
+            {
+                flag=false;
+                return flag;
+            }
+
+//            //TH thieu file
+//            while(listCheckBoxUpload.size()!=listIndexDoc.size())
+//            {
+//                for (FileUploadDoc i: listIndexDoc) {
+//                    if(checkBoxFileElement.get(i.getIndex()).getAttribute("value").equals("0"))
+//                    {
+//                        photoElement.get(i.getIndex()).sendKeys(i.getUrlPhoto());
+//                        Thread.sleep(2000);
+//                    }
+//                }
+//                saveDocBtnElement.click();
+//                await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> moveAppBtnElement.isDisplayed());
+//
+//                listCheckBoxUpload=_driver.findElements(By.xpath("//*[contains(@id, 'c_docStatus') and contains(@value,'2')]"));
+//                Utilities.captureScreenShot(_driver);
+//            }
+            //------------------- End update
+
             moveAppBtnElement.click();
 
             Utilities.captureScreenShot(_driver);
@@ -337,5 +375,7 @@ public class LeadDetailPage {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return flag;
     }
 }
+
