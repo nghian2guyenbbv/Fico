@@ -224,7 +224,7 @@ public class AutoRoutingService {
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
-					responseModel.setMessage("IdLod isn't exits");
+					responseModel.setMessage("Id Log isn't exits");
 					responseModel.setData(logChoiceRouting);
 				} else {
 					logChoiceRoutingInsert.setAppNumber(logChoiceRouting.getAppNumber());
