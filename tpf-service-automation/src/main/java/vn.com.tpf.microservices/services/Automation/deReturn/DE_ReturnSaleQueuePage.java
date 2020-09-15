@@ -16,9 +16,9 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.List;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -30,13 +30,6 @@ import static org.hamcrest.Matchers.is;
 public class DE_ReturnSaleQueuePage {
     private WebDriver _driver;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Application Manager')]")
-    @CacheLookup
-    private WebElement applicationManagerElement;
-
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
-    private WebElement menuApplicationElement;
-
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
     @CacheLookup
     private WebElement applicationElement;
@@ -44,6 +37,37 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
     @CacheLookup
     private WebElement applicationFormElement;
+
+    @FindBy(how = How.XPATH, using = "//ul[@id='mainChildTabs']//a[contains(text(),'Pool')]")
+    @CacheLookup
+    private WebElement poolElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Pool_wrapper')]")
+    @CacheLookup
+    private WebElement applicationDivPoolElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Pool_wrapper')]//input[contains(@class,'search-query')]")
+    @CacheLookup
+    private WebElement applicationPoolNumberElement;
+
+    @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Pool']//tbody//tr//td")
+    @CacheLookup
+    private List<WebElement> tbApplicationPoolElement;
+
+    @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
+    @CacheLookup
+    private WebElement applicationDivAssignedElement;
+
+    @FindBy(how = How.XPATH, using = "//ul[@id='mainChildTabs']//a[contains(text(),'Assigned')]")
+    @CacheLookup
+    private WebElement assignedElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Application Manager')]")
+    @CacheLookup
+    private WebElement applicationManagerElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
+    private WebElement menuApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
     @CacheLookup
@@ -53,6 +77,10 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
+    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'casDiv')]")
+    @CacheLookup
+    private WebElement applicationInformtionElement;
+
     @FindBy(how = How.ID, using = "applicationChildTabs")
     @CacheLookup
     private WebElement appChildTabsElement;
@@ -61,11 +89,28 @@ public class DE_ReturnSaleQueuePage {
     @CacheLookup
     private WebElement applicationBtnDocumentElement;
 
+
     @FindBy(how = How.ID, using = "document")
     @CacheLookup
     private WebElement documentElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr//td")
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//input[contains(@type, 'text')]")
+//    @CacheLookup
+    private WebElement documentNameElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody//tr//td[4]//select")
+//    @CacheLookup
+    private WebElement documentStatusElement;
+
+    @FindBy(how = How.XPATH, using = "//table[@class='table table-bordered no-border']")
+//    @CacheLookup
+    private WebElement documentUploadElement;
+
+    @FindBy(how = How.XPATH, using = "//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]")
+//    @CacheLookup
+    private WebElement documentBtnUploadElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr")
     private List<WebElement> documentTableElement;
 
     @FindBy(how = How.XPATH, using = "//input[@id='executeDocumentIntegrationSet']")
@@ -75,6 +120,14 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")
     @CacheLookup
     private WebElement documentBtnSaveElement;
+
+    @FindBy(how = How.ID, using = "document_table_body_container")
+    @CacheLookup
+    private WebElement documentTableBodyElement;
+
+    @FindBy(how = How.ID, using = "lendingDocumentsTable_wrapper")
+    @CacheLookup
+    private WebElement documentTbDocumentsElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'activityDiv')]//a[contains(@id, 'loadApplicantInfo')]")
     @CacheLookup
@@ -95,7 +148,6 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
-
 
     @FindBy(how = How.ID, using = "applicationManagerForm1")
     private WebElement applicationManagerFormElement;
@@ -159,7 +211,7 @@ public class DE_ReturnSaleQueuePage {
         stage = "APPLICATION MANAGER";
 
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(_driver::getTitle, is("Application Manager"));
+                .until(_driver::getTitle, is("Application Manager"));
 
         await("applicationManagerFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
@@ -227,7 +279,7 @@ public class DE_ReturnSaleQueuePage {
         applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
 
         await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 2);
+                .until(() -> tbApplicationAssignedElement.size() > 0);
 
         WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
 
@@ -340,4 +392,5 @@ public class DE_ReturnSaleQueuePage {
 
         System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
     }
+
 }

@@ -81,7 +81,6 @@ public class AutomationHandlerService {
     @Value("${spring.url.selePort}")
     private String selePort;
 
-
     @Value("${spring.url.downloadFile}")
     private String downdloadFileURL;
 
@@ -95,7 +94,7 @@ public class AutomationHandlerService {
 
             accountDTO = accounts.poll();
             if (!Objects.isNull(accountDTO)) {
-                System.out.println("Get it:" + accountDTO.toString());
+                System.out.println("Get it:" + accountDTO.getUserName());
                 System.out.println("Exist:" + accounts.size());
             } else
                 Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
@@ -138,7 +137,7 @@ public class AutomationHandlerService {
                     Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
                     accountDTO = null;
                 } else {
-                    System.out.println("Get it:" + accountDTO.toString());
+                    System.out.println("Get it:" + accountDTO.getUserName());
                     System.out.println("Exist:" + accounts.size());
                 }
             } else
@@ -654,18 +653,18 @@ public class AutomationHandlerService {
             //validate data truoc khi update: employee detail, update 8-9-2020
             if (!applicationInfoDTO.getEmploymentDetails().getOccupationType().equals("Others"))
             {
-                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
-                {
-                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
-                    if(taxCode<=0)
-                    {
-                        //UPDATE STATUS
-                        application.setStatus("ERROR");
-                        application.setStage(stage);
-                        application.setDescription("Other Company Tax Code must > 0");
-                        return;
-                    }
-                }
+//                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
+//                {
+//                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
+//                    if(taxCode<=0)
+//                    {
+//                        //UPDATE STATUS
+//                        application.setStatus("ERROR");
+//                        application.setStage(stage);
+//                        application.setDescription("Other Company Tax Code must > 0");
+//                        return;
+//                    }
+//                }
 
                 if(StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getIndustry()))
                 {
@@ -693,7 +692,7 @@ public class AutomationHandlerService {
                 return;
             }
             // end check error
-            
+
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
@@ -1151,9 +1150,6 @@ public class AutomationHandlerService {
     }
 
     private void updateStatusRabbit(Application application, String func) throws Exception {
-//        JsonNode jsonNode= rabbitMQService.sendAndReceive("tpf-service-dataentry",
-//                Map.of("func", func, "token",
-//                        String.format("Bearer %s", rabbitMQService.getToken().path("access_token").asText()),"body", application));
 
         JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
                 Map.of("func", func, "body", application));
@@ -1670,8 +1666,49 @@ public class AutomationHandlerService {
             await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
 
+            //validate data truoc khi update: employee detail, update 8-9-2020
+            if (!applicationInfoDTO.getEmploymentDetails().getOccupationType().equals("Others"))
+            {
+//                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
+//                {
+//                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
+//                    if(taxCode<=0)
+//                    {
+//                        //UPDATE STATUS
+//                        application.setStatus("ERROR");
+//                        application.setStage(stage);
+//                        application.setDescription("Other Company Tax Code must > 0");
+//                        return;
+//                    }
+//                }
+
+                if(StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getIndustry()))
+                {
+                    //UPDATE STATUS
+                    application.setStatus("ERROR");
+                    application.setStage(stage);
+                    application.setDescription("Industry must have value");
+                    return;
+                }
+            }
+            //end validate
+
             employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetails());
             employmentDetailsTab.getDoneBtnElement().click();
+
+            // check error sau khi click done - employee detail , update 8-9-2020
+            List<WebElement> checkError=driver.findElements(By.xpath("//span[contains(text(), 'This field is required.')]"));
+
+            if(checkError!=null && checkError.size()>0)
+            {
+                //UPDATE STATUS
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("Error at employment detail");
+                return;
+            }
+            // end check error
+
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
@@ -2228,8 +2265,49 @@ public class AutomationHandlerService {
             await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
 
+            //validate data truoc khi update: employee detail, update 8-9-2020
+            if (!applicationInfoDTO.getEmploymentDetails().getOccupationType().equals("Others"))
+            {
+//                if(!StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode()))
+//                {
+//                    int taxCode=Integer.parseInt(applicationInfoDTO.getEmploymentDetails().getOtherCompanyTaxCode());
+//                    if(taxCode<=0)
+//                    {
+//                        //UPDATE STATUS
+//                        application.setStatus("ERROR");
+//                        application.setStage(stage);
+//                        application.setDescription("Other Company Tax Code must > 0");
+//                        return;
+//                    }
+//                }
+
+                if(StringUtils.isEmpty(applicationInfoDTO.getEmploymentDetails().getIndustry()))
+                {
+                    //UPDATE STATUS
+                    application.setStatus("ERROR");
+                    application.setStage(stage);
+                    application.setDescription("Industry must have value");
+                    return;
+                }
+            }
+            //end validate
+
             employmentDetailsTab.updateData(applicationInfoDTO.getEmploymentDetails());
             employmentDetailsTab.getDoneBtnElement().click();
+
+            // check error sau khi click done - employee detail , update 8-9-2020
+            List<WebElement> checkError=driver.findElements(By.xpath("//span[contains(text(), 'This field is required.')]"));
+
+            if(checkError!=null && checkError.size()>0)
+            {
+                //UPDATE STATUS
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("Error at employment detail");
+                return;
+            }
+            // end check error
+
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setExperienceInIndustry(applicationInfoDTO.getEmploymentDetails());
@@ -3651,7 +3729,7 @@ public class AutomationHandlerService {
                         accountDTONew = null;
                     } else {
                         loginDTOList.add(accountDTONew);
-                        System.out.println("Get it:" + accountDTONew.toString());
+                        System.out.println("Get it:" + accountDTONew.getUserName());
                     }
                 } else
                     accountDTONew = null;
@@ -3819,7 +3897,7 @@ public class AutomationHandlerService {
                     Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
                     accountDTO = null;
                 } else {
-                    System.out.println("Get it:" + accountDTO.toString());
+                    System.out.println("Get it:" + accountDTO.getUserName());
                     System.out.println("Exist:" + accounts.size());
                 }
             } else
@@ -3851,6 +3929,7 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
+
             System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             stage = "HOME PAGE";
@@ -3866,6 +3945,14 @@ public class AutomationHandlerService {
             System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========= UPDATE DB ============================
+
+            Query queryUpdate1 = new Query();
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
+            Update update1 = new Update();
+            update1.set("userauto", accountDTO.getUserName());
+            update1.set("status", 1);
+            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
 //            Query queryUpdate1 = new Query();
 //            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
 //            Update update1 = new Update();
@@ -3875,7 +3962,6 @@ public class AutomationHandlerService {
 
             deResponseQueryDTO.setStatus("OK");
             deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
-
             responseModel.setProject(deResponseQueryDTO.getProject());
             responseModel.setReference_id(deResponseQueryDTO.getReference_id());
             responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
@@ -3885,6 +3971,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
+
             deResponseQueryDTO.setStatus("ERROR");
             deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
 
@@ -3903,6 +3990,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
 
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " +responseModel.getApp_id());
+
             mongoTemplate.save(deResponseQueryDTO);
             logout(driver,accountDTO.getUserName());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
@@ -4184,6 +4272,19 @@ public class AutomationHandlerService {
                     .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
 
             String leadAppID = "";
+
+//            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
+//                System.out.println(e.getText());
+//                if (e.getText().contains("APPL")) {
+//                    leadAppID = e.getText().substring(e.getText().indexOf("APPL"), e.getText().indexOf("APPL") + 12);
+//                }
+//            }
+//            System.out.println("APPID: => " + leadAppID);
+//
+//            Utilities.captureScreenShot(driver);
+//            System.out.println(stage + ": DONE");
+
+
 //            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
 //                System.out.println(e.getText());
 //                if (e.getText().contains("APPL")) {
@@ -4213,6 +4314,7 @@ public class AutomationHandlerService {
 //            Utilities.captureScreenShot(driver);
 //
 //            //-------------------- END ---------------------------
+
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================

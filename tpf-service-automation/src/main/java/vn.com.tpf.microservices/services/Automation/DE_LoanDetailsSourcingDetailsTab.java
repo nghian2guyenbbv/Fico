@@ -175,6 +175,13 @@ public class DE_LoanDetailsSourcingDetailsTab {
                 .until(() -> schemeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
 
+//        //update them scheme
+//        schemeElement.click();
+//        await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> schemeOptionElement.size() > 0);
+//        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+
+
 //        loanAmountElement.sendKeys("");
 //        loanAmountElement.sendKeys(data.getLoanAmount());
         Utilities.checkValueSendkey(data.getLoanAmount(),loanAmountElement);
@@ -226,6 +233,12 @@ public class DE_LoanDetailsSourcingDetailsTab {
         await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> schemeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+
+//        //update them scheme
+//        schemeElement.click();
+//        await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> schemeOptionElement.size() > 0);
+//        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
 
         loanAmountElement.clear();
         Utilities.checkValueSendkey(data.getLoanAmount(),loanAmountElement);
