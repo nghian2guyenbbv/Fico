@@ -1,11 +1,16 @@
 spring:
   rabbitmq:
     host: 10.131.31.202
+    schema:
   datasource:
-#      url: jdbc:postgresql://10.131.21.234:5432/tpfdb
-    jdbc-url: jdbc:oracle:thin:@10.1.66.32:1521:FICOCEN
-    username: MIS
-    password: Luanpv1#mis#2020
+    url: jdbc:oracle:thin:@//10.131.21.47:1521/ORCLCDB.localdomain
+    username: dummy
+    password: dummy
+    schema-username: DUMMY
+    driver-class-name: oracle.jdbc.OracleDriver
+#    jdbc-url: jdbc:oracle:thin:@10.1.66.32:1521:FICOCEN
+#    username: MIS
+#    password: Luanpv1#mis#2020
 security:
   oauth2:
     client:

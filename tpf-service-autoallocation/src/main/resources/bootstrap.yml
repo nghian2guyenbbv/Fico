@@ -1,6 +1,6 @@
 spring:
   application:
-    name: tpf-service-autoallowcation
+    name: tpf-service-autoallocation
   cloud:
     config:
       uri: http://10.131.31.202:8888

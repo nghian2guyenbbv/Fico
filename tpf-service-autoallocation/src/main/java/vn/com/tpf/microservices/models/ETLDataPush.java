@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_ETL_DATAPUSH", schema = "${spring.rabbitmq.schema}")
+@Table(name = "ALLOCATION_ETL_DATAPUSH", schema = "${spring.datasource.schema-username}")
 @Data
 public class ETLDataPush {
 

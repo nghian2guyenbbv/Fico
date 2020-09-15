@@ -38,6 +38,7 @@
 		<module>tpf-service-dataentry</module>
 		<module>tpf-service-automation</module>
 		<module>tpf-service-autorouting</module>
+		<module>tpf-service-autoallocation</module>
 	</modules>
 
 
