@@ -6,10 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import vn.com.tpf.microservices.dao.HistoryAllocationDAO;
+import vn.com.tpf.microservices.models.HistoryAllocation;
 import vn.com.tpf.microservices.models.ResponseModel;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,6 +22,9 @@ public class AutoAllocationService {
 
 	@Autowired
 	private ObjectMapper mapper;
+
+	@Autowired
+	HistoryAllocationDAO historyAllocationDAO;
 
 
 	/**
@@ -56,6 +62,7 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
+			List<HistoryAllocation> lst = historyAllocationDAO.findAll();
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
