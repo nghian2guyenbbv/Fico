@@ -517,58 +517,85 @@ public class AutoRoutingService {
 	}
 
 	private boolean validateDayId(String dayId) {
-		if (dayId == null && dayId.isEmpty()) {
-			return false;
-		} else {
-			String regex = "[0-9]+";
-			if (!dayId.matches(regex)) {
-				return false;
-			} else {
-				int dayIdInt = Integer.valueOf(dayId);
-				if (dayIdInt < 0 || dayIdInt > 6) {
+		if (dayId != null) {
+			if (!dayId.isEmpty()) {
+				String regex = "[0-9]+";
+				if (!dayId.matches(regex)) {
 					return false;
+				} else {
+					int dayIdInt = Integer.valueOf(dayId);
+					if (dayIdInt < 0 || dayIdInt > 6) {
+						return false;
+					}
+					return true;
 				}
 			}
+			return false;
 		}
-		return true;
+		return false;
 	}
 
 	private boolean validateHistoryConfig(String page, String limit, String idConfig,
 										  ResponseModel responseModel) {
-		if (idConfig == null && idConfig.isEmpty() ||
-				!Arrays.asList(ID_COFIG).contains(idConfig)) {
+		if (idConfig == null) {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Id Config is invalid");
 			return false;
+		} else {
+			if (idConfig.isEmpty() ||
+					!Arrays.asList(ID_COFIG).contains(idConfig)) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Id Config is invalid");
+				return false;
+			}
 		}
 
-		if (page == null && page.isEmpty()) {
+		if (page == null) {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Page is invalid");
 			return false;
 		} else {
-			String regex = "[0-9]+";
-			if (!page.matches(regex)) {
+			if (!page.isEmpty()) {
+				String regex = "[0-9]+";
+				if (!page.matches(regex)) {
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(500);
+					responseModel.setMessage("Page is invalid");
+					return false;
+				}
+			} else {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
 				responseModel.setMessage("Page is invalid");
 				return false;
 			}
+
 		}
-		if (limit == null && limit.isEmpty()) {
+		if (limit == null) {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Limit is invalid");
 			return false;
 		} else {
-			String regex = "[0-9]+";
-			if (!limit.matches(regex)) {
+			if (!limit.isEmpty()) {
+				String regex = "[0-9]+";
+				if (!limit.matches(regex)) {
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(500);
+					responseModel.setMessage("Limit is invalid");
+					return false;
+				}
+			} else {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
