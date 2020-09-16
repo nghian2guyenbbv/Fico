@@ -356,14 +356,21 @@ public class AutoRoutingService {
 		}
 	}
 	private boolean validateDataInsert(ConfigRouting configRouting, ResponseModel responseModel) {
-		if (configRouting.getIdConfig() == null && configRouting.getIdConfig().isEmpty() ||
-				!Arrays.asList(ID_COFIG).contains(configRouting.getIdConfig())) {
-			log.info("Error: " + "Get ID Config is null/empty or ID config invalid");
+		if (configRouting.getIdConfig() == null) {
 			responseModel.setMessage("ID config invalid");
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			return false;
+		} else {
+			if (configRouting.getIdConfig().isEmpty() ||
+					!Arrays.asList(ID_COFIG).contains(configRouting.getIdConfig())) {
+				responseModel.setMessage("ID config invalid");
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				return false;
+			}
 		}
 		if (!validateChanelConfig(configRouting.getChanelConfig())) {
 			log.info("Error: " + "Invalid Chanel Config");
@@ -375,20 +382,20 @@ public class AutoRoutingService {
 		}
 		Set<String> checkScheduleId = new HashSet<>();
 		for (ScheduleRoute scheduleRoute: configRouting.getScheduleRoutes()) {
-			if (!checkScheduleId.add(scheduleRoute.getIdSchedule())) {
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(500);
-				responseModel.setMessage("Id Scheduled is duplicated");
-				return false;
-			}
-
 			if (!validateScheduleId(scheduleRoute.getIdSchedule())) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
 				responseModel.setMessage("Id Scheduled is not valid");
 				return false;
+			} else {
+				if (!checkScheduleId.add(scheduleRoute.getIdSchedule())) {
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(500);
+					responseModel.setMessage("Id Scheduled is duplicated");
+					return false;
+				}
 			}
 			if (!validateDayId(scheduleRoute.getDayId())) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -426,38 +433,54 @@ public class AutoRoutingService {
 				responseModel.setResult_code(500);
 				return false;
 			}
-			return validateRangeStartEnd(scheduleRoute.getTimeStart(),
-					scheduleRoute.getTimeEnd(), responseModel);
+			if (!validateRangeStartEnd(scheduleRoute.getTimeStart(),
+					scheduleRoute.getTimeEnd(), responseModel)) {
+				return false;
+			}
 
 		}
 		return true;
 	}
 	private boolean validateScheduleId(String idSchedule) {
-		if (idSchedule == null && idSchedule.isEmpty()) {
+		if (idSchedule != null) {
+			if (!idSchedule.isEmpty()) {
+				String id = idSchedule.split("_")[1];
+				if (id.length() == 1) {
+					String regex = "[0-9]+";
+					if (!id.matches(regex)) {
+						return false;
+					} else {
+						int dayId = Integer.valueOf(idSchedule.split("_")[1]);
+						if (dayId < 0 || dayId > 6) {
+							return false;
+						}
+						return true;
+					}
+				}
+				return false;
+			}
 			return false;
-		} else {
-			int dayId = Integer.valueOf(idSchedule.split("_")[1]);
-			log.info("DayID: " + dayId);
-			return dayId < 0 || dayId > 6 ? false : true;
 		}
+		return false;
 
 	}
 
 	private boolean validateChanelConfig(String chanelConfig) {
-		if (chanelConfig == null && chanelConfig.isEmpty()) {
-			return false;
-		} else {
-			String regex = "[0-9]+";
-			if (!chanelConfig.matches(regex)) {
-				return false;
-			} else {
-				int config = Integer.valueOf(chanelConfig);
-				if (config < 0 || config > 1) {
+		if (chanelConfig != null) {
+			if (!chanelConfig.isEmpty()) {
+				String regex = "[0-9]+";
+				if (!chanelConfig.matches(regex)) {
 					return false;
+				} else {
+					int config = Integer.valueOf(chanelConfig);
+					if (config < 0 || config > 1) {
+						return false;
+					}
 				}
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	private boolean validateQuotaSchedule(Long quota) {
@@ -480,7 +503,7 @@ public class AutoRoutingService {
 		Date dateStart =new Date(start.getTime());
 		Date dateEnd =new Date(end.getTime());
 		if (!dateStart.before(dateEnd)) {
-			errorMessage = "Time Start needs before Time Start";
+			errorMessage = "Time Start needs before Time End";
 			isFlag = false;
 		}
 		if (!isFlag) {
