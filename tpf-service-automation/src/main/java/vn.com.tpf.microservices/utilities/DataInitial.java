@@ -723,27 +723,51 @@ public class DataInitial {
         return map;
     }
 
-    /*public static Map<String, Object> getDataFrom_Waive_Field_V2(List<WaiveFieldDTO> waiveFieldDTOList) throws JsonProcessingException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("WaiveFieldList", waiveFieldDTOList);
-        return map;
-    }
-
-    public static Map<String, Object> getDataFrom_Submit_Field_V2(List<SubmitFieldDTO> submitFieldDTOList) throws JsonProcessingException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("SubmitFieldList", submitFieldDTOList);
-        return map;
-    }*/
-
     public static Map<String, Object> getDataFrom_Waive_Field(RequestAutomationDTO waiveFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("RequestAutomationWaiveFieldList", waiveFieldDTOList);
+        ////********************************REASSIGN USER************************************////
+        List<WaiveFieldDTO> waiveFieldDTOs = new ArrayList<>();
+        for(WaiveFieldDTO waiveField : waiveFieldDTOList.getWaiveFieldDTO()) {
+            WaiveFieldDTO waiveFieldDTO = WaiveFieldDTO.builder()
+                    .appId(waiveField.getAppId())
+                    .project(waiveFieldDTOList.getProject())
+                    .reference_id(waiveFieldDTOList.getReference_id())
+                    .transaction_id(waiveFieldDTOList.getTransaction_id())
+                    .funcProject("WaiveField")
+                    .build();
+            waiveFieldDTOs.add(waiveFieldDTO);
+        }
+        map.put("waiveFieldList", waiveFieldDTOs);
         return map;
     }
 
     public static Map<String, Object> getDataFrom_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("RequestAutomationSubmitFieldList", submitFieldDTOList);
+        ////********************************REASSIGN USER************************************////
+        List<SubmitFieldDTO> submitFieldDTOs = new ArrayList<>();
+        for(SubmitFieldDTO submitField : submitFieldDTOList.getSubmitFieldDTO()) {
+            SubmitFieldDTO submitFieldDTO = SubmitFieldDTO.builder()
+                    .appId(submitField.getAppId())
+                    .project(submitFieldDTOList.getProject())
+                    .reference_id(submitFieldDTOList.getReference_id())
+                    .transaction_id(submitFieldDTOList.getTransaction_id())
+                    .funcProject("WaiveField")
+                    .phoneConfirmed(submitField.getPhoneConfirmed())
+                    .resultHomeVisit(submitField.getResultHomeVisit())
+                    .resultOfficeVisit(submitField.getResultOfficeVisit())
+                    .result2ndHomeVisit(submitField.getResult2ndHomeVisit())
+                    .timeOfVisit(submitField.getTimeOfVisit())
+                    .verificationDate(submitField.getVerificationDate())
+                    .remarksDecisionFiv(submitField.getRemarksDecisionFiv())
+                    .remarksDecisionFic(submitField.getResonDecisionFic())
+                    .resonDecisionFic(submitField.getResonDecisionFic())
+                    .attachmentField(submitField.getAttachmentField())
+                    .build();
+            submitFieldDTOs.add(submitFieldDTO);
+        }
+        map.put("submitFieldList", submitFieldDTOs);
         return map;
     }
 

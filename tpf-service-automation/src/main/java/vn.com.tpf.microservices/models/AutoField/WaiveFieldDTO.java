@@ -28,5 +28,7 @@ public class WaiveFieldDTO {
     private String project;
     private String transaction_id;
     private String automation_result;
+    private String automation_result_message;
+    private String funcProject;
     private int checkUpdate = 0;
 }
