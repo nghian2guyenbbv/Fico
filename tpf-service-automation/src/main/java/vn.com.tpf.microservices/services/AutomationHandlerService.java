@@ -4261,7 +4261,16 @@ public class AutomationHandlerService {
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
 
-            leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+            boolean flagResult=leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            if(flagResult==false)
+            {
+                application.setApplicationId("UNKNOW");
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("File not enough!!!");
+                return;
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -4395,6 +4404,8 @@ public class AutomationHandlerService {
         } finally {
             if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
                 application.setApplicationId("UNKNOW");
+                application.setStatus("QUICKLEAD FAIL");
+                application.setDescription("Khong thanh cong");
             }
 
             Instant finish = Instant.now();
@@ -4517,7 +4528,16 @@ public class AutomationHandlerService {
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
 
-            leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+            boolean flagResult=leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            if(flagResult==false)
+            {
+                application.setApplicationId("UNKNOW");
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("File not enough!!!");
+                return;
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6727,7 +6747,16 @@ public class AutomationHandlerService {
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
 
-            leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+            boolean flagResult=leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            if(flagResult==false)
+            {
+                application.setApplicationId("UNKNOW");
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("File not enough!!!");
+                return;
+            }
 
             Utilities.captureScreenShot(driver);
 
