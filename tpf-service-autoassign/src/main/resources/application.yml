@@ -1,4 +1,8 @@
-#spring:
+spring:
+  data:
+    mongodb:
+      #      uri: mongodb://10.131.21.234:27017/tpfdb
+      uri: mongodb://10.131.31.202:27017/tpfdb
 #  rabbitmq:
 #    host: 127.0.0.1
 #  datasource:
