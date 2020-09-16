@@ -22,6 +22,6 @@ public class Constant {
     //public static String FINNONE_LOGIN_URL = "http://10.1.66.20:4141/finnone-webapp/app/auth/login";
     //public static String FINNONE_LOGIN_URL_PRO = "http://10.1.64.22:4141/finnone-webapp/app/auth/login";
 
-    public static String TEST_DOCUMENT_FILE_PATH = "D:/AnhLTD/Document/finnone_";
+    public static String TEST_DOCUMENT_FILE_PATH = "D:/imageLogs/";
 
 }

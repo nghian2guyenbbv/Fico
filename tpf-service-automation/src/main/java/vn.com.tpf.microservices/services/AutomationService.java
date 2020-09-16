@@ -473,9 +473,10 @@ public class AutomationService {
 
 	private void runAutomation_Waive_Field(RequestAutomationDTO waiveFieldDTOList) throws Exception {
 		String browser = "chrome";
+        String projectJson = waiveFieldDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field",projectJson.toUpperCase());
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -506,9 +507,10 @@ public class AutomationService {
 
 	private void runAutomation_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws Exception {
 		String browser = "chrome";
+        String projectJson = submitFieldDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Submit_Field(submitFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field", projectJson.toUpperCase());
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
