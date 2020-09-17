@@ -230,8 +230,9 @@ public class AutoAssignService {
 		}
 	}
 
-	@Scheduled(cron="0 */1 * ? * *", zone="Asia/Saigon")
+	@Scheduled(cron="${spring.cronJob.syncStatus}", zone="Asia/Saigon")
 	public void updateTotalQuantityInDayFromDE() {
+		String logs="updateTotalQuantityInDayFromDE: ";
 		try{
 
 			//get all app from Portal today
@@ -253,36 +254,43 @@ public class AutoAssignService {
 			AggregationResults<Application> output = mongoTemplate.aggregate(aggregation, Application.class,Application.class);
 			resultData = output.getMappedResults();
 
-			//get configauto today
-			List<AutoAssignConfigure> resultConfigure = autoAssignConfigureDAO.findConfigureByCreatedDate(formatterParseInput.format(LocalDate.now()));
-			if (resultConfigure.size() > 0) {
-				long total=0;
-				long diff=0;
+			logs +=", resultData: " + resultData.size();
 
-				for (AutoAssignConfigure autoAssignConfigure: resultConfigure) {
-					if(!autoAssignConfigure.getVendorName().equals("IN-HOUSE"))
-					{
-						total=resultData.stream().filter(x->Long.valueOf(x.getPartnerId())==autoAssignConfigure.getVendorId()).count();
-						diff=autoAssignConfigure.getActualQuanlityInDay()-total;
+			if(resultData.size()>0) {
+				//get configauto today
+				List<AutoAssignConfigure> resultConfigure = autoAssignConfigureDAO.findConfigureByCreatedDate(formatterParseInput.format(LocalDate.now()));
+				if (resultConfigure.size() > 0) {
+					long total = 0;
+					long diff = 0;
 
-						autoAssignConfigure.setActualQuanlityInDay(total);
-						autoAssignConfigure.setActualTotalQuanlity(autoAssignConfigure.getActualTotalQuanlity()-diff);
-						autoAssignConfigureDAO.save(autoAssignConfigure);
+					for (AutoAssignConfigure autoAssignConfigure : resultConfigure) {
+						if (!autoAssignConfigure.getVendorName().equals("IN-HOUSE")) {
+							total = resultData.stream().filter(x -> Long.valueOf(x.getPartnerId()) == autoAssignConfigure.getVendorId()).count();
+							diff = autoAssignConfigure.getActualQuanlityInDay() - total;
+
+							logs +=",partner: " + autoAssignConfigure.getVendorId()+ ", total: " + total + ", diff: " + diff;
+
+							autoAssignConfigure.setActualQuanlityInDay(total);
+							autoAssignConfigure.setActualTotalQuanlity(autoAssignConfigure.getActualTotalQuanlity() - diff);
+							autoAssignConfigureDAO.save(autoAssignConfigure);
+						}
 					}
-				}
 
-				//ghi log
-				AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
-				autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
-				autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
-				autoAssignConfigureHistory.setData( mapper.writeValueAsString(resultConfigure));
-				autoAssignConfigureHistory.setCreatedBy("system");
-				AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
+					//ghi log
+					AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
+					autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
+					autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
+					autoAssignConfigureHistory.setData(mapper.writeValueAsString(resultConfigure));
+					autoAssignConfigureHistory.setCreatedBy("system");
+					AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
+				}
 			}
 		}
 		catch (Exception e) {
-			log.info("Error updateTotalQuantityInDayFromDE: " + e.toString());
-			return;
+			logs+="; Error updateTotalQuantityInDayFromDE: " + e.toString();
+		}
+		finally {
+			log.info(logs);
 		}
 	}
 
