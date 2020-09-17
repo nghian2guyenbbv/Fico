@@ -1177,6 +1177,7 @@ public class DataInitial {
         for(AutoAssignAllocationDTO autoAssignAllocation : autoAssignAllocationDTOList.getAutoAssign()) {
             AutoAssignAllocationDTO autoAssignAllocationDTO = AutoAssignAllocationDTO.builder()
                     .project(autoAssignAllocationDTOList.getProject())
+                    .reference_id(autoAssignAllocationDTOList.getReference_id())
                     .appId(autoAssignAllocation.getAppId())
                     .userName(autoAssignAllocation.getUserName())
                     .build();
