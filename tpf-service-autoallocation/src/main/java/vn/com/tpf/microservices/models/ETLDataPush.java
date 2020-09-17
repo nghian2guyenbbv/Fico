@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 public class ETLDataPush {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private long id;
 
@@ -55,9 +55,6 @@ public class ETLDataPush {
     private Timestamp loanAmt;
 
     @Column(name = "UPDATE_DATE")
-    private Timestamp updateDate;
-
-    @Column(name = "JSON_STRING")
-    private Timestamp jsonString;
+    private String updateDate;
 
 }

@@ -11,6 +11,10 @@ spring:
 #    jdbc-url: jdbc:oracle:thin:@10.1.66.32:1521:FICOCEN
 #    username: MIS
 #    password: Luanpv1#mis#2020
+  jpa:
+    hibernate:
+      ddl-auto: update
+
 security:
   oauth2:
     client:
