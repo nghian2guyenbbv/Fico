@@ -184,7 +184,7 @@ public class AutoAssignService {
 						if(localDate.getDayOfMonth()==1)
 						{
 							createAssign.setActualTotalQuanlity(0);
-							createAssign.setQuanlityInDay(0);
+							createAssign.setQuanlityInDay(item.getQuanlityInDay());
 						}else
 						{
 							if (item.getActualTotalQuanlity() < item.getTotalQuanlity()){
