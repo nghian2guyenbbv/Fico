@@ -15,6 +15,11 @@ import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -90,6 +95,9 @@ public class AutoAssignService {
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
 
 	public Map<String, Object> getVendor() {
 		ResponseModel responseModel = new ResponseModel();
@@ -170,15 +178,26 @@ public class AutoAssignService {
 						createAssign.setQuote(new Timestamp(new Date().getTime()));
 						createAssign.setTotalQuanlity(item.getTotalQuanlity());
 						createAssign.setActualTotalQuanlity(item.getActualTotalQuanlity());
-						if (item.getActualTotalQuanlity() < item.getTotalQuanlity()){
-							if (item.getQuanlityInDay() < (item.getTotalQuanlity() - item.getActualTotalQuanlity())){
-								createAssign.setQuanlityInDay(item.getQuanlityInDay());
+
+						//check dieu kien ngay dau tien cua thang, reset ActualTotalQuanlity
+						LocalDate localDate=LocalDate.now();
+						if(localDate.getDayOfMonth()==1)
+						{
+							createAssign.setActualTotalQuanlity(0);
+							createAssign.setQuanlityInDay(item.getQuanlityInDay());
+						}else
+						{
+							if (item.getActualTotalQuanlity() < item.getTotalQuanlity()){
+								if (item.getQuanlityInDay() < (item.getTotalQuanlity() - item.getActualTotalQuanlity())){
+									createAssign.setQuanlityInDay(item.getQuanlityInDay());
+								}else{
+									createAssign.setQuanlityInDay(item.getTotalQuanlity() - item.getActualTotalQuanlity());
+								}
 							}else{
-								createAssign.setQuanlityInDay(item.getTotalQuanlity() - item.getActualTotalQuanlity());
+								createAssign.setQuanlityInDay(0);
 							}
-						}else{
-							createAssign.setQuanlityInDay(0);
 						}
+
 						createAssign.setActualQuanlityInDay(0);
 						createAssign.setVendorId(item.getVendorId());
 						createAssign.setVendorName(item.getVendorName());
@@ -208,6 +227,70 @@ public class AutoAssignService {
 		catch (Exception e) {
 			log.info("Error_Insert_Auto: " + e.toString());
 			return;
+		}
+	}
+
+	@Scheduled(cron="${spring.cronJob.syncStatus}", zone="Asia/Saigon")
+	public void updateTotalQuantityInDayFromDE() {
+		String logs="updateTotalQuantityInDayFromDE: ";
+		try{
+
+			//get all app from Portal today
+			DateTimeFormatter formatterParseInput = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+			String toDay=formatterParseInput.format(LocalDate.now());
+			Timestamp fromDate = Timestamp.valueOf(toDay + " 00:00:00");
+			Timestamp toDate = Timestamp.valueOf(toDay + " 23:23:59");
+
+			Criteria criteria=new Criteria();
+			criteria=Criteria.where("createdDate").gte(fromDate).lte(toDate);
+			criteria.and("applicationId").ne(null);
+
+			List<Application> resultData=new ArrayList<Application>();
+
+			MatchOperation matchOperation= Aggregation.match(criteria);
+			Aggregation aggregation = Aggregation.newAggregation(matchOperation);
+
+			AggregationResults<Application> output = mongoTemplate.aggregate(aggregation, Application.class,Application.class);
+			resultData = output.getMappedResults();
+
+			logs +=", resultData: " + resultData.size();
+
+			if(resultData.size()>0) {
+				//get configauto today
+				List<AutoAssignConfigure> resultConfigure = autoAssignConfigureDAO.findConfigureByCreatedDate(formatterParseInput.format(LocalDate.now()));
+				if (resultConfigure.size() > 0) {
+					long total = 0;
+					long diff = 0;
+
+					for (AutoAssignConfigure autoAssignConfigure : resultConfigure) {
+						if (!autoAssignConfigure.getVendorName().equals("IN-HOUSE")) {
+							total = resultData.stream().filter(x -> Long.valueOf(x.getPartnerId()) == autoAssignConfigure.getVendorId()).count();
+							diff = autoAssignConfigure.getActualQuanlityInDay() - total;
+
+							logs +=",partner: " + autoAssignConfigure.getVendorId()+ ", total: " + total + ", diff: " + diff;
+
+							autoAssignConfigure.setActualQuanlityInDay(total);
+							autoAssignConfigure.setActualTotalQuanlity(autoAssignConfigure.getActualTotalQuanlity() - diff);
+							autoAssignConfigureDAO.save(autoAssignConfigure);
+						}
+					}
+
+					//ghi log
+					AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
+					autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
+					autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
+					autoAssignConfigureHistory.setData(mapper.writeValueAsString(resultConfigure));
+					autoAssignConfigureHistory.setCreatedBy("system");
+					AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
+				}
+			}
+		}
+		catch (Exception e) {
+			logs+="; Error updateTotalQuantityInDayFromDE: " + e.toString();
+		}
+		finally {
+			log.info(logs);
 		}
 	}
 
