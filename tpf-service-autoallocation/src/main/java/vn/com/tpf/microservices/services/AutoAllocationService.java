@@ -2,19 +2,27 @@ package vn.com.tpf.microservices.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.web.multipart.MultipartFile;
+import vn.com.tpf.microservices.dao.ETLDataPushDAO;
 import vn.com.tpf.microservices.dao.HistoryAllocationDAO;
-import vn.com.tpf.microservices.models.HistoryAllocation;
-import vn.com.tpf.microservices.models.ResponseModel;
+import vn.com.tpf.microservices.dao.UserCheckingDAO;
+import vn.com.tpf.microservices.models.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class AutoAllocationService {
@@ -24,8 +32,19 @@ public class AutoAllocationService {
 	private ObjectMapper mapper;
 
 	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	private ETLDataPushDAO etlDataPushDAO;
+
+	@Autowired
+	private UserCheckingDAO userCheckingDAO;
+
+	@Autowired
 	HistoryAllocationDAO historyAllocationDAO;
 
+	private static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+	private static String SHEET = "UserTeam";
 
 	/**
 	 * To check rule and return config rule to inhouse service
@@ -58,7 +77,7 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> getHistoryApp(JsonNode request) {
+	public Map<String, Object> addUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
@@ -77,10 +96,57 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> importUser(JsonNode request) {
+	public Map<String, Object> uploadUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
+			Assert.notNull(request.get("body"), "no body");
+			RequestImportFile requestModel = mapper.treeToValue(request.get("body"), RequestImportFile.class);
+
+		if (requestModel == null) {
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("File is mandatory");
+		} else {
+			if (hasExcelFormat(requestModel.getUrlFile())) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Import file with format Excel or CSV");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			List<UserChecking> userCheckingList = excelToUserChecking(requestModel.getUrlFile().getInputStream(), requestModel);
+			userCheckingDAO.saveAll(userCheckingList);
+
+			String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
+					requestModel.getUserLogin(),
+					requestModel.getTeamName());
+
+			String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
+					(rs, rowNum) ->
+							rs.getString(("RESULT")
+							));
+
+			if (row_string.isEmpty()) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Add user success !");
+			} else {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage(row_string + "add failed.");
+				return Map.of("status", 200, "data", responseModel);
+			}
+		}
+
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
@@ -110,9 +176,75 @@ public class AutoAllocationService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
 			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
+	}
+
+
+	public static boolean hasExcelFormat(MultipartFile file) {
+
+		if (!TYPE.equals(file.getContentType())) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public static List<UserChecking> excelToUserChecking(InputStream is, RequestImportFile infoFile) {
+		try {
+			Workbook workbook = new XSSFWorkbook(is);
+
+			Sheet sheet = workbook.getSheet(SHEET);
+			Iterator<Row> rows = sheet.iterator();
+
+			List<UserChecking> listUserChecking = new ArrayList<UserChecking>();
+
+			int rowNumber = 0;
+			while (rows.hasNext()) {
+				Row currentRow = rows.next();
+
+				// skip header
+				if (rowNumber == 0) {
+					rowNumber++;
+					continue;
+				}
+
+				Iterator<Cell> cellsInRow = currentRow.iterator();
+
+				UserChecking userChecking = new UserChecking();
+
+				int cellIdx = 0;
+				while (cellsInRow.hasNext()) {
+					Cell currentCell = cellsInRow.next();
+
+					switch (cellIdx) {
+						case 0:
+							userChecking.setUserName(currentCell.getStringCellValue());
+							break;
+
+						case 1:
+							userChecking.setActiveFlag(currentCell.getStringCellValue());
+							break;
+
+						default:
+							break;
+					}
+					userChecking.setUserLogin(infoFile.getUserLogin());
+					userChecking.setUserRole("role_user");
+					userChecking.setCheckedFlag("OPEN");
+					userChecking.setCreateDate(new Timestamp(new Date().getTime()));
+					cellIdx++;
+				}
+
+				listUserChecking.add(userChecking);
+			}
+
+			workbook.close();
+
+			return listUserChecking;
+		} catch (IOException e) {
+			throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
+		}
 	}
 }
