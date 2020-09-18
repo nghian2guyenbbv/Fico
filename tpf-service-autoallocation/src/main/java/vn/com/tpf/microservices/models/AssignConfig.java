@@ -2,52 +2,41 @@ package vn.com.tpf.microservices.models;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_USER_DETAIL")
+@Table(name = "ALLOCATION_ASSIGN_CONFIG")
 @Data
 public class AssignConfig {
 
     @Id
-    @Column(name = "USER_ID")
-    private String userId;
+    @Column(name = "ID")
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
-    @Column(name = "USER_NAME")
-    private String UserName;
+    @Column(name = "STAGE_NAME")
+    private String stageName;
+
+    @Column(name = "PRODUCT")
+    private String product;
 
     @Column(name = "TEAM_NAME")
     private String teamName;
 
-    @Column(name = "TEAM_LEADER")
-    private String teamLeader;
-
-    @Column(name = "ACTIVE_FLAG")
-    private String activeFlag;
-
-    @Column(name = "USER_ROLE")
-    private String userRole;
-
-    @Column(name = "CREATED_DATE")
-    private Timestamp createDate;
-
-    @Column(name = "UPDATED_TIME")
-    private Timestamp updateTime;
-
-    @Column(name = "WORK_OFF")
-    private String workOff;
-
-    @Column(name = "QUOTA_APP")
-    private String quotaApp;
-
-    @Column(name = "PENDING_APP")
-    private String pendingApp;
-
     @Column(name = "ASSIGN_FLAG")
     private String assignFlag;
+
+    @Column(name = "USER_CREATE")
+    private String userCreate;
+
+    @Column(name = "CREATE_DATE")
+    private Timestamp createDate;
+
+    @Column(name = "USER_UPDATE")
+    private String userUpdate;
+
+    @Column(name = "UPDATE_DATE")
+    private Timestamp updateDate;
 
 }

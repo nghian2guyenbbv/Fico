@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.Cell;
@@ -14,10 +15,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
-import vn.com.tpf.microservices.dao.ETLDataPushDAO;
-import vn.com.tpf.microservices.dao.HistoryAllocationDAO;
-import vn.com.tpf.microservices.dao.UserCheckingDAO;
+import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
+import vn.com.tpf.microservices.models.AssignConfig;
+import vn.com.tpf.microservices.models.HistoryAllocation;
+import vn.com.tpf.microservices.models.ResponseModel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +44,12 @@ public class AutoAllocationService {
 
 	@Autowired
 	HistoryAllocationDAO historyAllocationDAO;
+
+	@Autowired
+	AssignConfigDAO assignConfigDAO;
+
+	@Autowired
+	TeamConfigDAO teamConfigDAO;
 
 	private static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 	private static String SHEET = "UserTeam";
@@ -77,7 +85,7 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> addUser(JsonNode request) {
+	public Map<String, Object> getHistoryApp(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
@@ -176,6 +184,56 @@ public class AutoAllocationService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getAssignConfig(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Map<String, Object> result = new HashMap<>();
+			Map<String, AssignConfigResponse> mapAssignConfig = new HashMap<>();
+			List<AssignConfig> lst = assignConfigDAO.findAllByOrderByStageName();
+			List<String> listTeamName = teamConfigDAO.getListTeamName();
+
+			for (AssignConfig ac : lst) {
+				if(!mapAssignConfig.containsKey(ac.getStageName())) {
+					AssignConfigResponse assignConfigResponse = new AssignConfigResponse();
+					assignConfigResponse.setStageName(ac.getStageName());
+					Map<String, AssignConfigProductResponse> assignConfigProductResponseMap = new HashMap<>();
+					AssignConfigProductResponse assignConfigProductResponse = new AssignConfigProductResponse();
+					assignConfigProductResponse.setId(ac.getId());
+					assignConfigProductResponse.setActive(ac.getAssignFlag());
+					assignConfigProductResponse.setTeamId(ac.getTeamName());
+					assignConfigProductResponseMap.put(ac.getProduct(), assignConfigProductResponse);
+					assignConfigResponse.setProducts(assignConfigProductResponseMap);
+					mapAssignConfig.put(ac.getStageName(), assignConfigResponse);
+				} else {
+					AssignConfigProductResponse assignConfigProductResponse = new AssignConfigProductResponse();
+					assignConfigProductResponse.setId(ac.getId());
+					assignConfigProductResponse.setActive(ac.getAssignFlag());
+					assignConfigProductResponse.setTeamId(ac.getTeamName());
+					Map<String, AssignConfigProductResponse> product = mapAssignConfig.get(ac.getStageName()).getProducts();
+					product.put(ac.getProduct(),assignConfigProductResponse);
+				}
+			}
+			result.put("data", mapAssignConfig);
+			result.put("lstTeamName", listTeamName);
+			responseModel.setData(result);
+			responseModel.setResult_code(200);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+
 			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -247,4 +305,80 @@ public class AutoAllocationService {
 			throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
 		}
 	}
+
+	public Map<String,Object> setAssignConfig(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		try {
+
+			AssignConfig assignConfigRequest = mapper.readValue(request.get("body").toString(),
+					new TypeReference<AssignConfig>(){});
+			Date date = new Date();
+			Timestamp now = new Timestamp(date.getTime());
+			if (assignConfigRequest != null) {
+				if (assignConfigRequest.getId() != null) {
+					Optional<AssignConfig> assignConfig = assignConfigDAO.findById(assignConfigRequest.getId());
+					assignConfigRequest.setUpdateDate(now);
+					assignConfigRequest.setCreateDate(assignConfig.get().getCreateDate());
+					assignConfigRequest.setUserCreate(assignConfig.get().getUserCreate());
+				} else {
+					assignConfigRequest.setCreateDate(now);
+				}
+				assignConfigDAO.save(assignConfigRequest);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(200);
+				responseModel.setMessage("Save success");
+			} else {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Request error");
+			}
+
+
+//			if (validationAssignConfig(assignConfigRequest, responseModel)) {
+//				assignConfigDAO.save(assignConfigRequest);
+//			} else {
+//
+//			}
+
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+//	private boolean validationAssignConfig(AssignConfig assignConfigRequest, ResponseModel responseModel) {
+//		if (assignConfigRequest != null) {
+//			if (assignConfigRequest.getStageName() == null) {
+//				responseModel.setReference_id(UUID.randomUUID().toString());
+//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//				responseModel.setResult_code(500);
+//				responseModel.setMessage("Stage Name is null");
+//				return false;
+//			} else {
+//				if (assignConfigRequest.getStageName().isEmpty()) {
+//					responseModel.setReference_id(UUID.randomUUID().toString());
+//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//					responseModel.setResult_code(500);
+//					responseModel.setMessage("Stage Name is empty");
+//					return false;
+//				}
+//			}
+//		} else {
+//			responseModel.setReference_id(UUID.randomUUID().toString());
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code(500);
+//			responseModel.setMessage("Request error");
+//			return false;
+//		}
+//		return true;
+//	}
 }

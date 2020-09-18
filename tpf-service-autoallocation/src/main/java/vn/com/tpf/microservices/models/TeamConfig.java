@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_USER_DETAIL")
+@Table(name = "ALLOCATION_TEAM_CONFIG")
 @Data
 public class TeamConfig {
 
