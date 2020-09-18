@@ -308,7 +308,7 @@ public class LeadDetailPage {
                         if(file.exists()) {
                             //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
                             String photoUrl = file.getAbsolutePath();
-                            System.out.println("paht;" + photoUrl);
+                            System.out.println("PATH: " + photoUrl);
                             // Added sleep to make you see the difference.
                             Thread.sleep(3000);
 
