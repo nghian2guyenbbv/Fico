@@ -46,4 +46,17 @@ public class DocumentFinnOneService {
 		return response(404, mapper.createObjectNode().put("message", "ProductCode and SchemeCode Not Found"));
 		
 	}
+
+	public JsonNode getProductCode(JsonNode request) {
+
+		if (request.path("body").path("schemeCode").isTextual()) {
+			Query query = Query.query(Criteria.where("schemeCode").is(request.path("body").path("schemeCode").asText()));
+			DocumentFinnOne document = mongoTemplate.findOne(query, DocumentFinnOne.class);
+			if (document == null)
+				return response(404, mapper.createObjectNode().put("message", "SchemeCode Not Found"));
+			return response(200, mapper.convertValue(document, JsonNode.class));
+		}
+		return response(404, mapper.createObjectNode().put("message", "SchemeCode Not Found"));
+
+	}
 }
