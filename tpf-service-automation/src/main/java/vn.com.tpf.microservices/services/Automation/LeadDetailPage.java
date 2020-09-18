@@ -366,10 +366,18 @@ public class LeadDetailPage {
 
             Utilities.captureScreenShot(_driver);
 
-            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> modalConfirmElement.isDisplayed());
+            try {
+                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
+                modalBtnConfirmElement.click();
+            } catch (Exception e) {
+                System.out.println("modalConfirmElement visibale Timeout!");
+            }
 
-            modalBtnConfirmElement.click();
+//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> modalConfirmElement.isDisplayed());
+//
+//            modalBtnConfirmElement.click();
 
             Utilities.captureScreenShot(_driver);
         } catch (Exception e) {
