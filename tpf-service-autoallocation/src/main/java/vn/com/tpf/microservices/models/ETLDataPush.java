@@ -22,37 +22,34 @@ public class ETLDataPush {
     private String createUser;
 
     @Column(name = "LEAD_ID")
-    private Long leadId;
+    private String leadId;
 
     @Column(name = "SOURCE_CHANNEL")
-    private Timestamp suorceChanel;
+    private String suorceChanel;
 
     @Column(name = "CREATE_DATE")
     private String createDate;
 
     @Column(name = "STATUS")
-    private Timestamp status;
+    private String status;
 
     @Column(name = "CUST_NAME")
-    private Timestamp cusName;
+    private String cusName;
 
     @Column(name = "CUST_ID")
-    private Timestamp cusId;
+    private String cusId;
 
     @Column(name = "STAGE_NAME")
-    private Timestamp stageName;
-
-    @Column(name = "STAGE_ID")
-    private Timestamp stageId;
+    private String stageName;
 
     @Column(name = "PRODUCT")
-    private Timestamp product;
+    private String product;
 
     @Column(name = "SCHEME")
-    private Timestamp scheme;
+    private String scheme;
 
     @Column(name = "LOAN_AMT")
-    private Timestamp loanAmt;
+    private Long loanAmt;
 
     @Column(name = "UPDATE_DATE")
     private String updateDate;

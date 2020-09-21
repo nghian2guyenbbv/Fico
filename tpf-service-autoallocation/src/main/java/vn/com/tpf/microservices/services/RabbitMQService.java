@@ -32,7 +32,7 @@ public class RabbitMQService {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	private AutoAllocationService autoRoutingServiceService;
+	private AutoAllocationService autoAllocationService;
 
 	@PostConstruct
 	private void init() {
@@ -83,6 +83,14 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
+				case "ETLPushData":
+					return response(message, payload, autoAllocationService.sendAppFromF1(request));
+				case "uploadUser":
+					return response(message, payload, autoAllocationService.uploadUser(request));
+				case "addUser":
+					return response(message, payload, autoAllocationService.addUser(request));
+				case "getUser":
+					return response(message, payload, autoAllocationService.getAllUser(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

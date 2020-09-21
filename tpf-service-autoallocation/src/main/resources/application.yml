@@ -1,7 +1,6 @@
 spring:
   rabbitmq:
     host: 10.131.31.202
-    schema:
   datasource:
     url: jdbc:oracle:thin:@//10.131.21.47:1521/ORCLCDB.localdomain
     username: dummy

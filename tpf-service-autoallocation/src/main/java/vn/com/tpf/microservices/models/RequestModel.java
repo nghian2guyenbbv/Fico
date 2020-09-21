@@ -1,31 +1,30 @@
 package vn.com.tpf.microservices.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
 
 import java.io.Serializable;
-
+import java.sql.Timestamp;
+@Data
 public class RequestModel<T> implements Serializable {
-    private String request_id;
-    private String date_time;
+
+    private String product;
+    private String clientId;
+    private String scheme;
+    private String applicationNo;
+    private String sourceChannel;
+    private Long loanAmountRequested;
+    private String customerName;
+    private String createdDate;
+    private String stage;
+    private String customerID;
+    private String createdUser;
+    private String leadId;
+    private String status;
 
     public RequestModel() {
     }
 
-    public String getRequest_id() {
-        return request_id;
-    }
-
-    public void setRequest_id(String request_id) {
-        this.request_id = request_id;
-    }
-
-    public String getDate_time() {
-        return date_time;
-    }
-
-    public void setDate_time(String date_time) {
-        this.date_time = date_time;
-    }
 
 }
 
