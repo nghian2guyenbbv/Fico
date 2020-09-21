@@ -273,6 +273,40 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
+			Assert.notNull(request.get("body"), "no body");
+			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+
+			if (requestModel == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Data is empty");
+			} else {
+				ETLDataPush etlDataPush = new ETLDataPush();
+				Long id = etlDataPushDAO.getIdFromSequence();
+				etlDataPush.setAppNumber(requestModel.getApplicationNo());
+				etlDataPush.setCreateDate(requestModel.getCreatedDate());
+				etlDataPush.setCreateUser(requestModel.getCreatedUser());
+				etlDataPush.setCusId(requestModel.getCustomerID());
+				etlDataPush.setCusName(requestModel.getCustomerName());
+				etlDataPush.setLeadId(requestModel.getLeadId());
+				etlDataPush.setLoanAmt(requestModel.getLoanAmountRequested());
+				etlDataPush.setProduct(requestModel.getProduct());
+				etlDataPush.setScheme(requestModel.getScheme());
+				etlDataPush.setStageName(requestModel.getStage());
+				etlDataPush.setStatus(requestModel.getStatus());
+				etlDataPush.setSuorceChanel(requestModel.getSourceChannel());
+				etlDataPush.setUpdateDate("");
+
+				etlDataPushDAO.save(etlDataPush);
+
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(200);
+				responseModel.setMessage("Push success.");
+			}
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
