@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.catalina.User;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -139,54 +140,6 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
-			Assert.notNull(request.get("body"), "no body");
-			UserChecking requestModel = mapper.treeToValue(request.get("body"), UserChecking.class);
-
-			if (requestModel == null) {
-				responseModel.setRequest_id(request_id);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(500);
-				responseModel.setMessage("Add User Failed. Please fill all data of User.");
-			} else {
-				if (requestModel.getUserName().isEmpty()){
-					responseModel.setRequest_id(request_id);
-					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code(500);
-					responseModel.setMessage("User name is mandatory !");
-					return Map.of("status", 200, "data", responseModel);
-				}
-
-				requestModel.setCreateDate(new Timestamp(new Date().getTime()));
-				requestModel.setUserRole("role_user");
-				requestModel.setCheckedFlag("OPEN");
-				userCheckingDAO.save(requestModel);
-
-				String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
-						requestModel.getUserLogin(),
-						requestModel.getTeamName());
-
-				String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
-						(rs, rowNum) ->
-								rs.getString(("RESULT")
-								));
-
-				if (row_string.isEmpty()) {
-					responseModel.setRequest_id(request_id);
-					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code(500);
-					responseModel.setMessage("Add user success !");
-				} else {
-					responseModel.setRequest_id(request_id);
-					responseModel.setReference_id(UUID.randomUUID().toString());
-					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-					responseModel.setResult_code(500);
-					responseModel.setMessage(row_string + "add failed.");
-					return Map.of("status", 200, "data", responseModel);
-				}
-			}
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
@@ -240,7 +193,7 @@ public class AutoAllocationService {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(500);
+				responseModel.setResult_code(200);
 				responseModel.setMessage("Add user success !");
 			} else {
 				responseModel.setRequest_id(request_id);
@@ -263,6 +216,72 @@ public class AutoAllocationService {
 		}
 		return Map.of("status", 200, "data", responseModel);
 		}
+
+
+	public Map<String, Object> addUser(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserChecking requestModel = mapper.treeToValue(request.get("body"), UserChecking.class);
+
+			if (requestModel == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Add User Failed. Please fill all data of User.");
+			} else {
+				if (requestModel.getUserName().isEmpty()){
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(500);
+					responseModel.setMessage("User name is mandatory !");
+					return Map.of("status", 200, "data", responseModel);
+				}
+
+				requestModel.setCreateDate(new Timestamp(new Date().getTime()));
+				requestModel.setUserRole("role_user");
+				requestModel.setCheckedFlag("OPEN");
+				userCheckingDAO.save(requestModel);
+
+				String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
+						requestModel.getUserLogin(),
+						requestModel.getTeamName());
+
+				String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
+						(rs, rowNum) ->
+								rs.getString(("RESULT")
+								));
+
+				if (row_string.isEmpty()) {
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(200);
+					responseModel.setMessage("Add user success !");
+				} else {
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(500);
+					responseModel.setMessage(row_string + "add failed.");
+					return Map.of("status", 200, "data", responseModel);
+				}
+			}
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
 
 	/**
 	 * To save log when inhouse call this service
