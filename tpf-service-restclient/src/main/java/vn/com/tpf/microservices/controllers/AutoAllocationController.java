@@ -18,7 +18,7 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/etl-push-data")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> check(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> pushDataFromF1(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "ETLPushData");
@@ -58,7 +58,21 @@ public class AutoAllocationController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/tpf-service-autoallocation/get-user")
+	@GetMapping("/tpf-service-autoallocation/get-all-user")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> getAllUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getAllUser");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation1", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@GetMapping("/tpf-service-autoallocation/get-user")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
 	public ResponseEntity<?> getUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {

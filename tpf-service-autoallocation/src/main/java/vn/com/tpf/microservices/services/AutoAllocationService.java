@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.Cell;
@@ -18,15 +19,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
-import vn.com.tpf.microservices.dao.ETLDataPushDAO;
-import vn.com.tpf.microservices.dao.HistoryAllocationDAO;
-import vn.com.tpf.microservices.dao.UserCheckingDAO;
-import vn.com.tpf.microservices.dao.UserDetailsDAO;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
-import vn.com.tpf.microservices.models.AssignConfig;
-import vn.com.tpf.microservices.models.HistoryAllocation;
-import vn.com.tpf.microservices.models.ResponseModel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,7 +94,7 @@ public class AutoAllocationService {
 		String request_id = null;
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			RequestGetUserDeatail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDeatail.class);
+			RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
 
 			Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
 			if (requestModel.getTypeSort() == "ESC") {
@@ -110,7 +104,7 @@ public class AutoAllocationService {
 			Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
 
 			Page<UserDetail> listUserDetails;
-			if ( requestModel.getRoleUserLogin() == "role_leader") {
+			if ( requestModel.getRoleUserLogin() == "role_teamlead") {
 				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getTeamName(), pageable);
 			} else {
 				listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
@@ -144,8 +138,55 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+	public Map<String, Object> getUser(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
 
-	public Map<String, Object> addUser(JsonNode request) {
+			Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
+			if (requestModel.getTypeSort() == "ESC") {
+				typeSort = Sort.by(requestModel.getSortItem()).ascending();
+			}
+
+			Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
+
+			Page<UserDetail> listUserDetails;
+			if ( requestModel.getRoleUserLogin() == "role_teamlead") {
+				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getTeamName(), pageable);
+			} else {
+				listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
+			}
+
+			if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Empty");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Get success");
+			responseModel.setData(listUserDetails);
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 	public Map<String, Object> getHistoryApp(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
