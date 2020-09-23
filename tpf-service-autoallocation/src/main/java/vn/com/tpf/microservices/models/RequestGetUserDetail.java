@@ -3,7 +3,7 @@ package vn.com.tpf.microservices.models;
 import lombok.Data;
 
 @Data
-public class RequestGetUserDeatail {
+public class RequestGetUserDetail {
 
     private String teamName;
     private int page;

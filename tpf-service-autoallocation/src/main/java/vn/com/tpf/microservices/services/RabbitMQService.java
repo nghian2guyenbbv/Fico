@@ -89,8 +89,10 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.uploadUser(request));
 				case "addUser":
 					return response(message, payload, autoAllocationService.addUser(request));
-				case "getUser":
+				case "getAllUser":
 					return response(message, payload, autoAllocationService.getAllUser(request));
+				case "getUser":
+					return response(message, payload, autoAllocationService.getUser(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

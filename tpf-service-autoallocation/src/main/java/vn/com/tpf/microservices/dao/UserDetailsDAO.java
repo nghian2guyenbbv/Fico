@@ -14,5 +14,5 @@ public interface UserDetailsDAO extends JpaRepository<UserDetail, Long> {
     Page<UserDetail> findAllUserForLeader(@Param("teamName") String teamName, Pageable pageable);
 
     @Query("SELECT e FROM UserDetail e WHERE e.teamName LIKE :teamName AND e.userRole = 'role_user' AND e.userRole = 'role_admin' ")
-    Page<UserDetail> findAllUserForSub(@Param("name") String name, Pageable pageable);
+    Page<UserDetail> findAllUserForSub(@Param("teamName") String teamName, Pageable pageable);
 }
