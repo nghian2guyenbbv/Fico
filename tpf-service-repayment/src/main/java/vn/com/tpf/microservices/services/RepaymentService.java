@@ -71,6 +71,7 @@ import java.util.Properties;
 
 @Service
 @EnableScheduling
+@Transactional
 public class RepaymentService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
