@@ -77,7 +77,7 @@ public class RabbitMQService {
 		return null;
 	}
 
-	@RabbitListener(queues = "tpf-service-autoallocation1")
+	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 		try {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
