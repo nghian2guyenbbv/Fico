@@ -490,10 +490,15 @@ public class CRM_ApplicationInfoPersonalTab {
                         WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
                         new Select(type).selectByVisibleText("Spouse Other National ID");
                     }
-                    WebElement country = _driver.findElement(By.id("idDetail_country" + i));
-                    new Select(country).selectByVisibleText("Vietnam");
                 }
             }
+
+            List<WebElement> countryOfIssue = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_country')]"));
+            for(int i=0; i<countryOfIssue.size()-1; i++){
+                WebElement country = countryOfIssue.get(i);
+                new Select(country).selectByVisibleText("Vietnam");
+            }
+
 
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnAddIdentElement.isEnabled());
