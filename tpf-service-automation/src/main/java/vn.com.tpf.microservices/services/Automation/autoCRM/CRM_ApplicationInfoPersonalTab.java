@@ -475,6 +475,13 @@ public class CRM_ApplicationInfoPersonalTab {
                 for (int i=0; i<documentType.size()-1; i++) {
                     Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
                     String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
+                    WebElement deleteDetailsId = _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]"));
+                    if (optionIdentificationTypeLabel.equals("Other National ID")){
+                        deleteDetailsId.click();
+                    }
+                    if (optionIdentificationTypeLabel.equals("Spouse Other National ID")){
+                        deleteDetailsId.click();
+                    }
                     if (optionIdentificationTypeLabel.equals("Current National ID")){
                         WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
                         new Select(type).selectByVisibleText("Other National ID");
