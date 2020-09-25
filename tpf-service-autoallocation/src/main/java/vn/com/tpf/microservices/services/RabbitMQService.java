@@ -83,6 +83,12 @@ public class RabbitMQService {
 			JsonNode request = mapper.readTree(new String(payload, "UTF-8"));
 
 			switch (request.path("func").asText()) {
+				case "historyAllocation":
+					return response(message, payload, autoAllocationService.getHistoryApp(request) );
+				case "assignConfig":
+					return response(message, payload, autoAllocationService.getAssignConfig(request));
+				case "setAssignConfig":
+					return response(message, payload, autoAllocationService.setAssignConfig(request));
 				case "ETLPushData":
 					return response(message, payload, autoAllocationService.sendAppFromF1(request));
 				case "uploadUser":
