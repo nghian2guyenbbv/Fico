@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 public class UserDetail {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "USER_ID")
     private String userId;
 
@@ -43,8 +44,5 @@ public class UserDetail {
 
     @Column(name = "PENDING_APP")
     private String pendingApp;
-
-    @Column(name = "ASSIGN_FLAG")
-    private String assignFlag;
 
 }
