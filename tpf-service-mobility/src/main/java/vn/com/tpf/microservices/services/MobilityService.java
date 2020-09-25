@@ -364,16 +364,25 @@ public class MobilityService {
 		final String productCode = data.path("productCode").asText().replace(" ", "_").trim().toLowerCase();
 		final String schemeCode = data.path("schemeCode").asText().replace(" ", "_").trim().toLowerCase();
 
-		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
-						Map.of("productCode", data.path("productCode").asText(), "schemeCode",
+//		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
+//				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
+//						Map.of("productCode", data.path("productCode").asText(), "schemeCode",l
+//								data.path("schemeCode").asText())));
+
+//		if (documentFinnOne.path("status").asInt() != 200)
+//			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+//					String.format("%s %s not found", productCode, schemeCode)));
+
+		JsonNode productCodeFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getProductCode", "reference_id", request.path("reference_id"), "body",
+						Map.of( "schemeCode",
 								data.path("schemeCode").asText())));
 
-		if (documentFinnOne.path("status").asInt() != 200)
+		if (productCodeFinnOne.path("status").asInt() != 200)
 			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
-					String.format("%s %s not found", productCode, schemeCode)));
+					String.format("%s not found",schemeCode)));
 
-		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
+		ObjectNode documentsDb = mapper.convertValue(productCodeFinnOne.path("data").path("documents"), ObjectNode.class);
 		ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
 		for (int index = 0; index < documents.size(); index++) {
 			if (documents.get(index).path("documentMd5").asText().isBlank()
@@ -431,14 +440,17 @@ public class MobilityService {
 		String partnerName = "IN-HOUSE";
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
-				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
-				.set("schemeFinnOne", documentFinnOne.path("data").path("valueShemeFinnOne").asText())
-				.set("productFinnOne", documentFinnOne.path("data").path("valueProductFinnOne").asText())
+				.set("product", productCodeFinnOne.path("data").path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
+				.set("schemeFinnOne", productCodeFinnOne.path("data").path("valueShemeFinnOne").asText())
+				.set("productFinnOne", productCodeFinnOne.path("data").path("valueProductFinnOne").asText())
 				.set("filesUpload", filesUpload)
 				.set("communicationTranscript", data.path("communicationTranscript").asText())
 				.set("partnerId", partnerId)
 				.set("partnerName",partnerName);
 
+		if ("STUDENT LOAN".equals(productCodeFinnOne.path("data").path("valueProductFinnOne").asText())){
+			update.set("branch","STUDENT");
+		}
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 

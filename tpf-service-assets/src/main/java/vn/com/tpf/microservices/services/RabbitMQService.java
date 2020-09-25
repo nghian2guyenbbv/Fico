@@ -110,6 +110,9 @@ public class RabbitMQService {
 				return response(message, payload, fieldsFinnOneService.getListFinnOneFileds(request));
 			case "updateStatus1Partner":
 				return response(message, payload, partnerService.updateStatus1Partner(request));
+			case "getProductCode":
+				return response(message, payload, documentFinnOneService.getProductCode(request));
+
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
