@@ -88,7 +88,7 @@ public class AutoAllocationController {
 
 	@GetMapping("/tpf-service-autoallocation/get-assign-config/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> setAssignConfig(@RequestHeader("Authorization") String token) throws Exception {
+	public ResponseEntity<?> getAssignConfig(@RequestHeader("Authorization") String token) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "assignConfig");
 		request.put("token", token);
@@ -100,7 +100,7 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/set-assign-config/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> getAssignConfig(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> setAssignConfig(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "setAssignConfig");
 		request.put("token", token);
