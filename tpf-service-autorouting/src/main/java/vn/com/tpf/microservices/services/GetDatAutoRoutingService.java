@@ -109,6 +109,9 @@ public class GetDatAutoRoutingService {
         String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK) - 1);
         List<ScheduleRoute> scheduleRouteList  = scheduleRoutingDAO.findAllByDayId(day);
         for ( ScheduleRoute scheduleRoute: scheduleRouteList) {
+            scheduleRoute.getTimeStart().setDate(now.getDate());
+            scheduleRoute.getTimeStart().setMonth(now.getMonth());
+            scheduleRoute.getTimeStart().setYear(now.getYear());
             Map<String, Object> setDataMap = new HashMap<>();
             setDataMap.put("KEY" , scheduleRoute.getConfigRouting().getIdConfig() + "TimeStart");
             setDataMap.put("VALUE",scheduleRoute.getTimeStart());
@@ -128,6 +131,9 @@ public class GetDatAutoRoutingService {
         String day = Integer.toString(calendar.get(Calendar.DAY_OF_WEEK) - 1);
         List<ScheduleRoute> scheduleRouteList  = scheduleRoutingDAO.findAllByDayId(day);
         for ( ScheduleRoute scheduleRoute: scheduleRouteList) {
+            scheduleRoute.getTimeEnd().setDate(now.getDate());
+            scheduleRoute.getTimeEnd().setMonth(now.getMonth());
+            scheduleRoute.getTimeEnd().setYear(now.getYear());
             Map<String, Object> setDataMap = new HashMap<>();
             setDataMap.put("KEY" , scheduleRoute.getConfigRouting().getIdConfig() + "TimeEnd");
             setDataMap.put("VALUE",scheduleRoute.getTimeEnd());

@@ -3,15 +3,12 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
@@ -24,6 +21,8 @@ import vn.com.tpf.microservices.models.*;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -265,22 +264,32 @@ public class AutoRoutingService {
 	 * @return
 	 */
 	public String checkRule (LogChoiceRouting request) {
-		String chanelNumber = "0";
+		boolean checkRule = false;
+		String chanelNumber = "0" ;
 		String chanelConfig  = redisService.getValueFromCache("chanelConfig",request.getChanelId()+"Config" );
-		if (!chanelConfig.isEmpty() && !chanelConfig.equals("0")) {
-			String timeStart  = redisService.getValueFromCache("chanelTimeStart",request.getChanelId()+"TimeStart" );
-			String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
-			long timeLocal = 	System.currentTimeMillis();
-			if (timeLocal > Long.parseLong(timeStart) && timeLocal < Long.parseLong(timeEnd)) {
-				int quota  = Integer.parseInt(redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota"));
-				if (quota > 0) {
-					chanelNumber = "1";
-					quota = quota - 1;
-					redisService.updateCache("chanelQuota",
-							request.getChanelId() + "Quota", quota);
-				}
+		String timeStart  = redisService.getValueFromCache("chanelTimeStart",request.getChanelId()+"TimeStart" );
+		String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
+		long timeLocal = 	System.currentTimeMillis();
+		if (timeLocal > Long.parseLong(timeStart) && timeLocal < Long.parseLong(timeEnd)) {
+			int quota  = Integer.parseInt(redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota"));
+			if (quota > 0) {
+				checkRule = true;
+				quota = quota - 1;
+				redisService.updateCache("chanelQuota",
+						request.getChanelId() + "Quota", quota);
 			}
 		}
+
+		if (checkRule) {
+			chanelNumber = chanelConfig;
+		} else {
+			if (chanelConfig.equals("1")) {
+				chanelNumber = "0";
+			} else {
+				chanelNumber = "1";
+			}
+		}
+
 		return chanelNumber;
 	}
 
