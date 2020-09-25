@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -58,7 +59,8 @@ public class AutoAllocationService {
 
 	private static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 	private static String SHEET = "UserTeam";
-
+	private static String ROLE_LEADER = "role_leader";
+	private static String ROLE_SUB = "role_supervisor";
 	/**
 	 * To check rule and return config rule to inhouse service
 	 * @param request
@@ -98,20 +100,20 @@ public class AutoAllocationService {
 			RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
 
 			Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
-			if (requestModel.getTypeSort() == "ESC") {
+			if (requestModel.getTypeSort().equals("ASC")) {
 				typeSort = Sort.by(requestModel.getSortItem()).ascending();
 			}
 
 			Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
 
 			Page<UserDetail> listUserDetails;
-			if ( requestModel.getRoleUserLogin() == "role_teamlead") {
-				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getTeamName(), pageable);
+			if ( requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
+				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
 			} else {
 				listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
 			}
 
-			if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
+			if (listUserDetails.getContent().size() <= 0 || listUserDetails.getContent() == null) {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -123,9 +125,9 @@ public class AutoAllocationService {
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(500);
+			responseModel.setResult_code(200);
 			responseModel.setMessage("Get success");
-			responseModel.setData(listUserDetails);
+			responseModel.setData(listUserDetails.getContent());
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
@@ -146,21 +148,7 @@ public class AutoAllocationService {
 			Assert.notNull(request.get("body"), "no body");
 			RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
 
-			Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
-			if (requestModel.getTypeSort() == "ESC") {
-				typeSort = Sort.by(requestModel.getSortItem()).ascending();
-			}
-
-			Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
-
-			Page<UserDetail> listUserDetails;
-			if ( requestModel.getRoleUserLogin() == "role_teamlead") {
-				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getTeamName(), pageable);
-			} else {
-				listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
-			}
-
-			if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
+			if (requestModel == null) {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -169,13 +157,68 @@ public class AutoAllocationService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			responseModel.setRequest_id(request_id);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(500);
-			responseModel.setMessage("Get success");
-			responseModel.setData(listUserDetails);
+			if (requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
+				UserDetail userDetail = userDetailsDAO.findByUserNameAndTeamLeader(requestModel.getUserName(), requestModel.getUserLogin());
 
+				if (userDetail == null) {
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(500);
+					responseModel.setMessage("Empty");
+					return Map.of("status", 200, "data", responseModel);
+				} else {
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(200);
+					responseModel.setData(userDetail);
+				}
+			} else if (requestModel.getRoleUserLogin().equals(ROLE_SUB)) {
+				if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
+					Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
+					if (requestModel.getTypeSort() == "ESC") {
+						typeSort = Sort.by(requestModel.getSortItem()).ascending();
+					}
+
+					Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
+
+					Page<UserDetail> listUserDetails = userDetailsDAO.findAllByTeamLeader(requestModel.getUserLeader(), pageable);
+
+					if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
+						responseModel.setRequest_id(request_id);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(500);
+						responseModel.setMessage("Empty");
+						return Map.of("status", 200, "data", responseModel);
+					}
+
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(200);
+					responseModel.setMessage("Get success");
+					responseModel.setData(listUserDetails);
+				} else {
+					UserDetail userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(), requestModel.getTeamName());
+
+					if (userDetail == null) {
+						responseModel.setRequest_id(request_id);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(500);
+						responseModel.setMessage("Empty");
+						return Map.of("status", 200, "data", responseModel);
+					} else {
+						responseModel.setRequest_id(request_id);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(200);
+						responseModel.setData(userDetail);
+					}
+				}
+			}
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
@@ -220,17 +263,20 @@ public class AutoAllocationService {
 			responseModel.setResult_code(500);
 			responseModel.setMessage("File is mandatory");
 		} else {
-			if (hasExcelFormat(requestModel.getUrlFile())) {
+			if (requestModel.getListUser() == null || requestModel.getListUser().size() <= 0 || requestModel.getListUser().isEmpty()) {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
-				responseModel.setMessage("Import file with format Excel or CSV");
+				responseModel.setMessage("List user in file is empty.");
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			List<UserChecking> userCheckingList = excelToUserChecking(requestModel.getUrlFile().getInputStream(), requestModel);
-			userCheckingDAO.saveAll(userCheckingList);
+			for (UserChecking us : requestModel.getListUser()) {
+				us.setCreateDate(new Timestamp(new Date().getTime()));
+			}
+
+			userCheckingDAO.saveAll(requestModel.getListUser());
 
 			String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
 					requestModel.getUserLogin(),
@@ -307,7 +353,7 @@ public class AutoAllocationService {
 								rs.getString(("RESULT")
 								));
 
-				if (row_string.isEmpty()) {
+				if (row_string == null || row_string.isEmpty()) {
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -438,73 +484,6 @@ public class AutoAllocationService {
 			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
-	}
-
-
-	public static boolean hasExcelFormat(MultipartFile file) {
-
-		if (!TYPE.equals(file.getContentType())) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public static List<UserChecking> excelToUserChecking(InputStream is, RequestImportFile infoFile) {
-		try {
-			Workbook workbook = new XSSFWorkbook(is);
-
-			Sheet sheet = workbook.getSheet(SHEET);
-			Iterator<Row> rows = sheet.iterator();
-
-			List<UserChecking> listUserChecking = new ArrayList<UserChecking>();
-
-			int rowNumber = 0;
-			while (rows.hasNext()) {
-				Row currentRow = rows.next();
-
-				// skip header
-				if (rowNumber == 0) {
-					rowNumber++;
-					continue;
-				}
-
-				Iterator<Cell> cellsInRow = currentRow.iterator();
-
-				UserChecking userChecking = new UserChecking();
-
-				int cellIdx = 0;
-				while (cellsInRow.hasNext()) {
-					Cell currentCell = cellsInRow.next();
-
-					switch (cellIdx) {
-						case 0:
-							userChecking.setUserName(currentCell.getStringCellValue());
-							break;
-
-						case 1:
-							userChecking.setActiveFlag(currentCell.getStringCellValue());
-							break;
-
-						default:
-							break;
-					}
-					userChecking.setUserLogin(infoFile.getUserLogin());
-					userChecking.setUserRole("role_user");
-					userChecking.setCheckedFlag("OPEN");
-					userChecking.setCreateDate(new Timestamp(new Date().getTime()));
-					cellIdx++;
-				}
-
-				listUserChecking.add(userChecking);
-			}
-
-			workbook.close();
-
-			return listUserChecking;
-		} catch (IOException e) {
-			throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
-		}
 	}
 
 	public Map<String,Object> setAssignConfig(JsonNode request) {

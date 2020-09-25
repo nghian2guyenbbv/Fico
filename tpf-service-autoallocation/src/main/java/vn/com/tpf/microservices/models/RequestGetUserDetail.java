@@ -6,9 +6,12 @@ import lombok.Data;
 public class RequestGetUserDetail {
 
     private String teamName;
-    private int page;
-    private int itemPerPage;
-    private String sortItem;
-    private String typeSort;
+    private int page = 0;
+    private int itemPerPage = 10;
+    private String sortItem = "userId";
+    private String typeSort = "ASC";
     private String roleUserLogin;
+    private String userName;
+    private String userLogin;
+    private String userLeader;
 }
