@@ -271,10 +271,13 @@ public class AutoRoutingService {
 			String timeStart  = redisService.getValueFromCache("chanelTimeStart",request.getChanelId()+"TimeStart" );
 			String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
 			long timeLocal = 	System.currentTimeMillis();
-			if (timeLocal > Long.parseLong(timeStart) || timeLocal < Long.parseLong(timeEnd)) {
-				String quota  = redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota" );
-				if (Integer.parseInt(quota) > 0) {
+			if (timeLocal > Long.parseLong(timeStart) && timeLocal < Long.parseLong(timeEnd)) {
+				int quota  = Integer.parseInt(redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota"));
+				if (quota > 0) {
 					chanelNumber = "1";
+					quota = quota - 1;
+					redisService.updateCache("chanelQuota",
+							request.getChanelId() + "Quota", quota);
 				}
 			}
 		}
