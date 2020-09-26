@@ -3,7 +3,6 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.catalina.User;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -24,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
+import javax.persistence.criteria.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
@@ -46,7 +46,7 @@ public class AutoAllocationService {
 	private UserCheckingDAO userCheckingDAO;
 
 	@Autowired
-	HistoryAllocationDAO historyAllocationDAO;
+	AllocationHistoryViewDao allocationHistoryViewDao;
 
 	@Autowired
 	AssignConfigDAO assignConfigDAO;
@@ -235,6 +235,128 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
+			Assert.notNull(request.get("body"), "no body");
+			String appNumber = request.get("body").path("appNumber") != null ?
+					request.get("body").path("appNumber").asText() : "";
+			String assignee = request.get("body").path("assignee") != null ?
+					request.get("body").path("assignee").asText() : "";
+			String statusAssign = request.get("body").path("statusAssign") != null ?
+					request.get("body").path("statusAssign").asText(): "";
+			String from = request.get("body").path("from") != null ?
+					request.get("body").path("from").asText(): "";
+			String to = request.get("body").path("to") != null ?
+					request.get("body").path("to").asText(): "";
+			String role = request.get("body").path("role") != null ?
+					request.get("body").path("role").asText(): "";
+			String teamName = request.get("body").path("teamName") != null ?
+					request.get("body").path("teamName").asText(): "";
+			int pageSize = request.get("body").path("pageSize").asInt();
+			int limit = request.get("body").path("limit").asInt();
+			String sortType = request.get("body").path("sortType") != null ?
+					request.get("body").path("sortType").asText(): "";
+			String sortStyle = request.get("body").path("sortStyle") != null ?
+					request.get("body").path("sortStyle").asText(): "";
+			Pageable pagination;
+
+			if (!sortType.isEmpty()) {
+				Sort sort;
+				if (sortStyle.equals("ASC")) {
+					sort = Sort.by(sortType).ascending();
+				} else {
+					sort = Sort.by(sortType).descending();
+				}
+				pagination = PageRequest.of(pageSize - 1 , limit, sort);
+			}
+			pagination = PageRequest.of(pageSize - 1, limit);
+
+
+
+
+//			Page<AllocationHistoryView> allocationHistoryViews;
+//			allocationHistoryViews = allocationHistoryViewDao.findAllRoleSup(assignee, teamName, pagination);
+//			if(!appNumber.isEmpty()) {
+//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getAppNumber().equals(appNumber));
+//			}
+//			if(!statusAssign.isEmpty()) {
+//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getStatusAssign().equals(statusAssign));
+//			}
+//			if (!from.isEmpty()) {
+//				Timestamp fromTimestamp = Timestamp.valueOf(from);
+//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getAssignedTime().before(fromTimestamp));
+//			}
+//			if (!to.isEmpty()) {
+//				Timestamp toTimestamp = Timestamp.valueOf(to);
+//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getAssignedTime().after(toTimestamp));
+//			}
+
+
+
+//				if (!assignee.isEmpty()) {
+//					if (role.equals("role_leader")) {
+//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
+//					} else if (role.equals("role_supervisor")){
+//						Join<AllocationHistoryView, UserDetail> joinView = root.join("teamName");
+//						predicates.add(criteriaBuilder.equal(joinView.get("userName"), assignee));
+//						predicates.add(criteriaBuilder.equal(joinView.get("teamName"), teamName));
+//						predicates.add(criteriaBuilder.equal(joinView.get("userRole"), "role_supervisor"));
+//					} else {
+//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
+//					}
+//				}
+//
+//
+//				if(!statusAssign.isEmpty()) {
+//					predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
+//				}
+//				if(!from.isEmpty()) {
+//					Timestamp fromTimestamp = Timestamp.valueOf(from);
+//					predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
+//				}
+//				if(!to.isEmpty()) {
+//					Timestamp toTimestamp = Timestamp.valueOf(to);
+//					predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
+//				}
+
+//			allocationHistoryViews	= allocationHistoryViewDao.findAll(new Specification() {
+////				@Override
+//				public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
+//					List<Predicate> predicates = new ArrayList<>();
+//
+//					if (!assignee.isEmpty()) {
+//						if (role.equals("role_leader")) {
+//							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
+//						} else if (role.equals("role_supervisor")){
+//							Join<AllocationHistoryView, UserDetail> joinView = root.join();
+//							predicates.add(criteriaBuilder.equal(joinView.get("userName"), assignee));
+//							predicates.add(criteriaBuilder.equal(joinView.get("teamName"), teamName));
+//							predicates.add(criteriaBuilder.equal(joinView.get("userRole"), "role_supervisor"));
+//						} else {
+//							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
+//						}
+//					}
+//
+//					if(!appNumber.isEmpty()) {
+//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("appNumber"), appNumber)));
+//					}
+//					if(!statusAssign.isEmpty()) {
+//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
+//					}
+//					if(!from.isEmpty()) {
+//						Timestamp fromTimestamp = Timestamp.valueOf(from);
+//						predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
+//					}
+//					if(!to.isEmpty()) {
+//						Timestamp toTimestamp = Timestamp.valueOf(to);
+//						predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
+//					}
+//
+//					return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+//				}
+//			}, pagination);
+
+
+
+			//responseModel.setData(allocationHistoryViews.getContent());
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
@@ -437,7 +559,7 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> getAssignConfig(JsonNode request) {
+	public Map<String, Object> getAssignConfig() {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
@@ -453,16 +575,16 @@ public class AutoAllocationService {
 					Map<String, AssignConfigProductResponse> assignConfigProductResponseMap = new HashMap<>();
 					AssignConfigProductResponse assignConfigProductResponse = new AssignConfigProductResponse();
 					assignConfigProductResponse.setId(ac.getId());
-					assignConfigProductResponse.setActive(ac.getAssignFlag());
-					assignConfigProductResponse.setTeamId(ac.getTeamName());
+					assignConfigProductResponse.setAssignFlag(ac.getAssignFlag());
+					assignConfigProductResponse.setTeamName(ac.getTeamName());
 					assignConfigProductResponseMap.put(ac.getProduct(), assignConfigProductResponse);
 					assignConfigResponse.setProducts(assignConfigProductResponseMap);
 					mapAssignConfig.put(ac.getStageName(), assignConfigResponse);
 				} else {
 					AssignConfigProductResponse assignConfigProductResponse = new AssignConfigProductResponse();
 					assignConfigProductResponse.setId(ac.getId());
-					assignConfigProductResponse.setActive(ac.getAssignFlag());
-					assignConfigProductResponse.setTeamId(ac.getTeamName());
+					assignConfigProductResponse.setAssignFlag(ac.getAssignFlag());
+					assignConfigProductResponse.setTeamName(ac.getTeamName());
 					Map<String, AssignConfigProductResponse> product = mapAssignConfig.get(ac.getStageName()).getProducts();
 					product.put(ac.getProduct(),assignConfigProductResponse);
 				}

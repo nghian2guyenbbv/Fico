@@ -2,8 +2,8 @@ package vn.com.tpf.microservices.models;
 
 public class AssignConfigProductResponse {
     private Long id;
-    private String active;
-    private String teamId;
+    private String assignFlag;
+    private String teamName;
 
     public Long getId() {
         return id;
@@ -13,19 +13,19 @@ public class AssignConfigProductResponse {
         this.id = id;
     }
 
-    public String getActive() {
-        return active;
+    public String getAssignFlag() {
+        return assignFlag;
     }
 
-    public void setActive(String active) {
-        this.active = active;
+    public void setAssignFlag(String assignFlag) {
+        this.assignFlag = assignFlag;
     }
 
-    public String getTeamId() {
-        return teamId;
+    public String getTeamName() {
+        return teamName;
     }
 
-    public void setTeamId(String teamId) {
-        this.teamId = teamId;
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
     }
 }

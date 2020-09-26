@@ -111,6 +111,8 @@ public class GetDatAutoRoutingService {
         for ( ScheduleRoute scheduleRoute: scheduleRouteList) {
             Map<String, Object> setDataMap = new HashMap<>();
             setDataMap.put("KEY" , scheduleRoute.getConfigRouting().getIdConfig() + "TimeStart");
+            Date date = new Date(scheduleRoute.getTimeStart().getTime());
+
             setDataMap.put("VALUE",scheduleRoute.getTimeStart());
             result.add(setDataMap);
         }

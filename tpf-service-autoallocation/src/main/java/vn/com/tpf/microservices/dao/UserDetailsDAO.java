@@ -8,14 +8,12 @@ import vn.com.tpf.microservices.models.UserDetail;
 
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface UserDetailsDAO extends JpaRepository<UserDetail, Long> {
 
-    @Query("SELECT e FROM UserDetail e WHERE e.teamLeader LIKE :teamLeader AND e.userRole = 'role_user'")
-    Page<UserDetail> findAllUserForLeader(@Param("teamLeader") String teamLeader, Pageable pageable);
+    @Query("SELECT e FROM UserDetail e WHERE e.teamName LIKE :teamName AND e.userRole = 'role_user'")
+    Page<UserDetail> findAllUserForLeader(@Param("teamName") String teamName, Pageable pageable);
 
-    @Query("SELECT e FROM UserDetail e WHERE e.teamName LIKE :teamName AND e.userRole = 'role_user' OR e.userRole = 'role_leader' ")
+    @Query("SELECT e FROM UserDetail e WHERE e.teamName LIKE :teamName AND e.userRole = 'role_user' AND e.userRole = 'role_admin' ")
     Page<UserDetail> findAllUserForSub(@Param("teamName") String teamName, Pageable pageable);
 
     UserDetail findByUserNameAndTeamLeader(String userName, String teamLeader);
@@ -23,4 +21,6 @@ public interface UserDetailsDAO extends JpaRepository<UserDetail, Long> {
     UserDetail findByUserNameAndTeamName(String userName, String teamName);
 
     Page<UserDetail> findAllByTeamLeader(String teamLeader, Pageable pageable);
+
+    UserDetail findByUserRoleAndUserNameAndTeamName(String userRole, String userName, String teamName);
 }

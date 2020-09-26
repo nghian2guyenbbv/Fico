@@ -6,10 +6,11 @@ spring:
     username: dummy
     password: dummy
     schema-username: DUMMY
-    driver-class-name: oracle.jdbc.OracleDriver
+#   driver-class-name: oracle.jdbc.OracleDriver
 #    jdbc-url: jdbc:oracle:thin:@10.1.66.32:1521:FICOCEN
 #    username: MIS
 #    password: Luanpv1#mis#2020
+    driver-class-name: oracle.jdbc.OracleDriver
   jpa:
     hibernate:
       ddl-auto: update

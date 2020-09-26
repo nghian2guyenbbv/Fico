@@ -86,7 +86,7 @@ public class RabbitMQService {
 				case "historyAllocation":
 					return response(message, payload, autoAllocationService.getHistoryApp(request) );
 				case "assignConfig":
-					return response(message, payload, autoAllocationService.getAssignConfig(request));
+					return response(message, payload, autoAllocationService.getAssignConfig());
 				case "setAssignConfig":
 					return response(message, payload, autoAllocationService.setAssignConfig(request));
 				case "ETLPushData":
