@@ -25,7 +25,7 @@ public class AutoAllocationController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation1", request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
@@ -39,7 +39,7 @@ public class AutoAllocationController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation1", request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
@@ -53,7 +53,7 @@ public class AutoAllocationController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation1", request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
@@ -67,7 +67,7 @@ public class AutoAllocationController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation1", request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
@@ -81,7 +81,7 @@ public class AutoAllocationController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation1", request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
