@@ -11,12 +11,6 @@ import vn.com.tpf.microservices.models.AllocationHistoryView;
 
 
 public interface AllocationHistoryViewDao extends JpaRepository<AllocationHistoryView, Long>, JpaSpecificationExecutor {
-    @Query("SELECT A FROM AllocationHistoryView A " +
-            "JOIN UserDetail B " +
-            "    ON A.teamName = B.teamName " +
-            "    AND B.userRole = 'role_supervisor' " +
-            "    AND B.userName = :userName " +
-            "    AND B.teamName = :teamName")
-    Page<AllocationHistoryView> findAllRoleSup(@Param("userName") String userName, @Param("teamName") String teamName, Pageable pageable);
+
 }
 

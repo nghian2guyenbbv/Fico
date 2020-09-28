@@ -37,6 +37,7 @@ public class AllocationHistoryView {
     private String holeReason;
     @Column(name = "TEAM_LEADER")
     private String teamLeader;
+
     @Column(name = "TEAM_NAME")
     private String teamName;
 }

@@ -236,6 +236,7 @@ public class AutoAllocationService {
 		String request_id = null;
 		try {
 			Assert.notNull(request.get("body"), "no body");
+
 			String appNumber = request.get("body").path("appNumber") != null ?
 					request.get("body").path("appNumber").asText() : "";
 			String assignee = request.get("body").path("assignee") != null ?
@@ -248,8 +249,13 @@ public class AutoAllocationService {
 					request.get("body").path("to").asText(): "";
 			String role = request.get("body").path("role") != null ?
 					request.get("body").path("role").asText(): "";
-			String teamName = request.get("body").path("teamName") != null ?
-					request.get("body").path("teamName").asText(): "";
+			List<String> teamNames = new ArrayList<>();
+			List<JsonNode> jsonNodeteamNames = new ArrayList<>();
+			Iterator<JsonNode> i = request.get("body").path("teamName").iterator();
+			i.forEachRemaining(jsonNodeteamNames::add);
+			for(JsonNode j : jsonNodeteamNames) {
+				teamNames.add(j.asText());
+			}
 			int pageSize = request.get("body").path("pageSize").asInt();
 			int limit = request.get("body").path("limit").asInt();
 			String sortType = request.get("body").path("sortType") != null ?
@@ -270,93 +276,48 @@ public class AutoAllocationService {
 			pagination = PageRequest.of(pageSize - 1, limit);
 
 
+			Page<AllocationHistoryView> allocationHistoryViews	= allocationHistoryViewDao.findAll(new Specification() {
+				@Override
+				public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
+					List<Predicate> predicates = new ArrayList<>();
 
+					if (!assignee.isEmpty()) {
+						if (role.equals("role_leader")) {
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
+						} else if (role.equals("role_supervisor") && teamNames.size() > 0){
+							//String teamNameSupRole = userDetailsDAO.findTeamNameSupRole(assignee, teamName);
+							CriteriaBuilder.In<String> inClause = criteriaBuilder.in(root.get("teamName"));
+							for (String t : teamNames) {
+								inClause.value(t);
+							}
+							predicates.add(criteriaBuilder.and(inClause));
+						} else {
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
+						}
+					}
 
-//			Page<AllocationHistoryView> allocationHistoryViews;
-//			allocationHistoryViews = allocationHistoryViewDao.findAllRoleSup(assignee, teamName, pagination);
-//			if(!appNumber.isEmpty()) {
-//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getAppNumber().equals(appNumber));
-//			}
-//			if(!statusAssign.isEmpty()) {
-//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getStatusAssign().equals(statusAssign));
-//			}
-//			if (!from.isEmpty()) {
-//				Timestamp fromTimestamp = Timestamp.valueOf(from);
-//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getAssignedTime().before(fromTimestamp));
-//			}
-//			if (!to.isEmpty()) {
-//				Timestamp toTimestamp = Timestamp.valueOf(to);
-//				allocationHistoryViews.filter(allocationHistoryView -> allocationHistoryView.getAssignedTime().after(toTimestamp));
-//			}
+					if(!appNumber.isEmpty()) {
+						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("appNumber"), appNumber)));
+					}
+					if(!statusAssign.isEmpty()) {
+						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
+					}
+					if(!from.isEmpty()) {
+						Timestamp fromTimestamp = Timestamp.valueOf(from);
+						predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
+					}
+					if(!to.isEmpty()) {
+						Timestamp toTimestamp = Timestamp.valueOf(to);
+						predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
+					}
 
-
-
-//				if (!assignee.isEmpty()) {
-//					if (role.equals("role_leader")) {
-//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
-//					} else if (role.equals("role_supervisor")){
-//						Join<AllocationHistoryView, UserDetail> joinView = root.join("teamName");
-//						predicates.add(criteriaBuilder.equal(joinView.get("userName"), assignee));
-//						predicates.add(criteriaBuilder.equal(joinView.get("teamName"), teamName));
-//						predicates.add(criteriaBuilder.equal(joinView.get("userRole"), "role_supervisor"));
-//					} else {
-//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
-//					}
-//				}
-//
-//
-//				if(!statusAssign.isEmpty()) {
-//					predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
-//				}
-//				if(!from.isEmpty()) {
-//					Timestamp fromTimestamp = Timestamp.valueOf(from);
-//					predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
-//				}
-//				if(!to.isEmpty()) {
-//					Timestamp toTimestamp = Timestamp.valueOf(to);
-//					predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
-//				}
-
-//			allocationHistoryViews	= allocationHistoryViewDao.findAll(new Specification() {
-////				@Override
-//				public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
-//					List<Predicate> predicates = new ArrayList<>();
-//
-//					if (!assignee.isEmpty()) {
-//						if (role.equals("role_leader")) {
-//							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
-//						} else if (role.equals("role_supervisor")){
-//							Join<AllocationHistoryView, UserDetail> joinView = root.join();
-//							predicates.add(criteriaBuilder.equal(joinView.get("userName"), assignee));
-//							predicates.add(criteriaBuilder.equal(joinView.get("teamName"), teamName));
-//							predicates.add(criteriaBuilder.equal(joinView.get("userRole"), "role_supervisor"));
-//						} else {
-//							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
-//						}
-//					}
-//
-//					if(!appNumber.isEmpty()) {
-//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("appNumber"), appNumber)));
-//					}
-//					if(!statusAssign.isEmpty()) {
-//						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
-//					}
-//					if(!from.isEmpty()) {
-//						Timestamp fromTimestamp = Timestamp.valueOf(from);
-//						predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
-//					}
-//					if(!to.isEmpty()) {
-//						Timestamp toTimestamp = Timestamp.valueOf(to);
-//						predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
-//					}
-//
-//					return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
-//				}
-//			}, pagination);
+					return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+				}
+			}, pagination);
 
 
 
-			//responseModel.setData(allocationHistoryViews.getContent());
+			responseModel.setData(allocationHistoryViews.getContent());
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
