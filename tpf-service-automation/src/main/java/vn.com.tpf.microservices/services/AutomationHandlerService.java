@@ -6716,7 +6716,18 @@ public class AutomationHandlerService {
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
 
-            leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+//            leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            boolean flagResult=leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            if(flagResult==false)
+            {
+                application.setApplicationId("UNKNOW");
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("File not enough!!!");
+                return;
+            }
 
             Utilities.captureScreenShot(driver);
 
