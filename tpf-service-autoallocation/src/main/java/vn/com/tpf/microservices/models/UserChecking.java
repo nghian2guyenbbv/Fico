@@ -33,5 +33,7 @@ public class UserChecking {
     @Column(name = "CHECKED_FLAG")
     private String checkedFlag;
 
+    @Transient
+    private String teamName;
 
 }

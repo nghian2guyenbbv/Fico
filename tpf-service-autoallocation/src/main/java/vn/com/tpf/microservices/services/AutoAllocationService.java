@@ -274,6 +274,9 @@ public class AutoAllocationService {
 
 			for (UserChecking us : requestModel.getListUser()) {
 				us.setCreateDate(new Timestamp(new Date().getTime()));
+				us.setUserRole("role_user");
+				us.setCheckedFlag("OPEN");
+
 			}
 
 			userCheckingDAO.saveAll(requestModel.getListUser());
@@ -340,7 +343,6 @@ public class AutoAllocationService {
 				}
 
 				requestModel.setCreateDate(new Timestamp(new Date().getTime()));
-				requestModel.setUserRole("role_user");
 				requestModel.setCheckedFlag("OPEN");
 				userCheckingDAO.save(requestModel);
 
