@@ -58,7 +58,7 @@ public class AutoAllocationController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/tpf-service-autoallocation/get-all-user")
+	@PostMapping("/tpf-service-autoallocation/get-all-user")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
 	public ResponseEntity<?> getAllUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
@@ -72,7 +72,7 @@ public class AutoAllocationController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@GetMapping("/tpf-service-autoallocation/get-user")
+	@PostMapping("/tpf-service-autoallocation/get-user")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
 	public ResponseEntity<?> getUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
