@@ -926,6 +926,19 @@ public class DataInitial {
         map.put("ReferenceDTO", referenceDTOs);
         ////********************************END REFERENCE DTO************************************////
 
+        //------------------------- UPDATE SET BANKCCARD THEM SCHEME - 24-09-20 -----------------
+
+        if(existingCustomerDTOList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu01_gold")||
+                existingCustomerDTOList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu02_titan") ||
+                existingCustomerDTOList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu03_silver") ||
+                existingCustomerDTOList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu04_brown") ||
+                existingCustomerDTOList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu05_blue"))
+        {
+            existingCustomerDTOList.getFullInfoApp().setNewBankCardNumber("5555555555555555");
+        }
+
+        //------------------------- END ---------------------------------------------------------
+
         ////******************************** DYNAMIC FORM ************************************////
         CRM_DynamicFormDTO dynamicForms = CRM_DynamicFormDTO.builder()
                 .loanPurpose(existingCustomerDTOList.getFullInfoApp().getLoanPurpose())
@@ -1106,6 +1119,19 @@ public class DataInitial {
         }
         map.put("ReferenceDTO", referenceDTOs);
         ////********************************END REFERENCE DTO************************************////
+
+        //------------------------- UPDATE SET BANKCCARD THEM SCHEME - 24-09-20 -----------------
+
+        if(saleQueueList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu01_gold")||
+                saleQueueList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu02_titan") ||
+                saleQueueList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu03_silver") ||
+                saleQueueList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu04_brown") ||
+                saleQueueList.getFullInfoApp().getSchemeCode().toLowerCase().equals("tu05_blue"))
+        {
+            saleQueueList.getFullInfoApp().setNewBankCardNumber("5555555555555555");
+        }
+
+        //------------------------- END ---------------------------------------------------------
 
         ////******************************** DYNAMIC FORM ************************************////
         CRM_DynamicFormDTO dynamicForms = CRM_DynamicFormDTO.builder()
