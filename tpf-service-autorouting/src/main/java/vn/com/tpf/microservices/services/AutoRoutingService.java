@@ -28,7 +28,7 @@ import java.util.*;
 @Service
 public class AutoRoutingService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
-	private static final String[] ID_COFIG = {"DE", "M4S", "SNET", "CRM"};
+	private static final String[] ID_COFIG = {"P4S", "M4S", "SNET", "CRM"};
 
 	@Autowired
 	private ObjectMapper mapper;
