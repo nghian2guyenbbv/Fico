@@ -6648,7 +6648,7 @@ public class AutomationHandlerService {
             application = (Application) mapValue.get("ApplicationDTO");
             application.setAutomationAcc(accountDTO.getUserName());
             QuickLead quickLead = application.getQuickLead();
-            //mongoTemplate.save(application);
+            mongoTemplate.save(application);
 
 
             //*************************** END GET DATA *********************//
