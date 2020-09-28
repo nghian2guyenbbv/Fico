@@ -27,5 +27,6 @@ public class AutoAssignAllocationDTO {
 
     private String project;
     private String reference_id;
+    private int assignStatus = 0;
 
 }

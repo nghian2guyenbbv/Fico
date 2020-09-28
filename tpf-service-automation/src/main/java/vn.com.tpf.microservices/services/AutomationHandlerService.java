@@ -6407,6 +6407,9 @@ public class AutomationHandlerService {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
+        String referenceId = "";
+        String projectId = "";
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
@@ -6486,8 +6489,9 @@ public class AutomationHandlerService {
                         Update update1 = new Update();
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
-                        update.set("automation_result", "AUTOASSIGN_PASS");
-                        update.set("automation_result_message", "Session ID:" + session);
+                        update1.set("assignStatus", 1);
+                        update1.set("automation_result", "AUTOASSIGN_PASS");
+                        update1.set("automation_result_message", "Session ID:" + session);
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - UPDATE STATUS " + " - " + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                     }
@@ -6497,6 +6501,7 @@ public class AutomationHandlerService {
                     Update update = new Update();
                     update.set("userAuto", accountDTO.getUserName());
                     update.set("status", 3);
+                    update.set("assignStatus", 1);
                     update.set("automation_result", "AUTOASSIGN_FAILED");
                     update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
                     mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
@@ -6517,11 +6522,27 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
+//            if(!StringUtils.isEmpty(referenceId)){
+//                Query queryUpdateFailed = new Query();
+//                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(referenceId).and("checkUpdate").is(1));
+//                List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
+//                if (resultRespone.size() == totalAppId)
+//                {
+//                    responseModel.setReference_id(referenceId);
+//                    responseModel.setProject(projectId);
+//                    responseModel.setTransaction_id("transaction_waive_field");
+//                    responseModel.setData(resultRespone);
+//                    try {
+//                        autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
             pushAccountToQueue(accountDTO, project);
         }
     }
 
     //------------------------ END AUTO ALLOCATION -----------------------------------------------------
-
 
 }
