@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.sql.Time;
 import java.sql.Timestamp;
 @Data
 public class RequestModel<T> implements Serializable {
@@ -15,7 +16,7 @@ public class RequestModel<T> implements Serializable {
     private String sourceChannel;
     private Long loanAmountRequested;
     private String customerName;
-    private String createdDate;
+    private Timestamp createdDate;
     private String stage;
     private String customerID;
     private String createdUser;

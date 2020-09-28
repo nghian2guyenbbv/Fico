@@ -23,4 +23,6 @@ public interface UserDetailsDAO extends JpaRepository<UserDetail, Long> {
     UserDetail findByUserNameAndTeamName(String userName, String teamName);
 
     Page<UserDetail> findAllByTeamLeader(String teamLeader, Pageable pageable);
+
+    List<UserDetail> findAllByUserName(String userName);
 }

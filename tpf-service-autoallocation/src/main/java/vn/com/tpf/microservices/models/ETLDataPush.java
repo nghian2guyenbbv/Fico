@@ -28,7 +28,7 @@ public class ETLDataPush {
     private String suorceChanel;
 
     @Column(name = "CREATE_DATE")
-    private String createDate;
+    private Timestamp createDate;
 
     @Column(name = "STATUS")
     private String status;

@@ -110,5 +110,42 @@ public class AutoAllocationController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
+	@PostMapping("/tpf-service-autoallocation/get-user-login/")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> getInfoUserLogin(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "getInfoUserLogin");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
+	@PostMapping("/tpf-service-autoallocation/remove-user/")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> removeUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "removeUser");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
+	@PostMapping("/tpf-service-autoallocation/change-active-user/")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> changeActiveUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "changeActiveUser");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
+
 
 }

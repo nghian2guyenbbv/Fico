@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.catalina.User;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +28,7 @@ import vn.com.tpf.microservices.models.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -324,7 +327,7 @@ public class AutoAllocationService {
 		String request_id = null;
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			UserChecking requestModel = mapper.treeToValue(request.get("body"), UserChecking.class);
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
 
 			if (requestModel == null) {
 				responseModel.setRequest_id(request_id);
@@ -343,30 +346,34 @@ public class AutoAllocationService {
 				}
 
 				requestModel.setCreateDate(new Timestamp(new Date().getTime()));
-				requestModel.setCheckedFlag("OPEN");
-				userCheckingDAO.save(requestModel);
 
-				String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
+				String query = String.format("SELECT  FN_ADD_USER ('%s','%s','%s','%s','%s','%s','%s') RESULT FROM DUAL",
 						requestModel.getUserLogin(),
-						requestModel.getTeamName());
+						requestModel.getRoleUserLogin(),
+						requestModel.getUserName(),
+						requestModel.getUserRole(),
+						requestModel.getTeamName(),
+						requestModel.getActiveFlag(),
+						requestModel.getTeamLeader()
+						);
 
 				String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
 						(rs, rowNum) ->
 								rs.getString(("RESULT")
 								));
 
-				if (row_string == null || row_string.isEmpty()) {
+				if (row_string.equals("ADD USER SUCCESS")) {
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
-					responseModel.setMessage("Add user success !");
+					responseModel.setMessage("ADD USER SUCCESS !");
 				} else {
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(500);
-					responseModel.setMessage(row_string + "add failed.");
+					responseModel.setMessage(row_string);
 					return Map.of("status", 200, "data", responseModel);
 				}
 			}
@@ -391,9 +398,12 @@ public class AutoAllocationService {
 	public Map<String, Object> sendAppFromF1(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
+		String ts = String.valueOf(request.get("body").get("createdDate").asText().replace(" ","T"));
+		JsonNode jsonNode = request.get("body");
+		((ObjectNode) jsonNode).put("createdDate", ts );
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			RequestModel requestModel = mapper.treeToValue(jsonNode, RequestModel.class);
 
 			if (requestModel == null) {
 				responseModel.setRequest_id(request_id);
@@ -563,4 +573,160 @@ public class AutoAllocationService {
 //		}
 //		return true;
 //	}
+
+	public Map<String, Object> getInfoUserLogin(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User name is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			List<UserDetail> userDetailList = userDetailsDAO.findAllByUserName(requestModel.getUserName());
+
+			if (userDetailList.size() <= 0 || userDetailList == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Empty");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Get success");
+			responseModel.setData(userDetailList);
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> removeUser(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserId() == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User ID is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			userDetailsDAO.deleteById(requestModel.getUserId());
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Delete success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> changeActiveUser(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserId() == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User ID is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			userDetailsDAO.save(requestModel);
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Change success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	@Scheduled
+	public Map<String, Object> pushAsignToRobot(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserId() == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User ID is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			userDetailsDAO.save(requestModel);
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Change success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 }

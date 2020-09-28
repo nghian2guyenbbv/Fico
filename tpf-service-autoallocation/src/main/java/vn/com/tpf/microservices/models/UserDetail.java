@@ -6,14 +6,14 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_USER_DETAIL")
+@Table(name = "V_ALLOCATION_USER_DETAIL")
 @Data
 public class UserDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "USER_ID")
-    private String userId;
+    private Long userId;
 
     @Column(name = "USER_NAME")
     private String userName;
@@ -45,4 +45,9 @@ public class UserDetail {
     @Column(name = "PENDING_APP")
     private String pendingApp;
 
+    @Transient
+    private String roleUserLogin;
+
+    @Transient
+    private String userLogin;
 }
