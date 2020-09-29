@@ -233,9 +233,11 @@ public class AutoAllocationService {
 
 	public Map<String, Object> getHistoryApp(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+
 		try {
 			Assert.notNull(request.get("body"), "no body");
+			log.info("Request: " + request);
+			boolean isFail = false;
 
 			String appNumber = request.get("body").path("appNumber") != null ?
 					request.get("body").path("appNumber").asText() : "";
@@ -249,84 +251,95 @@ public class AutoAllocationService {
 					request.get("body").path("to").asText(): "";
 			String role = request.get("body").path("role") != null ?
 					request.get("body").path("role").asText(): "";
+
 			List<String> teamNames = new ArrayList<>();
-			List<JsonNode> jsonNodeteamNames = new ArrayList<>();
-			Iterator<JsonNode> i = request.get("body").path("teamName").iterator();
-			i.forEachRemaining(jsonNodeteamNames::add);
-			for(JsonNode j : jsonNodeteamNames) {
-				teamNames.add(j.asText());
+			List<JsonNode> jsonNodeTeamNames = new ArrayList<>();
+			if (request.get("body").path("teamName") != null) {
+				Iterator<JsonNode> i = request.get("body").path("teamName").iterator();
+				i.forEachRemaining(jsonNodeTeamNames::add);
+				for(JsonNode j : jsonNodeTeamNames) {
+					teamNames.add(j.asText());
+				}
 			}
+
 			int pageSize = request.get("body").path("pageSize").asInt();
 			int limit = request.get("body").path("limit").asInt();
 			String sortType = request.get("body").path("sortType") != null ?
 					request.get("body").path("sortType").asText(): "";
 			String sortStyle = request.get("body").path("sortStyle") != null ?
 					request.get("body").path("sortStyle").asText(): "";
-			Pageable pagination;
 
+			Pageable pagination = PageRequest.of(pageSize - 1, limit);
 			if (!sortType.isEmpty()) {
-				Sort sort;
+				Sort sort = null;
 				if (sortStyle.equals("ASC")) {
 					sort = Sort.by(sortType).ascending();
-				} else {
+				} else if (sortStyle.equals("DECS")){
 					sort = Sort.by(sortType).descending();
+				} else {
+					isFail = true;
+					log.error("Sort Style is incorrect");
 				}
 				pagination = PageRequest.of(pageSize - 1 , limit, sort);
 			}
-			pagination = PageRequest.of(pageSize - 1, limit);
+			if (!isFail) {
+				Page<AllocationHistoryView> allocationHistoryViews	= allocationHistoryViewDao.findAll(new Specification() {
+					@Override
+					public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
+						List<Predicate> predicates = new ArrayList<>();
 
-
-			Page<AllocationHistoryView> allocationHistoryViews	= allocationHistoryViewDao.findAll(new Specification() {
-				@Override
-				public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
-					List<Predicate> predicates = new ArrayList<>();
-
-					if (!assignee.isEmpty()) {
-						if (role.equals("role_leader")) {
-							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
-						} else if (role.equals("role_supervisor") && teamNames.size() > 0){
-							//String teamNameSupRole = userDetailsDAO.findTeamNameSupRole(assignee, teamName);
-							CriteriaBuilder.In<String> inClause = criteriaBuilder.in(root.get("teamName"));
-							for (String t : teamNames) {
-								inClause.value(t);
+						if (!assignee.isEmpty() && !role.isEmpty()) {
+							if (role.equals(ROLE_LEADER)) {
+								predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
+							} else if (role.equals(ROLE_SUB) && teamNames.size() > 0) {
+								CriteriaBuilder.In<String> inClause = criteriaBuilder.in(root.get("teamName"));
+								for (String t : teamNames) {
+									inClause.value(t);
+								}
+								predicates.add(criteriaBuilder.and(inClause));
+							} else {
+								predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
 							}
-							predicates.add(criteriaBuilder.and(inClause));
-						} else {
-							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
 						}
-					}
 
-					if(!appNumber.isEmpty()) {
-						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("appNumber"), appNumber)));
-					}
-					if(!statusAssign.isEmpty()) {
-						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
-					}
-					if(!from.isEmpty()) {
-						Timestamp fromTimestamp = Timestamp.valueOf(from);
-						predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
-					}
-					if(!to.isEmpty()) {
-						Timestamp toTimestamp = Timestamp.valueOf(to);
-						predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
-					}
+						if(!appNumber.isEmpty()) {
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("appNumber"), appNumber)));
+						}
+						if(!statusAssign.isEmpty()) {
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
+						}
+						if(!from.isEmpty()) {
+							Timestamp fromTimestamp = Timestamp.valueOf(from);
+							predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
+						}
+						if(!to.isEmpty()) {
+							Timestamp toTimestamp = Timestamp.valueOf(to);
+							predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
+						}
 
-					return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
-				}
-			}, pagination);
+						return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+					}
+				}, pagination);
+
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(200);
+				responseModel.setData(allocationHistoryViews.getContent());
+			} else {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Others error");
+			}
 
 
-
-			responseModel.setData(allocationHistoryViews.getContent());
 		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
 
-			log.info("{}", e);
 		}
 
 		return Map.of("status", 200, "data", responseModel);
@@ -564,7 +577,6 @@ public class AutoAllocationService {
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
 
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
