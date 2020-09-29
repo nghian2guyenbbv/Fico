@@ -333,6 +333,8 @@ public class AutoRoutingService {
 
 	public void saveHistoryConfig(List<ScheduleRoute> scheduleRouteList, String idConfig) {
 		List<HistoryConfig> historyConfigs = new ArrayList<>();
+		Date dateToday = new Date();
+		Timestamp tsToDay = new Timestamp(dateToday.getTime());
 
 		for (ScheduleRoute scheduleRoute : scheduleRouteList) {
 			HistoryConfig historyConfig = new HistoryConfig();
@@ -342,7 +344,7 @@ public class AutoRoutingService {
 			historyConfig.setDayId(scheduleRoute.getDayId());
 			historyConfig.setChanelConfig(scheduleRoute.getChanelConfig());
 			historyConfig.setDayName(scheduleRoute.getDayName());
-			historyConfig.setCreateDate(scheduleRoute.getCreateDate());
+			historyConfig.setCreateDate(tsToDay);
 			historyConfig.setUpdateDate(scheduleRoute.getUpdateDate());
 			historyConfig.setUserUpdated(scheduleRoute.getUserUpdated());
 			historyConfig.setUserUpdateDate(scheduleRoute.getUserUpdateDate());

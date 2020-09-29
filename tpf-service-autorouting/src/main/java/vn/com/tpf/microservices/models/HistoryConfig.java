@@ -37,18 +37,14 @@ public class HistoryConfig {
     @Column(name = "day_name")
     private String dayName;
 
-    @JsonIgnore
     @Column(name = "create_date")
     private Timestamp createDate;
 
-    @JsonIgnore
     @Column(name = "update_date")
     private Timestamp updateDate;
 
-
     @Column(name = "user_updated")
     private String userUpdated;
-
 
     @Column(name = "user_update_date")
     private Timestamp userUpdateDate;
