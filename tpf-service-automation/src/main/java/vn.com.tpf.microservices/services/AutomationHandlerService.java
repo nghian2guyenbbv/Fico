@@ -25,6 +25,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationResponseDTO;
 import vn.com.tpf.microservices.models.AutoAllocation.AutoAssignAllocationDTO;
 import vn.com.tpf.microservices.models.AutoAllocation.AutoReassignUserDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
@@ -6350,9 +6352,12 @@ public class AutomationHandlerService {
     //------------------------ AUTO ALLOCATION -----------------------------------------------------
     public void runAutomation_autoAssignAllocation(WebDriver driver, Map<String, Object> mapValue, String project, String browser) throws Exception {
         String stage = "";
+        int totalAppId = 0;
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
+            AutoAllocationDTO autoAllocationDTOList = (AutoAllocationDTO) mapValue.get("AutoAssignAllocationList");
+            totalAppId = autoAllocationDTOList.getAutoAssign().size();
             List<AutoAssignAllocationDTO> autoAssignAllocationDTOList = (List<AutoAssignAllocationDTO>) mapValue.get("AutoAssignAllocation");
             //*************************** END GET DATA *********************//
             List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
@@ -6389,10 +6394,11 @@ public class AutomationHandlerService {
                 ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
 
                 for (LoginDTO loginDTO : loginDTOList) {
+                    int totalAssignAppId = totalAppId;
                     workerThreadPoolDE.execute(new Runnable() {
                         @Override
                         public void run() {
-                            runAutomation_autoAssignAllocation_run(loginDTO, browser, project);
+                            runAutomation_autoAssignAllocation_run(loginDTO, browser, project, totalAssignAppId);
                         }
                     });
                 }
@@ -6405,7 +6411,7 @@ public class AutomationHandlerService {
         }
     }
 
-    private void runAutomation_autoAssignAllocation_run(LoginDTO accountDTO, String browser, String project) {
+    private void runAutomation_autoAssignAllocation_run(LoginDTO accountDTO, String browser, String project, int totalAssignAppId) {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
@@ -6463,6 +6469,9 @@ public class AutomationHandlerService {
                         }
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - GET DATA DONE " + " - "  + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                        referenceId = resultUpdate.getReference_id();
+                        projectId = resultUpdate.getProject();
 
                         String appID = autoAssignAllocationDTO.getAppId();
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
@@ -6524,25 +6533,36 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
-//            if(!StringUtils.isEmpty(referenceId)){
-//                Query queryUpdateFailed = new Query();
-//                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(referenceId).and("checkUpdate").is(1));
-//                List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
-//                if (resultRespone.size() == totalAppId)
-//                {
-//                    responseModel.setReference_id(referenceId);
-//                    responseModel.setProject(projectId);
-//                    responseModel.setTransaction_id("transaction_waive_field");
-//                    responseModel.setData(resultRespone);
-//                    try {
-//                        autoUpdateStatusRabbitMobility(responseModel, "updateAutomation");
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
+            if(!StringUtils.isEmpty(referenceId)){
+                Query queryUpdateFailed = new Query();
+                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(referenceId).and("assignStatus").is(1));
+                List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, AutoAllocationResponseDTO.class);
+                if (resultRespone.size() == totalAssignAppId)
+                {
+                    responseModel.setReference_id(referenceId);
+                    responseModel.setProject(projectId);
+                    responseModel.setData(resultRespone);
+                    try {
+                        autoUpdateStatusRabbitData(responseModel, "updateAutomation");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             pushAccountToQueue(accountDTO, project);
         }
+    }
+
+    private void autoUpdateStatusRabbitData(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
+        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-esb",
+                Map.of("func", func,
+                        "body", Map.of(
+                                "project", responseAutomationModel.getProject(),
+                                "reference_id", responseAutomationModel.getReference_id(),
+                                "data",responseAutomationModel.getData()
+                        )));
+
+        System.out.println("rabit:=>" + jsonNode.toString());
     }
 
     //------------------------ END AUTO ALLOCATION -----------------------------------------------------
