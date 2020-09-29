@@ -602,7 +602,7 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		responseModel.setReference_id(UUID.randomUUID().toString());
 		try{
-			String SQL = "SELECT * FROM V_ALLOCATION_PENDING P WHERE P.USER_NAME = {USER_LOGIN}";
+			String SQL = "SELECT * FROM V_ALLOCATION_TEAM_CONFIG P WHERE P.USER_NAME = {USER_LOGIN}";
 			SQL = SQL.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
 			List<Map<String, Object>> pending = jdbcTemplate.queryForList(SQL);
 			ArrayNode dataArrayNode = mapper.createArrayNode();
