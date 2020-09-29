@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.catalina.User;
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,6 +25,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
+import vn.com.tpf.microservices.commons.AllocationTeamConfig;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
@@ -30,6 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -543,6 +548,113 @@ public class AutoAllocationService {
 			responseModel.setMessage("Others error");
 
 			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getDashboard(JsonNode request) {
+		String logStr = "";
+		logStr += "Request Data : " + request;
+		ResponseModel responseModel = new ResponseModel();
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		try {
+		String SQL = "SELECT * FROM {PAGE} WHERE CASE {USER_ROLE} WHEN 'role_user' THEN ASSIGNEE WHEN 'role_leader' THEN TEAM_LEADER END = {USER_LOGIN}";
+		String SQLSUP = "SELECT A.* FROM {PAGE} A JOIN ALLOCATION_USER_DETAIL B ON A.TEAM_NAME = B.TEAM_NAME AND B.USER_ROLE = 'role_supervisor' AND B.USER_NAME = {USER_LOGIN}";
+
+		List<Map<String, Object>> dashboards;
+		if(!request.path("body").path("userRole").textValue().equals("role_supervisor")){
+			SQL = SQL.replace("{PAGE}", "V_ALLOCATION_DASHBOARD");
+			SQL = SQL.replace("{USER_ROLE}", "'"+request.path("body").path("userRole").textValue()+"'");
+			SQL = SQL.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
+			dashboards = jdbcTemplate.queryForList(SQL);
+		}else{
+			SQLSUP = SQLSUP.replace("{PAGE}", "V_ALLOCATION_DASHBOARD");
+			SQLSUP = SQLSUP.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
+			dashboards = jdbcTemplate.queryForList(SQLSUP);
+		}
+		ArrayNode dataArrayNode = mapper.createArrayNode();
+		if (dashboards!=null && !dashboards.isEmpty()) {
+			for (Map<String, Object> dashboard : dashboards) {
+				ObjectNode data = mapper.createObjectNode();
+				for (Iterator<Map.Entry<String, Object>> it = dashboard.entrySet().iterator(); it.hasNext();) {
+					Map.Entry<String, Object> entry = it.next();
+					data.put(entry.getKey(), String.valueOf(entry.getValue()));
+				}
+				dataArrayNode.add(data);
+			}
+		}
+		responseModel.setData(dataArrayNode);
+		logStr += "Response: " + responseModel.toString();
+		} catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}finally {
+			log.info(logStr);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getPending(JsonNode request) {
+		String logStr = "";
+		logStr += "Request Data : " + request;
+		ResponseModel responseModel = new ResponseModel();
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		try{
+			String SQL = "SELECT * FROM V_ALLOCATION_PENDING P WHERE P.USER_NAME = {USER_LOGIN}";
+			SQL = SQL.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
+			List<Map<String, Object>> pending = jdbcTemplate.queryForList(SQL);
+			ArrayNode dataArrayNode = mapper.createArrayNode();
+			if (pending!=null && !pending.isEmpty()) {
+				for (Map<String, Object> dashboard : pending) {
+					ObjectNode data = mapper.createObjectNode();
+					for (Iterator<Map.Entry<String, Object>> it = dashboard.entrySet().iterator(); it.hasNext();) {
+						Map.Entry<String, Object> entry = it.next();
+						data.put(AllocationTeamConfig.getCode(entry.getKey()), String.valueOf(entry.getValue()));
+					}
+					dataArrayNode.add(data);
+				}
+			}
+			responseModel.setData(dataArrayNode);
+			logStr += "Response: " + responseModel.toString();
+		} catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}finally {
+			log.info(logStr);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> updatePending(JsonNode request) {
+		String logStr = "";
+		logStr += "Request Data : " + request;
+		ResponseModel responseModel = new ResponseModel();
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		try{
+			List<TeamConfig> listTeamName = teamConfigDAO.findByTeamName(request.path("body").path("userTeam").textValue());
+			Iterator<TeamConfig> it = listTeamName.iterator();
+			while (it.hasNext()){
+				TeamConfig  teamConfig = it.next();
+				teamConfig.setMaxPending(Long.parseLong(request.path("body").path("maxPending").textValue()));
+				teamConfig.setMaxQuota(Long.parseLong(request.path("body").path("maxQuota").textValue()));
+				teamConfig.setUserUpdate(request.path("body").path("userLogin").textValue());
+				teamConfig.setUpdateDate(new Timestamp(new Date().getTime()));
+				teamConfigDAO.save(teamConfig);
+			}
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Save success");
+		} catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}finally {
+			log.info(logStr);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
