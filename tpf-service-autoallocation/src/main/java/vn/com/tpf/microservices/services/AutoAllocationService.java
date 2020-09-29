@@ -4,35 +4,28 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.catalina.User;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.web.multipart.MultipartFile;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
+@EnableScheduling
 public class AutoAllocationService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -60,10 +53,33 @@ public class AutoAllocationService {
 	@Autowired
 	UserDetailsDAO userDetailsDAO;
 
+	@Autowired
+	private RabbitMQService rabbitMQService;
+
+	@Autowired
+	AssignmentDetailDAO assignmentDetailDAO;
+
+	@Value("${spring.rabbitmq.app-id}")
+	private Integer limit;
+
+	@Value("${spring.syncpro.fromTime}")
+	private String fromTimePro;
+
+	@Value("${spring.syncpro.toTime}")
+	private String toTimePro;
+
+	@Value("${spring.syncrobot.fromTime}")
+	private String fromTimeRobot;
+
+	@Value("${spring.synrobot.toTime}")
+	private String toTimeRobot;
+
 	private static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 	private static String SHEET = "UserTeam";
 	private static String ROLE_LEADER = "role_leader";
 	private static String ROLE_SUB = "role_supervisor";
+	private static String KEY_ASSIGN_APP = "WAITING";
+
 	/**
 	 * To check rule and return config rule to inhouse service
 	 * @param request
@@ -293,7 +309,7 @@ public class AutoAllocationService {
 							rs.getString(("RESULT")
 							));
 
-			if (row_string.isEmpty()) {
+			if (row_string == null || row_string.isEmpty()) {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -686,47 +702,77 @@ public class AutoAllocationService {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
-			responseModel.setMessage("Others error");
 			log.info("{}", e);
+			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	@Scheduled
-	public Map<String, Object> pushAsignToRobot(JsonNode request) {
-		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
-		try {
-			Assert.notNull(request.get("body"), "no body");
-			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}" , fixedDelayString = "${spring.syncpro.fixedDelay}")
+	public void callProcedureAssignApp() {
+		LocalTime now = LocalTime.now();
+		LocalTime fromTime = LocalTime.parse(fromTimePro);
+		LocalTime toTime = LocalTime.parse(toTimePro);
+		if (now.isBefore(fromTime) && now.isAfter(toTime)) {
+			try {
 
-			if (requestModel.getUserId() == null) {
-				responseModel.setRequest_id(request_id);
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(500);
-				responseModel.setMessage("User ID is mandatory!");
-				return Map.of("status", 200, "data", responseModel);
+				String query = String.format("SELECT PR_ALLOCATION_ASSIGN_APP FROM DUAL");
+				jdbcTemplate.execute(query);
+
+			} catch (Exception e) {
+				log.info("callProcedureAssignApp", e);
 			}
 
-			userDetailsDAO.save(requestModel);
-
-			responseModel.setRequest_id(request_id);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(200);
-			responseModel.setMessage("Change success");
-
-		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(500);
-			responseModel.setMessage("Others error");
-			log.info("{}", e);
 		}
-		return Map.of("status", 200, "data", responseModel);
+	}
+
+	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
+	public void pushAsignToRobot() {
+		LocalTime now = LocalTime.now();
+		LocalTime fromTime = LocalTime.parse(fromTimeRobot);
+		LocalTime toTime = LocalTime.parse(toTimeRobot);
+		if (now.isBefore(fromTime) && now.isAfter(toTime)) {
+			try {
+				Pageable pageable = PageRequest.of(0, limit, Sort.by("id").ascending());
+				Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
+
+				if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
+						|| assignmentDetailsList.getContent().isEmpty()) {
+					log.info("{pushAsignToRobot}", "Application to assign is empty");
+				} else {
+
+					List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
+
+					for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
+						AutoAssignModel autoAssignModel = new AutoAssignModel();
+						autoAssignModel.setAppId(ad.getAppNumber());
+						autoAssignModel.setUserName(ad.getAssignee());
+						autoAssignModelsList.add(autoAssignModel);
+
+					}
+
+					BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
+					bodyAssignRobot.setProject("allocation");
+					bodyAssignRobot.setReference_id("");
+					bodyAssignRobot.setAutoAssign(autoAssignModelsList);
+
+					RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
+					requestAssignRobot.setService("tpf-service-automation-autoallocation");
+					requestAssignRobot.setFunc("autoAssignUser");
+					requestAssignRobot.setBody(bodyAssignRobot);
+
+					new Thread(() -> {
+
+					}).start();
+					rabbitMQService.send("tpf-service-automation",
+							Map.of("func", "autoAssignUser", "body",
+									requestAssignRobot));
+				}
+			} catch (Exception e) {
+				log.info("Error: " + e);
+				log.info("{}", e);
+			}
+		}
 	}
 
 }
