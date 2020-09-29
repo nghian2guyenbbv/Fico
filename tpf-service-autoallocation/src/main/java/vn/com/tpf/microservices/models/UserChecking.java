@@ -24,7 +24,7 @@ public class UserChecking {
     @Column(name = "USER_ROLE")
     private String userRole;
 
-    @Column(name = "CREATED_DATE")
+    @Column(name = "CREATE_DATE")
     private Timestamp createDate;
 
     @Column(name = "USER_LOGIN")
@@ -33,6 +33,7 @@ public class UserChecking {
     @Column(name = "CHECKED_FLAG")
     private String checkedFlag;
 
+    @Transient
     private String teamName;
 
 }

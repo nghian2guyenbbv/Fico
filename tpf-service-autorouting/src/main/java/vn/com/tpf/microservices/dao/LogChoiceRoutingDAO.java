@@ -5,5 +5,5 @@ import vn.com.tpf.microservices.models.LogChoiceRouting;
 
 public interface LogChoiceRoutingDAO extends JpaRepository<LogChoiceRouting, Long> {
 
-    LogChoiceRouting findByIdLog(int idLog);
+    LogChoiceRouting findByIdLog(Long idLog);
 }

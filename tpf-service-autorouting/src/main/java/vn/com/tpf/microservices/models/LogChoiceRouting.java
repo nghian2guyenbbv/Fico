@@ -13,7 +13,7 @@ public class LogChoiceRouting {
     @Id
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
     @Column(name = "id_log")
-    private int idLog;
+    private Long idLog;
 
     @Column(name = "chanel_id")
     private String chanelId;

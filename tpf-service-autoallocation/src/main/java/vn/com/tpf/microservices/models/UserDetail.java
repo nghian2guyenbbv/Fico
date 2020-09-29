@@ -13,7 +13,7 @@ public class UserDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "USER_ID")
-    private String userId;
+    private Long userId;
 
     @Column(name = "USER_NAME")
     private String userName;
@@ -45,4 +45,9 @@ public class UserDetail {
     @Column(name = "PENDING_APP")
     private String pendingApp;
 
+    @Transient
+    private String roleUserLogin;
+
+    @Transient
+    private String userLogin;
 }

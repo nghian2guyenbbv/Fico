@@ -3,6 +3,8 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.catalina.User;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +29,7 @@ import vn.com.tpf.microservices.models.*;
 import javax.persistence.criteria.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -233,113 +237,17 @@ public class AutoAllocationService {
 
 	public Map<String, Object> getHistoryApp(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-
+		String request_id = null;
 		try {
-			Assert.notNull(request.get("body"), "no body");
-			log.info("Request: " + request);
-			boolean isFail = false;
-
-			String appNumber = request.get("body").path("appNumber") != null ?
-					request.get("body").path("appNumber").asText() : "";
-			String assignee = request.get("body").path("assignee") != null ?
-					request.get("body").path("assignee").asText() : "";
-			String statusAssign = request.get("body").path("statusAssign") != null ?
-					request.get("body").path("statusAssign").asText(): "";
-			String from = request.get("body").path("from") != null ?
-					request.get("body").path("from").asText(): "";
-			String to = request.get("body").path("to") != null ?
-					request.get("body").path("to").asText(): "";
-			String role = request.get("body").path("role") != null ?
-					request.get("body").path("role").asText(): "";
-
-			List<String> teamNames = new ArrayList<>();
-			List<JsonNode> jsonNodeTeamNames = new ArrayList<>();
-			if (request.get("body").path("teamName") != null) {
-				Iterator<JsonNode> i = request.get("body").path("teamName").iterator();
-				i.forEachRemaining(jsonNodeTeamNames::add);
-				for(JsonNode j : jsonNodeTeamNames) {
-					teamNames.add(j.asText());
-				}
-			}
-
-			int pageSize = request.get("body").path("pageSize").asInt();
-			int limit = request.get("body").path("limit").asInt();
-			String sortType = request.get("body").path("sortType") != null ?
-					request.get("body").path("sortType").asText(): "";
-			String sortStyle = request.get("body").path("sortStyle") != null ?
-					request.get("body").path("sortStyle").asText(): "";
-
-			Pageable pagination = PageRequest.of(pageSize - 1, limit);
-			if (!sortType.isEmpty()) {
-				Sort sort = null;
-				if (sortStyle.equals("ASC")) {
-					sort = Sort.by(sortType).ascending();
-				} else if (sortStyle.equals("DECS")){
-					sort = Sort.by(sortType).descending();
-				} else {
-					isFail = true;
-					log.error("Sort Style is incorrect");
-				}
-				pagination = PageRequest.of(pageSize - 1 , limit, sort);
-			}
-			if (!isFail) {
-				Page<AllocationHistoryView> allocationHistoryViews	= allocationHistoryViewDao.findAll(new Specification() {
-					@Override
-					public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
-						List<Predicate> predicates = new ArrayList<>();
-
-						if (!assignee.isEmpty() && !role.isEmpty()) {
-							if (role.equals(ROLE_LEADER)) {
-								predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
-							} else if (role.equals(ROLE_SUB) && teamNames.size() > 0) {
-								CriteriaBuilder.In<String> inClause = criteriaBuilder.in(root.get("teamName"));
-								for (String t : teamNames) {
-									inClause.value(t);
-								}
-								predicates.add(criteriaBuilder.and(inClause));
-							} else {
-								predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
-							}
-						}
-
-						if(!appNumber.isEmpty()) {
-							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("appNumber"), appNumber)));
-						}
-						if(!statusAssign.isEmpty()) {
-							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
-						}
-						if(!from.isEmpty()) {
-							Timestamp fromTimestamp = Timestamp.valueOf(from);
-							predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
-						}
-						if(!to.isEmpty()) {
-							Timestamp toTimestamp = Timestamp.valueOf(to);
-							predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
-						}
-
-						return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
-					}
-				}, pagination);
-
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(200);
-				responseModel.setData(allocationHistoryViews.getContent());
-			} else {
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(500);
-				responseModel.setMessage("Others error");
-			}
-
-
 		} catch (Exception e) {
-			log.error("Error: " + e);
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
 
+			log.info("{}", e);
 		}
 
 		return Map.of("status", 200, "data", responseModel);
@@ -370,6 +278,9 @@ public class AutoAllocationService {
 
 			for (UserChecking us : requestModel.getListUser()) {
 				us.setCreateDate(new Timestamp(new Date().getTime()));
+				us.setUserRole("role_user");
+				us.setCheckedFlag("OPEN");
+
 			}
 
 			userCheckingDAO.saveAll(requestModel.getListUser());
@@ -417,7 +328,7 @@ public class AutoAllocationService {
 		String request_id = null;
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			UserChecking requestModel = mapper.treeToValue(request.get("body"), UserChecking.class);
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
 
 			if (requestModel == null) {
 				responseModel.setRequest_id(request_id);
@@ -436,31 +347,34 @@ public class AutoAllocationService {
 				}
 
 				requestModel.setCreateDate(new Timestamp(new Date().getTime()));
-				requestModel.setUserRole("role_user");
-				requestModel.setCheckedFlag("OPEN");
-				userCheckingDAO.save(requestModel);
 
-				String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
+				String query = String.format("SELECT  FN_ADD_USER ('%s','%s','%s','%s','%s','%s','%s') RESULT FROM DUAL",
 						requestModel.getUserLogin(),
-						requestModel.getTeamName());
+						requestModel.getRoleUserLogin(),
+						requestModel.getUserName(),
+						requestModel.getUserRole(),
+						requestModel.getTeamName(),
+						requestModel.getActiveFlag(),
+						requestModel.getTeamLeader()
+						);
 
 				String row_string = jdbcTemplate.queryForObject(query,new Object[]{},
 						(rs, rowNum) ->
 								rs.getString(("RESULT")
 								));
 
-				if (row_string == null || row_string.isEmpty()) {
+				if (row_string.equals("ADD USER SUCCESS")) {
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
-					responseModel.setMessage("Add user success !");
+					responseModel.setMessage("ADD USER SUCCESS !");
 				} else {
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(500);
-					responseModel.setMessage(row_string + "add failed.");
+					responseModel.setMessage(row_string);
 					return Map.of("status", 200, "data", responseModel);
 				}
 			}
@@ -485,9 +399,12 @@ public class AutoAllocationService {
 	public Map<String, Object> sendAppFromF1(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
+		String ts = String.valueOf(request.get("body").get("createdDate").asText().replace(" ","T"));
+		JsonNode jsonNode = request.get("body");
+		((ObjectNode) jsonNode).put("createdDate", ts );
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
+			RequestModel requestModel = mapper.treeToValue(jsonNode, RequestModel.class);
 
 			if (requestModel == null) {
 				responseModel.setRequest_id(request_id);
@@ -656,4 +573,160 @@ public class AutoAllocationService {
 //		}
 //		return true;
 //	}
+
+	public Map<String, Object> getInfoUserLogin(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User name is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			List<UserDetail> userDetailList = userDetailsDAO.findAllByUserName(requestModel.getUserName());
+
+			if (userDetailList.size() <= 0 || userDetailList == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Empty");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Get success");
+			responseModel.setData(userDetailList);
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> removeUser(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserId() == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User ID is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			userDetailsDAO.deleteById(requestModel.getUserId());
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Delete success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> changeActiveUser(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserId() == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User ID is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			userDetailsDAO.save(requestModel);
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Change success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	@Scheduled
+	public Map<String, Object> pushAsignToRobot(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+
+			if (requestModel.getUserId() == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User ID is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			userDetailsDAO.save(requestModel);
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Change success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+			log.info("{}", e);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 }

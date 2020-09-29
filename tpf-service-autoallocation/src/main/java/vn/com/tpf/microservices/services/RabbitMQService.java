@@ -99,6 +99,12 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.getAllUser(request));
 				case "getUser":
 					return response(message, payload, autoAllocationService.getUser(request));
+				case "getInfoUserLogin":
+					return response(message, payload, autoAllocationService.getInfoUserLogin(request));
+				case "removeUser":
+					return response(message, payload, autoAllocationService.removeUser(request));
+				case "changeActiveUser":
+					return response(message, payload, autoAllocationService.changeActiveUser(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
