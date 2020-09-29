@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 public class TeamConfig {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
 
@@ -19,19 +19,19 @@ public class TeamConfig {
     private String teamName;
 
     @Column(name = "TEAM_CODE")
-    private String teamCode;
+    private Long teamCode;
 
     @Column(name = "MAX_PENDING")
-    private String maxPending;
+    private Long maxPending;
 
     @Column(name = "MAX_QUOTA")
-    private String maxQuota;
+    private Long maxQuota;
 
     @Column(name = "ASSIGN_FLAG")
     private String assignFlag;
 
     @Column(name = "USER_CREATE")
-    private Timestamp userCreate;
+    private String userCreate;
 
     @Column(name = "CREATE_DATE")
     private Timestamp createDate;
@@ -40,7 +40,7 @@ public class TeamConfig {
     private String userUpdate;
 
     @Column(name = "UPDATE_DATE")
-    private String updateDate;
+    private Timestamp updateDate;
 
     @Column(name = "COMPANY_NAME")
     private String companyName;

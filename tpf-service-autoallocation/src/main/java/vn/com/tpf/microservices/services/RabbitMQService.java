@@ -86,7 +86,7 @@ public class RabbitMQService {
 				case "historyAllocation":
 					return response(message, payload, autoAllocationService.getHistoryApp(request) );
 				case "assignConfig":
-					return response(message, payload, autoAllocationService.getAssignConfig(request));
+					return response(message, payload, autoAllocationService.getAssignConfig());
 				case "setAssignConfig":
 					return response(message, payload, autoAllocationService.setAssignConfig(request));
 				case "ETLPushData":
@@ -105,6 +105,12 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.removeUser(request));
 				case "changeActiveUser":
 					return response(message, payload, autoAllocationService.changeActiveUser(request));
+				case "getDashboard":
+					return response(message, payload, autoAllocationService.getDashboard(request));
+				case "getPending":
+					return response(message, payload, autoAllocationService.getPending(request));
+				case "updatePending":
+					return response(message, payload, autoAllocationService.updatePending(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
