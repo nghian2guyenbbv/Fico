@@ -411,7 +411,7 @@ public class AutoAssignService {
 
 					//kiem tra neu ko cap nhat gì thì continue
 					if(item.getTotalQuanlity()==resultConfigById.getTotalQuanlity()&&
-
+							item.getPriority()==resultConfigById.getPriority()&&
 					item.getQuanlityInDay()==resultConfigById.getQuanlityInDay())
 					{
 						continue;
