@@ -14,6 +14,16 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  syncpro:
+    fixedRate:"300000"
+    fixedDelay: "10000"
+    fromTime: "8:30"
+    toTime: "17:00"
+
+  syncrobot:
+    fixedRate:"300000"
+    fromTime: "8:50"
+    toTime: "17:00"
 
 security:
   oauth2:
