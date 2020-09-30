@@ -276,13 +276,13 @@ public class AutoAssignService {
 						}
 					}
 
-					//ghi log
-					AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
-					autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
-					autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
-					autoAssignConfigureHistory.setData(mapper.writeValueAsString(resultConfigure));
-					autoAssignConfigureHistory.setCreatedBy("system");
-					AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
+//					//ghi log
+//					AutoAssignConfigureHistory autoAssignConfigureHistory = new AutoAssignConfigureHistory();
+//					autoAssignConfigureHistory.setCreatedDate(new Timestamp(new Date().getTime()));
+//					autoAssignConfigureHistory.setQuote(new Timestamp(new Date().getTime()));
+//					autoAssignConfigureHistory.setData(mapper.writeValueAsString(resultConfigure));
+//					autoAssignConfigureHistory.setCreatedBy("system");
+//					AutoAssignConfigureHistory resultHistory = autoAssignConfigureHistoryDAO.save(autoAssignConfigureHistory);
 				}
 			}
 		}
@@ -408,10 +408,19 @@ public class AutoAssignService {
 			for (AutoAssignConfigure item :	inputData) {
 				AutoAssignConfigure resultConfigById = autoAssignConfigureDAO.findConfigureById(item.getId());
 				if (resultConfigById != null) {
+
+					//kiem tra neu ko cap nhat gì thì continue
+					if(item.getTotalQuanlity()==resultConfigById.getTotalQuanlity()&&
+
+					item.getQuanlityInDay()==resultConfigById.getQuanlityInDay())
+					{
+						continue;
+					}
+
 					if (formatterParseInput.format(resultConfigById.getCreatedDate().toLocalDateTime()).equals(formatterParseInput.format(LocalDate.now())) &&
 							resultConfigById.getVendorId() != 3) {
 						if (item.getTotalQuanlity() >= resultConfigById.getActualTotalQuanlity()) {
-							if (item.getQuanlityInDay() >= (item.getTotalQuanlity() - resultConfigById.getActualTotalQuanlity())) {
+							if (item.getQuanlityInDay() > (item.getTotalQuanlity() - resultConfigById.getActualTotalQuanlity())) {
 								responseModel.setRequest_id(requestModel.getRequest_id());
 								responseModel.setReference_id(UUID.randomUUID().toString());
 								responseModel.setDate_time(new Timestamp(new Date().getTime()));
