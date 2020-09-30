@@ -19,7 +19,7 @@ public class AssignmentDetail {
     private String appNumber;
 
     @Column(name = "CREATION_APPLSTAGE_TIME")
-    private String creationApplStageTime;
+    private Timestamp creationApplStageTime;
 
     @Column(name = "STAGE_NAME")
     private String stageName;
@@ -37,10 +37,10 @@ public class AssignmentDetail {
     private String assignee;
 
     @Column(name = "TEAM_ASSIGNEE")
-    private Timestamp teamAssignee;
+    private String teamAssignee;
 
     @Column(name = "ASSIGNED_BY")
-    private Timestamp assignedBy;
+    private String assignedBy;
 
     @Column(name = "PICKUP_TIME")
     private Timestamp pickUptime;
@@ -49,15 +49,15 @@ public class AssignmentDetail {
     private Timestamp assignedTime;
 
     @Column(name = "STATUS_ASSIGN")
-    private Timestamp statusAssign;
+    private String statusAssign;
 
     @Column(name = "COMPLETED_TIME")
     private Timestamp completedtime;
 
     @Column(name = "APP_TYPE")
-    private Timestamp appType;
+    private String appType;
 
     @Column(name = "BOT_NAME")
-    private Timestamp botName;
+    private String botName;
 
 }

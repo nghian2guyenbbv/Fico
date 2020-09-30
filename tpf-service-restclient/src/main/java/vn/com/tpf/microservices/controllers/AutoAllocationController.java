@@ -195,5 +195,15 @@ public class AutoAllocationController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
+	@PostMapping("/tpf-service-autoallocation/update-status-app/")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	public ResponseEntity<?> updateStatusApp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "updateStatusApp");
+		request.put("token", token);
+		request.put("body", body);
 
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
 }

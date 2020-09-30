@@ -70,7 +70,7 @@ public class AutoAllocationService {
 	@Autowired
 	AssignmentDetailDAO assignmentDetailDAO;
 
-	@Value("${spring.rabbitmq.app-id}")
+	@Value("${spring.syncrobot.limit}")
 	private Integer limit;
 
 	@Value("${spring.syncpro.fromTime}")
@@ -82,11 +82,9 @@ public class AutoAllocationService {
 	@Value("${spring.syncrobot.fromTime}")
 	private String fromTimeRobot;
 
-	@Value("${spring.synrobot.toTime}")
+	@Value("${spring.syncrobot.toTime}")
 	private String toTimeRobot;
 
-	private static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-	private static String SHEET = "UserTeam";
 	private static String ROLE_LEADER = "role_leader";
 	private static String ROLE_SUB = "role_supervisor";
 	private static String KEY_ASSIGN_APP = "WAITING";
@@ -140,7 +138,14 @@ public class AutoAllocationService {
 			if ( requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
 				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
 			} else {
-				listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
+				String teamName1 = requestModel.getTeamName();
+				String teamName2 = "";
+				if (requestModel.getTeamName().contains(",")) {
+					teamName1 = requestModel.getTeamName().substring(0 ,requestModel.getTeamName().indexOf(","));
+					teamName2 =  requestModel.getTeamName().substring(requestModel.getTeamName().indexOf(",") + 1,
+							requestModel.getTeamName().length());
+				}
+				listUserDetails = userDetailsDAO.findAllUserForSub(teamName1, teamName2, pageable);
 			}
 
 			if (listUserDetails.getContent().size() <= 0 || listUserDetails.getContent() == null) {
@@ -157,7 +162,10 @@ public class AutoAllocationService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
 			responseModel.setMessage("Get success");
-			responseModel.setData(listUserDetails.getContent());
+			Map<String, Object> result = new HashMap<>();
+			result.put("data", listUserDetails.getContent());
+			result.put("totalRecords", listUserDetails.getTotalElements());
+			responseModel.setData(result);
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
@@ -188,7 +196,8 @@ public class AutoAllocationService {
 			}
 
 			if (requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
-				UserDetail userDetail = userDetailsDAO.findByUserNameAndTeamLeader(requestModel.getUserName(), requestModel.getUserLogin());
+				UserDetail userDetail = userDetailsDAO.findByUserNameAndTeamLeader(requestModel.getUserName(),
+						requestModel.getUserLogin());
 
 				if (userDetail == null) {
 					responseModel.setRequest_id(request_id);
@@ -213,7 +222,8 @@ public class AutoAllocationService {
 
 					Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
 
-					Page<UserDetail> listUserDetails = userDetailsDAO.findAllByTeamLeader(requestModel.getUserLeader(), pageable);
+					Page<UserDetail> listUserDetails = userDetailsDAO.findAllByTeamLeader(
+							requestModel.getUserLeader(), pageable);
 
 					if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
 						responseModel.setRequest_id(request_id);
@@ -229,9 +239,20 @@ public class AutoAllocationService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
 					responseModel.setMessage("Get success");
-					responseModel.setData(listUserDetails);
+					Map<String, Object> result = new HashMap<>();
+					result.put("data", listUserDetails.getContent());
+					result.put("totalRecords", listUserDetails.getTotalElements());
+					responseModel.setData(result);
 				} else {
-					UserDetail userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(), requestModel.getTeamName());
+					String teamName1 = requestModel.getTeamName();
+					String teamName2 = "";
+					if (requestModel.getTeamName().contains(",")) {
+						teamName1 = requestModel.getTeamName().substring(0 ,requestModel.getTeamName().indexOf(","));
+						teamName2 =  requestModel.getTeamName().substring(requestModel.getTeamName().indexOf(",") + 1,
+								requestModel.getTeamName().length());
+					}
+					List<UserDetail> userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(),
+							teamName1, teamName2);
 
 					if (userDetail == null) {
 						responseModel.setRequest_id(request_id);
@@ -904,7 +925,7 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}" , fixedDelayString = "${spring.syncpro.fixedDelay}")
+	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}")
 	public void callProcedureAssignApp() {
 		LocalTime now = LocalTime.now();
 		LocalTime fromTime = LocalTime.parse(fromTimePro);
@@ -942,9 +963,12 @@ public class AutoAllocationService {
 					for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
 						AutoAssignModel autoAssignModel = new AutoAssignModel();
 						autoAssignModel.setAppId(ad.getAppNumber());
+						autoAssignModel.setId(ad.getId());
 						autoAssignModel.setUserName(ad.getAssignee());
 						autoAssignModelsList.add(autoAssignModel);
-
+						ad.setPickUptime(new Timestamp(new Date().getTime()));
+						ad.setStatusAssign("ASSIGNING");
+						assignmentDetailDAO.save(ad);
 					}
 
 					BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
@@ -958,17 +982,66 @@ public class AutoAllocationService {
 					requestAssignRobot.setBody(bodyAssignRobot);
 
 					new Thread(() -> {
-
+						try {
+							rabbitMQService.send("tpf-service-automation",
+									Map.of("func", "autoAssignUser", "body",
+											requestAssignRobot));
+						} catch (Exception e) {
+							log.info("Error: pushAsignToRobot " + e);
+						}
 					}).start();
-					rabbitMQService.send("tpf-service-automation",
-							Map.of("func", "autoAssignUser", "body",
-									requestAssignRobot));
 				}
 			} catch (Exception e) {
-				log.info("Error: " + e);
+				log.info("Error: pushAsignToRobot " + e);
 				log.info("{}", e);
 			}
 		}
+	}
+
+	public Map<String, Object> updateStatusApp(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		String request_id = null;
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			RequestAssignRobot requestModel = mapper.treeToValue(request.get("body"), RequestAssignRobot.class);
+
+			if (requestModel == null) {
+				responseModel.setRequest_id(request_id);
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("User ID is mandatory!");
+				return Map.of("status", 200, "data", responseModel);
+			}
+			List<AutoAssignModel> autoAssignModels = requestModel.getBody().getAutoAssign();
+			for (AutoAssignModel ad : autoAssignModels) {
+				Optional<AssignmentDetail> assignmentDetail = assignmentDetailDAO.findById(ad.getId());
+				assignmentDetail.get().setBotName(ad.getResult());
+				assignmentDetail.get().setAssignedTime(new Timestamp(new Date().getTime()));
+				if (ad.getMessageResult().equals("FAILED")){
+					assignmentDetail.get().setStatusAssign("FAILED");
+				} else {
+					assignmentDetail.get().setStatusAssign("PROCESSING");
+				}
+				assignmentDetailDAO.save(assignmentDetail.get());
+			}
+
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Update success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setRequest_id(request_id);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			log.info("{}", e);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
 	}
 
 }

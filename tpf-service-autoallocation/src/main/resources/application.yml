@@ -17,12 +17,12 @@ spring:
   syncpro:
     fixedRate: "300000"
     fixedDelay: "10000"
-    fromTime: "8:30"
+    fromTime: "08:30"
     toTime: "17:00"
 
   syncrobot:
     fixedRate: "300000"
-    fromTime: "8:50"
+    fromTime: "08:50"
     toTime: "17:00"
     limit: 20
 
