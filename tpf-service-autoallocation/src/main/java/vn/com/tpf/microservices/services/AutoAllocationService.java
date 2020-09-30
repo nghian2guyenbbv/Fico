@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -264,6 +265,85 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try {
+			Assert.notNull(request.get("body"), "no body");
+
+			String appNumber = request.get("body").path("appNumber") != null ?
+					request.get("body").path("appNumber").asText() : "";
+			String assignee = request.get("body").path("assignee") != null ?
+					request.get("body").path("assignee").asText() : "";
+			String statusAssign = request.get("body").path("statusAssign") != null ?
+					request.get("body").path("statusAssign").asText(): "";
+			String from = request.get("body").path("from") != null ?
+					request.get("body").path("from").asText(): "";
+			String to = request.get("body").path("to") != null ?
+					request.get("body").path("to").asText(): "";
+			String role = request.get("body").path("role") != null ?
+					request.get("body").path("role").asText(): "";
+			List<String> teamNames = new ArrayList<>();
+			List<JsonNode> jsonNodeTeamNames = new ArrayList<>();
+			Iterator<JsonNode> i = request.get("body").path("teamName").iterator();
+			i.forEachRemaining(jsonNodeTeamNames::add);
+			for(JsonNode j : jsonNodeTeamNames) {
+				teamNames.add(j.asText());
+			}
+			int pageSize = request.get("body").path("pageSize").asInt();
+			int limit = request.get("body").path("limit").asInt();
+			String sortType = request.get("body").path("sortType") != null ?
+					request.get("body").path("sortType").asText(): "";
+			String sortStyle = request.get("body").path("sortStyle") != null ?
+					request.get("body").path("sortStyle").asText(): "";
+
+			Pageable pagination = PageRequest.of(pageSize - 1, limit);
+
+			if (!sortType.isEmpty()) {
+				Sort sort;
+				if (sortStyle.equals("ASC")) {
+					sort = Sort.by(sortType).ascending();
+				} else {
+					sort = Sort.by(sortType).descending();
+				}
+				pagination = PageRequest.of(pageSize - 1 , limit, sort);
+			}
+
+
+			Page<AllocationHistoryView> allocationHistoryViews	= allocationHistoryViewDao.findAll(new Specification() {
+				@Override
+				public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
+					List<Predicate> predicates = new ArrayList<>();
+
+					if (!assignee.isEmpty()) {
+						if (role.equals("role_leader")) {
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
+						} else if (role.equals("role_supervisor") && teamNames.size() > 0){
+							CriteriaBuilder.In<String> inClause = criteriaBuilder.in(root.get("teamName"));
+							for (String t : teamNames) {
+								inClause.value(t);
+							}
+							predicates.add(criteriaBuilder.and(inClause));
+						} else {
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
+						}
+					}
+
+					if(!appNumber.isEmpty()) {
+						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("appNumber"), appNumber)));
+					}
+					if(!statusAssign.isEmpty()) {
+						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("statusAssign"), statusAssign)));
+					}
+					if(!from.isEmpty()) {
+						Timestamp fromTimestamp = Timestamp.valueOf(from);
+						predicates.add(criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("assignedTime"), fromTimestamp)));
+					}
+					if(!to.isEmpty()) {
+						Timestamp toTimestamp = Timestamp.valueOf(to);
+						predicates.add(criteriaBuilder.and(criteriaBuilder.lessThan(root.get("assignedTime"), toTimestamp)));
+					}
+
+					return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+				}
+			}, pagination);
+			responseModel.setData(allocationHistoryViews.getContent());
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
