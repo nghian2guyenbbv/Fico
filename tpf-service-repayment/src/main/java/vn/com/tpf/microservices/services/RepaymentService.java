@@ -644,6 +644,7 @@ public class RepaymentService {
 
 	//---------------------- END FUNCTION IMPORT -----------------
 
+	@Transactional(readOnly = true)
 	public Map<String, Object> getCustomers_vnPost(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
