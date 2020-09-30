@@ -6543,7 +6543,7 @@ public class AutomationHandlerService {
                     responseModel.setProject(projectId);
                     responseModel.setData(resultRespone);
                     try {
-                        autoUpdateStatusRabbitData(responseModel, "updateAutomation");
+                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -6553,8 +6553,8 @@ public class AutomationHandlerService {
         }
     }
 
-    private void autoUpdateStatusRabbitData(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
-        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-esb",
+    private void autoUpdateStatusRabbitAllocation(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
+        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-autoallocation",
                 Map.of("func", func,
                         "body", Map.of(
                                 "project", responseAutomationModel.getProject(),
