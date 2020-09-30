@@ -3,7 +3,7 @@ package vn.com.tpf.microservices.commons;
 public enum AllocationTeamConfig {
     MAX_PENDING("maxPending", "MAX_PENDING"),
     MAX_QUOTA("maxQuota", "MAX_QUOTA"),
-    ASSIGN_FLAG("assignFlag", "ASSIGN_FLAG"),
+    USER_ROLE("userRole", "USER_ROLE"),
     USER_NAME("userName", "USER_NAME"),
     TEAM_NAME("teamName", "TEAM_NAME");
 
