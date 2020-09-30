@@ -287,7 +287,7 @@ public class AutoAllocationService {
 		String request_id = null;
 		try {
 			Assert.notNull(request.get("body"), "no body");
-
+			Map<String, Object> result = new HashMap<>();
 			String appNumber = request.get("body").path("appNumber") != null ?
 					request.get("body").path("appNumber").asText() : "";
 			String assignee = request.get("body").path("assignee") != null ?
@@ -364,7 +364,9 @@ public class AutoAllocationService {
 					return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
 				}
 			}, pagination);
-			responseModel.setData(allocationHistoryViews.getContent());
+			result.put("data", allocationHistoryViews.getContent());
+			result.put("totalRecords", allocationHistoryViews.getTotalElements());
+			responseModel.setData(result);
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
