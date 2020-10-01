@@ -963,7 +963,6 @@ public class AutoAllocationService {
 					for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
 						AutoAssignModel autoAssignModel = new AutoAssignModel();
 						autoAssignModel.setAppId(ad.getAppNumber());
-						autoAssignModel.setId(ad.getId());
 						autoAssignModel.setUserName(ad.getAssignee());
 						autoAssignModelsList.add(autoAssignModel);
 						ad.setPickUptime(new Timestamp(new Date().getTime()));
@@ -1005,7 +1004,7 @@ public class AutoAllocationService {
 			Assert.notNull(request.get("body"), "no body");
 			RequestAssignRobot requestModel = mapper.treeToValue(request.get("body"), RequestAssignRobot.class);
 
-			if (requestModel == null) {
+			if (requestModel.getBody().getAutoAssign() == null) {
 				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -1015,15 +1014,16 @@ public class AutoAllocationService {
 			}
 			List<AutoAssignModel> autoAssignModels = requestModel.getBody().getAutoAssign();
 			for (AutoAssignModel ad : autoAssignModels) {
-				Optional<AssignmentDetail> assignmentDetail = assignmentDetailDAO.findById(ad.getId());
-				assignmentDetail.get().setBotName(ad.getResult());
-				assignmentDetail.get().setAssignedTime(new Timestamp(new Date().getTime()));
+				AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
+						ad.getAppId(), ad.getUserName(), "ASSIGNING");
+				assignmentDetail.setBotName(ad.getResult());
+				assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
 				if (ad.getMessageResult().equals("FAILED")){
-					assignmentDetail.get().setStatusAssign("FAILED");
+					assignmentDetail.setStatusAssign("FAILED");
 				} else {
-					assignmentDetail.get().setStatusAssign("PROCESSING");
+					assignmentDetail.setStatusAssign("PROCESSING");
 				}
-				assignmentDetailDAO.save(assignmentDetail.get());
+				assignmentDetailDAO.save(assignmentDetail);
 			}
 
 			responseModel.setRequest_id(request_id);

@@ -11,4 +11,6 @@ public interface AssignmentDetailDAO extends JpaRepository<AssignmentDetail, Lon
 
     @Query(value= "SELECT e FROM AssignmentDetail e WHERE e.statusAssign = :statusAssign")
     Page<AssignmentDetail> findByStatusAssign(@Param("statusAssign") String statusAssign, Pageable pageable);
+
+    AssignmentDetail findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(String appNumber, String assigne, String statusAssign);
 }
