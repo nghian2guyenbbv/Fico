@@ -211,7 +211,10 @@ public class AutoAllocationService {
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
-					responseModel.setData(userDetail);
+					Map<String, Object> result = new HashMap<>();
+					result.put("data", userDetail);
+					result.put("totalRecords", 1);
+					responseModel.setData(result);
 				}
 			} else if (requestModel.getRoleUserLogin().equals(ROLE_SUB)) {
 				if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
@@ -266,7 +269,10 @@ public class AutoAllocationService {
 						responseModel.setReference_id(UUID.randomUUID().toString());
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code(200);
-						responseModel.setData(userDetail);
+						Map<String, Object> result = new HashMap<>();
+						result.put("data", userDetail);
+						result.put("totalRecords", userDetail.size());
+						responseModel.setData(result);
 					}
 				}
 			}
