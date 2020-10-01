@@ -936,6 +936,7 @@ public class AutoAllocationService {
 		LocalTime toTime = LocalTime.parse(toTimePro);
 		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
 			try {
+				log.info("callProcedureAssignApp is running" + now);
 				String query = String.format("CALL PR_ALLOCATION_ASSIGN_APP()");
 				jdbcTemplate.execute(query);
 
