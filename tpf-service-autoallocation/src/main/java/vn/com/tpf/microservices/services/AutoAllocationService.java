@@ -948,7 +948,7 @@ public class AutoAllocationService {
 	}
 
 	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
-	public void pushAsignToRobot() {
+	public void pushAssignToRobot() {
 		LocalTime now = LocalTime.now();
 		LocalTime fromTime = LocalTime.parse(fromTimeRobot);
 		LocalTime toTime = LocalTime.parse(toTimeRobot);
@@ -959,7 +959,7 @@ public class AutoAllocationService {
 
 				if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
 						|| assignmentDetailsList.getContent().isEmpty()) {
-					log.info("{pushAsignToRobot}", "Application to assign is empty");
+					log.info("pushAssignToRobot - Application to assign is empty");
 				} else {
 
 					List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
@@ -987,14 +987,14 @@ public class AutoAllocationService {
 						try {
 							rabbitMQService.send("tpf-service-automation-allocation",
 									requestAssignRobot);
-							log.info("pushAsignToRobot push success" + requestAssignRobot);
+							log.info("pushAssignToRobot push success" + requestAssignRobot);
 						} catch (Exception e) {
-							log.info("Error: pushAsignToRobot " + e);
+							log.info("Error: pushAssignToRobot " + e);
 						}
 					}).start();
 				}
 			} catch (Exception e) {
-				log.info("Error: pushAsignToRobot " + e);
+				log.info("Error: pushAssignToRobot " + e);
 				log.info("{}", e);
 			}
 		}
