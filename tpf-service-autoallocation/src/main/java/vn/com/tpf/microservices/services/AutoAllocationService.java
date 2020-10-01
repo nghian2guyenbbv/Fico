@@ -140,7 +140,7 @@ public class AutoAllocationService {
 			} else {
 				String teamName1 = requestModel.getTeamName();
 				String teamName2 = "";
-				if (requestModel.getTeamName().contains(",")) {
+				if ( teamName1 != null && requestModel.getTeamName().contains(",")) {
 					teamName1 = requestModel.getTeamName().substring(0 ,requestModel.getTeamName().indexOf(","));
 					teamName2 =  requestModel.getTeamName().substring(requestModel.getTeamName().indexOf(",") + 1,
 							requestModel.getTeamName().length());
