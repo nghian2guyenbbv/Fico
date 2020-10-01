@@ -287,11 +287,13 @@ public class AutoAllocationService {
 		String request_id = null;
 		try {
 			Assert.notNull(request.get("body"), "no body");
-
+			Map<String, Object> result = new HashMap<>();
 			String appNumber = request.get("body").path("appNumber") != null ?
 					request.get("body").path("appNumber").asText() : "";
 			String assignee = request.get("body").path("assignee") != null ?
 					request.get("body").path("assignee").asText() : "";
+			String userName = request.get("body").path("userName") != null ?
+					request.get("body").path("userName").asText() : "";
 			String statusAssign = request.get("body").path("statusAssign") != null ?
 					request.get("body").path("statusAssign").asText(): "";
 			String from = request.get("body").path("from") != null ?
@@ -332,9 +334,9 @@ public class AutoAllocationService {
 				public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder criteriaBuilder) {
 					List<Predicate> predicates = new ArrayList<>();
 
-					if (!assignee.isEmpty()) {
+					if (!userName.isEmpty()) {
 						if (role.equals("role_leader")) {
-							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), assignee)));
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("teamLeader"), userName)));
 						} else if (role.equals("role_supervisor") && teamNames.size() > 0){
 							CriteriaBuilder.In<String> inClause = criteriaBuilder.in(root.get("teamName"));
 							for (String t : teamNames) {
@@ -342,8 +344,12 @@ public class AutoAllocationService {
 							}
 							predicates.add(criteriaBuilder.and(inClause));
 						} else {
-							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
+							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), userName)));
 						}
+					}
+
+					if(!assignee.isEmpty()) {
+						predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), assignee)));
 					}
 
 					if(!appNumber.isEmpty()) {
@@ -364,7 +370,9 @@ public class AutoAllocationService {
 					return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
 				}
 			}, pagination);
-			responseModel.setData(allocationHistoryViews.getContent());
+			result.put("data", allocationHistoryViews.getContent());
+			result.put("totalRecords", allocationHistoryViews.getTotalElements());
+			responseModel.setData(result);
 		} catch (Exception e) {
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
