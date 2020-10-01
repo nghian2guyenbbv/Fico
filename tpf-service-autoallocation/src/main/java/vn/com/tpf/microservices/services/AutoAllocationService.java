@@ -976,15 +976,15 @@ public class AutoAllocationService {
 					bodyAssignRobot.setAutoAssign(autoAssignModelsList);
 
 					RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
-					requestAssignRobot.setService("tpf-service-automation-autoallocation");
 					requestAssignRobot.setFunc("autoAssignUser");
 					requestAssignRobot.setBody(bodyAssignRobot);
 
 					new Thread(() -> {
 						try {
-							rabbitMQService.send("tpf-service-automation",
+							rabbitMQService.send("tpf-service-automation-autoallocation",
 									Map.of("func", "autoAssignUser", "body",
 											requestAssignRobot));
+							log.info("pushAsignToRobot push success" + requestAssignRobot);
 						} catch (Exception e) {
 							log.info("Error: pushAsignToRobot " + e);
 						}
