@@ -985,7 +985,7 @@ public class AutoAllocationService {
 
 					new Thread(() -> {
 						try {
-							rabbitMQService.send("tpf-service-automation-autoallocation",
+							rabbitMQService.send("tpf-service-automation-allocation",
 									Map.of("func", "autoAssignUser", "body",
 											requestAssignRobot));
 							log.info("pushAsignToRobot push success" + requestAssignRobot);
