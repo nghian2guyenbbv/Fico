@@ -938,9 +938,8 @@ public class AutoAllocationService {
 		LocalTime now = LocalTime.now();
 		LocalTime fromTime = LocalTime.parse(fromTimePro);
 		LocalTime toTime = LocalTime.parse(toTimePro);
-		if (now.isBefore(fromTime) && now.isAfter(toTime)) {
+		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
 			try {
-
 				String query = String.format("SELECT PR_ALLOCATION_ASSIGN_APP FROM DUAL");
 				jdbcTemplate.execute(query);
 
@@ -956,7 +955,7 @@ public class AutoAllocationService {
 		LocalTime now = LocalTime.now();
 		LocalTime fromTime = LocalTime.parse(fromTimeRobot);
 		LocalTime toTime = LocalTime.parse(toTimeRobot);
-		if (now.isBefore(fromTime) && now.isAfter(toTime)) {
+		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
 			try {
 				Pageable pageable = PageRequest.of(0, limit, Sort.by("id").ascending());
 				Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
