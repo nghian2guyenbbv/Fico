@@ -284,7 +284,7 @@ public class AutoAllocationService {
 
 	public Map<String, Object> getHistoryApp(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		log.info("getHistoryApp - Request: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			Map<String, Object> result = new HashMap<>();
@@ -374,14 +374,11 @@ public class AutoAllocationService {
 			result.put("totalRecords", allocationHistoryViews.getTotalElements());
 			responseModel.setData(result);
 		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
+			log.info("getHistoryApp - Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
-			log.info("{}", e);
 		}
 
 		return Map.of("status", 200, "data", responseModel);
@@ -586,7 +583,6 @@ public class AutoAllocationService {
 
 	public Map<String, Object> getAssignConfig() {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
 		try {
 			Map<String, Object> result = new HashMap<>();
 			Map<String, AssignConfigResponse> mapAssignConfig = new HashMap<>();
@@ -621,8 +617,7 @@ public class AutoAllocationService {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
+			log.error("getAssignConfig - Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -635,7 +630,7 @@ public class AutoAllocationService {
 	public Map<String,Object> setAssignConfig(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
-
+			log.info("setAssignConfig - Request: " + request);
 			AssignConfig assignConfigRequest = mapper.readValue(request.get("body").toString(),
 					new TypeReference<AssignConfig>(){});
 			Date date = new Date();
@@ -661,22 +656,12 @@ public class AutoAllocationService {
 				responseModel.setMessage("Request error");
 			}
 
-
-//			if (validationAssignConfig(assignConfigRequest, responseModel)) {
-//				assignConfigDAO.save(assignConfigRequest);
-//			} else {
-//
-//			}
-
-
 		} catch (Exception e) {
-			log.info("Error: " + e);
+			log.info("setAssignConfig - Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
