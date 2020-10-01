@@ -140,7 +140,7 @@ public class AutoAllocationService {
 			} else {
 				String teamName1 = requestModel.getTeamName();
 				String teamName2 = "";
-				if (requestModel.getTeamName().contains(",")) {
+				if ( teamName1 != null && requestModel.getTeamName().contains(",")) {
 					teamName1 = requestModel.getTeamName().substring(0 ,requestModel.getTeamName().indexOf(","));
 					teamName2 =  requestModel.getTeamName().substring(requestModel.getTeamName().indexOf(",") + 1,
 							requestModel.getTeamName().length());
@@ -212,7 +212,9 @@ public class AutoAllocationService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
 					Map<String, Object> result = new HashMap<>();
-					result.put("data", userDetail);
+					List<UserDetail> userDetailList = new ArrayList<>();
+					userDetailList.add(userDetail);
+					result.put("data", userDetailList);
 					result.put("totalRecords", 1);
 					responseModel.setData(result);
 				}
@@ -418,7 +420,7 @@ public class AutoAllocationService {
 				us.setCreateDate(new Timestamp(new Date().getTime()));
 				us.setUserRole("role_user");
 				us.setCheckedFlag("OPEN");
-
+				us.setUserLogin(requestModel.getUserLogin());
 			}
 
 			userCheckingDAO.saveAll(requestModel.getListUser());
