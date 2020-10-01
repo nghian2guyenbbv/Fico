@@ -969,8 +969,6 @@ public class AutoAllocationService {
 						autoAssignModel.setAppId(ad.getAppNumber());
 						autoAssignModel.setUserName(ad.getAssignee());
 						autoAssignModelsList.add(autoAssignModel);
-						autoAssignModel.setResult("*");
-						autoAssignModel.setMessageResult("*");
 						ad.setPickUptime(new Timestamp(new Date().getTime()));
 						ad.setStatusAssign("ASSIGNING");
 						assignmentDetailDAO.save(ad);
@@ -988,8 +986,7 @@ public class AutoAllocationService {
 					new Thread(() -> {
 						try {
 							rabbitMQService.send("tpf-service-automation-allocation",
-									Map.of("func", "autoAssignUser", "body",
-											requestAssignRobot));
+									requestAssignRobot);
 							log.info("pushAsignToRobot push success" + requestAssignRobot);
 						} catch (Exception e) {
 							log.info("Error: pushAsignToRobot " + e);
