@@ -417,7 +417,7 @@ public class AutoAllocationService {
 				us.setCreateDate(new Timestamp(new Date().getTime()));
 				us.setUserRole("role_user");
 				us.setCheckedFlag("OPEN");
-
+				us.setUserLogin(requestModel.getUserLogin());
 			}
 
 			userCheckingDAO.saveAll(requestModel.getListUser());
