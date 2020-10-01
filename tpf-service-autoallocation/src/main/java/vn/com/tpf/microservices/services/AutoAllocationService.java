@@ -925,7 +925,7 @@ public class AutoAllocationService {
 		LocalTime toTime = LocalTime.parse(toTimePro);
 		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
 			try {
-				String query = String.format("SELECT PR_ALLOCATION_ASSIGN_APP FROM DUAL");
+				String query = String.format("CALL PR_ALLOCATION_ASSIGN_APP()");
 				jdbcTemplate.execute(query);
 
 			} catch (Exception e) {
