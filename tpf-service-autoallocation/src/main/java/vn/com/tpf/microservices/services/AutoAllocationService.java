@@ -380,7 +380,8 @@ public class AutoAllocationService {
 			result.put("totalRecords", allocationHistoryViews.getTotalElements());
 			responseModel.setData(result);
 		} catch (Exception e) {
-			log.info("getHistoryApp - Error: " + e);
+			log.info("getHistoryApp - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+					e.getStackTrace()[0].getLineNumber());
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -623,7 +624,8 @@ public class AutoAllocationService {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 		} catch (Exception e) {
-			log.error("getAssignConfig - Error: " + e);
+			log.info("getAssignConfig - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+					e.getStackTrace()[0].getLineNumber());
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -663,7 +665,8 @@ public class AutoAllocationService {
 			}
 
 		} catch (Exception e) {
-			log.info("setAssignConfig - Error: " + e);
+			log.info("setAssignConfig - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+					e.getStackTrace()[0].getLineNumber());
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
