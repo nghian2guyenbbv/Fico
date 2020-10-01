@@ -936,6 +936,7 @@ public class AutoAllocationService {
 		LocalTime toTime = LocalTime.parse(toTimePro);
 		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
 			try {
+				log.info("callProcedureAssignApp is running" + now);
 				String query = String.format("CALL PR_ALLOCATION_ASSIGN_APP()");
 				jdbcTemplate.execute(query);
 
@@ -981,15 +982,15 @@ public class AutoAllocationService {
 					bodyAssignRobot.setAutoAssign(autoAssignModelsList);
 
 					RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
-					requestAssignRobot.setService("tpf-service-automation-autoallocation");
 					requestAssignRobot.setFunc("autoAssignUser");
 					requestAssignRobot.setBody(bodyAssignRobot);
 
 					new Thread(() -> {
 						try {
-							rabbitMQService.send("tpf-service-automation",
+							rabbitMQService.send("tpf-service-automation-allocation",
 									Map.of("func", "autoAssignUser", "body",
 											requestAssignRobot));
+							log.info("pushAsignToRobot push success" + requestAssignRobot);
 						} catch (Exception e) {
 							log.info("Error: pushAsignToRobot " + e);
 						}
