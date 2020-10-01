@@ -1,5 +1,6 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -385,7 +386,8 @@ public class AutoAssignService {
 	}
 
 	@Transactional
-	public Map<String, Object> updatedConfigure(JsonNode request) {
+	public Map<String, Object> updatedConfigure(JsonNode request) throws JsonProcessingException {
+		String logs="updatedConfigure: " + mapper.writeValueAsString(request);
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try{
@@ -401,6 +403,9 @@ public class AutoAssignService {
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(1);
 				responseModel.setMessage("Please input required field ");
+
+				logs +="; Please input required field";
+
 				return Map.of("status", 200, "data", responseModel);
 			}
 
@@ -426,6 +431,9 @@ public class AutoAssignService {
 								responseModel.setDate_time(new Timestamp(new Date().getTime()));
 								responseModel.setResult_code(3);
 								responseModel.setMessage("Quanlity In Day not large than Total Quanlity - Actual Total Quanlity");
+
+								logs +="; Quanlity In Day not large than Total Quanlity - Actual Total Quanlity";
+
 								return Map.of("status", 200, "data", responseModel);
 							}
 						} else {
@@ -434,6 +442,9 @@ public class AutoAssignService {
 							responseModel.setDate_time(new Timestamp(new Date().getTime()));
 							responseModel.setResult_code(2);
 							responseModel.setMessage("Total Quanlity not less than Actual Total Quanlity");
+
+							logs +="; Total Quanlity not less than Actual Total Quanlity";
+
 							return Map.of("status", 200, "data", responseModel);
 						}
 					}
@@ -444,6 +455,9 @@ public class AutoAssignService {
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code(1);
 						responseModel.setMessage("Quanlity In Day not less than Actual Quanlity In Day");
+
+						logs +="; Quanlity In Day not less than Actual Quanlity In Day";
+
 						return Map.of("status", 200, "data", responseModel);
 					}
 
@@ -453,6 +467,9 @@ public class AutoAssignService {
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code(4);
 						responseModel.setMessage("Duplicate Priority");
+
+						logs +="; Duplicate Priority";
+
 						return Map.of("status", 200, "data", responseModel);
 					}
 					listPriority.add(item.getPriority());
@@ -462,6 +479,9 @@ public class AutoAssignService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(1);
 					responseModel.setMessage("config_id not found!");
+
+					logs +="; config_id not found!";
+
 					return Map.of("status", 200, "data", responseModel);
 				}
 			}
@@ -491,6 +511,8 @@ public class AutoAssignService {
 			responseModel.setResult_code(0);
 		}
 		catch (Exception e) {
+			logs +=";Error" + e.toString();
+
 			log.info("Error: " + e);
 			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
@@ -499,6 +521,9 @@ public class AutoAssignService {
 			responseModel.setMessage("Others error");
 
 			log.info("{}", e);
+		}
+		finally {
+			log.info(logs);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
