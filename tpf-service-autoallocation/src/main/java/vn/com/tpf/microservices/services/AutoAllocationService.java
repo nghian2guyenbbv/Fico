@@ -976,7 +976,7 @@ public class AutoAllocationService {
 
 					BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
 					bodyAssignRobot.setProject("allocation");
-					bodyAssignRobot.setReference_id("");
+					bodyAssignRobot.setReference_id(UUID.randomUUID().toString());
 					bodyAssignRobot.setAutoAssign(autoAssignModelsList);
 
 					RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
