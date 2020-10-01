@@ -212,7 +212,9 @@ public class AutoAllocationService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
 					Map<String, Object> result = new HashMap<>();
-					result.put("data", userDetail);
+					List<UserDetail> userDetailList = new ArrayList<>();
+					userDetailList.add(userDetail);
+					result.put("data", userDetailList);
 					result.put("totalRecords", 1);
 					responseModel.setData(result);
 				}
