@@ -245,7 +245,8 @@ public class AutoAssignService {
 
 			Criteria criteria=new Criteria();
 			criteria=Criteria.where("createdDate").gte(fromDate).lte(toDate);
-			criteria.and("applicationId").ne(null);
+//			criteria.and("applicationId").ne(null);
+			criteria.andOperator(new Criteria().orOperator(Criteria.where("applicationId").ne(null),Criteria.where("status").is("NEW")));
 
 			List<Application> resultData=new ArrayList<Application>();
 
