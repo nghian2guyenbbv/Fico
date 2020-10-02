@@ -881,7 +881,7 @@ public class AutoAllocationService {
 	}
 
 	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
-	public void pushAsignToRobot() {
+	public void pushAssignToRobot() {
 		LocalTime now = LocalTime.now();
 		LocalTime fromTime = LocalTime.parse(fromTimeRobot);
 		LocalTime toTime = LocalTime.parse(toTimeRobot);
@@ -910,7 +910,7 @@ public class AutoAllocationService {
 
 					BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
 					bodyAssignRobot.setProject("allocation");
-					bodyAssignRobot.setReference_id("");
+					bodyAssignRobot.setReference_id(UUID.randomUUID().toString());
 					bodyAssignRobot.setAutoAssign(autoAssignModelsList);
 
 					RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
@@ -920,8 +920,7 @@ public class AutoAllocationService {
 					new Thread(() -> {
 						try {
 							rabbitMQService.send("tpf-service-automation-allocation",
-									Map.of("func", "autoAssignUser", "body",
-											requestAssignRobot));
+									requestAssignRobot);
 							log.info("pushAssignToRobot push success" + requestAssignRobot);
 						} catch (Exception e) {
 							log.info("Error: pushAssignToRobot " + e);
