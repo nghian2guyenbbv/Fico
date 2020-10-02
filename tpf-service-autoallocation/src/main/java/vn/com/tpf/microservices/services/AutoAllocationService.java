@@ -939,16 +939,16 @@ public class AutoAllocationService {
 		log.info("updateStatusApp: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			RequestAssignRobot requestModel = mapper.treeToValue(request.get("body"), RequestAssignRobot.class);
+			BodyAssignRobot requestModel = mapper.treeToValue(request.get("body"), BodyAssignRobot.class);
 
-			if (requestModel.getBody().getAutoAssign() == null) {
+			if (requestModel.getAutoAssign() == null) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
 				responseModel.setMessage("User ID is mandatory!");
 				return Map.of("status", 200, "data", responseModel);
 			}
-			List<AutoAssignModel> autoAssignModels = requestModel.getBody().getAutoAssign();
+			List<AutoAssignModel> autoAssignModels = requestModel.getAutoAssign();
 			for (AutoAssignModel ad : autoAssignModels) {
 				AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
 						ad.getAppId(), ad.getUserName(), "ASSIGNING");
