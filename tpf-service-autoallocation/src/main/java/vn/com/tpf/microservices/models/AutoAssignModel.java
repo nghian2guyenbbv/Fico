@@ -10,8 +10,9 @@ public class AutoAssignModel<T> implements Serializable {
 
     private String appId;
     private String userName;
-    private String result;
-    private String messageResult;
+    private String userAuto;
+    private String automationResult;
+    private String automationResultMessage;
 
 }
 

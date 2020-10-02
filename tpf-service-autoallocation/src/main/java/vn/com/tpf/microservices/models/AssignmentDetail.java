@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.models;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.sql.Time;
 import java.sql.Timestamp;
 
 @Entity
@@ -56,6 +57,12 @@ public class AssignmentDetail {
 
     @Column(name = "APP_TYPE")
     private String appType;
+
+    @Column(name = "ERROR_TIME")
+    private Timestamp errorTime;
+
+    @Column(name = "ERROR_MESSAGE")
+    private String errorMessage;
 
     @Column(name = "BOT_NAME")
     private String botName;

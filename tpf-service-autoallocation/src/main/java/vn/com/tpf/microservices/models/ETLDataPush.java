@@ -54,4 +54,7 @@ public class ETLDataPush {
     @Column(name = "UPDATE_DATE")
     private String updateDate;
 
+    @Column(name = "SOURCE_ETL")
+    private String suorceEtl;
+
 }

@@ -89,40 +89,10 @@ public class AutoAllocationService {
 	private static String ROLE_SUB = "role_supervisor";
 	private static String KEY_ASSIGN_APP = "WAITING";
 
-	/**
-	 * To check rule and return config rule to inhouse service
-	 * @param request
-	 * @return 0: Robot, 1: API
-	 */
-	public Map<String, Object> getAppAutoAllocation(JsonNode request) {
-		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
-		try {
-		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(500);
-			responseModel.setMessage("Others error");
-			log.info("{}", e);
-		}
-		return Map.of("status", 200, "data", responseModel);
-	}
-
-	public Map<String, Object> getUserToAssign(JsonNode request) {
-		ResponseModel responseModel = new ResponseModel();
-		try {
-		} catch (Exception e) {
-			log.info("Error: " + e);
-		}
-
-		return Map.of("status", 200, "data", responseModel);
-	}
-
 	public Map<String, Object> getAllUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
+		log.info("getAllUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
@@ -182,6 +152,7 @@ public class AutoAllocationService {
 	public Map<String, Object> getUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
+		log.info("getUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
@@ -396,6 +367,7 @@ public class AutoAllocationService {
 	public Map<String, Object> uploadUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
+		log.info("uploadUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			RequestImportFile requestModel = mapper.treeToValue(request.get("body"), RequestImportFile.class);
@@ -466,6 +438,7 @@ public class AutoAllocationService {
 	public Map<String, Object> addUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
+		log.info("addUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
@@ -538,7 +511,7 @@ public class AutoAllocationService {
 	 */
 	public Map<String, Object> sendAppFromF1(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		log.info("sendAppFromF1: " + request);
 		String ts = String.valueOf(request.get("body").get("createdDate").asText().replace(" ","T"));
 		JsonNode jsonNode = request.get("body");
 		((ObjectNode) jsonNode).put("createdDate", ts );
@@ -547,14 +520,12 @@ public class AutoAllocationService {
 			RequestModel requestModel = mapper.treeToValue(jsonNode, RequestModel.class);
 
 			if (requestModel == null) {
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
 				responseModel.setMessage("Data is empty");
 			} else {
 				ETLDataPush etlDataPush = new ETLDataPush();
-				Long id = etlDataPushDAO.getIdFromSequence();
 				etlDataPush.setAppNumber(requestModel.getApplicationNo());
 				etlDataPush.setCreateDate(requestModel.getCreatedDate());
 				etlDataPush.setCreateUser(requestModel.getCreatedUser());
@@ -568,10 +539,10 @@ public class AutoAllocationService {
 				etlDataPush.setStatus(requestModel.getStatus());
 				etlDataPush.setSuorceChanel(requestModel.getSourceChannel());
 				etlDataPush.setUpdateDate("");
+				etlDataPush.setSuorceEtl("ESB");
 
 				etlDataPushDAO.save(etlDataPush);
 
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(200);
@@ -579,7 +550,6 @@ public class AutoAllocationService {
 			}
 		} catch (Exception e) {
 			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -784,42 +754,14 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-//	private boolean validationAssignConfig(AssignConfig assignConfigRequest, ResponseModel responseModel) {
-//		if (assignConfigRequest != null) {
-//			if (assignConfigRequest.getStageName() == null) {
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code(500);
-//				responseModel.setMessage("Stage Name is null");
-//				return false;
-//			} else {
-//				if (assignConfigRequest.getStageName().isEmpty()) {
-//					responseModel.setReference_id(UUID.randomUUID().toString());
-//					responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//					responseModel.setResult_code(500);
-//					responseModel.setMessage("Stage Name is empty");
-//					return false;
-//				}
-//			}
-//		} else {
-//			responseModel.setReference_id(UUID.randomUUID().toString());
-//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//			responseModel.setResult_code(500);
-//			responseModel.setMessage("Request error");
-//			return false;
-//		}
-//		return true;
-//	}
-
 	public Map<String, Object> getInfoUserLogin(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		log.info("getInfoUserLogin: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
 
 			if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
@@ -830,7 +772,6 @@ public class AutoAllocationService {
 			List<UserDetail> userDetailList = userDetailsDAO.findAllByUserName(requestModel.getUserName());
 
 			if (userDetailList.size() <= 0 || userDetailList == null) {
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
@@ -838,7 +779,6 @@ public class AutoAllocationService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
@@ -847,7 +787,6 @@ public class AutoAllocationService {
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -859,13 +798,12 @@ public class AutoAllocationService {
 
 	public Map<String, Object> removeUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		log.info("removeUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
 
 			if (requestModel.getUserId() == null) {
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
@@ -875,7 +813,6 @@ public class AutoAllocationService {
 
 			userDetailsDAO.deleteById(requestModel.getUserId());
 
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
@@ -883,7 +820,6 @@ public class AutoAllocationService {
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -895,13 +831,12 @@ public class AutoAllocationService {
 
 	public Map<String, Object> changeActiveUser(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		log.info("changeActiveUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
 
 			if (requestModel.getUserId() == null) {
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
@@ -911,7 +846,6 @@ public class AutoAllocationService {
 
 			userDetailsDAO.save(requestModel);
 
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
@@ -919,7 +853,6 @@ public class AutoAllocationService {
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -954,12 +887,13 @@ public class AutoAllocationService {
 		LocalTime toTime = LocalTime.parse(toTimeRobot);
 		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
 			try {
+				log.info("pushAsignToRobot is running");
 				Pageable pageable = PageRequest.of(0, limit, Sort.by("id").ascending());
 				Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
 
 				if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
 						|| assignmentDetailsList.getContent().isEmpty()) {
-					log.info("{pushAsignToRobot}", "Application to assign is empty");
+					log.info("pushAsignToRobotApplication to assign is empty");
 				} else {
 
 					List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
@@ -988,14 +922,14 @@ public class AutoAllocationService {
 							rabbitMQService.send("tpf-service-automation-allocation",
 									Map.of("func", "autoAssignUser", "body",
 											requestAssignRobot));
-							log.info("pushAsignToRobot push success" + requestAssignRobot);
+							log.info("pushAssignToRobot push success" + requestAssignRobot);
 						} catch (Exception e) {
-							log.info("Error: pushAsignToRobot " + e);
+							log.info("Error: pushAssignToRobot " + e);
 						}
 					}).start();
 				}
 			} catch (Exception e) {
-				log.info("Error: pushAsignToRobot " + e);
+				log.info("Error: pushAssignToRobot " + e);
 				log.info("{}", e);
 			}
 		}
@@ -1003,13 +937,12 @@ public class AutoAllocationService {
 
 	public Map<String, Object> updateStatusApp(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
+		log.info("updateStatusApp: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			RequestAssignRobot requestModel = mapper.treeToValue(request.get("body"), RequestAssignRobot.class);
 
 			if (requestModel.getBody().getAutoAssign() == null) {
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
@@ -1020,17 +953,18 @@ public class AutoAllocationService {
 			for (AutoAssignModel ad : autoAssignModels) {
 				AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
 						ad.getAppId(), ad.getUserName(), "ASSIGNING");
-				assignmentDetail.setBotName(ad.getResult());
+				assignmentDetail.setBotName(ad.getUserAuto());
 				assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
-				if (ad.getMessageResult().equals("FAILED")){
+				if (ad.getAutomationResult().equals("AUTOASSIGN_FAILED")){
 					assignmentDetail.setStatusAssign("FAILED");
+					assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
+					assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
 				} else {
 					assignmentDetail.setStatusAssign("PROCESSING");
 				}
 				assignmentDetailDAO.save(assignmentDetail);
 			}
 
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
@@ -1038,7 +972,6 @@ public class AutoAllocationService {
 
 		} catch (Exception e) {
 			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
