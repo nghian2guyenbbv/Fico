@@ -6415,9 +6415,11 @@ public class AutomationHandlerService {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
+        String appID = "";
         String referenceId = "";
         String projectId = "";
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
+//        AutoAllocationResponseDTO responseModel = new AutoAllocationResponseDTO();
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
@@ -6473,7 +6475,7 @@ public class AutomationHandlerService {
                         referenceId = resultUpdate.getReference_id();
                         projectId = resultUpdate.getProject();
 
-                        String appID = autoAssignAllocationDTO.getAppId();
+                        appID = autoAssignAllocationDTO.getAppId();
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
                         await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getApplicationManagerFormElement().isDisplayed());
@@ -6501,8 +6503,8 @@ public class AutomationHandlerService {
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
                         update1.set("assignStatus", 1);
-                        update1.set("automation_result", "AUTOASSIGN_PASS");
-                        update1.set("automation_result_message", "Session ID:" + session);
+                        update1.set("automationResult", "AUTOASSIGN_PASS");
+                        update1.set("automationResultMessage", "Session ID:" + session);
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - UPDATE STATUS " + " - " + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
                     }
@@ -6513,8 +6515,8 @@ public class AutomationHandlerService {
                     update.set("userAuto", accountDTO.getUserName());
                     update.set("status", 3);
                     update.set("assignStatus", 1);
-                    update.set("automation_result", "AUTOASSIGN_FAILED");
-                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
+                    update.set("automationResult", "AUTOASSIGN_FAILED");
+                    update.set("automationResultMessage", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
                     mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
 
                     AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
@@ -6533,33 +6535,48 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
-            if(!StringUtils.isEmpty(referenceId)){
+
+//            if(!StringUtils.isEmpty(referenceId)){
+//                Query queryUpdateFailed = new Query();
+//                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(referenceId).and("assignStatus").is(1));
+//                List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, AutoAllocationResponseDTO.class);
+//                if (resultRespone.size() == totalAssignAppId)
+//                {
+//                    responseModel.setReference_id(referenceId);
+//                    responseModel.setProject(projectId);
+//                    responseModel.setData(resultRespone);
+//                    try {
+//                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+            if(!StringUtils.isEmpty(appID)){
                 Query queryUpdateFailed = new Query();
-                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(referenceId).and("assignStatus").is(1));
+                queryUpdateFailed.addCriteria(Criteria.where("appId").is(appID));
                 List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, AutoAllocationResponseDTO.class);
-                if (resultRespone.size() == totalAssignAppId)
-                {
-                    responseModel.setReference_id(referenceId);
-                    responseModel.setProject(projectId);
-                    responseModel.setData(resultRespone);
-                    try {
-                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                responseModel.setReference_id(referenceId);
+                responseModel.setProject(projectId);
+                responseModel.setData(resultRespone);
+                try {
+                    autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
+
             pushAccountToQueue(accountDTO, project);
         }
     }
 
     private void autoUpdateStatusRabbitAllocation(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
-        JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-autoallocation",
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
                 Map.of("func", func,
                         "body", Map.of(
                                 "project", responseAutomationModel.getProject(),
                                 "reference_id", responseAutomationModel.getReference_id(),
-                                "data",responseAutomationModel.getData()
+                                "autoAssign",responseAutomationModel.getData()
                         )));
 
         System.out.println("rabit:=>" + jsonNode.toString());
