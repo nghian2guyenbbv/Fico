@@ -939,29 +939,36 @@ public class AutoAllocationService {
 		log.info("updateStatusApp: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			BodyAssignRobot requestModel = mapper.treeToValue(request.get("body").get("body"), BodyAssignRobot.class);
+			RequestAssignRobot requestModel = mapper.treeToValue(request.get("body"), RequestAssignRobot.class);
 
-			if (requestModel.getAutoAssign() == null) {
+			if (requestModel.getBody().getAutoAssign() == null) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
 				responseModel.setMessage("User ID is mandatory!");
 				return Map.of("status", 200, "data", responseModel);
 			}
-			List<AutoAssignModel> autoAssignModels = requestModel.getAutoAssign();
+			List<AutoAssignModel> autoAssignModels = requestModel.getBody().getAutoAssign();
 			for (AutoAssignModel ad : autoAssignModels) {
 				AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
 						ad.getAppId(), ad.getUserName(), "ASSIGNING");
-				assignmentDetail.setBotName(ad.getUserAuto());
-				assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
-				if (ad.getAutomationResult().equals("AUTOASSIGN_FAILED")){
-					assignmentDetail.setStatusAssign("FAILED");
-					assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
-					assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
+				if (assignmentDetail == null) {
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(200);
+					responseModel.setMessage(ad.getAppId() + "is empty.");
 				} else {
-					assignmentDetail.setStatusAssign("PROCESSING");
+					assignmentDetail.setBotName(ad.getUserAuto());
+					assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
+					if (ad.getAutomationResult().equals("AUTOASSIGN_FAILED")) {
+						assignmentDetail.setStatusAssign("FAILED");
+						assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
+						assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
+					} else {
+						assignmentDetail.setStatusAssign("PROCESSING");
+					}
+					assignmentDetailDAO.save(assignmentDetail);
 				}
-				assignmentDetailDAO.save(assignmentDetail);
 			}
 
 			responseModel.setReference_id(UUID.randomUUID().toString());
