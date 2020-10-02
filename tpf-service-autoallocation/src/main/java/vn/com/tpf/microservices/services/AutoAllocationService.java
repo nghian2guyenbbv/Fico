@@ -939,7 +939,7 @@ public class AutoAllocationService {
 		log.info("updateStatusApp: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			BodyAssignRobot requestModel = mapper.treeToValue(request.get("body"), BodyAssignRobot.class);
+			BodyAssignRobot requestModel = mapper.readValue(request.get("body").toString(), new TypeReference<BodyAssignRobot>(){});
 
 			if (requestModel.getAutoAssign() == null) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
