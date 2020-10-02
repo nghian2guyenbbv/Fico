@@ -67,4 +67,6 @@ public class AssignmentDetail {
     @Column(name = "BOT_NAME")
     private String botName;
 
+    @Column(name = "SOURCE_CHANNEL")
+    private String suorceChanel;
 }
