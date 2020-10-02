@@ -6531,7 +6531,7 @@ public class AutomationHandlerService {
                     update.set("status", 3);
                     update.set("assignStatus", 1);
                     update.set("automationResult", "AUTOASSIGN_FAILED");
-                    update.set("automationResultMessage", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
+                    update.set("automationResultMessage", "Session ID:" + session + "- ERROR: " + ex.getMessage().substring(0, ex.getMessage().indexOf(" in")));
                     mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
 
                     AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
