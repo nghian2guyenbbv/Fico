@@ -100,11 +100,13 @@ public class RabbitMQService {
 			case "getTransDate":
 				return response(message, payload, repaymentService.getTransDate(request));
 			case "syncData":
-					return response(message, payload, repaymentService.syncData(request));
+				return response(message, payload, repaymentService.syncData(request));
 			case "getCustomers_vnPost":
 				return response(message, payload, repaymentService.getCustomers_vnPost(request));
 			case "customers_pay_vnPost":
 				return response(message, payload, repaymentService.customers_pay_vnPost(request));
+//			case "cronSchedule":
+//					return response(message, payload, repaymentService.getCron());
 			default:
 			return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
