@@ -6430,7 +6430,7 @@ public class AutomationHandlerService {
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Login timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": LOGIN DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
@@ -6443,7 +6443,7 @@ public class AutomationHandlerService {
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
             homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
             AutoAssignAllocationDTO autoAssignAllocationDTO = null;
@@ -6476,21 +6476,21 @@ public class AutomationHandlerService {
 
                         appID = autoAssignAllocationDTO.getAppId();
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
-                        await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getApplicationManagerFormElement().isDisplayed());
                         autoAssignAllocationPage.setData(appID, autoAssignAllocationDTO.getUserName().toLowerCase());
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - APPLICATION MANAGER " + " - "  + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-                        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getTdApplicationElement().size() > 0);
 
-                        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getShowTaskElement().isDisplayed());
 
                         autoAssignAllocationPage.getBackBtnElement().click();
 
-                        await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        await("Application Manager Back timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
                                 .until(driver::getTitle, is("Application Manager"));
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - AUTO FINISH " + " - " + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
@@ -6515,16 +6515,14 @@ public class AutomationHandlerService {
                                 responseModel.setReference_id(referenceId);
                                 responseModel.setProject(projectId);
                                 responseModel.setData(resultRespone);
-//                                autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
                                 Query queryUpdateStatusRabbit = new Query();
+                                queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
                                 Update updateStatusRabbit = new Update();
                                 try {
                                     autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
-                                    queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                                     updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
                                     mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
                                 } catch (Exception e) {
-                                    queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                                     updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
                                     mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
                                     e.printStackTrace();
@@ -6548,7 +6546,7 @@ public class AutomationHandlerService {
 
                     AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
                     autoAssignAllocationFailedPage.getBackBtnElement().click();
-                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Manager"));
 
                     if(!StringUtils.isEmpty(referenceId)){
@@ -6560,16 +6558,14 @@ public class AutomationHandlerService {
                             responseModel.setReference_id(referenceId);
                             responseModel.setProject(projectId);
                             responseModel.setData(resultRespone);
-//                            autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
                             Query queryUpdateErrorStatusRabbit = new Query();
+                            queryUpdateErrorStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
                             Update updateStatusErrorRabbit = new Update();
                             try {
                                 autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
-                                queryUpdateErrorStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                                 updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => PASS");
                                 mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
                             } catch (Exception e) {
-                                queryUpdateErrorStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                                 updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => FAIL");
                                 mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
                                 e.printStackTrace();
@@ -6588,6 +6584,30 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
+            if(!StringUtils.isEmpty(referenceId)){
+                Query queryUpdateFailed = new Query();
+                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(referenceId).and("assignStatus").is(1));
+                List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, AutoAllocationResponseDTO.class);
+                if (resultRespone.size() == totalAssignAppId)
+                {
+                    responseModel.setReference_id(referenceId);
+                    responseModel.setProject(projectId);
+                    responseModel.setData(resultRespone);
+                    Query queryUpdateFinallyStatusRabbit = new Query();
+                    queryUpdateFinallyStatusRabbit.addCriteria(Criteria.where("status").in(2, 3).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
+                    Update updateStatusFinallyRabbit = new Update();
+                    try {
+                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
+
+                        updateStatusFinallyRabbit.set("automationResultRabbit", "rabit: => PASS");
+                        mongoTemplate.findAndModify(queryUpdateFinallyStatusRabbit, updateStatusFinallyRabbit, AutoAssignAllocationDTO.class);
+                    } catch (Exception e) {
+                        updateStatusFinallyRabbit.set("automationResultRabbit", "rabit: => FAIL");
+                        mongoTemplate.findAndModify(queryUpdateFinallyStatusRabbit, updateStatusFinallyRabbit, AutoAssignAllocationDTO.class);
+                        e.printStackTrace();
+                    }
+                }
+            }
             pushAccountToQueue(accountDTO, project);
         }
     }

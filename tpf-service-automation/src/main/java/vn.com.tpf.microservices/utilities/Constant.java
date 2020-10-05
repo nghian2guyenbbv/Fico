@@ -23,5 +23,6 @@ public class Constant {
     //public static String FINNONE_LOGIN_URL_PRO = "http://10.1.64.22:4141/finnone-webapp/app/auth/login";
 
     public static String TEST_DOCUMENT_FILE_PATH = "D:/imageLogs/";
+    public static int TIME_OUT_ALLOCATION_S = 30;
 
 }
