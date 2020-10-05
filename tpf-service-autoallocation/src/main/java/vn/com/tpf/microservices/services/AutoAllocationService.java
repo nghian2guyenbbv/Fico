@@ -843,7 +843,7 @@ public class AutoAllocationService {
 	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}")
 	public void callProcedureAssignApp() {
 
-		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("ROBOT");
+		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("PROCEDURE");
 		if (configRobotProcedure == null) {
 			log.info("Please setting config for procedure.");
 		} else {
@@ -863,7 +863,6 @@ public class AutoAllocationService {
 		}
 	}
 
-	@Async
 	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
 	public void pushAssignToRobot() {
 		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("ROBOT");
@@ -892,10 +891,8 @@ public class AutoAllocationService {
 						requestAssignRobot.setFunc("autoAssignUser");
 						requestAssignRobot.setBody(bodyAssignRobot);
 
-						List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
-
 						for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
-							autoAssignModelsList = new ArrayList<AutoAssignModel>();
+							List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
 							AutoAssignModel autoAssignModel = new AutoAssignModel();
 							autoAssignModel.setAppId(ad.getAppNumber());
 							autoAssignModel.setUserName(ad.getAssignee());
@@ -960,6 +957,70 @@ public class AutoAllocationService {
 					assignmentDetailDAO.save(assignmentDetail);
 				}
 			}
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Update success");
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			log.info("{}", e);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> getConfigRobotProcedure() {
+		ResponseModel responseModel = new ResponseModel();
+		log.info("getConfigRobotProcedure is running");
+		try {
+			List<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findAll();
+
+			if (configRobotProcedure.size() <=0 || configRobotProcedure.isEmpty()) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Config is empty");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(200);
+			responseModel.setMessage("Get success");
+			responseModel.setData(configRobotProcedure);
+
+		} catch (Exception e) {
+			log.info("Error: " + e);
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code(500);
+			log.info("{}", e);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Map<String, Object> updateConfigRobotProcedure(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		log.info("updateConfigRobotProcedure" + request);
+		try {
+			Assert.notNull(request.get("body"), "no body");
+			ConfigRobotProcedure requestModel = mapper.treeToValue(request.get("body"), ConfigRobotProcedure.class);
+
+			if (requestModel == null) {
+				responseModel.setReference_id(UUID.randomUUID().toString());
+				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+				responseModel.setResult_code(500);
+				responseModel.setMessage("Config is empty");
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			configRobotProcedureDAO.save(requestModel);
 
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
