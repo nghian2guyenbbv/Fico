@@ -29,4 +29,5 @@ public class AutoAssignAllocationDTO {
     private String reference_id;
     private int assignStatus = 0;
 
+
 }
