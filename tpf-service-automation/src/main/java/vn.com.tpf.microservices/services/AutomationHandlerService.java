@@ -6505,6 +6505,15 @@ public class AutomationHandlerService {
                         update1.set("automationResult", "AUTOASSIGN_PASS");
                         update1.set("automationResultMessage", "Session ID:" + session);
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
+//                        if(!StringUtils.isEmpty(referenceId)){
+//                            Query queryUpdatePass = new Query();
+//                            queryUpdatePass.addCriteria(Criteria.where("reference_id").is(referenceId).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
+//                            List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdatePass, AutoAllocationResponseDTO.class);
+//                            responseModel.setReference_id(referenceId);
+//                            responseModel.setProject(projectId);
+//                            responseModel.setData(resultRespone);
+//                            autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
+//                        }
 
                         if(!StringUtils.isEmpty(referenceId)){
                             Query queryUpdateFailed = new Query();
@@ -6515,18 +6524,7 @@ public class AutomationHandlerService {
                                 responseModel.setReference_id(referenceId);
                                 responseModel.setProject(projectId);
                                 responseModel.setData(resultRespone);
-                                Query queryUpdateStatusRabbit = new Query();
-                                queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
-                                Update updateStatusRabbit = new Update();
-                                try {
-                                    autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
-                                    updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
-                                    mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
-                                } catch (Exception e) {
-                                    updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
-                                    mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
-                                    e.printStackTrace();
-                                }
+                                autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
                             }
                         }
 
@@ -6544,10 +6542,15 @@ public class AutomationHandlerService {
                     update.set("automationResultMessage", "Session ID:" + session + "- ERROR: " + ex.getMessage().substring(0, ex.getMessage().indexOf(" in")));
                     mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
 
-                    AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
-                    autoAssignAllocationFailedPage.getBackBtnElement().click();
-                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
-                            .until(driver::getTitle, is("Application Manager"));
+//                    if(!StringUtils.isEmpty(referenceId)){
+//                        Query queryUpdateFail = new Query();
+//                        queryUpdateFail.addCriteria(Criteria.where("reference_id").is(referenceId).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
+//                        List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFail, AutoAllocationResponseDTO.class);
+//                        responseModel.setReference_id(referenceId);
+//                        responseModel.setProject(projectId);
+//                        responseModel.setData(resultRespone);
+//                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
+//                    }
 
                     if(!StringUtils.isEmpty(referenceId)){
                         Query queryUpdateFailed = new Query();
@@ -6558,20 +6561,14 @@ public class AutomationHandlerService {
                             responseModel.setReference_id(referenceId);
                             responseModel.setProject(projectId);
                             responseModel.setData(resultRespone);
-                            Query queryUpdateErrorStatusRabbit = new Query();
-                            queryUpdateErrorStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
-                            Update updateStatusErrorRabbit = new Update();
-                            try {
-                                autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
-                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => PASS");
-                                mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
-                            } catch (Exception e) {
-                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => FAIL");
-                                mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
-                                e.printStackTrace();
-                            }
+                            autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
                         }
                     }
+
+                    AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
+                    autoAssignAllocationFailedPage.getBackBtnElement().click();
+                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
 
                     System.out.println(ex.getMessage());
                 }
@@ -6584,44 +6581,31 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
-            if(!StringUtils.isEmpty(referenceId)){
-                Query queryUpdateFailed = new Query();
-                queryUpdateFailed.addCriteria(Criteria.where("reference_id").is(referenceId).and("assignStatus").is(1));
-                List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, AutoAllocationResponseDTO.class);
-                if (resultRespone.size() == totalAssignAppId)
-                {
-                    responseModel.setReference_id(referenceId);
-                    responseModel.setProject(projectId);
-                    responseModel.setData(resultRespone);
-                    Query queryUpdateFinallyStatusRabbit = new Query();
-                    queryUpdateFinallyStatusRabbit.addCriteria(Criteria.where("status").in(2, 3).and("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
-                    Update updateStatusFinallyRabbit = new Update();
-                    try {
-                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
-
-                        updateStatusFinallyRabbit.set("automationResultRabbit", "rabit: => PASS");
-                        mongoTemplate.findAndModify(queryUpdateFinallyStatusRabbit, updateStatusFinallyRabbit, AutoAssignAllocationDTO.class);
-                    } catch (Exception e) {
-                        updateStatusFinallyRabbit.set("automationResultRabbit", "rabit: => FAIL");
-                        mongoTemplate.findAndModify(queryUpdateFinallyStatusRabbit, updateStatusFinallyRabbit, AutoAssignAllocationDTO.class);
-                        e.printStackTrace();
-                    }
-                }
-            }
             pushAccountToQueue(accountDTO, project);
         }
     }
 
-    private void autoUpdateStatusRabbitAllocation(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
-        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
-                Map.of("func", func,
-                        "body", Map.of(
-                                "project", responseAutomationModel.getProject(),
-                                "reference_id", responseAutomationModel.getReference_id(),
-                                "autoAssign",responseAutomationModel.getData()
-                        )));
-
-        System.out.println("rabit:=>" + jsonNode.toString());
+    private void autoUpdateStatusRabbitAllocation(ResponseAutomationModel responseAutomationModel, String func, String userAuto, String appID){
+        JsonNode jsonNode = null;
+        Query queryUpdateStatusRabbit = new Query();
+        Update updateStatusRabbit = new Update();
+        try {
+            jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+                    Map.of("func", func,
+                            "body", Map.of(
+                                    "project", responseAutomationModel.getProject(),
+                                    "reference_id", responseAutomationModel.getReference_id(),
+                                    "autoAssign",responseAutomationModel.getData()
+                            )));
+            System.out.println("rabit:=>" + jsonNode.toString());
+            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(2, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+            updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
+            mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
+        } catch (Exception e) {
+            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(2, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+            updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
+            mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
+        }
     }
 
     //------------------------ END AUTO ALLOCATION -----------------------------------------------------
