@@ -6521,11 +6521,11 @@ public class AutomationHandlerService {
                                 try {
                                     autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
                                     queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
-                                    updateStatusRabbit.set("automationResultRabbit", "rabit: =>" + "DONE");
+                                    updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
                                     mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
                                 } catch (Exception e) {
                                     queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
-                                    updateStatusRabbit.set("automationResultRabbit", "rabit: =>" + e.toString());
+                                    updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
                                     mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
                                     e.printStackTrace();
                                 }
@@ -6570,7 +6570,7 @@ public class AutomationHandlerService {
                                 mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
                             } catch (Exception e) {
                                 queryUpdateErrorStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
-                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => FAIL" + "DONE");
+                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => FAIL");
                                 mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
                                 e.printStackTrace();
                             }
