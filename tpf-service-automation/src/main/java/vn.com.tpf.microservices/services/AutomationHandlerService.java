@@ -6520,11 +6520,11 @@ public class AutomationHandlerService {
                                 Update updateStatusRabbit = new Update();
                                 try {
                                     autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
-                                    queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
+                                    queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                                     updateStatusRabbit.set("automationResultRabbit", "rabit: =>" + "DONE");
                                     mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
                                 } catch (Exception e) {
-                                    queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
+                                    queryUpdateStatusRabbit.addCriteria(Criteria.where("status").is(2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                                     updateStatusRabbit.set("automationResultRabbit", "rabit: =>" + e.toString());
                                     mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
                                     e.printStackTrace();
@@ -6566,11 +6566,11 @@ public class AutomationHandlerService {
                             try {
                                 autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp");
                                 queryUpdateErrorStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
-                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: =>" + "DONE");
+                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => PASS");
                                 mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
                             } catch (Exception e) {
                                 queryUpdateErrorStatusRabbit.addCriteria(Criteria.where("status").is(3).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
-                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: =>" + e.toString());
+                                updateStatusErrorRabbit.set("automationResultRabbit", "rabit: => FAIL" + "DONE");
                                 mongoTemplate.findAndModify(queryUpdateErrorStatusRabbit, updateStatusErrorRabbit, AutoAssignAllocationDTO.class);
                                 e.printStackTrace();
                             }
