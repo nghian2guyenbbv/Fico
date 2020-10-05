@@ -16,12 +16,12 @@ public interface UserDetailsDAO extends JpaRepository<UserDetail, Long> {
     Page<UserDetail> findAllUserForLeader(@Param("teamLeader") String teamLeader, Pageable pageable);
 
     @Query("SELECT e FROM UserDetail e WHERE e.teamName IN(:teamName) AND e.userRole IN('role_user','role_leader') ")
-    Page<UserDetail> findAllUserForSub(@Param("teamName") String teamName , Pageable pageable);
+    Page<UserDetail> findAllUserForSub(@Param("teamName") List<String> teamName , Pageable pageable);
 
     UserDetail findByUserNameAndTeamLeader(String userName, String teamLeader);
 
     @Query("SELECT e FROM UserDetail e WHERE e.teamName IN(:teamName) AND e.userRole IN('role_user','role_leader') AND e.userName = :userName ")
-    List<UserDetail> findByUserNameAndTeamName(@Param("userName")String userName, @Param("teamName") String teamName);
+    List<UserDetail> findByUserNameAndTeamName(@Param("userName")String userName, @Param("teamName") List<String> teamName);
 
     Page<UserDetail> findAllByTeamLeader(String teamLeader, Pageable pageable);
 
