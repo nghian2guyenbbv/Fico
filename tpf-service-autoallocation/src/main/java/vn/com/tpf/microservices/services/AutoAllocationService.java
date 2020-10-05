@@ -674,13 +674,16 @@ public class AutoAllocationService {
 		try{
 			String SQL = "SELECT * FROM V_ALLOCATION_TEAM_CONFIG P WHERE P.USER_NAME = {USER_LOGIN}";
 			SQL = SQL.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
-			List<Map<String, Object>> pending = jdbcTemplate.queryForList(SQL);
+			List<Map<String, Object>> pendings = jdbcTemplate.queryForList(SQL);
 			ArrayNode dataArrayNode = mapper.createArrayNode();
-			if (pending!=null && !pending.isEmpty()) {
-				for (Map<String, Object> dashboard : pending) {
+			if (pendings!=null && !pendings.isEmpty()) {
+				for (Map<String, Object> pending : pendings) {
 					ObjectNode data = mapper.createObjectNode();
-					for (Iterator<Map.Entry<String, Object>> it = dashboard.entrySet().iterator(); it.hasNext();) {
+					for (Iterator<Map.Entry<String, Object>> it = pending.entrySet().iterator(); it.hasNext();) {
 						Map.Entry<String, Object> entry = it.next();
+						if(AllocationTeamConfig.getCode(entry.getKey())==null){
+							continue;
+						}
 						data.put(AllocationTeamConfig.getCode(entry.getKey()), String.valueOf(entry.getValue()));
 					}
 					dataArrayNode.add(data);
