@@ -111,6 +111,8 @@ public class RepaymentService {
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	@Value("${spring.hostRequest.url}")
+	private String urlAPI;
 
 	@Value("${spring.syncqueue.fromTime}")
 	private String fromTime;
@@ -249,6 +251,8 @@ public class RepaymentService {
 //			date_time = requestModel.getDate_time();
 
 //			Timestamp timestamp=new Timestamp(DateUtils.addMonths(new Date(),5).getTime());
+
+			Timestamp timestamp=new Timestamp(new Date().getTime());
 
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
