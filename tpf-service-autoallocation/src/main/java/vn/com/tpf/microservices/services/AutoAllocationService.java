@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -70,20 +71,8 @@ public class AutoAllocationService {
 	@Autowired
 	AssignmentDetailDAO assignmentDetailDAO;
 
-	@Value("${spring.syncrobot.limit}")
-	private Integer limit;
-
-	@Value("${spring.syncpro.fromTime}")
-	private String fromTimePro;
-
-	@Value("${spring.syncpro.toTime}")
-	private String toTimePro;
-
-	@Value("${spring.syncrobot.fromTime}")
-	private String fromTimeRobot;
-
-	@Value("${spring.syncrobot.toTime}")
-	private String toTimeRobot;
+	@Autowired
+	ConfigRobotProcedureDAO configRobotProcedureDAO;
 
 	private static String ROLE_LEADER = "role_leader";
 	private static String ROLE_SUB = "role_supervisor";
@@ -108,14 +97,7 @@ public class AutoAllocationService {
 			if ( requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
 				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
 			} else {
-				String teamName1 = requestModel.getTeamName();
-				String teamName2 = "";
-				if ( teamName1 != null && requestModel.getTeamName().contains(",")) {
-					teamName1 = requestModel.getTeamName().substring(0 ,requestModel.getTeamName().indexOf(","));
-					teamName2 =  requestModel.getTeamName().substring(requestModel.getTeamName().indexOf(",") + 1,
-							requestModel.getTeamName().length());
-				}
-				listUserDetails = userDetailsDAO.findAllUserForSub(teamName1, teamName2, pageable);
+				listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
 			}
 
 			if (listUserDetails.getContent().size() <= 0 || listUserDetails.getContent() == null) {
@@ -220,15 +202,8 @@ public class AutoAllocationService {
 					result.put("totalRecords", listUserDetails.getTotalElements());
 					responseModel.setData(result);
 				} else {
-					String teamName1 = requestModel.getTeamName();
-					String teamName2 = "";
-					if (requestModel.getTeamName().contains(",")) {
-						teamName1 = requestModel.getTeamName().substring(0 ,requestModel.getTeamName().indexOf(","));
-						teamName2 =  requestModel.getTeamName().substring(requestModel.getTeamName().indexOf(",") + 1,
-								requestModel.getTeamName().length());
-					}
 					List<UserDetail> userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(),
-							teamName1, teamName2);
+							requestModel.getTeamName());
 
 					if (userDetail == null) {
 						responseModel.setRequest_id(request_id);
@@ -864,72 +839,84 @@ public class AutoAllocationService {
 
 	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}")
 	public void callProcedureAssignApp() {
-		LocalTime now = LocalTime.now();
-		LocalTime fromTime = LocalTime.parse(fromTimePro);
-		LocalTime toTime = LocalTime.parse(toTimePro);
-		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
-			try {
-				log.info("callProcedureAssignApp is running" + now);
-				String query = String.format("CALL PR_ALLOCATION_ASSIGN_APP()");
-				jdbcTemplate.execute(query);
 
-			} catch (Exception e) {
-				log.info("callProcedureAssignApp", e);
+		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("ROBOT");
+		if (configRobotProcedure == null) {
+			log.info("Please setting config for procedure.");
+		} else {
+			LocalTime now = LocalTime.now();
+			LocalTime fromTime = LocalTime.parse(configRobotProcedure.get().getFromTime());
+			LocalTime toTime = LocalTime.parse(configRobotProcedure.get().getToTime());
+			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobotProcedure.get().getConfig().equals("TRUE")) {
+				try {
+					log.info("callProcedureAssignApp is running" + now);
+					String query = String.format("CALL PR_ALLOCATION_ASSIGN_APP()");
+					jdbcTemplate.execute(query);
+
+				} catch (Exception e) {
+					log.info("callProcedureAssignApp", e);
+				}
 			}
-
 		}
 	}
 
+	@Async
 	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
 	public void pushAssignToRobot() {
-		LocalTime now = LocalTime.now();
-		LocalTime fromTime = LocalTime.parse(fromTimeRobot);
-		LocalTime toTime = LocalTime.parse(toTimeRobot);
-		if (now.isBefore(toTime) && now.isAfter(fromTime)) {
-			try {
-				log.info("pushAsignToRobot is running");
-				Pageable pageable = PageRequest.of(0, limit, Sort.by("id").ascending());
-				Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
+		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("ROBOT");
+		if (configRobotProcedure == null) {
+			log.info("Please setting config for robot.");
+		} else {
+			LocalTime now = LocalTime.now();
+			LocalTime fromTime = LocalTime.parse(configRobotProcedure.get().getFromTime());
+			LocalTime toTime = LocalTime.parse(configRobotProcedure.get().getToTime());
+			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobotProcedure.get().getConfig().equals("TRUE")) {
+				try {
+					log.info("pushAsignToRobot is running");
+					Pageable pageable = PageRequest.of(0, configRobotProcedure.get().getLimit(), Sort.by("id").ascending());
+					Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
 
-				if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
-						|| assignmentDetailsList.getContent().isEmpty()) {
-					log.info("pushAsignToRobotApplication to assign is empty");
-				} else {
+					if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
+							|| assignmentDetailsList.getContent().isEmpty()) {
+						log.info("pushAsignToRobotApplication to assign is empty");
+					} else {
 
-					List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
+						BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
+						bodyAssignRobot.setProject("allocation");
+						bodyAssignRobot.setReference_id(UUID.randomUUID().toString());
 
-					for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
-						AutoAssignModel autoAssignModel = new AutoAssignModel();
-						autoAssignModel.setAppId(ad.getAppNumber());
-						autoAssignModel.setUserName(ad.getAssignee());
-						autoAssignModelsList.add(autoAssignModel);
-						ad.setPickUptime(new Timestamp(new Date().getTime()));
-						ad.setStatusAssign("ASSIGNING");
-						assignmentDetailDAO.save(ad);
-					}
+						RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
+						requestAssignRobot.setFunc("autoAssignUser");
+						requestAssignRobot.setBody(bodyAssignRobot);
 
-					BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
-					bodyAssignRobot.setProject("allocation");
-					bodyAssignRobot.setReference_id(UUID.randomUUID().toString());
-					bodyAssignRobot.setAutoAssign(autoAssignModelsList);
+						List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
 
-					RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
-					requestAssignRobot.setFunc("autoAssignUser");
-					requestAssignRobot.setBody(bodyAssignRobot);
+						for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
+							autoAssignModelsList = new ArrayList<AutoAssignModel>();
+							AutoAssignModel autoAssignModel = new AutoAssignModel();
+							autoAssignModel.setAppId(ad.getAppNumber());
+							autoAssignModel.setUserName(ad.getAssignee());
+							autoAssignModelsList.add(autoAssignModel);
+							ad.setPickUptime(new Timestamp(new Date().getTime()));
+							ad.setStatusAssign("ASSIGNING");
+							assignmentDetailDAO.save(ad);
+							bodyAssignRobot.setAutoAssign(autoAssignModelsList);
 
-					new Thread(() -> {
-						try {
-							rabbitMQService.send("tpf-service-automation-allocation",
-									requestAssignRobot);
-							log.info("pushAssignToRobot push success" + requestAssignRobot);
-						} catch (Exception e) {
-							log.info("Error: pushAssignToRobot " + e);
+							new Thread(() -> {
+								try {
+									rabbitMQService.send("tpf-service-automation-allocation",
+											requestAssignRobot);
+									log.info("pushAssignToRobot push success" + requestAssignRobot);
+								} catch (Exception e) {
+									log.info("Error: pushAssignToRobot " + e);
+								}
+							}).start();
 						}
-					}).start();
+					}
+				} catch (Exception e) {
+					log.info("Error: pushAssignToRobot " + e);
+					log.info("{}", e);
 				}
-			} catch (Exception e) {
-				log.info("Error: pushAssignToRobot " + e);
-				log.info("{}", e);
 			}
 		}
 	}
