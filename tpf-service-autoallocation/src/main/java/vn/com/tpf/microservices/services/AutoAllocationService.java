@@ -487,12 +487,10 @@ public class AutoAllocationService {
 	public Map<String, Object> sendAppFromF1(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		log.info("sendAppFromF1: " + request);
-		String ts = String.valueOf(request.get("body").get("createdDate").asText().replace(" ","T"));
-		JsonNode jsonNode = request.get("body");
-		((ObjectNode) jsonNode).put("createdDate", ts );
+		Timestamp ts = Timestamp.valueOf(request.get("body").get("createdDate").asText());
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			RequestModel requestModel = mapper.treeToValue(jsonNode, RequestModel.class);
+			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 
 			if (requestModel == null) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -513,7 +511,6 @@ public class AutoAllocationService {
 				etlDataPush.setStageName(requestModel.getStage());
 				etlDataPush.setStatus(requestModel.getStatus());
 				etlDataPush.setSuorceChanel(requestModel.getSourceChannel());
-				etlDataPush.setUpdateDate("");
 				etlDataPush.setSuorceEtl("ESB");
 
 				etlDataPushDAO.save(etlDataPush);

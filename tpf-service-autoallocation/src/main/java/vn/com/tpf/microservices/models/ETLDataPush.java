@@ -28,7 +28,7 @@ public class ETLDataPush {
     private String suorceChanel;
 
     @Column(name = "CREATE_DATE")
-    private Timestamp createDate;
+    private String createDate;
 
     @Column(name = "STATUS")
     private String status;
@@ -50,9 +50,6 @@ public class ETLDataPush {
 
     @Column(name = "LOAN_AMT")
     private Long loanAmt;
-
-    @Column(name = "UPDATE_DATE")
-    private String updateDate;
 
     @Column(name = "SOURCE_ETL")
     private String suorceEtl;

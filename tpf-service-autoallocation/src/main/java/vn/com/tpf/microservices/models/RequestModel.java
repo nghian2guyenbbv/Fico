@@ -16,7 +16,7 @@ public class RequestModel<T> implements Serializable {
     private String sourceChannel;
     private Long loanAmountRequested;
     private String customerName;
-    private Timestamp createdDate;
+    private String createdDate;
     private String stage;
     private String customerID;
     private String createdUser;
