@@ -6595,11 +6595,11 @@ public class AutomationHandlerService {
                                     "autoAssign",responseAutomationModel.getData()
                             )));
             System.out.println("rabit:=>" + jsonNode.toString());
-            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(2, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
             updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
             mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
         } catch (Exception e) {
-            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(2, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
             updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
             mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
         }
