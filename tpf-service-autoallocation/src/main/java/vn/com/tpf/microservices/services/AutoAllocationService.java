@@ -840,9 +840,10 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+	@Async
 	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}")
 	public void callProcedureAssignApp() {
-
+		log.info("callProcedureAssignApp is running");
 		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("PROCEDURE");
 		if (configRobotProcedure == null) {
 			log.info("Please setting config for procedure.");
@@ -852,10 +853,10 @@ public class AutoAllocationService {
 			LocalTime toTime = LocalTime.parse(configRobotProcedure.get().getToTime());
 			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobotProcedure.get().getConfig().equals("TRUE")) {
 				try {
-					log.info("callProcedureAssignApp is running" + now);
+					log.info("callProcedureAssignApp is running " + now);
 					String query = String.format("CALL PR_ALLOCATION_ASSIGN_APP()");
 					jdbcTemplate.execute(query);
-
+					log.info("callProcedureAssignApp done " + now);
 				} catch (Exception e) {
 					log.info("callProcedureAssignApp", e);
 				}
