@@ -875,13 +875,13 @@ public class AutoAllocationService {
 			LocalTime toTime = LocalTime.parse(configRobotProcedure.get().getToTime());
 			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobotProcedure.get().getConfig().equals("TRUE")) {
 				try {
-					log.info("pushAsignToRobot is running");
+					log.info("pushAssignToRobot is running");
 					Pageable pageable = PageRequest.of(0, configRobotProcedure.get().getLimit(), Sort.by("id").ascending());
 					Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
 
 					if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
 							|| assignmentDetailsList.getContent().isEmpty()) {
-						log.info("pushAsignToRobotApplication to assign is empty");
+						log.info("pushAssignToRobotApplication to assign is empty");
 					} else {
 
 						BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
