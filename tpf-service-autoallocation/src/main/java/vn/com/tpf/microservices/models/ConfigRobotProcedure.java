@@ -24,8 +24,8 @@ public class ConfigRobotProcedure {
     private String config;
 
     @Column(name = "UPDATED_TIME ")
-    private int updatedTime ;
+    private String updatedTime ;
 
     @Column(name = "USER_UPDATED ")
-    private int userUpdated ;
+    private String userUpdated ;
 }
