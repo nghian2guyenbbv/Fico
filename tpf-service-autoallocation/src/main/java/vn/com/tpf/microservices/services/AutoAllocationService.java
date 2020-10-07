@@ -840,7 +840,7 @@ public class AutoAllocationService {
 	@Async
 	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}")
 	public void callProcedureAssignApp() {
-		log.info("callProcedureAssignApp is running");
+		log.info("callProcedureAssignApp is start.");
 		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("PROCEDURE");
 		if (configRobotProcedure == null) {
 			log.info("Please setting config for procedure.");
@@ -863,6 +863,7 @@ public class AutoAllocationService {
 
 	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
 	public void pushAssignToRobot() {
+		log.info("pushAssignToRobot is start.");
 		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("ROBOT");
 		if (configRobotProcedure == null) {
 			log.info("Please setting config for robot.");
