@@ -379,7 +379,7 @@ public class RepaymentService {
 							}finally {
 								//save report
 								try {
-									log.info("CALL API FIN1 - REQ:" + mapper.writeValueAsString(requestModel) +" - RES:" + response);
+									log.info("CALL API FIN1 - REQ:" + mapper.writeValueAsString(ficoRepaymentModel) +" - RES:" + response);
 
 									saveReportReceiptPaymentLog(ficoRepaymentModel,response,timestamp,errorMessage);
 								} catch (JsonProcessingException e) {
