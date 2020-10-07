@@ -97,7 +97,16 @@ public class AutoAllocationService {
 			if ( requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
 				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
 			} else {
-				listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
+				if ( requestModel.getTeamName() != null || requestModel.getTeamName().size() > 0) {
+					listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
+				} else {
+					responseModel.setRequest_id(request_id);
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(500);
+					responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
+					return Map.of("status", 200, "data", responseModel);
+				}
 			}
 
 			if (listUserDetails.getContent().size() <= 0 || listUserDetails.getContent() == null) {
@@ -202,8 +211,18 @@ public class AutoAllocationService {
 					result.put("totalRecords", listUserDetails.getTotalElements());
 					responseModel.setData(result);
 				} else {
-					List<UserDetail> userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(),
-							requestModel.getTeamName());
+					List<UserDetail> userDetail;
+					if ( requestModel.getTeamName() != null || requestModel.getTeamName().size() > 0) {
+						userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(),
+								requestModel.getTeamName());
+					} else {
+						responseModel.setRequest_id(request_id);
+						responseModel.setReference_id(UUID.randomUUID().toString());
+						responseModel.setDate_time(new Timestamp(new Date().getTime()));
+						responseModel.setResult_code(500);
+						responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
+						return Map.of("status", 200, "data", responseModel);
+					}
 
 					if (userDetail == null) {
 						responseModel.setRequest_id(request_id);
