@@ -277,7 +277,7 @@ public class LeadDetailPage {
                                                         "TPF_Customer Photograph","TPF_Health Insurance Card","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
                                                         "TPF_Employer Confirmation","TPF_Labor Contract","TPF_Salary slip",
                                                         "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac",
-                                        "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills","TPF_Confirm_student_infomation", "TPF_Confirm_student_Infomation",
+                                        "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills","TPF_Confirm_student_information", "TPF_Confirm_student_Information","TPF_ Confirm_student_Information",
                                         "TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
                     "TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card","TPF_Collab document","TPF_Credit contract documentations",
                     "TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon","TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
