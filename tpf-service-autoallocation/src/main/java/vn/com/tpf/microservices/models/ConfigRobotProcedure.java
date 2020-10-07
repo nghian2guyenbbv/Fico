@@ -28,4 +28,7 @@ public class ConfigRobotProcedure {
 
     @Column(name = "USER_UPDATED ")
     private String userUpdated ;
+
+    @Column(name = "LIMIT")
+    private int limit ;
 }
