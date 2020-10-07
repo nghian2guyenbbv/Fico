@@ -18,13 +18,13 @@ public class SeleniumGridDriver {
     private String hub;
 
     public SeleniumGridDriver(String os, String browser, String baseUrl, String hub,String seleHost,String selePort) throws MalformedURLException {
-        // String host = System.getProperty("seleniumHubHost"); // TODO: uncomment this line if deploy on docker
-        //String host = "10.10.10.10";
+    	// String host = System.getProperty("seleniumHubHost"); // TODO: uncomment this line if deploy on docker
+    	//String host = "10.10.10.10";
         //String host = "localhost";
         //String host="tpf-opensource-selenium-hub";
         //String host = "10.1.64.41";
 
-        this.browser = browser;
+    	this.browser = browser;
         this.os = os;
         this.baseUrl = baseUrl;
         this.hub = hub;
@@ -42,13 +42,15 @@ public class SeleniumGridDriver {
             chromeOptions.addArguments("window-size=2560x7000");
             //chromeOptions.addArguments("window-size=1920x1080");
 //            chromeOptions.addArguments("start-maximized");
-//            chromeOptions.addArguments("window-size=2560x3000");
 //          chromeOptions.addArguments("window-size=1920x1080");
 
 //          chromeOptions.addArguments("start-maximized");
-//          chromeOptions.addArguments("window-size=2560x3000");
-//          chromeOptions.addArguments("--window-size=2560,1080");
-//          chromeOptions.setCapability("platform", platform);
+            chromeOptions.addArguments("window-size=2560x3000");
+            //chromeOptions.addArguments("window-size=1920x1080");
+//            chromeOptions.addArguments("start-maximized");
+//            chromeOptions.addArguments("window-size=2560x3000");
+            //chromeOptions.addArguments("--window-size=2560,1080");
+//            chromeOptions.setCapability("platform", platform);
             this.driver = new RemoteWebDriver(new URL("http://" + seleHost + ":"+ selePort + "/wd/hub"), chromeOptions);
         } else if (browser.equalsIgnoreCase("firefox")) {
             FirefoxOptions firefoxOptions = new FirefoxOptions();
