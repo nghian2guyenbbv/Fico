@@ -97,7 +97,7 @@ public class AutoAllocationService {
 			if ( requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
 				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
 			} else {
-				if ( requestModel.getTeamName() != null || requestModel.getTeamName().size() > 0) {
+				if ( requestModel.getTeamName().size() > 0) {
 					listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
 				} else {
 					responseModel.setRequest_id(request_id);
@@ -212,7 +212,7 @@ public class AutoAllocationService {
 					responseModel.setData(result);
 				} else {
 					List<UserDetail> userDetail;
-					if ( requestModel.getTeamName() != null || requestModel.getTeamName().size() > 0) {
+					if (requestModel.getTeamName().size() > 0) {
 						userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(),
 								requestModel.getTeamName());
 					} else {
