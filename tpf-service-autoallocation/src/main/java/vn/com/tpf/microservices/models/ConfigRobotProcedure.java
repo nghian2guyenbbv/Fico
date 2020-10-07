@@ -23,6 +23,9 @@ public class ConfigRobotProcedure {
     @Column(name = "CONFIG")
     private String config;
 
-    @Column(name = "LIMIT")
-    private int limit;
+    @Column(name = "UPDATED_TIME ")
+    private int updatedTime ;
+
+    @Column(name = "USER_UPDATED ")
+    private int userUpdated ;
 }
