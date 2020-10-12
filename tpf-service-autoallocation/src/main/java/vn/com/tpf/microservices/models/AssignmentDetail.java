@@ -68,5 +68,8 @@ public class AssignmentDetail {
     private String botName;
 
     @Column(name = "SOURCE_CHANNEL")
-    private String suorceChanel;
+    private String sourceChanel;
+
+    @Column(name = "CURRENT_CYCLE")
+    private Long currentCycle;
 }

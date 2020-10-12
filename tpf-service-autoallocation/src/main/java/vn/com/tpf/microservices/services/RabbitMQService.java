@@ -113,10 +113,10 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.updatePending(request));
 				case "updateStatusApp":
 					return response(message, payload, autoAllocationService.updateStatusApp(request));
-				case "getConfigRobotProcedure":
-					return response(message, payload, autoAllocationService.getConfigRobotProcedure());
-				case "updateConfigRobotProcedure":
-					return response(message, payload, autoAllocationService.updateConfigRobotProcedure(request));
+//				case "getConfigRobotProcedure":
+//					return response(message, payload, autoAllocationService.getConfigRobotFunction());
+//				case "updateConfigRobotProcedure":
+//					return response(message, payload, autoAllocationService.updateConfigRobotProcedure(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

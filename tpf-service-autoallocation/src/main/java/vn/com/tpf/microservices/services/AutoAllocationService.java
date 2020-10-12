@@ -5,11 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,19 +19,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.web.multipart.MultipartFile;
 import vn.com.tpf.microservices.commons.AllocationTeamConfig;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
 import javax.persistence.criteria.*;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalTime;
-import java.sql.Types;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -70,9 +62,6 @@ public class AutoAllocationService {
 
 	@Autowired
 	AssignmentDetailDAO assignmentDetailDAO;
-
-	@Autowired
-	ConfigRobotProcedureDAO configRobotProcedureDAO;
 
 	private static String ROLE_LEADER = "role_leader";
 	private static String ROLE_SUB = "role_supervisor";
@@ -857,24 +846,36 @@ public class AutoAllocationService {
 	}
 
 	@Async
-	@Scheduled(fixedRateString = "${spring.syncpro.fixedRate}")
-	public void callProcedureAssignApp() {
-		log.info("callProcedureAssignApp is start.");
-		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("PROCEDURE");
-		if (configRobotProcedure == null) {
-			log.info("Please setting config for procedure.");
+	@Scheduled(fixedRateString = "${spring.syncfunc.fixedRate}")
+	public void callFunctionAssignApp() {
+		log.info("callFunctionAssignApp is start.");
+		String sql = "select * from VIEW_ALLOCATION_FUNCTION";
+		List<ConfigFunction> listConfigFunction = jdbcTemplate.query(sql, new Object[]{},  (rs, rowNum) ->{
+			ConfigFunction configFunction = new ConfigFunction();
+			configFunction.setConfig(rs.getString("CONFIG"));
+			configFunction.setFromTime(rs.getString("FROM_TIME"));
+			configFunction.setToTime(rs.getString("TO_TIME"));
+			configFunction.setLimit(rs.getInt("LIMIT"));
+			return configFunction;
+		});
+		ConfigFunction configFunction = listConfigFunction.get(0);
+		if (configFunction == null) {
+			log.error("No config");
 		} else {
 			LocalTime now = LocalTime.now();
-			LocalTime fromTime = LocalTime.parse(configRobotProcedure.get().getFromTime());
-			LocalTime toTime = LocalTime.parse(configRobotProcedure.get().getToTime());
-			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobotProcedure.get().getConfig().equals("TRUE")) {
+			LocalTime fromTime = LocalTime.parse(configFunction.getFromTime());
+			LocalTime toTime = LocalTime.parse(configFunction.getToTime());
+			if (now.isBefore(toTime) && now.isAfter(fromTime) && configFunction.getConfig().equals("TRUE")) {
 				try {
-					log.info("callProcedureAssignApp is running " + now);
-					String query = String.format("CALL PR_ALLOCATION_ASSIGN_APP()");
-					jdbcTemplate.execute(query);
-					log.info("callProcedureAssignApp done " + now);
+					log.info("callFunctionAssignApp is running " + now);
+					String query = String.format("SELECT FN_ALLOCATION_ASSIGN_APP() FROM DUAL");
+					String result = jdbcTemplate.queryForObject(
+							query, String.class);
+
+					log.info("callFunctionAssignApp - time: {} - result: {} ", now, result);
 				} catch (Exception e) {
-					log.info("callProcedureAssignApp", e);
+					log.info("callFunctionAssignApp: - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+							e.getStackTrace()[0].getLineNumber());
 				}
 			}
 		}
@@ -883,17 +884,26 @@ public class AutoAllocationService {
 	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
 	public void pushAssignToRobot() {
 		log.info("pushAssignToRobot is start.");
-		Optional<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findById("ROBOT");
-		if (configRobotProcedure == null) {
-			log.info("Please setting config for robot.");
+		String sql = "select * from VIEW_ALLOCATION_ROBOT";
+		List<ConfigRobot> listConfigRobot = jdbcTemplate.query(sql, new Object[]{},  (rs, rowNum) ->{
+			ConfigRobot configRobot = new ConfigRobot();
+			configRobot.setConfig(rs.getString("CONFIG"));
+			configRobot.setFromTime(rs.getString("FROM_TIME"));
+			configRobot.setToTime(rs.getString("TO_TIME"));
+			configRobot.setLimit(rs.getInt("LIMIT"));
+			return configRobot;
+		});
+		ConfigRobot configRobot = listConfigRobot.get(0);
+		if (configRobot == null) {
+			log.error("No Config");
 		} else {
 			LocalTime now = LocalTime.now();
-			LocalTime fromTime = LocalTime.parse(configRobotProcedure.get().getFromTime());
-			LocalTime toTime = LocalTime.parse(configRobotProcedure.get().getToTime());
-			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobotProcedure.get().getConfig().equals("TRUE")) {
+			LocalTime fromTime = LocalTime.parse(configRobot.getFromTime());
+			LocalTime toTime = LocalTime.parse(configRobot.getToTime());
+			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobot.getConfig().equals("TRUE")) {
 				try {
 					log.info("pushAssignToRobot is running");
-					Pageable pageable = PageRequest.of(0, configRobotProcedure.get().getLimit(), Sort.by("id").ascending());
+					Pageable pageable = PageRequest.of(0, configRobot.getLimit(), Sort.by("id").ascending());
 					Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
 
 					if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
@@ -992,68 +1002,68 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> getConfigRobotProcedure() {
-		ResponseModel responseModel = new ResponseModel();
-		log.info("getConfigRobotProcedure is running");
-		try {
-			List<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findAll();
+//	public Map<String, Object> getConfigRobotFunction() {
+//		ResponseModel responseModel = new ResponseModel();
+//		log.info("getConfigRobotFunction is running");
+//		try {
+//			List<ConfigFunction> configRobotFunction = configRobotFunctionDAO.findAll();
+//
+//			if (configRobotFunction.size() <=0 || configRobotFunction.isEmpty()) {
+//				responseModel.setReference_id(UUID.randomUUID().toString());
+//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//				responseModel.setResult_code(500);
+//				responseModel.setMessage("Config is empty");
+//				return Map.of("status", 200, "data", responseModel);
+//			}
+//
+//			responseModel.setReference_id(UUID.randomUUID().toString());
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code(200);
+//			responseModel.setMessage("Get success");
+//			responseModel.setData(configRobotFunction);
+//			log.info("Response - getConfigRobotFunction: " + responseModel);
+//
+//		} catch (Exception e) {
+//			log.info("Error: " + e);
+//			responseModel.setReference_id(UUID.randomUUID().toString());
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code(500);
+//			responseModel.setMessage("Others error");
+//		}
+//		return Map.of("status", 200, "data", responseModel);
+//	}
 
-			if (configRobotProcedure.size() <=0 || configRobotProcedure.isEmpty()) {
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(500);
-				responseModel.setMessage("Config is empty");
-				return Map.of("status", 200, "data", responseModel);
-			}
-
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(200);
-			responseModel.setMessage("Get success");
-			responseModel.setData(configRobotProcedure);
-
-		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(500);
-			log.info("{}", e);
-			responseModel.setMessage("Others error");
-		}
-		return Map.of("status", 200, "data", responseModel);
-	}
-
-	public Map<String, Object> updateConfigRobotProcedure(JsonNode request) {
-		ResponseModel responseModel = new ResponseModel();
-		log.info("updateConfigRobotProcedure" + request);
-		try {
-			Assert.notNull(request.get("body"), "no body");
-			ConfigRobotProcedure requestModel = mapper.treeToValue(request.get("body"), ConfigRobotProcedure.class);
-
-			if (requestModel == null) {
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(500);
-				responseModel.setMessage("Config is empty");
-				return Map.of("status", 200, "data", responseModel);
-			}
-
-			configRobotProcedureDAO.save(requestModel);
-
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(200);
-			responseModel.setMessage("Update success");
-
-		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(500);
-			log.info("{}", e);
-			responseModel.setMessage("Others error");
-		}
-		return Map.of("status", 200, "data", responseModel);
-	}
+//	public Map<String, Object> updateConfigRobotProcedure(JsonNode request) {
+//		ResponseModel responseModel = new ResponseModel();
+//		log.info("updateConfigRobotProcedure" + request);
+//		try {
+//			Assert.notNull(request.get("body"), "no body");
+//			ConfigFunction requestModel = mapper.treeToValue(request.get("body"), ConfigFunction.class);
+//
+//			if (requestModel == null) {
+//				responseModel.setReference_id(UUID.randomUUID().toString());
+//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//				responseModel.setResult_code(500);
+//				responseModel.setMessage("Config is empty");
+//				return Map.of("status", 200, "data", responseModel);
+//			}
+//
+//			configRobotFunctionDAO.save(requestModel);
+//
+//			responseModel.setReference_id(UUID.randomUUID().toString());
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code(200);
+//			responseModel.setMessage("Update success");
+//
+//		} catch (Exception e) {
+//			log.info("Error: " + e);
+//			responseModel.setReference_id(UUID.randomUUID().toString());
+//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//			responseModel.setResult_code(500);
+//			log.info("{}", e);
+//			responseModel.setMessage("Others error");
+//		}
+//		return Map.of("status", 200, "data", responseModel);
+//	}
 
 }
