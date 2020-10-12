@@ -278,7 +278,12 @@ public class CrmService {
 		Update update = new Update().set("updatedAt", new Date());
 		final boolean updateStageAndStatus = (crm.getViewLastUpdated() == null
 				|| !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()
-						.equals(crm.getViewLastUpdated().trim().toUpperCase()));
+						.equals(crm.getViewLastUpdated().trim().toUpperCase())
+				|| !item.path("data").path(KEY_STATUS).asText().trim().toUpperCase()
+						.equals(crm.getStatus().trim().toUpperCase())
+				|| !item.path("data").path(KEY_STAGE).asText().trim().toUpperCase()
+				.equals(crm.getStage().trim().toUpperCase()));
+
 		if (updateStageAndStatus)
 			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase())
 					.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
