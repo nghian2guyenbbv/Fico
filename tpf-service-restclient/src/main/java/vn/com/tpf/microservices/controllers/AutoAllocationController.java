@@ -154,7 +154,7 @@ public class AutoAllocationController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation2", request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
