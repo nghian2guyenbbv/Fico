@@ -49,6 +49,9 @@ public class AutoAllocationService {
 	AllocationHistoryViewDao allocationHistoryViewDao;
 
 	@Autowired
+	AllocationPendingCodeDao allocationPendingCodeDao;
+
+	@Autowired
 	AssignConfigDAO assignConfigDAO;
 
 	@Autowired
@@ -62,6 +65,9 @@ public class AutoAllocationService {
 
 	@Autowired
 	AssignmentDetailDAO assignmentDetailDAO;
+
+	@Autowired
+	AllocationPendingDetailDao allocationPendingDetailDao;
 
 	private static String ROLE_LEADER = "role_leader";
 	private static String ROLE_SUB = "role_supervisor";
@@ -1002,13 +1008,13 @@ public class AutoAllocationService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-//	public Map<String, Object> getConfigRobotFunction() {
+//	public Map<String, Object> getConfigRobotProcedure() {
 //		ResponseModel responseModel = new ResponseModel();
-//		log.info("getConfigRobotFunction is running");
+//		log.info("getConfigRobotProcedure is running");
 //		try {
-//			List<ConfigFunction> configRobotFunction = configRobotFunctionDAO.findAll();
+//			List<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findAll();
 //
-//			if (configRobotFunction.size() <=0 || configRobotFunction.isEmpty()) {
+//			if (configRobotProcedure.size() <=0 || configRobotProcedure.isEmpty()) {
 //				responseModel.setReference_id(UUID.randomUUID().toString());
 //				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 //				responseModel.setResult_code(500);
@@ -1020,25 +1026,25 @@ public class AutoAllocationService {
 //			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 //			responseModel.setResult_code(200);
 //			responseModel.setMessage("Get success");
-//			responseModel.setData(configRobotFunction);
-//			log.info("Response - getConfigRobotFunction: " + responseModel);
+//			responseModel.setData(configRobotProcedure);
 //
 //		} catch (Exception e) {
 //			log.info("Error: " + e);
 //			responseModel.setReference_id(UUID.randomUUID().toString());
 //			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 //			responseModel.setResult_code(500);
+//			log.info("{}", e);
 //			responseModel.setMessage("Others error");
 //		}
 //		return Map.of("status", 200, "data", responseModel);
 //	}
-
+//
 //	public Map<String, Object> updateConfigRobotProcedure(JsonNode request) {
 //		ResponseModel responseModel = new ResponseModel();
 //		log.info("updateConfigRobotProcedure" + request);
 //		try {
 //			Assert.notNull(request.get("body"), "no body");
-//			ConfigFunction requestModel = mapper.treeToValue(request.get("body"), ConfigFunction.class);
+//			ConfigRobotProcedure requestModel = mapper.treeToValue(request.get("body"), ConfigRobotProcedure.class);
 //
 //			if (requestModel == null) {
 //				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -1048,7 +1054,7 @@ public class AutoAllocationService {
 //				return Map.of("status", 200, "data", responseModel);
 //			}
 //
-//			configRobotFunctionDAO.save(requestModel);
+//			configRobotProcedureDAO.save(requestModel);
 //
 //			responseModel.setReference_id(UUID.randomUUID().toString());
 //			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -1065,5 +1071,73 @@ public class AutoAllocationService {
 //		}
 //		return Map.of("status", 200, "data", responseModel);
 //	}
+
+	public Map<String, Object> getAllPendingCode(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		log.info("getAllPendingCode" + request);
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		responseModel.setDate_time(new Timestamp(new Date().getTime()));
+		try {
+			List<AllocationPendingCode> allocationPendingCodes = allocationPendingCodeDao.findAll();
+			ArrayNode dataArrayNode = mapper.createArrayNode();
+			for(int i = 0; i< allocationPendingCodes.size();i++){
+				ObjectNode data = mapper.createObjectNode();
+				data.put("codePending", allocationPendingCodes.get(i).getCodePending());
+				data.put("codeDesc", allocationPendingCodes.get(i).getCodeDesc());
+				data.put("stageName", allocationPendingCodes.get(i).getStageName());
+				dataArrayNode.add(data);
+			}
+			responseModel.setData(dataArrayNode);
+
+		} catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setResult_code(500);
+			log.error("{}", e);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+	public Map<String, Object> updatePendingDetail(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		log.info("updatePendingDetail" + request);
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		responseModel.setDate_time(new Timestamp(new Date().getTime()));
+		try {
+			List<AssignmentDetail> listAssignmentDetail = assignmentDetailDAO.findByAppNumber(request.path("body").path("appNumber").textValue());
+			Iterator<AssignmentDetail> it = listAssignmentDetail.iterator();
+			while (it.hasNext()){
+				AssignmentDetail assignmentDetail = it.next();
+				log.info("Start step 1 insert into Allocation Pending Detail");
+				AllocationPendingDetail allocationPendingDetail = new AllocationPendingDetail();
+				allocationPendingDetail.setAppNumber(assignmentDetail.getAppNumber());
+				allocationPendingDetail.setStageName(request.path("body").path("stageName").textValue());
+				allocationPendingDetail.setCreationApplstageTime(assignmentDetail.getCreationApplStageTime());
+				allocationPendingDetail.setPendingCode(request.path("body").path("pendingCode").textValue());
+				allocationPendingDetail.setPendingComments(request.path("body").path("pendingComments").textValue());
+				allocationPendingDetail.setPendingUser(request.path("body").path("pendingUser").textValue());
+				allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
+				allocationPendingDetail.setTeamUser(request.path("body").path("teamUser").textValue());
+				allocationPendingDetail = allocationPendingDetailDao.save(allocationPendingDetail);
+				log.info("End step 1");
+				if(allocationPendingDetailDao.findById(allocationPendingDetail.getId()) != null){
+					assignmentDetail.setStatusAssign("PENDING");
+					assignmentDetailDAO.save(assignmentDetail);
+					responseModel.setResult_code(200);
+					responseModel.setMessage("SUCCESS");
+				}else{
+					responseModel.setResult_code(201);
+					responseModel.setMessage("FAIL");
+				}
+			}
+
+			log.info("End step 2");
+		} catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setResult_code(500);
+			log.error("{}", e);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
 
 }

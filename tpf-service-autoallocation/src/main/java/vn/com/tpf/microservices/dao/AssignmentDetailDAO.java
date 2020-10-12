@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.com.tpf.microservices.models.AssignmentDetail;
+import vn.com.tpf.microservices.models.TeamConfig;
+
+import java.util.List;
 
 public interface AssignmentDetailDAO extends JpaRepository<AssignmentDetail, Long> {
 
@@ -13,4 +16,6 @@ public interface AssignmentDetailDAO extends JpaRepository<AssignmentDetail, Lon
     Page<AssignmentDetail> findByStatusAssign(@Param("statusAssign") String statusAssign, Pageable pageable);
 
     AssignmentDetail findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(String appNumber, String assignee, String statusAssign);
+
+    List<AssignmentDetail> findByAppNumber(@Param("appNumber") String appNumber);
 }
