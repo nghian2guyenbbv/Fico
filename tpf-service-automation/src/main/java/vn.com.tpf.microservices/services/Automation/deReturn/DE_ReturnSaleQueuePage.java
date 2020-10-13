@@ -320,6 +320,11 @@ public class DE_ReturnSaleQueuePage {
             System.out.println("URLdownload: " + fromFile);
             String docName = documentList.getFileName();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+
+            if ("TPF_Transcript".equals(docName)){
+                docName = "TPF_Tran1";
+            }
+
             toFile += UUID.randomUUID().toString() + "_" + docName;
 
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
