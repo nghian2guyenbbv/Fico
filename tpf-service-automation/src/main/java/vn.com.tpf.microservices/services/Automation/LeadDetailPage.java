@@ -306,7 +306,7 @@ public class LeadDetailPage {
                         String ext=FilenameUtils.getExtension(doc.getFilename());
 
                         if ("TPF_Transcript".equals(docName)){
-                            docName = "TPF_Bang_Diem";
+                            docName = "TPF_Tran1";
                         }
 
                         toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
