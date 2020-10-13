@@ -551,7 +551,7 @@ public class AutoAllocationService {
 		try {
 			Map<String, Object> result = new HashMap<>();
 			Map<String, AssignConfigResponse> mapAssignConfig = new HashMap<>();
-			List<AssignConfig> lst = assignConfigDAO.findAllByOrderByStageName();
+			List<AssignConfig> lst = assignConfigDAO.findAll();
 			List<String> listTeamName = teamConfigDAO.getListTeamName();
 
 			for (AssignConfig ac : lst) {
