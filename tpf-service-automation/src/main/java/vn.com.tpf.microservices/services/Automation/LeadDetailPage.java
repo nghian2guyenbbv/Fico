@@ -297,12 +297,17 @@ public class LeadDetailPage {
                 String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                 if (requiredFiled.contains(docName)) {
 
-                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(docName)).findAny().orElse(null);
+                    String finalDocName = docName;
+                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(finalDocName)).findAny().orElse(null);
 
                     if(doc!=null)
                     {
                         //bo sung get ext file
                         String ext=FilenameUtils.getExtension(doc.getFilename());
+
+                        if ("TPF_Transcript".equals(docName)){
+                            docName = "TPF_Bang_Diem";
+                        }
 
                         toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
