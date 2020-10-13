@@ -10,6 +10,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAssignAllocationDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_ExistingCustomerDTO;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_SaleQueueDTO;
@@ -476,9 +478,10 @@ public class AutomationService {
 
 	private void runAutomation_Waive_Field(RequestAutomationDTO waiveFieldDTOList) throws Exception {
 		String browser = "chrome";
+        String projectJson = waiveFieldDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field","MOBILITY");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field",projectJson.toUpperCase());
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -509,9 +512,10 @@ public class AutomationService {
 
 	private void runAutomation_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws Exception {
 		String browser = "chrome";
+        String projectJson = submitFieldDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Submit_Field(submitFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field","MOBILITY");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field", projectJson.toUpperCase());
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -675,4 +679,34 @@ public class AutomationService {
 	//------------------------ END - QUICK LEAD WITH ASSIGN POOL -------------------------------------
 
 	//------------------------ END - PROJECT CRM  -------------------------------
+
+
+	//------------------------ AUTO ALLOCATION  -------------------------------
+    public Map<String, Object> AutoAssign_Allocation(JsonNode request) throws Exception {
+        JsonNode body = request.path("body");
+        System.out.println(request);
+        Assert.notNull(request.get("body"), "no body");
+		AutoAllocationDTO autoAssignAllocationDTOList = mapper.treeToValue(request.path("body"), AutoAllocationDTO.class);
+
+        new Thread(() -> {
+            try {
+                runAutomation_AutoAssign_Allocation(autoAssignAllocationDTOList);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        return response(0, body, autoAssignAllocationDTOList);
+    }
+
+    private void runAutomation_AutoAssign_Allocation(AutoAllocationDTO autoAssignAllocationDTOList) throws Exception {
+        String browser = "chrome";
+        String projectJson = autoAssignAllocationDTOList.getProject();
+        Map<String, Object> mapValue = DataInitial.getDataFrom_AutoAssign_Allocation(autoAssignAllocationDTOList);
+
+        AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_AutoAssign_Allocation",projectJson.toUpperCase());
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+        workerThreadPool.submit(automationThreadService);
+    }
+
 }

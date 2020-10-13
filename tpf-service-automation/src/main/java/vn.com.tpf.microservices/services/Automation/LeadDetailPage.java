@@ -273,15 +273,18 @@ public class LeadDetailPage {
             System.out.println("URLdownload: " + fromFile);
 
             int index = 0;
-            List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card","TPF_Notarization of ID card","TPF_Family Book","TPF_Notarization of Family Book",
-                                                        "TPF_Customer Photograph","TPF_Health Insurance Card","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
-                                                        "TPF_Employer Confirmation","TPF_Labor Contract","TPF_Salary slip",
-                                                        "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac",
-                                        "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills","TPF_Confirm_student_infomation", "TPF_Confirm_student_Infomation",
-                                        "TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
-                    "TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card","TPF_Collab document","TPF_Credit contract documentations",
-                    "TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon","TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
-                    "TPF_Transcript","TPF_Representatives "); //
+            List<String> requiredFiled = Arrays.asList(
+                    "TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Notarization of ID card", "TPF_Family Book", "TPF_Notarization of Family Book",
+                    "TPF_Health Insurance Card", "TPF_Banking Statement", "TPF_Employer Confirmation", "TPF_Labor Contract", "TPF_Salary slip", "TPF_Electricity bills",
+                    "TPF_Water bill", "TPF_Internet bills", "TPF_Phone bills", "TPF_Cable TV bills", "TPF_Credit contract documentations", "TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac",
+                    "TPF_Customer Photograph", "TPF_Map to Customer House", "TPF_Customer Signature", "TPF_Confirm_student_infomation", "TPF_Confirm_student_Infomation",
+                    "TPF_ Confirm_student_Infomation", "TPF_Confirm_student_information", "TPF_Confirm_student_Information", "TPF_ Confirm_student_Information",
+                    "TPF_Diploma", "TPF_Transcript", "TPF_Offer_Letter", "TPF_Representatives", "TPF_Student_Portal_Login_Photo", "TPF_Appointment decision",
+                    "TPF_Residence Confirmation", "TPF_KT3", "TPF_Driving_License", "TPF_Giay_xac_nhan_nhan_than", "TPF_Salary_SMS_Banking", "TPF_E-Banking_photo",
+                    "TPF_Others", "TPF_Details of Stock", "TPF_Employee_Card", "TPF_Collab document", "TPF_Other_Bao_Hiem_Xa_Hoi_Online", "TPF_Other_Chung_Nhan_Ket_Hon",
+                    "TPF_Other_Mail_Xin_Deviation", "TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue", "TPF_Xac_Nhan_Tam_Tru", "TPF_Representatives ", "TPF_Representatives", "TPF_Insurance Contract",
+                    "TPF_Insurance Bill"
+            );
             Utilities.captureScreenShot(_driver);
 
             //update count file upload
@@ -294,12 +297,17 @@ public class LeadDetailPage {
                 String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                 if (requiredFiled.contains(docName)) {
 
-                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(docName)).findAny().orElse(null);
+                    String finalDocName = docName;
+                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(finalDocName)).findAny().orElse(null);
 
                     if(doc!=null)
                     {
                         //bo sung get ext file
                         String ext=FilenameUtils.getExtension(doc.getFilename());
+
+                        if ("TPF_Transcript".equals(docName)){
+                            docName = "TPF_Bang_Diem";
+                        }
 
                         toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
@@ -308,7 +316,7 @@ public class LeadDetailPage {
                         if(file.exists()) {
                             //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
                             String photoUrl = file.getAbsolutePath();
-                            System.out.println("paht;" + photoUrl);
+                            System.out.println("PATH: " + photoUrl);
                             // Added sleep to make you see the difference.
                             Thread.sleep(3000);
 
@@ -366,10 +374,18 @@ public class LeadDetailPage {
 
             Utilities.captureScreenShot(_driver);
 
-            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> modalConfirmElement.isDisplayed());
+            try {
+                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
+                modalBtnConfirmElement.click();
+            } catch (Exception e) {
+                System.out.println("modalConfirmElement visibale Timeout!");
+            }
 
-            modalBtnConfirmElement.click();
+//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> modalConfirmElement.isDisplayed());
+//
+//            modalBtnConfirmElement.click();
 
             Utilities.captureScreenShot(_driver);
         } catch (Exception e) {

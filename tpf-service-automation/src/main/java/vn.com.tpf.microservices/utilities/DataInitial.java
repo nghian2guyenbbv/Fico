@@ -3,9 +3,14 @@ package vn.com.tpf.microservices.utilities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.StringUtils;
 import vn.com.tpf.microservices.models.*;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAssignAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoReassignUserDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
+import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -720,27 +725,51 @@ public class DataInitial {
         return map;
     }
 
-    /*public static Map<String, Object> getDataFrom_Waive_Field_V2(List<WaiveFieldDTO> waiveFieldDTOList) throws JsonProcessingException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("WaiveFieldList", waiveFieldDTOList);
-        return map;
-    }
-
-    public static Map<String, Object> getDataFrom_Submit_Field_V2(List<SubmitFieldDTO> submitFieldDTOList) throws JsonProcessingException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("SubmitFieldList", submitFieldDTOList);
-        return map;
-    }*/
-
     public static Map<String, Object> getDataFrom_Waive_Field(RequestAutomationDTO waiveFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("RequestAutomationWaiveFieldList", waiveFieldDTOList);
+        ////********************************REASSIGN USER************************************////
+        List<WaiveFieldDTO> waiveFieldDTOs = new ArrayList<>();
+        for(WaiveFieldDTO waiveField : waiveFieldDTOList.getWaiveFieldDTO()) {
+            WaiveFieldDTO waiveFieldDTO = WaiveFieldDTO.builder()
+                    .appId(waiveField.getAppId())
+                    .project(waiveFieldDTOList.getProject())
+                    .reference_id(waiveFieldDTOList.getReference_id())
+                    .transaction_id(waiveFieldDTOList.getTransaction_id())
+                    .funcProject("WaiveField")
+                    .build();
+            waiveFieldDTOs.add(waiveFieldDTO);
+        }
+        map.put("waiveFieldList", waiveFieldDTOs);
         return map;
     }
 
     public static Map<String, Object> getDataFrom_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("RequestAutomationSubmitFieldList", submitFieldDTOList);
+        ////********************************REASSIGN USER************************************////
+        List<SubmitFieldDTO> submitFieldDTOs = new ArrayList<>();
+        for(SubmitFieldDTO submitField : submitFieldDTOList.getSubmitFieldDTO()) {
+            SubmitFieldDTO submitFieldDTO = SubmitFieldDTO.builder()
+                    .appId(submitField.getAppId())
+                    .project(submitFieldDTOList.getProject())
+                    .reference_id(submitFieldDTOList.getReference_id())
+                    .transaction_id(submitFieldDTOList.getTransaction_id())
+                    .funcProject("WaiveField")
+                    .phoneConfirmed(submitField.getPhoneConfirmed())
+                    .resultHomeVisit(submitField.getResultHomeVisit())
+                    .resultOfficeVisit(submitField.getResultOfficeVisit())
+                    .result2ndHomeVisit(submitField.getResult2ndHomeVisit())
+                    .timeOfVisit(submitField.getTimeOfVisit())
+                    .verificationDate(submitField.getVerificationDate())
+                    .remarksDecisionFiv(submitField.getRemarksDecisionFiv())
+                    .remarksDecisionFic(submitField.getResonDecisionFic())
+                    .resonDecisionFic(submitField.getResonDecisionFic())
+                    .attachmentField(submitField.getAttachmentField())
+                    .build();
+            submitFieldDTOs.add(submitFieldDTO);
+        }
+        map.put("submitFieldList", submitFieldDTOs);
         return map;
     }
 
@@ -1141,6 +1170,46 @@ public class DataInitial {
     public static Map<String, Object> getDataFromCRM_QL(CRM_ExistingCustomerDTO application) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
         map.put("ApplicationDTO", application);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_Auto_Allocation(AutoAllocationDTO autoAllocationDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("AutoAllocationList", autoAllocationDTOList);
+
+        ////********************************REASSIGN USER************************************////
+        List<AutoReassignUserDTO> autoReassignUserDTOs = new ArrayList<>();
+        for(AutoReassignUserDTO autoReassignUser : autoAllocationDTOList.getReassign()) {
+            AutoReassignUserDTO autoReassignUserDTO = AutoReassignUserDTO.builder()
+                    .project(autoAllocationDTOList.getProject())
+                    .reference_id(autoAllocationDTOList.getReference_id())
+                    .amountApp(autoReassignUser.getAmountApp())
+                    .stageApp(autoReassignUser.getStageApp())
+                    .inQueueStatus(autoReassignUser.getInQueueStatus())
+                    .reassignUser(autoReassignUser.getReassignUser())
+                    .build();
+            autoReassignUserDTOs.add(autoReassignUserDTO);
+        }
+        map.put("AutoReassignUser", autoReassignUserDTOs);
+
+        return map;
+    }
+
+    public static Map<String, Object> getDataFrom_AutoAssign_Allocation(AutoAllocationDTO autoAssignAllocationDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("AutoAssignAllocationList", autoAssignAllocationDTOList);
+        ////********************************REASSIGN USER************************************////
+        List<AutoAssignAllocationDTO> autoAssignAllocationDTOs = new ArrayList<>();
+        for(AutoAssignAllocationDTO autoAssignAllocation : autoAssignAllocationDTOList.getAutoAssign()) {
+            AutoAssignAllocationDTO autoAssignAllocationDTO = AutoAssignAllocationDTO.builder()
+                    .project(autoAssignAllocationDTOList.getProject())
+                    .reference_id(autoAssignAllocationDTOList.getReference_id())
+                    .appId(autoAssignAllocation.getAppId())
+                    .userName(autoAssignAllocation.getUserName())
+                    .build();
+            autoAssignAllocationDTOs.add(autoAssignAllocationDTO);
+        }
+        map.put("AutoAssignAllocation", autoAssignAllocationDTOs);
         return map;
     }
 }
