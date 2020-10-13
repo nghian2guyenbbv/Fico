@@ -4656,7 +4656,9 @@ public class AutomationHandlerService {
             if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
                 application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
-                application.setDescription("Khong thanh cong");
+                if (!"File not enough!!!".equals(application.getDescription())) {
+                    application.setDescription("Khong thanh cong");
+                }
             }
 
             Instant finish = Instant.now();
