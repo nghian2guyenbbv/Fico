@@ -5,6 +5,7 @@ import java.util.Map;
 public class AssignConfigResponse {
     private String stageName;
     private Map<String, AssignConfigProductResponse> products;
+    private Long sortIndex;
 
     public String getStageName() {
         return stageName;
@@ -20,5 +21,13 @@ public class AssignConfigResponse {
 
     public void setProducts(Map<String, AssignConfigProductResponse> products) {
         this.products = products;
+    }
+
+    public Long getSortIndex() {
+        return sortIndex;
+    }
+
+    public void setSortIndex(Long sortIndex) {
+        this.sortIndex = sortIndex;
     }
 }

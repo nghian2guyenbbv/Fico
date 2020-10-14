@@ -566,6 +566,7 @@ public class AutoAllocationService {
 					assignConfigProductResponseMap.put(ac.getProduct(), assignConfigProductResponse);
 					assignConfigResponse.setProducts(assignConfigProductResponseMap);
 					mapAssignConfig.put(ac.getStageName(), assignConfigResponse);
+					assignConfigResponse.setSortIndex(ac.getSortIndex());
 				} else {
 					AssignConfigProductResponse assignConfigProductResponse = new AssignConfigProductResponse();
 					assignConfigProductResponse.setId(ac.getId());
