@@ -69,6 +69,9 @@ public class AutoAllocationService {
 	@Autowired
 	AllocationPendingDetailDao allocationPendingDetailDao;
 
+	@Autowired
+	AssignConfigViewDAO assignConfigViewDAO;
+
 	private static String ROLE_LEADER = "role_leader";
 	private static String ROLE_SUB = "role_supervisor";
 	private static String KEY_ASSIGN_APP = "WAITING";
@@ -551,10 +554,10 @@ public class AutoAllocationService {
 		try {
 			Map<String, Object> result = new HashMap<>();
 			Map<String, AssignConfigResponse> mapAssignConfig = new HashMap<>();
-			List<AssignConfig> lst = assignConfigDAO.findAll();
+			List<AssignConfigView> lst = assignConfigViewDAO.findAll();
 			List<String> listTeamName = teamConfigDAO.getListTeamName();
 
-			for (AssignConfig ac : lst) {
+			for (AssignConfigView ac : lst) {
 				if(!mapAssignConfig.containsKey(ac.getStageName())) {
 					AssignConfigResponse assignConfigResponse = new AssignConfigResponse();
 					assignConfigResponse.setStageName(ac.getStageName());

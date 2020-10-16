@@ -6,9 +6,9 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_ASSIGN_CONFIG")
+@Table(name = "V_ALLOCATION_ASSIGN_CONFIG")
 @Data
-public class AssignConfig {
+public class AssignConfigView {
 
     @Id
     @Column(name = "ID")
@@ -38,5 +38,8 @@ public class AssignConfig {
 
     @Column(name = "UPDATE_DATE")
     private Timestamp updateDate;
+
+    @Column(name = "SORT_INDEX")
+    private Long sortIndex;
 
 }
