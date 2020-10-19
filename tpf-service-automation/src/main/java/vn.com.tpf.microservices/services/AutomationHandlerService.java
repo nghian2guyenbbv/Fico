@@ -308,7 +308,11 @@ public class AutomationHandlerService {
                     runAutomation_Sale_Queue_With_FullInfo(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_AutoAssign_Allocation":
-                    runAutomation_autoAssignAllocation(driver, mapValue, project, browser);
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
+                    runAutomation_autoAssignAllocation(mapValue, project, browser);
                     break;
             }
 
@@ -6352,7 +6356,7 @@ public class AutomationHandlerService {
     }
 
     //------------------------ AUTO ALLOCATION -----------------------------------------------------
-    public void runAutomation_autoAssignAllocation(WebDriver driver, Map<String, Object> mapValue, String project, String browser) throws Exception {
+    public void runAutomation_autoAssignAllocation(Map<String, Object> mapValue, String project, String browser) throws Exception {
         String stage = "";
         try {
             stage = "INIT DATA";
@@ -6406,7 +6410,6 @@ public class AutomationHandlerService {
         } catch (Exception e) {
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
-            Utilities.captureScreenShot(driver);
         }
     }
 
@@ -6429,7 +6432,7 @@ public class AutomationHandlerService {
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
 
-            await("Login timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": LOGIN DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
@@ -6442,7 +6445,7 @@ public class AutomationHandlerService {
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
             homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
             AutoAssignAllocationDTO autoAssignAllocationDTO = null;
@@ -6475,21 +6478,21 @@ public class AutomationHandlerService {
 
                         appID = autoAssignAllocationDTO.getAppId();
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
-                        await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+                        await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getApplicationManagerFormElement().isDisplayed());
                         autoAssignAllocationPage.setData(appID, autoAssignAllocationDTO.getUserName().toLowerCase());
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - APPLICATION MANAGER " + " - "  + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-                        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+                        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getTdApplicationElement().size() > 0);
 
-                        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+                        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getShowTaskElement().isDisplayed());
 
                         autoAssignAllocationPage.getBackBtnElement().click();
 
-                        await("Application Manager Back timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+                        await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(driver::getTitle, is("Application Manager"));
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - AUTO FINISH " + " - " + " - User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
@@ -6566,7 +6569,7 @@ public class AutomationHandlerService {
 
                     AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
                     autoAssignAllocationFailedPage.getBackBtnElement().click();
-                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Manager"));
 
                     System.out.println(ex.getMessage());
