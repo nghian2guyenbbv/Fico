@@ -874,6 +874,8 @@ public class RepaymentService {
 
 	public void saveReportReceiptPaymentLog(FicoRepaymentModel ficoRepaymentModel,String logResponse,Timestamp timestamp,String errorMesage) throws IOException, ParseException {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sssXXX");
+		DateTimeFormatter parser = DateTimeFormatter.ofPattern("[yyyy-MM-dd'T'HH:mm:ss.SSSXXX][yyyy-MM-dd'T'HH:mm:ssXXX]");
+
 		FicoReceiptPaymentLog ficoReceiptPaymentLog=null;
 		String message="";
 		try
@@ -911,7 +913,8 @@ public class RepaymentService {
 					.transactionId(resNode.path("transactionId").asText(""))
 					.responseCode(resNode.path("responseCode").asText(""))
 					.responseMessage(resNode.path("responseMessage").asText(""))
-					.responseDate( new Timestamp((sdf.parse(resNode.path("responseDate").asText("")).getTime())))
+					//.responseDate( new Timestamp((sdf.parse(resNode.path("responseDate").asText("")).getTime())))
+						.responseDate(Timestamp.valueOf(LocalDateTime.parse(resNode.path("responseDate").asText(""),parser)))
 					.logResponse(logResponse.replaceAll("\u00A0", ""))
 					.build();
 
