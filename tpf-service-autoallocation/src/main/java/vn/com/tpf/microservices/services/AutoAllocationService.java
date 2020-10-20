@@ -19,7 +19,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import vn.com.tpf.microservices.commons.AllocationTeamConfig;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
