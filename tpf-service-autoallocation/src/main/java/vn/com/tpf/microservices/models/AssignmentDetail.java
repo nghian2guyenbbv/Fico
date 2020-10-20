@@ -25,9 +25,6 @@ public class AssignmentDetail {
     @Column(name = "STAGE_NAME")
     private String stageName;
 
-    @Column(name = "STAGE_ID")
-    private String stageId;
-
     @Column(name = "STATUS_APP")
     private String statusApp;
 
