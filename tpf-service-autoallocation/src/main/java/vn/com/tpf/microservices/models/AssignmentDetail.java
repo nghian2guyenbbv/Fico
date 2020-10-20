@@ -72,4 +72,6 @@ public class AssignmentDetail {
 
     @Column(name = "CURRENT_CYCLE")
     private Long currentCycle;
+
+
 }

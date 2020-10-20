@@ -41,10 +41,10 @@ public class UserDetail {
     private String workOff;
 
     @Column(name = "QUOTA_APP")
-    private String quotaApp;
+    private int quotaApp;
 
     @Column(name = "PENDING_APP")
-    private String pendingApp;
+    private int pendingApp;
 
     @Transient
     private String roleUserLogin;

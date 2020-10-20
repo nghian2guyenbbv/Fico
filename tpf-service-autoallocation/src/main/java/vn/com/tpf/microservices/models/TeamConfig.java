@@ -22,10 +22,10 @@ public class TeamConfig {
     private Long teamCode;
 
     @Column(name = "MAX_PENDING")
-    private Long maxPending;
+    private int maxPending;
 
     @Column(name = "MAX_QUOTA")
-    private Long maxQuota;
+    private int maxQuota;
 
     @Column(name = "ASSIGN_FLAG")
     private String assignFlag;

@@ -27,6 +27,8 @@ public interface UserDetailsDAO extends JpaRepository<UserDetail, Long> {
 
     List<UserDetail> findAllByUserName(String userName);
 
+    UserDetail findByUserName(String userName);
+
     UserDetail findByUserRoleAndUserNameAndTeamName(String userRole, String userName, String teamName);
 
     @Query("SELECT u.teamName " +

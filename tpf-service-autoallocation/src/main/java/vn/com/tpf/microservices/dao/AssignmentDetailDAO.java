@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import vn.com.tpf.microservices.models.AssignmentDetail;
 import vn.com.tpf.microservices.models.TeamConfig;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface AssignmentDetailDAO extends JpaRepository<AssignmentDetail, Long> {
@@ -17,5 +18,5 @@ public interface AssignmentDetailDAO extends JpaRepository<AssignmentDetail, Lon
 
     AssignmentDetail findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(String appNumber, String assignee, String statusAssign);
 
-    List<AssignmentDetail> findByAppNumber(@Param("appNumber") String appNumber);
+    List<AssignmentDetail> findByAppNumberAndStageNameAndAndCreationApplStageTime(@Param("appNumber") String appNumber, @Param("stageName") String stageName, @Param("creationApplStageTime") Timestamp creationApplStageTime);
 }

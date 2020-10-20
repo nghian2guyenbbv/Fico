@@ -540,8 +540,6 @@ public class AutoAllocationService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -582,7 +580,7 @@ public class AutoAllocationService {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 		} catch (Exception e) {
-			log.info("getAssignConfig - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+			log.error("getAssignConfig - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
 					e.getStackTrace()[0].getLineNumber());
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -685,18 +683,26 @@ public class AutoAllocationService {
 		try{
 			String SQL = "SELECT * FROM V_ALLOCATION_TEAM_CONFIG P WHERE P.USER_NAME = {USER_LOGIN}";
 			SQL = SQL.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
-			List<Map<String, Object>> pendings = jdbcTemplate.queryForList(SQL);
+			List<ViewTeamConfig> listViewTeamConfig =  jdbcTemplate.query(SQL, new Object[]{},  (rs, rowNum) ->{
+				ViewTeamConfig viewTeamConfig = new ViewTeamConfig();
+				viewTeamConfig.setUserName(rs.getString("USER_NAME"));
+				viewTeamConfig.setUserRole(rs.getString("USER_ROLE"));
+				viewTeamConfig.setTeamName(rs.getString("TEAM_NAME"));
+				viewTeamConfig.setMaxPending(rs.getInt("MAX_PENDING"));
+				viewTeamConfig.setMaxQuota(rs.getInt("MAX_QUOTA"));
+				return viewTeamConfig;
+			});
 			ArrayNode dataArrayNode = mapper.createArrayNode();
-			if (pendings!=null && !pendings.isEmpty()) {
-				for (Map<String, Object> pending : pendings) {
+			if(!listViewTeamConfig.isEmpty()){
+				Iterator<ViewTeamConfig> it = listViewTeamConfig.iterator();
+				while (it.hasNext()){
+					ViewTeamConfig viewTeamConfig = it.next();
 					ObjectNode data = mapper.createObjectNode();
-					for (Iterator<Map.Entry<String, Object>> it = pending.entrySet().iterator(); it.hasNext();) {
-						Map.Entry<String, Object> entry = it.next();
-						if(AllocationTeamConfig.getCode(entry.getKey())==null){
-							continue;
-						}
-						data.put(AllocationTeamConfig.getCode(entry.getKey()), String.valueOf(entry.getValue()));
-					}
+					data.put("userName", viewTeamConfig.getUserName());
+					data.put("userRole", viewTeamConfig.getUserRole());
+					data.put("teamName", viewTeamConfig.getTeamName());
+					data.put("maxPending", viewTeamConfig.getMaxPending());
+					data.put("maxQuota", viewTeamConfig.getMaxQuota());
 					dataArrayNode.add(data);
 				}
 			}
@@ -723,8 +729,8 @@ public class AutoAllocationService {
 			Iterator<TeamConfig> it = listTeamName.iterator();
 			while (it.hasNext()){
 				TeamConfig  teamConfig = it.next();
-				teamConfig.setMaxPending(Long.parseLong(request.path("body").path("maxPending").textValue()));
-				teamConfig.setMaxQuota(Long.parseLong(request.path("body").path("maxQuota").textValue()));
+				teamConfig.setMaxPending(request.path("body").path("maxPending").intValue());
+				teamConfig.setMaxQuota(request.path("body").path("maxQuota").intValue());
 				teamConfig.setUserUpdate(request.path("body").path("userLogin").textValue());
 				teamConfig.setUpdateDate(new Timestamp(new Date().getTime()));
 				teamConfigDAO.save(teamConfig);
@@ -775,12 +781,11 @@ public class AutoAllocationService {
 			responseModel.setData(userDetailList);
 
 		} catch (Exception e) {
-			log.info("Error: " + e);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -808,12 +813,11 @@ public class AutoAllocationService {
 			responseModel.setMessage("Delete success");
 
 		} catch (Exception e) {
-			log.info("Error: " + e);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -845,7 +849,6 @@ public class AutoAllocationService {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
-			log.info("{}", e);
 			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -973,6 +976,7 @@ public class AutoAllocationService {
 			for (AutoAssignModel ad : autoAssignModels) {
 				AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
 						ad.getAppId(), ad.getUserName(), "ASSIGNING");
+				UserDetail userDetail = userDetailsDAO.findByUserName(ad.getUserName());
 				if (assignmentDetail == null) {
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -985,6 +989,9 @@ public class AutoAllocationService {
 						assignmentDetail.setStatusAssign("FAILED");
 						assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
 						assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
+						int quotaApp = userDetail.getQuotaApp()-1;
+						userDetail.setQuotaApp(quotaApp);
+						userDetailsDAO.save(userDetail);
 					} else {
 						assignmentDetail.setStatusAssign("PROCESSING");
 					}
@@ -1002,7 +1009,6 @@ public class AutoAllocationService {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
-			log.info("{}", e);
 			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -1092,7 +1098,6 @@ public class AutoAllocationService {
 		} catch (Exception e) {
 			log.error("Error: " + e);
 			responseModel.setResult_code(500);
-			log.error("{}", e);
 			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -1103,11 +1108,35 @@ public class AutoAllocationService {
 		responseModel.setReference_id(UUID.randomUUID().toString());
 		responseModel.setDate_time(new Timestamp(new Date().getTime()));
 		try {
-			List<AssignmentDetail> listAssignmentDetail = assignmentDetailDAO.findByAppNumber(request.path("body").path("appNumber").textValue());
+			String appNumber = request.path("body").path("appNumber").textValue();
+			String stageName = request.path("body").path("stageName").textValue();
+			Timestamp creation_appStage_time = Timestamp.valueOf(request.path("body").path("creation_appStage_time").textValue());
+			List<AssignmentDetail> listAssignmentDetail = assignmentDetailDAO.findByAppNumberAndStageNameAndAndCreationApplStageTime(appNumber, stageName, creation_appStage_time);
 			Iterator<AssignmentDetail> it = listAssignmentDetail.iterator();
-			while (it.hasNext()){
+			if(listAssignmentDetail.size() == 0){
+				responseModel.setResult_code(202);
+				responseModel.setMessage("Application can't be hold. Please reload page.");
+			}else{
+				UserDetail userDetail = userDetailsDAO.findByUserName(request.path("body").path("pendingUser").textValue());
+				if(userDetail.getPendingApp() < request.path("body").path("maxPending").intValue()){
+					updateInfor(it, request, userDetail, responseModel);
+				}else{
+					responseModel.setResult_code(203);
+					responseModel.setMessage("Number of pending app is limited. Please contact your supervisor for support.");
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	private void updateInfor(Iterator<AssignmentDetail> it, JsonNode request, UserDetail userDetail, ResponseModel responseModel){
+		while (it.hasNext()){
+			try{
 				AssignmentDetail assignmentDetail = it.next();
-				log.info("Start step 1 insert into Allocation Pending Detail");
 				AllocationPendingDetail allocationPendingDetail = new AllocationPendingDetail();
 				allocationPendingDetail.setAppNumber(assignmentDetail.getAppNumber());
 				allocationPendingDetail.setStageName(request.path("body").path("stageName").textValue());
@@ -1117,27 +1146,24 @@ public class AutoAllocationService {
 				allocationPendingDetail.setPendingUser(request.path("body").path("pendingUser").textValue());
 				allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
 				allocationPendingDetail.setTeamUser(request.path("body").path("teamUser").textValue());
-				allocationPendingDetail = allocationPendingDetailDao.save(allocationPendingDetail);
-				log.info("End step 1");
-				if(allocationPendingDetailDao.findById(allocationPendingDetail.getId()) != null){
-					assignmentDetail.setStatusAssign("PENDING");
-					assignmentDetailDAO.save(assignmentDetail);
-					responseModel.setResult_code(200);
-					responseModel.setMessage("SUCCESS");
-				}else{
-					responseModel.setResult_code(201);
-					responseModel.setMessage("FAIL");
-				}
-			}
+				allocationPendingDetailDao.save(allocationPendingDetail);
 
-			log.info("End step 2");
-		} catch (Exception e) {
-			log.error("Error: " + e);
-			responseModel.setResult_code(500);
-			log.error("{}", e);
-			responseModel.setMessage("Others error");
+				assignmentDetail.setStatusAssign("PENDING");
+				assignmentDetailDAO.save(assignmentDetail);
+
+				int pendingApp = userDetail.getPendingApp()+1;
+				userDetail.setPendingApp(pendingApp);
+				int quotaApp = userDetail.getQuotaApp()-1;
+				userDetail.setQuotaApp(quotaApp);
+				userDetailsDAO.save(userDetail);
+				responseModel.setResult_code(200);
+				responseModel.setMessage("SUCCESS");
+			}catch (Exception e) {
+				log.error("Error: " + e);
+				responseModel.setResult_code(201);
+				responseModel.setMessage("Insert into Assignment Detail not success");
+			}
 		}
-		return Map.of("status", 200, "data", responseModel);
 	}
 
 }
