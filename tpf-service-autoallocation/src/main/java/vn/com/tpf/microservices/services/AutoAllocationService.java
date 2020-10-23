@@ -895,7 +895,7 @@ public class AutoAllocationService {
 
 	@Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
 	public void pushAssignToRobot() {
-		log.info("pushAssignToRobot is start.");
+		log.info("pushAssignToRobot - get config from DB");
 		String sql = "select * from VIEW_ALLOCATION_ROBOT";
 		List<ConfigRobot> listConfigRobot = jdbcTemplate.query(sql, new Object[]{},  (rs, rowNum) ->{
 			ConfigRobot configRobot = new ConfigRobot();
@@ -913,8 +913,8 @@ public class AutoAllocationService {
 			LocalTime fromTime = LocalTime.parse(configRobot.getFromTime());
 			LocalTime toTime = LocalTime.parse(configRobot.getToTime());
 			if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobot.getConfig().equals("TRUE")) {
+				log.info("pushAssignToRobot is start.");
 				try {
-					log.info("pushAssignToRobot is running");
 					Pageable pageable = PageRequest.of(0, configRobot.getLimit(), Sort.by("id").ascending());
 					Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
 
@@ -922,7 +922,7 @@ public class AutoAllocationService {
 							|| assignmentDetailsList.getContent().isEmpty()) {
 						log.info("pushAssignToRobotApplication to assign is empty");
 					} else {
-
+						log.info("pushAssignToRobot is running");
 						BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
 						bodyAssignRobot.setProject("allocation");
 						bodyAssignRobot.setReference_id(UUID.randomUUID().toString());
@@ -930,9 +930,8 @@ public class AutoAllocationService {
 						RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
 						requestAssignRobot.setFunc("autoAssignUser");
 						requestAssignRobot.setBody(bodyAssignRobot);
-
+						List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
 						for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
-							List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
 							AutoAssignModel autoAssignModel = new AutoAssignModel();
 							autoAssignModel.setAppId(ad.getAppNumber());
 							autoAssignModel.setUserName(ad.getAssignee());
@@ -940,22 +939,15 @@ public class AutoAllocationService {
 							ad.setPickUptime(new Timestamp(new Date().getTime()));
 							ad.setStatusAssign("ASSIGNING");
 							assignmentDetailDAO.save(ad);
+							log.info("pushAssignToRobot is save to DB: appNum - {}", ad.getAppNumber());
 							bodyAssignRobot.setAutoAssign(autoAssignModelsList);
-
-							new Thread(() -> {
-								try {
-									rabbitMQService.send("tpf-service-automation-allocation",
-											requestAssignRobot);
-									log.info("pushAssignToRobot push success" + requestAssignRobot);
-								} catch (Exception e) {
-									log.info("Error: pushAssignToRobot " + e);
-								}
-							}).start();
 						}
+						rabbitMQService.send("tpf-service-automation-allocation",
+								requestAssignRobot);
+						log.info("pushAssignToRobot push success " + requestAssignRobot);
 					}
 				} catch (Exception e) {
 					log.info("Error: pushAssignToRobot " + e);
-					log.info("{}", e);
 				}
 			}
 		}
