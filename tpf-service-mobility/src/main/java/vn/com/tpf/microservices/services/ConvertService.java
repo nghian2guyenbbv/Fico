@@ -286,6 +286,7 @@ public class ConvertService {
 		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
 		quickLead.put("leadStatus", LeadStatus);
 		quickLead.put("communicationTranscript", mobility.getCommunicationTranscript());
+		quickLead.put("alternateChannelMode",mCas);
 
 		ArrayNode documents = mapper.createArrayNode();
 
