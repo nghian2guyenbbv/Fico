@@ -728,7 +728,7 @@ public class RepaymentService {
 			request_id = requestModel.getRequest_id();
 
 			//update tren UAT
-			Timestamp timestamp=new Timestamp(DateUtils.addMonths(new Date(),5).getTime());
+			Timestamp timestamp=new Timestamp(DateUtils.addMonths(new Date(),4).getTime());
 
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
