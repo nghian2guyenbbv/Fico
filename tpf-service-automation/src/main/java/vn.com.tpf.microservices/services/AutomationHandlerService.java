@@ -6584,10 +6584,6 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
             pushAccountToQueue(accountDTO, project);
-            if (driver != null) {
-                driver.close();
-                driver.quit();
-            }
         }
     }
 

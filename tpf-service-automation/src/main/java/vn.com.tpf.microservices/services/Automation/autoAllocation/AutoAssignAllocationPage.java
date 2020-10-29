@@ -81,7 +81,7 @@ public class AutoAssignAllocationPage {
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
 
-        await("Application Id not found !!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 0);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
