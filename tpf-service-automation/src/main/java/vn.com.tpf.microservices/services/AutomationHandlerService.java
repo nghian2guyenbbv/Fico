@@ -4905,6 +4905,10 @@ public class AutomationHandlerService {
                     }
                 }
             }
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
             pushAccountToQueue(accountDTO, project);
         }
     }
@@ -5064,6 +5068,10 @@ public class AutomationHandlerService {
                         e.printStackTrace();
                     }
                 }
+            }
+            if (driver != null) {
+                driver.close();
+                driver.quit();
             }
             pushAccountToQueue(accountDTO, project);
         }
