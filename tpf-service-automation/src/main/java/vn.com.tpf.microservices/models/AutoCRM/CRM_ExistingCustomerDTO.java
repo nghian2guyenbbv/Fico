@@ -19,6 +19,7 @@ public class CRM_ExistingCustomerDTO {
     private String id;
     private String status;
     private String stage;
+    private String error;
     @CreatedDate
     private Date createDate;
     @LastModifiedDate

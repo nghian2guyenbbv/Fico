@@ -157,8 +157,8 @@ public class CRM_LoanDetailsSourcingDetailsTab {
                 .until(() -> channelOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getSourcingChannel().toUpperCase(), channelOptionElement);
 
-        applicationFormNumberElement.clear();
-        applicationFormNumberElement.sendKeys(data.getApplicationNumber());
+//        applicationFormNumberElement.clear();
+//        applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -207,8 +207,8 @@ public class CRM_LoanDetailsSourcingDetailsTab {
 
     public void updateData(CRM_SourcingDetailsDTO data) {
 
-        applicationFormNumberElement.clear();
-        applicationFormNumberElement.sendKeys(data.getApplicationNumber());
+//        applicationFormNumberElement.clear();
+//        applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

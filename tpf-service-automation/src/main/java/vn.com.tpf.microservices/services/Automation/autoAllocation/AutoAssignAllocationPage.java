@@ -74,41 +74,39 @@ public class AutoAssignAllocationPage {
     }
 
     public void setData(String appId,String user) {
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
-        Utilities.captureScreenShot(_driver);
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 0);
 
-        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
-        Utilities.captureScreenShot(_driver);
+
         showTaskElement.click();
 
-        await("taskTableDivElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("taskTableDivElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> taskTableDivElement.isDisplayed());
 
-        await("editElement visibale Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("editElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> editElement.isDisplayed());
 
-        Utilities.captureScreenShot(_driver);
         editElement.click();
 
-        await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserElement.isEnabled());
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
-        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
         int listUserAssigned = textSelectUserOptionElement.size();
 
-        await("No User Found!!!").atMost(Constant.TIME_OUT_ALLOCATION_S, TimeUnit.SECONDS)
+        await("No User Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> listUserAssigned > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
