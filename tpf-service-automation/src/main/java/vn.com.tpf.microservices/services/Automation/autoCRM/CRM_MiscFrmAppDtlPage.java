@@ -41,46 +41,60 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement tabMiscFrmAppDtlContainerElement;
 
-//    //------------------------UAT
-//    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
-//    @CacheLookup
-//    private WebElement loanPurposeElement;
-//
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
-//    @CacheLookup
-//    private List<WebElement> loanPurposeOptionElement;
-//
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
-//    @CacheLookup
-//    private WebElement loanPurposeInputElement;
-//    //Update
-//
-//    //update loanpurpose
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
-//    @CacheLookup
-//    private List<WebElement> loanPurposeCloseElement;
-//    //------------------------end UAT
-
-    //PRO
-    //production khac id
-    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+    //UAT
+    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
     @CacheLookup
     private WebElement loanPurposeElement;
 
-    //production khac
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
 
-    //update loanpurpose PRO
-    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
+    @CacheLookup
+    private WebElement loanPurposeInputElement;
+    //Update
+
+    //update loanpurpose
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
     @CacheLookup
     private List<WebElement> loanPurposeCloseElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
-    @CacheLookup
-    private WebElement loanPurposeInputElement;
-    //------------- END PRO----------------//
+    @FindBy(how = How.ID, using = "insurance_company_contract_frmAppDtl_2")
+    private WebElement contractNumberElement;
+
+    @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
+    private WebElement companyNameElement;
+
+    //------------- END UAT----------------//
+
+//    //PRO
+//    //production khac id
+//    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+//    @CacheLookup
+//    private WebElement loanPurposeElement;
+//
+//    //production khac
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeOptionElement;
+//
+//    //update loanpurpose PRO
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeCloseElement;
+//
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
+//    @CacheLookup
+//    private WebElement loanPurposeInputElement;
+
+//    @FindBy(how = How.ID, using = "tpf_insurance_company_contract_frmAppDtl_2")
+//    private WebElement contractNumberElement;
+
+//    @FindBy(how = How.ID, using = "tpf_insurance_company_frmAppDtl_2")
+//    private WebElement companyNameElement;
+
+//    //------------- END PRO----------------//
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
     @CacheLookup
@@ -126,7 +140,6 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
-    //------------------- UPDATE
     @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_51")
     private WebElement loanOfWorkNoElememt;
 
@@ -135,11 +148,6 @@ public class CRM_MiscFrmAppDtlPage {
 
     @FindBy(how = How.ID, using = "T_Courier_Code_frmAppDtl_4")
     private WebElement courierCodeElement;
-
-
-    //------------------ UDDATE 19-3-2020-------------------
-    @FindBy(how = How.ID, using = "insurance_company_contract_frmAppDtl_2")
-    private WebElement contractNumberElement;
 
     @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_51")
     private WebElement oldContractLoanAmountLess20Elememt;
@@ -150,17 +158,12 @@ public class CRM_MiscFrmAppDtlPage {
     @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_53")
     private WebElement oldContractLoanAmountOtherElememt;
 
-    //------------------ UDDATE 09-04-2020-------------------
     @FindBy(how = How.ID, using = "ZALO_DYN_frmAppDtl_5")
     private WebElement zaloElement;
-
-    @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
-    private WebElement companyNameElement;
 
     @FindBy(how = How.ID, using = "tpf_insurance_fee_frmAppDtl_2")
     private WebElement monthlyFeeElement;
 
-    //------------------ COMMUNICATION-------------------
     @FindBy(how = How.ID, using = "leadCommHist")
     @CacheLookup
     private WebElement communicationElement;
@@ -210,28 +213,6 @@ public class CRM_MiscFrmAppDtlPage {
 
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_lead_contactedBy0a')]")
     private List<WebElement> textSelectContactedByOptionElement;
-
-    //PRO
-    //production khac id
-//    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
-//    @CacheLookup
-//    private WebElement loanPurposeElement;
-//
-//    //production khac
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
-//    @CacheLookup
-//    private List<WebElement> loanPurposeOptionElement;
-//
-//    //update loanpurpose PRO
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
-//    @CacheLookup
-//    private List<WebElement> loanPurposeCloseElement;
-//
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
-//    @CacheLookup
-//    private WebElement loanPurposeInputElement;
-//    //------------- END PRO----------------//
-
 
 
     public WebElement _getBtnSaveElement() {
