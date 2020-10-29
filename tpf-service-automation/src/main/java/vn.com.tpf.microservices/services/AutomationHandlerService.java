@@ -4914,6 +4914,10 @@ public class AutomationHandlerService {
                 }
             }
             pushAccountToQueue(accountDTO, project);
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
         }
     }
 
@@ -5075,6 +5079,10 @@ public class AutomationHandlerService {
                 }
             }
             pushAccountToQueue(accountDTO, project);
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
         }
     }
 
