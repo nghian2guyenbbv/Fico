@@ -1262,7 +1262,8 @@ public class CRM_ApplicationInfoPersonalTab {
                 btnCreateAnotherElement.click();
 
                 //Đợi load Address Type
-                Thread.sleep(15000);
+//                Thread.sleep(15000);
+                wait.withMessage("address Type Loading timeout").until(ExpectedConditions.visibilityOf(addressDivElement));
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());

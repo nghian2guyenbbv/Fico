@@ -43,7 +43,7 @@ public class AutoAllocationReassignPage {
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td[2]")
     private List<WebElement> listColApplicationTableElement;
 
-//    @FindBy(how = How.XPATH, using = "//div[@id = 'commonButton_LoanApplication_Assigned']//button[@id = 'ReassignForUserLoanApplication_AssignedBttn']")
+    //    @FindBy(how = How.XPATH, using = "//div[@id = 'commonButton_LoanApplication_Assigned']//button[@id = 'ReassignForUserLoanApplication_AssignedBttn']")
 //    @FindBy(how = How.XPATH, using = "(//table[@id='LoanApplication_Assigned']//tbody//ancestor::tr[contains(@class, 'bg-skyBlue_imp')]//td//img[@id = 'ReassignForUser'])[1]")
     @FindBy(how = How.ID, using = "ReassignForUserLoanApplication_AssignedBttn")
     private WebElement btnReassignForUserElement;
