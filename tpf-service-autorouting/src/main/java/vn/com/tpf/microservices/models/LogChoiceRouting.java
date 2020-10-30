@@ -26,4 +26,8 @@ public class LogChoiceRouting {
 
     @Column(name = "app_number")
     private String appNumber;
+
+
+    @Column(name = "vendorId")
+    private String vendorId;
 }

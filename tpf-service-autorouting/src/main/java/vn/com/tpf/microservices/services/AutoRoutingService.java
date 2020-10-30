@@ -3,9 +3,11 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +61,12 @@ public class AutoRoutingService {
 
 	@Autowired
 	private GetDatAutoRoutingService getDatAutoRoutingService;
+
+	@Autowired
+	private CallESBService callESBService;
+
+	@Value("spring.esb.url")
+	private String url;
 
 	/**
 	 * To check rule and return config rule to inhouse service
@@ -227,8 +235,17 @@ public class AutoRoutingService {
 					responseModel.setData(logChoiceRouting);
 				} else {
 					logChoiceRoutingInsert.setAppNumber(logChoiceRouting.getAppNumber());
+					logChoiceRoutingInsert.setVendorId(logChoiceRouting.getVendorId());
 
 					logChoiceRoutingDAO.save(logChoiceRoutingInsert);
+
+					ObjectNode body = mapper.createObjectNode();
+					body.put("appNumber", logChoiceRouting.getAppNumber());
+					body.put("vendorId", logChoiceRouting.getVendorId());
+
+					new Thread(() -> {
+						callESBService.callApiF1(url, body);
+					}).start();
 
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
