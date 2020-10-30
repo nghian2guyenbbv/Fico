@@ -1,14 +1,16 @@
 package vn.com.tpf.microservices.models;
 
 import lombok.Data;
+import lombok.Generated;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "ALLOCATION_USER_DETAIL")
+@Table(name = "V_ALLOCATION_USER_DETAIL")
 @Data
-public class UserDetail {
+public class UserDetailView {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "USER_ID")
@@ -43,4 +45,10 @@ public class UserDetail {
 
     @Column(name = "PENDING_APP")
     private int pendingApp;
+
+    @Transient
+    private String roleUserLogin;
+
+    @Transient
+    private String userLogin;
 }

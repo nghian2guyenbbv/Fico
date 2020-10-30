@@ -57,6 +57,9 @@ public class AutoAllocationService {
 	TeamConfigDAO teamConfigDAO;
 
 	@Autowired
+	UserDetailsViewDAO userDetailsViewDAO;
+
+	@Autowired
 	UserDetailsDAO userDetailsDAO;
 
 	@Autowired
@@ -90,12 +93,12 @@ public class AutoAllocationService {
 
 			Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
 
-			Page<UserDetail> listUserDetails;
+			Page<UserDetailView> listUserDetails;
 			if ( requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
-				listUserDetails = userDetailsDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
+				listUserDetails = userDetailsViewDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
 			} else {
 				if ( requestModel.getTeamName().size() > 0) {
-					listUserDetails = userDetailsDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
+					listUserDetails = userDetailsViewDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
 				} else {
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
@@ -155,10 +158,10 @@ public class AutoAllocationService {
 			}
 
 			if (requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
-				UserDetail userDetail = userDetailsDAO.findByUserNameAndTeamLeader(requestModel.getUserName(),
+				UserDetailView userDetailView = userDetailsViewDAO.findByUserNameAndTeamLeader(requestModel.getUserName(),
 						requestModel.getUserLogin());
 
-				if (userDetail == null) {
+				if (userDetailView == null) {
 					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -171,9 +174,9 @@ public class AutoAllocationService {
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
 					Map<String, Object> result = new HashMap<>();
-					List<UserDetail> userDetailList = new ArrayList<>();
-					userDetailList.add(userDetail);
-					result.put("data", userDetailList);
+					List<UserDetailView> userDetailViewList = new ArrayList<>();
+					userDetailViewList.add(userDetailView);
+					result.put("data", userDetailViewList);
 					result.put("totalRecords", 1);
 					responseModel.setData(result);
 				}
@@ -186,7 +189,7 @@ public class AutoAllocationService {
 
 					Pageable pageable = PageRequest.of(requestModel.getPage() , requestModel.getItemPerPage(), typeSort);
 
-					Page<UserDetail> listUserDetails = userDetailsDAO.findAllByTeamLeader(
+					Page<UserDetailView> listUserDetails = userDetailsViewDAO.findAllByTeamLeader(
 							requestModel.getUserLeader(), pageable);
 
 					if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
@@ -208,9 +211,9 @@ public class AutoAllocationService {
 					result.put("totalRecords", listUserDetails.getTotalElements());
 					responseModel.setData(result);
 				} else {
-					List<UserDetail> userDetail;
+					List<UserDetailView> userDetailView;
 					if (requestModel.getTeamName().size() > 0) {
-						userDetail = userDetailsDAO.findByUserNameAndTeamName(requestModel.getUserName(),
+						userDetailView = userDetailsViewDAO.findByUserNameAndTeamName(requestModel.getUserName(),
 								requestModel.getTeamName());
 					} else {
 						responseModel.setRequest_id(request_id);
@@ -221,7 +224,7 @@ public class AutoAllocationService {
 						return Map.of("status", 200, "data", responseModel);
 					}
 
-					if (userDetail == null) {
+					if (userDetailView == null) {
 						responseModel.setRequest_id(request_id);
 						responseModel.setReference_id(UUID.randomUUID().toString());
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -234,8 +237,8 @@ public class AutoAllocationService {
 						responseModel.setDate_time(new Timestamp(new Date().getTime()));
 						responseModel.setResult_code(200);
 						Map<String, Object> result = new HashMap<>();
-						result.put("data", userDetail);
-						result.put("totalRecords", userDetail.size());
+						result.put("data", userDetailView);
+						result.put("totalRecords", userDetailView.size());
 						responseModel.setData(result);
 					}
 				}
@@ -432,7 +435,7 @@ public class AutoAllocationService {
 		log.info("addUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+			UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
 
 			if (requestModel == null) {
 				responseModel.setRequest_id(request_id);
@@ -757,7 +760,7 @@ public class AutoAllocationService {
 		log.info("getInfoUserLogin: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+			UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
 
 			if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -767,9 +770,9 @@ public class AutoAllocationService {
 				return Map.of("status", 200, "data", responseModel);
 			}
 
-			List<UserDetail> userDetailList = userDetailsDAO.findAllByUserName(requestModel.getUserName());
+			List<UserDetailView> userDetailViewList = userDetailsViewDAO.findAllByUserName(requestModel.getUserName());
 
-			if (userDetailList.size() <= 0 || userDetailList == null) {
+			if (userDetailViewList.size() <= 0 || userDetailViewList == null) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
@@ -781,7 +784,7 @@ public class AutoAllocationService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
 			responseModel.setMessage("Get success");
-			responseModel.setData(userDetailList);
+			responseModel.setData(userDetailViewList);
 
 		} catch (Exception e) {
 			log.error("Error: " + e);
@@ -798,7 +801,7 @@ public class AutoAllocationService {
 		log.info("removeUser: " + request);
 		try {
 			Assert.notNull(request.get("body"), "no body");
-			UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+			UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
 
 			if (requestModel.getUserId() == null) {
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -984,7 +987,11 @@ public class AutoAllocationService {
 						assignmentDetail.setStatusAssign("FAILED");
 						assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
 						assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
+						log.info("updateStatusApp - appNumber: {} - QuotaAppNumBefore: {} - Assignee: {}", assignmentDetail.getAppNumber(),
+								userDetail.getQuotaApp(), assignmentDetail.getAssignee());
 						int quotaApp = userDetail.getQuotaApp()-1;
+						log.info("updateStatusApp - appNumber: {} - QuotaAppNumAfterSub: {} - Assignee: {}", assignmentDetail.getAppNumber(),
+								quotaApp, assignmentDetail.getAssignee());
 						userDetail.setQuotaApp(quotaApp);
 						userDetailsDAO.save(userDetail);
 					} else {
@@ -1145,10 +1152,17 @@ public class AutoAllocationService {
 
 				assignmentDetail.setStatusAssign("PENDING");
 				assignmentDetailDAO.save(assignmentDetail);
-
+				log.info("updatePendingDetail - appNumber: {} - PendingAppNumBefore: {} - pendingUser: {}",
+						assignmentDetail.getAppNumber(), userDetail.getPendingApp(), allocationPendingDetail.getPendingUser());
 				int pendingApp = userDetail.getPendingApp()+1;
+				log.info("updatePendingDetail - appNumber: {} - PendingAppNumAfterAdd: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
+						pendingApp, allocationPendingDetail.getPendingUser());
 				userDetail.setPendingApp(pendingApp);
+				log.info("updatePendingDetail - appNumber: {} - QuotaAppNumBefore: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
+						userDetail.getQuotaApp(), allocationPendingDetail.getPendingUser());
 				int quotaApp = userDetail.getQuotaApp()-1;
+				log.info("updatePendingDetail - appNumber: {} - QuotaAppNumAfterSub: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
+						quotaApp, allocationPendingDetail.getPendingUser());
 				userDetail.setQuotaApp(quotaApp);
 				userDetailsDAO.save(userDetail);
 				responseModel.setResult_code(200);
