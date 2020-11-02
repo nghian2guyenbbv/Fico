@@ -645,33 +645,33 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		responseModel.setReference_id(UUID.randomUUID().toString());
 		try {
-		String SQL = "SELECT * FROM {PAGE} WHERE CASE {USER_ROLE} WHEN 'role_user' THEN ASSIGNEE WHEN 'role_leader' THEN TEAM_LEADER END = {USER_LOGIN}";
-		String SQLSUP = "SELECT A.* FROM {PAGE} A JOIN ALLOCATION_USER_DETAIL B ON A.TEAM_NAME = B.TEAM_NAME AND B.USER_ROLE = 'role_supervisor' AND B.USER_NAME = {USER_LOGIN}";
+			String SQL = "SELECT * FROM {PAGE} WHERE CASE {USER_ROLE} WHEN 'role_user' THEN ASSIGNEE WHEN 'role_leader' THEN NVL(TEAM_LEADER,ASSIGNEE) END = {USER_LOGIN}";
+			String SQLSUP = "SELECT A.* FROM {PAGE} A JOIN ALLOCATION_USER_DETAIL B ON A.TEAM_NAME = B.TEAM_NAME AND B.USER_ROLE = 'role_supervisor' AND B.USER_NAME = {USER_LOGIN}";
 
-		List<Map<String, Object>> dashboards;
-		if(!request.path("body").path("userRole").textValue().equals("role_supervisor")){
-			SQL = SQL.replace("{PAGE}", "V_ALLOCATION_DASHBOARD");
-			SQL = SQL.replace("{USER_ROLE}", "'"+request.path("body").path("userRole").textValue()+"'");
-			SQL = SQL.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
-			dashboards = jdbcTemplate.queryForList(SQL);
-		}else{
-			SQLSUP = SQLSUP.replace("{PAGE}", "V_ALLOCATION_DASHBOARD");
-			SQLSUP = SQLSUP.replace("{USER_LOGIN}", "'"+request.path("body").path("userLogin").textValue()+"'");
-			dashboards = jdbcTemplate.queryForList(SQLSUP);
-		}
-		ArrayNode dataArrayNode = mapper.createArrayNode();
-		if (dashboards!=null && !dashboards.isEmpty()) {
-			for (Map<String, Object> dashboard : dashboards) {
-				ObjectNode data = mapper.createObjectNode();
-				for (Iterator<Map.Entry<String, Object>> it = dashboard.entrySet().iterator(); it.hasNext();) {
-					Map.Entry<String, Object> entry = it.next();
-					data.put(entry.getKey(), String.valueOf(entry.getValue()));
-				}
-				dataArrayNode.add(data);
+			List<Map<String, Object>> dashboards;
+			if (!request.path("body").path("userRole").textValue().equals("role_supervisor")) {
+				SQL = SQL.replace("{PAGE}", "V_ALLOCATION_DASHBOARD");
+				SQL = SQL.replace("{USER_ROLE}", "'" + request.path("body").path("userRole").textValue() + "'");
+				SQL = SQL.replace("{USER_LOGIN}", "'" + request.path("body").path("userLogin").textValue() + "'");
+				dashboards = jdbcTemplate.queryForList(SQL);
+			} else {
+				SQLSUP = SQLSUP.replace("{PAGE}", "V_ALLOCATION_DASHBOARD");
+				SQLSUP = SQLSUP.replace("{USER_LOGIN}", "'" + request.path("body").path("userLogin").textValue() + "'");
+				dashboards = jdbcTemplate.queryForList(SQLSUP);
 			}
-		}
-		responseModel.setData(dataArrayNode);
-		logStr += "Response: " + responseModel.toString();
+			ArrayNode dataArrayNode = mapper.createArrayNode();
+			if (dashboards != null && !dashboards.isEmpty()) {
+				for (Map<String, Object> dashboard : dashboards) {
+					ObjectNode data = mapper.createObjectNode();
+					for (Iterator<Map.Entry<String, Object>> it = dashboard.entrySet().iterator(); it.hasNext(); ) {
+						Map.Entry<String, Object> entry = it.next();
+						data.put(entry.getKey(), String.valueOf(entry.getValue()));
+					}
+					dataArrayNode.add(data);
+				}
+			}
+			responseModel.setData(dataArrayNode);
+			logStr += "Response: " + responseModel.toString();
 		} catch (Exception e) {
 			log.error("Error: " + e);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
