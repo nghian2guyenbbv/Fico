@@ -308,7 +308,11 @@ public class AutoAllocationService {
 					List<Predicate> predicates = new ArrayList<>();
 
 					if (!userName.isEmpty()) {
-						if (role.equals("role_supervisor") && teamNames.size() > 0){
+						if (role.equals("role_leader")) {
+							Predicate p1 =  criteriaBuilder.equal(root.get("teamLeader"), userName);
+							Predicate p2 = 	criteriaBuilder.equal(root.get("assignee"), userName);
+							predicates.add(criteriaBuilder.or(p1, p2));
+						} else if (role.equals("role_supervisor") && teamNames.size() > 0){
 							CriteriaBuilder.In<String> inClause = criteriaBuilder.in(root.get("teamName"));
 							for (String t : teamNames) {
 								inClause.value(t);
@@ -316,7 +320,6 @@ public class AutoAllocationService {
 							predicates.add(criteriaBuilder.and(inClause));
 						} else {
 							predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("assignee"), userName)));
-							predicates.add(criteriaBuilder.or(criteriaBuilder.equal(root.get("teamLeader"), userName)));
 						}
 					}
 
@@ -642,7 +645,7 @@ public class AutoAllocationService {
 		ResponseModel responseModel = new ResponseModel();
 		responseModel.setReference_id(UUID.randomUUID().toString());
 		try {
-		String SQL = "SELECT * FROM {PAGE} WHERE CASE {USER_ROLE} WHEN 'role_user' THEN ASSIGNEE WHEN 'role_leader' THEN NVL(TEAM_LEADER,ASSIGNEE) END = {USER_LOGIN}";
+		String SQL = "SELECT * FROM {PAGE} WHERE CASE {USER_ROLE} WHEN 'role_user' THEN ASSIGNEE WHEN 'role_leader' THEN TEAM_LEADER END = {USER_LOGIN}";
 		String SQLSUP = "SELECT A.* FROM {PAGE} A JOIN ALLOCATION_USER_DETAIL B ON A.TEAM_NAME = B.TEAM_NAME AND B.USER_ROLE = 'role_supervisor' AND B.USER_NAME = {USER_LOGIN}";
 
 		List<Map<String, Object>> dashboards;
