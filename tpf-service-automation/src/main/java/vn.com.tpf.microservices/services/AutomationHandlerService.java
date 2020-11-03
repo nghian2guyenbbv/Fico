@@ -5754,7 +5754,7 @@ public class AutomationHandlerService {
 
             try {
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
                         .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
                 //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
 

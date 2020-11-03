@@ -1026,13 +1026,11 @@ public class CRM_ApplicationInfoPersonalTab {
         Actions actions = new Actions(_driver);
 
         //Wait
-//        FluentWait<WebDriver> fluentWait = new FluentWait<>(_driver).withTimeout(Duration.ofSeconds(Constant.TIME_OUT_S))
-//                .ignoring(NoSuchElementException.class)
-//                .ignoring(NullPointerException.class)
-//                .ignoring(StaleElementReferenceException.class)
-//                .ignoring(ElementNotVisibleException.class)
-//                .ignoring(WebDriverException.class)
-//                .pollingEvery(Duration.ofMillis(200));
+        FluentWait<WebDriver> fluentWait = new FluentWait<WebDriver>(_driver).withTimeout(Duration.ofSeconds(180))
+                .ignoring(NoSuchElementException.class)
+                .ignoring(JavascriptException.class)
+                .ignoring(ElementClickInterceptedException.class)
+                .pollingEvery(Duration.ofMillis(500));
 
         //check xem co address nao empty type ko
 

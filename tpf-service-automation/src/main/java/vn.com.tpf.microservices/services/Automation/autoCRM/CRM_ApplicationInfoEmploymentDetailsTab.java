@@ -141,13 +141,11 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
     }
 
     public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException {
-//        FluentWait<WebDriver> fluentWait = new FluentWait<>(_driver).withTimeout(Duration.ofSeconds(Constant.TIME_OUT_S))
-//                .ignoring(NoSuchElementException.class)
-//                .ignoring(NullPointerException.class)
-//                .ignoring(StaleElementReferenceException.class)
-//                .ignoring(ElementNotVisibleException.class)
-//                .ignoring(WebDriverException.class)
-//                .pollingEvery(Duration.ofMillis(200));
+        FluentWait<WebDriver> fluentWait = new FluentWait<WebDriver>(_driver).withTimeout(Duration.ofSeconds(180))
+                .ignoring(NoSuchElementException.class)
+                .ignoring(JavascriptException.class)
+                .ignoring(ElementClickInterceptedException.class)
+                .pollingEvery(Duration.ofMillis(500));
 
         List<WebElement> deleteOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//ancestor::tr//*[contains(@id,'delete')]"));
 
@@ -155,15 +153,6 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             for (int i=0; i<deleteOccupationTypeElements.size(); i++) {
                 WebElement var = deleteOccupationTypeElements.get(i);
                 var.click();
-                try {
-                    await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
-                            .until(() -> modalMajorChangeElement.isDisplayed());
-                    Utilities.captureScreenShot(_driver);
-                    btnMajorChangeElement.get(0).click();
-                    Thread.sleep(15000);
-                } catch (Exception e) {
-                    System.out.println("Confirm Delete visibale");
-                }
             }
         }
 
@@ -176,11 +165,27 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
 //        fluentWait.withMessage("occupation Type loading Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.id("occupationType_chzn")));
 
+//        fluentWait.withMessage("occupation Type loading Timeout!").until(ExpectedConditions.visibilityOf(occupationTypeElement));
+
+        try {
+            await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
+                    .until(() -> modalMajorChangeElement.isDisplayed());
+            Utilities.captureScreenShot(_driver);
+            btnMajorChangeElement.get(0).click();
+            Thread.sleep(15000);
+        } catch (Exception e) {
+            System.out.println("Confirm Delete visibale");
+        }
+
+
+
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed());
 
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isEnabled());
+
+//        fluentWait.withMessage("occupation Type loading Timeout!").until(ExpectedConditions.elementToBeClickable(occupationTypeElement));
 
         occupationTypeElement.click();
 
