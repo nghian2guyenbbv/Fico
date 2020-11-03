@@ -1025,6 +1025,15 @@ public class CRM_ApplicationInfoPersonalTab {
     public void updateAddressValue(List<CRM_AddressListDTO> datas) throws JsonParseException, JsonMappingException, Exception {
         Actions actions = new Actions(_driver);
 
+        //Wait
+//        FluentWait<WebDriver> fluentWait = new FluentWait<>(_driver).withTimeout(Duration.ofSeconds(Constant.TIME_OUT_S))
+//                .ignoring(NoSuchElementException.class)
+//                .ignoring(NullPointerException.class)
+//                .ignoring(StaleElementReferenceException.class)
+//                .ignoring(ElementNotVisibleException.class)
+//                .ignoring(WebDriverException.class)
+//                .pollingEvery(Duration.ofMillis(200));
+
         //check xem co address nao empty type ko
 
         if(viewTagElement.size()!=0)
@@ -1077,6 +1086,8 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
+
+//                fluentWait.withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@id = 'addressType_chzn']")));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
@@ -1163,6 +1174,8 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
+
+//                fluentWait.withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@id = 'addressType_chzn']")));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());

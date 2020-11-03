@@ -141,6 +141,13 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
     }
 
     public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException {
+//        FluentWait<WebDriver> fluentWait = new FluentWait<>(_driver).withTimeout(Duration.ofSeconds(Constant.TIME_OUT_S))
+//                .ignoring(NoSuchElementException.class)
+//                .ignoring(NullPointerException.class)
+//                .ignoring(StaleElementReferenceException.class)
+//                .ignoring(ElementNotVisibleException.class)
+//                .ignoring(WebDriverException.class)
+//                .pollingEvery(Duration.ofMillis(200));
 
         List<WebElement> deleteOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//ancestor::tr//*[contains(@id,'delete')]"));
 
@@ -166,6 +173,8 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 //        if(editOccupationTypeElements.size()>0){
 //            editOccupationTypeElements.get(0).click();
 //        }
+
+//        fluentWait.withMessage("occupation Type loading Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.id("occupationType_chzn")));
 
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed());
