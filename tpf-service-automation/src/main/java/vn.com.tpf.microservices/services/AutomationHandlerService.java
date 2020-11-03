@@ -5215,7 +5215,7 @@ public class AutomationHandlerService {
 
             //-------------------- END ---------------------------
 
-            application.setApplicationId(leadAppID);
+            application.setAppId(leadAppID);
             application.setLeadApp(leadApp);
 
             //UPDATE STATUS
@@ -5252,8 +5252,8 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
-            if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
-                application.setApplicationId("UNKNOW");
+            if (application.getAppId() == null || application.getAppId().isEmpty() || application.getAppId().indexOf("LEAD") > 0 || application.getAppId().indexOf("APPL") < 0) {
+                application.setAppId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 application.setDescription("Khong thanh cong");
             }
@@ -5274,7 +5274,7 @@ public class AutomationHandlerService {
     private void CRM_updateStatusRabbit(CRM_ExistingCustomerDTO application, String func, String project) throws Exception {
 
         JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-esb",
-                Map.of("func", func, "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getApplicationId() != null ? application.getApplicationId() : "",
+                Map.of("func", func, "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getAppId() != null ? application.getAppId() : "",
                         "project", project,
                         "automation_result", application.getStatus(),
                         "description", application.getDescription() != null ? application.getDescription() : "",
@@ -5425,7 +5425,7 @@ public class AutomationHandlerService {
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
             System.out.println("APPID => " + applicationId);
 
-            existingCustomerDTO.setApplicationId(applicationId);
+            existingCustomerDTO.setAppId(applicationId);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -5480,7 +5480,7 @@ public class AutomationHandlerService {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
             existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
-            applicationId = existingCustomerDTO.getApplicationId();
+            applicationId = existingCustomerDTO.getAppId();
             if (applicationId != null) {
                 if (!applicationId.isEmpty()) {
                     stageError = "UPDATE";
@@ -5909,7 +5909,7 @@ public class AutomationHandlerService {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
             existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
-            applicationId = existingCustomerDTO.getApplicationId();
+            applicationId = existingCustomerDTO.getAppId();
             CRM_ApplicationInformationsListDTO applicationInfoDTO = (CRM_ApplicationInformationsListDTO) mapValue.get("ApplicationInfoDTO");
             CRM_LoanDetailsDTO loanDetailsDTO = (CRM_LoanDetailsDTO) mapValue.get("VapDetailsDTO");
             List<CRM_DocumentsDTO> documentDTOS = (List<CRM_DocumentsDTO>) mapValue.get("DocumentDTO");
