@@ -5754,7 +5754,7 @@ public class AutomationHandlerService {
 
             try {
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
                         .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
                 //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
 
@@ -6083,13 +6083,13 @@ public class AutomationHandlerService {
 
             try {
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
                         .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
                 //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
 
                 driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
             } catch (Exception e) {
-                log.info("Vap:" + e.toString());
+                System.out.println("Confirm Delete Vap Next Visibale!!!");
             }
 
             System.out.println(stage + ": DONE");
@@ -6420,13 +6420,13 @@ public class AutomationHandlerService {
 
             try {
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
                         .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
                 //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
 
                 driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
             } catch (Exception e) {
-                log.info("Vap:" + e.toString());
+                System.out.println("Confirm Delete Vap Next Visibale!!!");
             }
 
             System.out.println(stage + ": DONE");

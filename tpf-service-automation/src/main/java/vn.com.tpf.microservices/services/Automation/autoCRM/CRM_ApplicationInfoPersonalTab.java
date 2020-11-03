@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import jdk.jfr.Timespan;
 import lombok.Getter;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -9,15 +10,14 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.*;
 import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -1124,7 +1124,6 @@ public class CRM_ApplicationInfoPersonalTab {
     }
 
     public void updateAddressValue(List<CRM_AddressListDTO> datas) throws JsonParseException, JsonMappingException, Exception {
-        WebDriverWait wait = new WebDriverWait(_driver, Constant.TIME_OUT_S);
         Actions actions = new Actions(_driver);
 
         //check xem co address nao empty type ko
@@ -1175,13 +1174,10 @@ public class CRM_ApplicationInfoPersonalTab {
                 we.click();
 
                 //Đợi load Address Type
-//                Thread.sleep(6000);
-                wait.withMessage("address div Loading timeout").until(ExpectedConditions.visibilityOf(addressDivElement));
+                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
-
-                wait.withMessage("address Type Loading timeout").until(ExpectedConditions.visibilityOf(addressTypeElement));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
@@ -1264,13 +1260,10 @@ public class CRM_ApplicationInfoPersonalTab {
                 btnCreateAnotherElement.click();
 
                 //Đợi load Address Type
-//                Thread.sleep(15000);
-                wait.withMessage("address div Loading timeout").until(ExpectedConditions.visibilityOf(addressDivElement));
+                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
-
-                wait.withMessage("address type Loading timeout").until(ExpectedConditions.visibilityOf(addressTypeElement));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
