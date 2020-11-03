@@ -473,34 +473,37 @@ public class CRM_ApplicationInfoPersonalTab {
 
 
         if (applicationInfoDTO.getIdentification().size() > 0){
-            int checkIdentificationDuplicate = 0;
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
             for (int i=0; i<documentType.size()-1; i++) {
                 String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals(optionIdentificationTypeLabel)){
-                    String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
-                    if (docNumber != null && !applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber().equals(docNumber)){
-                        for (int j=0; j<documentType.size()-1; j++){
-                            String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                            if(deleteIdentificationTypeLabel.equals("Other National ID")){
-                                _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
-                                break;
+                for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
+                    if (data.getIdentificationType().equals(optionIdentificationTypeLabel)){
+                        String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
+                        if (docNumber != null && docNumber.equals(data.getIdentificationNumber())){
+                            _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]")).click();
+                        }else if (docNumber != null && !docNumber.equals(data.getIdentificationNumber())){
+                            if (optionIdentificationTypeLabel.equals("Current National ID")){
+                                for (int j=0; j<documentType.size()-1; j++){
+                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
+                                    if(deleteIdentificationTypeLabel.equals("Other National ID")){
+                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
+                                        break;
+                                    }
+                                }
+                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                                new Select(type).selectByVisibleText("Other National ID");
                             }
-                            if(deleteIdentificationTypeLabel.equals("Spouse Other National ID")){
-                                _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
-                                break;
+                            if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
+                                for (int j=0; j<documentType.size()-1; j++){
+                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
+                                    if(deleteIdentificationTypeLabel.equals("Spouse Other National ID")){
+                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
+                                    }
+                                }
+                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                                new Select(type).selectByVisibleText("Spouse Other National ID");
                             }
                         }
-                        if (optionIdentificationTypeLabel.equals("Current National ID")){
-                            WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                            new Select(type).selectByVisibleText("Other National ID");
-                        }
-                        if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
-                            WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                            new Select(type).selectByVisibleText("Spouse Other National ID");
-                        }
-                    }else{
-                        checkIdentificationDuplicate = 1;
                     }
                 }
             }
@@ -515,70 +518,10 @@ public class CRM_ApplicationInfoPersonalTab {
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnAddIdentElement.isEnabled());
 
-            if (checkIdentificationDuplicate == 0){
-                btnAddIdentElement.click();
-                updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
-            }
+            btnAddIdentElement.click();
+            updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
         }
 
-        /*if (applicationInfoDTO.getIdentification().size() > 0){
-            int checkIdentificationDuplicate = 0;
-            List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-            if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals("Current National ID")){
-                for (int i=0; i<documentType.size()-1; i++) {
-//                    Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
-//                    String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
-                    String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                    WebElement deleteDetailsId = _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]"));
-                    if (optionIdentificationTypeLabel.equals("Current National ID")){
-                        String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
-                        if (docNumber != null && !applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber().equals(docNumber)){
-                            if (optionIdentificationTypeLabel.equals("Other National ID")){
-                                deleteDetailsId.click();
-                            }
-                            WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                            new Select(type).selectByVisibleText("Other National ID");
-
-                            checkIdentificationDuplicate = 1;
-                        }
-                    }
-                }
-            }
-
-            if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals("Spouse Current National ID")){
-                for (int i=0; i<documentType.size()-1; i++) {
-//                    Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
-//                    String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
-                    String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                    WebElement deleteDetailsId = _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]"));
-                    if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
-                        String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
-                        if (docNumber != null && !applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber().equals(docNumber)){
-                            if (optionIdentificationTypeLabel.equals("Spouse Other National ID")){
-                                deleteDetailsId.click();
-                            }
-                            WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                            new Select(type).selectByVisibleText("Spouse Other National ID");
-                        }
-                    }
-                }
-            }
-
-            List<WebElement> countryOfIssue = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_country')]"));
-            for(int i=0; i<countryOfIssue.size()-1; i++){
-                WebElement country = countryOfIssue.get(i);
-                new Select(country).selectByVisibleText("Vietnam");
-            }
-
-
-            await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> btnAddIdentElement.isEnabled());
-
-            if (checkIdentificationDuplicate > 0){
-                btnAddIdentElement.click();
-                updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
-            }
-        }*/
         //end update identification
 
         //update address: ko xoa dc do anh huong cac employment detail nen chi edit
@@ -800,34 +743,37 @@ public class CRM_ApplicationInfoPersonalTab {
                 .until(() -> deleteIdDetailElement.size() > 0);
 
         if (applicationInfoDTO.getIdentification().size() > 0){
-            int checkIdentificationDuplicate = 0;
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
             for (int i=0; i<documentType.size()-1; i++) {
-                String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals(optionIdentificationTypeLabel)){
-                    String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
-                    if (docNumber != null && !applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber().equals(docNumber)){
-                        for (int j=0; j<documentType.size()-1; j++){
-                            String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                            if(deleteIdentificationTypeLabel.equals("Other National ID")){
-                                _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
-                                break;
+                for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
+                    String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
+                    if (data.getIdentificationType().equals(optionIdentificationTypeLabel)){
+                        String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
+                        if (docNumber != null && docNumber.equals(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber())){
+                            _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]")).click();
+                        }else if (docNumber != null && !docNumber.equals(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber())){
+                            if (optionIdentificationTypeLabel.equals("Current National ID")){
+                                for (int j=0; j<documentType.size()-1; j++){
+                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
+                                    if(deleteIdentificationTypeLabel.equals("Other National ID")){
+                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
+                                        break;
+                                    }
+                                }
+                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                                new Select(type).selectByVisibleText("Other National ID");
                             }
-                            if(deleteIdentificationTypeLabel.equals("Spouse Other National ID")){
-                                _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
-                                break;
+                            if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
+                                for (int j=0; j<documentType.size()-1; j++){
+                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
+                                    if(deleteIdentificationTypeLabel.equals("Spouse Other National ID")){
+                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
+                                    }
+                                }
+                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
+                                new Select(type).selectByVisibleText("Spouse Other National ID");
                             }
                         }
-                        if (optionIdentificationTypeLabel.equals("Current National ID")){
-                            WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                            new Select(type).selectByVisibleText("Other National ID");
-                        }
-                        if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
-                            WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                            new Select(type).selectByVisibleText("Spouse Other National ID");
-                        }
-                    }else{
-                        checkIdentificationDuplicate = 1;
                     }
                 }
             }
@@ -842,56 +788,9 @@ public class CRM_ApplicationInfoPersonalTab {
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnAddIdentElement.isEnabled());
 
-            if (checkIdentificationDuplicate == 0){
-                btnAddIdentElement.click();
-                updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
-            }
-        }
-
-        /*if (applicationInfoDTO.getIdentification().size() > 0){
-            List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-            if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals("Current National ID")){
-                for (int i=0; i<documentType.size()-1; i++) {
-                    Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
-                    String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
-                    WebElement deleteDetailsId = _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]"));
-                    if (optionIdentificationTypeLabel.equals("Other National ID")){
-                        deleteDetailsId.click();
-                    }
-                    if (optionIdentificationTypeLabel.equals("Current National ID")){
-                        WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                        new Select(type).selectByVisibleText("Other National ID");
-                    }
-                }
-            }
-
-            if(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationType().equals("Spouse Current National ID")){
-                for (int i=0; i<documentType.size()-1; i++) {
-                    Select selectIdentificationType = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']")));
-                    String optionIdentificationTypeLabel = selectIdentificationType.getFirstSelectedOption().getText();
-                    WebElement deleteDetailsId = _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]"));
-                    if (optionIdentificationTypeLabel.equals("Spouse Other National ID")){
-                        deleteDetailsId.click();
-                    }
-                    if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
-                        WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                        new Select(type).selectByVisibleText("Spouse Other National ID");
-                    }
-                }
-            }
-
-            List<WebElement> countryOfIssue = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_country')]"));
-            for(int i=0; i<countryOfIssue.size()-1; i++){
-                WebElement country = countryOfIssue.get(i);
-                new Select(country).selectByVisibleText("Vietnam");
-            }
-
-
-            await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> btnAddIdentElement.isEnabled());
             btnAddIdentElement.click();
             updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
-        }*/
+        }
 
         //end update identification
 

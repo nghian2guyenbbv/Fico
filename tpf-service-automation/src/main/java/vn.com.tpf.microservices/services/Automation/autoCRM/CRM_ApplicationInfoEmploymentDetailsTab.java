@@ -145,19 +145,18 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
         List<WebElement> deleteOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//ancestor::tr//*[contains(@id,'delete')]"));
 
         if (deleteOccupationTypeElements.size() > 0){
-            for (int i=0; i<deleteOccupationTypeElements.size()-1; i++) {
+            for (int i=0; i<deleteOccupationTypeElements.size(); i++) {
                 WebElement var = deleteOccupationTypeElements.get(i);
                 var.click();
-            }
-
-            try {
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
-                        .until(() -> modalMajorChangeElement.isDisplayed());
-                Utilities.captureScreenShot(_driver);
-                btnMajorChangeElement.get(0).click();
-                Thread.sleep(15000);
-            } catch (Exception e) {
-                System.out.println("Confirm Delete visibale");
+                try {
+                    await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
+                            .until(() -> modalMajorChangeElement.isDisplayed());
+                    Utilities.captureScreenShot(_driver);
+                    btnMajorChangeElement.get(0).click();
+                    Thread.sleep(15000);
+                } catch (Exception e) {
+                    System.out.println("Confirm Delete visibale");
+                }
             }
         }
 
