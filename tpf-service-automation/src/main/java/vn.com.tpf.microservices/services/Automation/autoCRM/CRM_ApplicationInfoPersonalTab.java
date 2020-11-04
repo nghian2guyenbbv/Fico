@@ -745,13 +745,13 @@ public class CRM_ApplicationInfoPersonalTab {
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
             for (int i=0; i<documentType.size()-1; i++) {
+                String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
                 for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
-                    String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
                     if (data.getIdentificationType().equals(optionIdentificationTypeLabel)){
                         String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
-                        if (docNumber != null && docNumber.equals(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber())){
+                        if (docNumber != null && docNumber.equals(data.getIdentificationNumber())){
                             _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]")).click();
-                        }else if (docNumber != null && !docNumber.equals(applicationInfoDTO.getIdentification().stream().findAny().get().getIdentificationNumber())){
+                        }else if (docNumber != null && !docNumber.equals(data.getIdentificationNumber())){
                             if (optionIdentificationTypeLabel.equals("Current National ID")){
                                 for (int j=0; j<documentType.size()-1; j++){
                                     String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
@@ -1025,12 +1025,7 @@ public class CRM_ApplicationInfoPersonalTab {
     public void updateAddressValue(List<CRM_AddressListDTO> datas) throws JsonParseException, JsonMappingException, Exception {
         Actions actions = new Actions(_driver);
 
-        //Wait
-        FluentWait<WebDriver> fluentWait = new FluentWait<WebDriver>(_driver).withTimeout(Duration.ofSeconds(180))
-                .ignoring(NoSuchElementException.class)
-                .ignoring(JavascriptException.class)
-                .ignoring(ElementClickInterceptedException.class)
-                .pollingEvery(Duration.ofMillis(500));
+        WebDriverWait wait = new WebDriverWait(_driver, Constant.TIME_OUT_S, 15000);
 
         //check xem co address nao empty type ko
 
@@ -1085,7 +1080,9 @@ public class CRM_ApplicationInfoPersonalTab {
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//                fluentWait.withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@id = 'addressType_chzn']")));
+//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.visibilityOf(addressTypeElement));
+
+//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(addressTypeElement));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
@@ -1173,7 +1170,9 @@ public class CRM_ApplicationInfoPersonalTab {
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//                fluentWait.withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@id = 'addressType_chzn']")));
+//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.visibilityOf(addressTypeElement));
+
+//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(addressTypeElement));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());

@@ -141,11 +141,10 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
     }
 
     public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
-        FluentWait<WebDriver> fluentWait = new FluentWait<WebDriver>(_driver).withTimeout(Duration.ofSeconds(180))
-                .ignoring(NoSuchElementException.class)
-                .ignoring(JavascriptException.class)
-                .ignoring(ElementClickInterceptedException.class)
-                .pollingEvery(Duration.ofMillis(500));
+
+        WebDriverWait wait = new WebDriverWait(_driver, Constant.TIME_OUT_S, 15000);
+
+        Actions actions = new Actions(_driver);
 
 //        List<WebElement> deleteOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//ancestor::tr//*[contains(@id,'delete')]"));
 //
@@ -182,29 +181,21 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         Thread.sleep(15000);
 
-        WebElement occupationEdit =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
-        occupationEdit.click();
+//        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")));
+
+        WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+
+//        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(occupationEdit));
+
+        actions.moveToElement(occupationEdit).click().build().perform();
 
         Thread.sleep(15000);
-
-        // Edit
-//        List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
-//
-//        if(editOccupationTypeElements.size()>0){
-//            editOccupationTypeElements.get(0).click();
-//        }
-
-//        fluentWait.withMessage("occupation Type loading Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.id("occupationType_chzn")));
-
-//        fluentWait.withMessage("occupation Type loading Timeout!").until(ExpectedConditions.visibilityOf(occupationTypeElement));
 
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed());
 
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isEnabled());
-
-//        fluentWait.withMessage("occupation Type loading Timeout!").until(ExpectedConditions.elementToBeClickable(occupationTypeElement));
 
         occupationTypeElement.click();
 
