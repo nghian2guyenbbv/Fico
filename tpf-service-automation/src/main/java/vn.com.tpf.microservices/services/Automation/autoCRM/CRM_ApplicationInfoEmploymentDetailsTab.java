@@ -179,26 +179,17 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             }
         }
 
-//        Thread.sleep(15000);
+        Thread.sleep(15000);
 
-
-
-        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")));
+//        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")));
 
         WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
 
-        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(occupationEdit));
+//        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(occupationEdit));
 
         actions.moveToElement(occupationEdit).click().build().perform();
 
-//        Thread.sleep(15000);
-
-        // Edit
-//        List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
-//
-//        if(editOccupationTypeElements.size()>0){
-//            editOccupationTypeElements.get(0).click();
-//        }
+        Thread.sleep(15000);
 
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed());
