@@ -5506,7 +5506,6 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(stage);
-            logout(driver, accountDTO.getUserName());
         }
     }
 
