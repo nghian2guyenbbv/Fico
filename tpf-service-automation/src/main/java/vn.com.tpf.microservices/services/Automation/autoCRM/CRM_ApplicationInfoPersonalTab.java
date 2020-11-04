@@ -1025,12 +1025,7 @@ public class CRM_ApplicationInfoPersonalTab {
     public void updateAddressValue(List<CRM_AddressListDTO> datas) throws JsonParseException, JsonMappingException, Exception {
         Actions actions = new Actions(_driver);
 
-        //Wait
-        FluentWait<WebDriver> fluentWait = new FluentWait<WebDriver>(_driver).withTimeout(Duration.ofSeconds(180))
-                .ignoring(NoSuchElementException.class)
-                .ignoring(JavascriptException.class)
-                .ignoring(ElementClickInterceptedException.class)
-                .pollingEvery(Duration.ofMillis(500));
+        WebDriverWait wait = new WebDriverWait(_driver, Constant.TIME_OUT_S, 15000);
 
         //check xem co address nao empty type ko
 
@@ -1080,12 +1075,14 @@ public class CRM_ApplicationInfoPersonalTab {
                 we.click();
 
                 //Đợi load Address Type
-                Thread.sleep(15000);
+//                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//                fluentWait.withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@id = 'addressType_chzn']")));
+                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.visibilityOf(addressTypeElement));
+
+                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(addressTypeElement));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
@@ -1168,12 +1165,14 @@ public class CRM_ApplicationInfoPersonalTab {
                 btnCreateAnotherElement.click();
 
                 //Đợi load Address Type
-                Thread.sleep(15000);
+//                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//                fluentWait.withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@id = 'addressType_chzn']")));
+                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.visibilityOf(addressTypeElement));
+
+                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(addressTypeElement));
 
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
