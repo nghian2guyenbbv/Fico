@@ -381,7 +381,7 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void setValue(ApplicationInfoDTO applicationInfoDTO) throws IOException {
+    public void setValue(ApplicationInfoDTO applicationInfoDTO) throws IOException, InterruptedException {
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -566,7 +566,7 @@ public class DE_ApplicationInfoPersonalTab {
 
     }
 
-    public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException {
+    public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
         int index = 0;
         Actions actions = new Actions(_driver);
         Utilities.captureScreenShot(_driver);
@@ -583,6 +583,8 @@ public class DE_ApplicationInfoPersonalTab {
 //                    .until(() -> btnCreateAnotherElement.isEnabled());
 //            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
 
+            //Sleep Wait Address Type
+            Thread.sleep(15000);
 
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
@@ -728,7 +730,7 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void updateAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, Exception {
+    public void updateAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, Exception, InterruptedException {
 
         Actions actions = new Actions(_driver);
 
@@ -780,6 +782,9 @@ public class DE_ApplicationInfoPersonalTab {
 
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
                 we.click();
+
+                //Sleep Wait Address Type
+                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
@@ -881,6 +886,8 @@ public class DE_ApplicationInfoPersonalTab {
                         .until(() -> btnCreateAnotherElement.isEnabled());
                 btnCreateAnotherElement.click();
 
+                //Sleep Wait Address Type
+                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
