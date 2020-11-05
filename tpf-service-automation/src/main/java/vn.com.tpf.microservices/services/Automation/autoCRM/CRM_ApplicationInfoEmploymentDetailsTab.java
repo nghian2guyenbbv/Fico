@@ -180,7 +180,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             }
         }
 
-//        Thread.sleep(15000);
+        Thread.sleep(15000);
 
         WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
         actions.moveToElement(occupationEdit).click().build().perform();
