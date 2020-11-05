@@ -5506,6 +5506,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(stage);
+            logout(driver, accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, existingCustomerDTO.getProject().toUpperCase());
         }
     }
 
@@ -5892,7 +5894,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
             logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+//            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
@@ -6221,7 +6223,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
             logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+//            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
