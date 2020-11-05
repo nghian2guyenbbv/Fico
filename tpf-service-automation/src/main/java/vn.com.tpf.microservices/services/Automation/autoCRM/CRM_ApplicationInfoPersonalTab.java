@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import jdk.jfr.Timespan;
 import lombok.Getter;
+import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -17,13 +18,13 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class CRM_ApplicationInfoPersonalTab {
@@ -1025,8 +1026,6 @@ public class CRM_ApplicationInfoPersonalTab {
     public void updateAddressValue(List<CRM_AddressListDTO> datas) throws JsonParseException, JsonMappingException, Exception {
         Actions actions = new Actions(_driver);
 
-        WebDriverWait wait = new WebDriverWait(_driver, Constant.TIME_OUT_S, 15000);
-
         //check xem co address nao empty type ko
 
         if(viewTagElement.size()!=0)
@@ -1051,8 +1050,11 @@ public class CRM_ApplicationInfoPersonalTab {
         for (CRM_AddressListDTO data : datas) {
 
             System.out.println("data => " + data.getAddressType());
+
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("trAddressListElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> trAddressListElement.size() > 0);
+
             Utilities.captureScreenShot(_driver);
 
 
@@ -1075,16 +1077,13 @@ public class CRM_ApplicationInfoPersonalTab {
                 we.click();
 
                 //Đợi load Address Type
-                Thread.sleep(15000);
+//                Thread.sleep(15000);
 
-                await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
+                await("Address Div display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.visibilityOf(addressTypeElement));
-
-//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(addressTypeElement));
-
-                await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
+                with().pollInterval(Duration.FIVE_SECONDS).
+                await("Address Type not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
                 actions.moveToElement(addressTypeElement).click().build().perform();
@@ -1165,16 +1164,13 @@ public class CRM_ApplicationInfoPersonalTab {
                 btnCreateAnotherElement.click();
 
                 //Đợi load Address Type
-                Thread.sleep(15000);
+//                Thread.sleep(15000);
 
-                await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
+                await("Address Div display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
-//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.visibilityOf(addressTypeElement));
-
-//                wait.ignoring(JavascriptException.class).withMessage("Address Type not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(addressTypeElement));
-
-                await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
+                with().pollInterval(Duration.FIVE_SECONDS).
+                await("Address Type not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).pollInterval(15, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
                 actions.moveToElement(addressTypeElement).click().build().perform();

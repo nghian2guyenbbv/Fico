@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import jdk.jfr.Timespan;
 import lombok.Getter;
+import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -18,12 +19,12 @@ import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class CRM_ApplicationInfoEmploymentDetailsTab {
@@ -179,23 +180,16 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             }
         }
 
-        Thread.sleep(15000);
-
-//        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")));
+//        Thread.sleep(15000);
 
         WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
-
-//        wait.ignoring(JavascriptException.class).withMessage("Occupation Edit not enabled Timeout!").until(ExpectedConditions.elementToBeClickable(occupationEdit));
-
         actions.moveToElement(occupationEdit).click().build().perform();
 
-        Thread.sleep(15000);
+//        Thread.sleep(15000);
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> occupationTypeElement.isDisplayed());
-
-        await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> occupationTypeElement.isEnabled());
+                .until(() -> occupationTypeElement.isDisplayed() && occupationTypeElement.isEnabled());
 
         occupationTypeElement.click();
 
