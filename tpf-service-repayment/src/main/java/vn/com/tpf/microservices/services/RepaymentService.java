@@ -737,7 +737,8 @@ public class RepaymentService {
 			request_id = requestModel.getRequest_id();
 
 			//update tren UAT
-			Timestamp timestamp=new Timestamp(DateUtils.addMonths(new Date(),4).getTime());
+			//Timestamp timestamp=new Timestamp(DateUtils.addMonths(new Date(),4).getTime());
+			Timestamp timestamp=new Timestamp(new Date().getTime());
 
 			try{
 				OffsetDateTime.parse(requestModel.getDate_time());
@@ -1439,7 +1440,11 @@ public class RepaymentService {
 			} else if (fico.getTransactionId().startsWith("MO")) {
 				ficoReceiptPayment.setSourceAccountNumber("45992855306");
 				ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
+			}else if (fico.getTransactionId().startsWith("VP")) {
+				ficoReceiptPayment.setSourceAccountNumber("45992855108"); //update lai sau
+				ficoReceiptPayment.setReceiptPayoutChannel("VNPOST"); //update lai sau
 			}
+
 			ReqHeader requestHeader = new ReqHeader();
 			requestHeader.setTenantId(505);
 			UserDetail userDetail = new UserDetail();
