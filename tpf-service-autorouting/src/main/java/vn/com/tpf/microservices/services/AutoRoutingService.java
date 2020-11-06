@@ -99,6 +99,7 @@ public class AutoRoutingService {
 					logChoiceRouting.setChanelId(requestModel.getData().getChanelId());
 					logChoiceRouting.setCreateDate(new Timestamp(new Date().getTime()));
 					logChoiceRouting.setRoutingNumber(chanelConfig);
+					logChoiceRouting.setVendorId(requestModel.getData().getVendorId());
 
 					logChoiceRoutingDAO.save(logChoiceRouting);
 
