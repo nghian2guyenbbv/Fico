@@ -65,7 +65,7 @@ public class AutoRoutingService {
 	@Autowired
 	private CallESBService callESBService;
 
-	@Value("spring.esb.url")
+	@Value("${spring.esb.url}")
 	private String url;
 
 	/**
@@ -244,8 +244,13 @@ public class AutoRoutingService {
 					body.put("appNumber", logChoiceRouting.getAppNumber());
 					body.put("vendorId", logChoiceRouting.getVendorId());
 
+					log.info("logRouting - URL: {}", url);
+					log.info("logRouting - body: {}", body);
+
 					new Thread(() -> {
+						log.info("Start call ESB");
 						callESBService.callApiF1(url, body);
+						log.info("End call ESB");
 					}).start();
 
 					responseModel.setRequest_id(request_id);
