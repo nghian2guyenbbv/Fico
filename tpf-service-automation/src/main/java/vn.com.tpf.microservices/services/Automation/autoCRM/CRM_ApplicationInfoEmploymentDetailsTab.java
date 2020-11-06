@@ -182,8 +182,10 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         Thread.sleep(15000);
 
-        WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
-        actions.moveToElement(occupationEdit).click().build().perform();
+        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() > 0) {
+            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
+            actions.moveToElement(occupationEdit).click().build().perform();
+        }
 
 //        Thread.sleep(15000);
 
