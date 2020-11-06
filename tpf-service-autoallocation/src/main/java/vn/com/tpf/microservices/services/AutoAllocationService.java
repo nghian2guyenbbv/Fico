@@ -1218,6 +1218,7 @@ public class AutoAllocationService {
 
 	public Object updateRaiseQuery(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
+		log.info("updateRaiseQuery" + request);
 		try{
 			AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("applicationNo").textValue(), request.path("body").path("stage").textValue());
 			if(assignmentDetail == null){
@@ -1249,7 +1250,7 @@ public class AutoAllocationService {
 					log.info("updatePendingDetail - appNumber: {} - QuotaAppNumBefore: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
 							userDetail.getQuotaApp(), allocationPendingDetail.getPendingUser());
 					int pendingApp = userDetail.getPendingApp()+1;
-					int quotaApp = userDetail.getPendingApp()-1;
+					int quotaApp = userDetail.getQuotaApp()-1;
 					userDetail.setPendingApp(pendingApp);
 					userDetail.setQuotaApp(quotaApp);
 					log.info("updatePendingDetail - appNumber: {} - PendingAppNumAfterAdd: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
