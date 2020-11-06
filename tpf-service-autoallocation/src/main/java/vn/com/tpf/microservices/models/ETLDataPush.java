@@ -54,4 +54,10 @@ public class ETLDataPush {
     @Column(name = "SOURCE_ETL")
     private String suorceEtl;
 
+    @Column(name = "CREATED_TIME_VENDOR")
+    private Timestamp createdTimeVendor;
+
+    @Column(name = "VENDOR_NAME")
+    private String vendorName;
+
 }

@@ -121,6 +121,10 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.getAllPendingCode(request));
 				case "updatePendingDetail":
 					return response(message, payload, autoAllocationService.updatePendingDetail(request));
+				case "updateVendor":
+					return response(message, payload, autoAllocationService.updateVendor(request));
+				case "updateRaiseQuery":
+					return response(message, payload, autoAllocationService.updateRaiseQuery(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

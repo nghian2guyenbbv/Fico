@@ -519,22 +519,15 @@ public class AutoAllocationService {
 				responseModel.setResult_code(500);
 				responseModel.setMessage("Data is empty");
 			} else {
-				ETLDataPush etlDataPush = new ETLDataPush();
-				etlDataPush.setAppNumber(requestModel.getApplicationNo());
-				etlDataPush.setCreateDate(requestModel.getCreatedDate());
-				etlDataPush.setCreateUser(requestModel.getCreatedUser());
-				etlDataPush.setCusId(requestModel.getCustomerID());
-				etlDataPush.setCusName(requestModel.getCustomerName());
-				etlDataPush.setLeadId(requestModel.getLeadId());
-				etlDataPush.setLoanAmt(requestModel.getLoanAmountRequested());
-				etlDataPush.setProduct(requestModel.getProduct());
-				etlDataPush.setScheme(requestModel.getScheme());
-				etlDataPush.setStageName(requestModel.getStage());
-				etlDataPush.setStatus(requestModel.getStatus());
-				etlDataPush.setSuorceChanel(requestModel.getSourceChannel());
-				etlDataPush.setSuorceEtl("ESB");
-
-				etlDataPushDAO.save(etlDataPush);
+				List<ETLDataPush> listEtlDataPush = etlDataPushDAO.findByAppNumberAndSuorceEtl(requestModel.getApplicationNo(), "ESB");
+				ETLDataPush etlDataPush = null;
+				if(listEtlDataPush.isEmpty()){
+					etlDataPush = new ETLDataPush();
+					saveEtlDataPush(etlDataPush, requestModel);
+				}else{
+					etlDataPush = listEtlDataPush.get(0);
+					saveEtlDataPush(etlDataPush, requestModel);
+				}
 
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -549,6 +542,23 @@ public class AutoAllocationService {
 			responseModel.setMessage("Others error");
 		}
 		return Map.of("status", 200, "data", responseModel);
+	}
+
+	private void saveEtlDataPush(ETLDataPush etlDataPush, RequestModel requestModel){
+		etlDataPush.setAppNumber(requestModel.getApplicationNo());
+		etlDataPush.setCreateDate(requestModel.getCreatedDate());
+		etlDataPush.setCreateUser(requestModel.getCreatedUser());
+		etlDataPush.setCusId(requestModel.getCustomerID());
+		etlDataPush.setCusName(requestModel.getCustomerName());
+		etlDataPush.setLeadId(requestModel.getLeadId());
+		etlDataPush.setLoanAmt(requestModel.getLoanAmountRequested());
+		etlDataPush.setProduct(requestModel.getProduct());
+		etlDataPush.setScheme(requestModel.getScheme());
+		etlDataPush.setStageName(requestModel.getStage());
+		etlDataPush.setStatus(requestModel.getStatus());
+		etlDataPush.setSuorceChanel(requestModel.getSourceChannel());
+		etlDataPush.setSuorceEtl("ESB");
+		etlDataPushDAO.save(etlDataPush);
 	}
 
 	public Map<String, Object> getAssignConfig() {
@@ -998,6 +1008,7 @@ public class AutoAllocationService {
 						userDetailsDAO.save(userDetail);
 					} else {
 						assignmentDetail.setStatusAssign("PROCESSING");
+						log.info("Update Status Assign Success" + assignmentDetail.getAppNumber());
 					}
 					assignmentDetailDAO.save(assignmentDetail);
 				}
@@ -1150,6 +1161,7 @@ public class AutoAllocationService {
 				allocationPendingDetail.setPendingUser(request.path("body").path("pendingUser").textValue());
 				allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
 				allocationPendingDetail.setTeamUser(request.path("body").path("teamUser").textValue());
+				allocationPendingDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
 				allocationPendingDetailDao.save(allocationPendingDetail);
 
 				assignmentDetail.setStatusAssign("PENDING");
@@ -1177,4 +1189,84 @@ public class AutoAllocationService {
 		}
 	}
 
+	public Map<String, Object> updateVendor(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		log.info("updateVendor" + request);
+		try{
+			List<ETLDataPush> listETLData = etlDataPushDAO.findByAppNumberAndSuorceEtl(request.path("body").path("appNumber").textValue(), "ESB");
+			ETLDataPush etlDataPush = null;
+			if(listETLData.isEmpty()){
+				etlDataPush = new ETLDataPush();
+				etlDataPush.setCreatedTimeVendor(new Timestamp(new Date().getTime()));
+				etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
+			}else{
+				etlDataPush = listETLData.get(0);
+				etlDataPush.setCreatedTimeVendor(new Timestamp(new Date().getTime()));
+				etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
+			}
+			etlDataPushDAO.save(etlDataPush);
+			responseModel.setResult_code(200);
+			responseModel.setMessage("SUCCESS");
+		} catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public Object updateRaiseQuery(JsonNode request) {
+		ResponseModel responseModel = new ResponseModel();
+		try{
+			AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("applicationNo").textValue(), request.path("body").path("stage").textValue());
+			if(assignmentDetail == null){
+				log.info("updateRaiseQuery: Can not find " + request.path("body").path("applicationNo").textValue() + "in Assignment Detail");
+				responseModel.setResult_code(204);
+				responseModel.setMessage("Can not found appNo");
+			}else{
+				AllocationPendingDetail allocationPendingDetail = new AllocationPendingDetail();
+				allocationPendingDetail.setAppNumber(assignmentDetail.getAppNumber());
+				allocationPendingDetail.setCreationApplstageTime(assignmentDetail.getCreationApplStageTime());
+				allocationPendingDetail.setStageName(request.path("body").path("stage").textValue());
+				allocationPendingDetail.setPendingCode("PENRS");
+				allocationPendingDetail.setPendingComments(request.path("body").path("comment").textValue());
+				allocationPendingDetail.setPendingUser(assignmentDetail.getAssignee());
+				allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
+				allocationPendingDetail.setTeamUser(assignmentDetail.getTeamAssignee());
+				allocationPendingDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
+				UserDetail userDetail = userDetailsDAO.findByUserName(assignmentDetail.getAssignee());
+				if(userDetail == null){
+					responseModel.setResult_code(205);
+					responseModel.setMessage("Can not found user");
+					log.info("updateRaiseQuery: Can not find " + assignmentDetail.getAssignee() + "in User Detail. For : " + request.path("body").path("applicationNo").textValue() + "," + request.path("body").path("stage").textValue());
+				}else{
+					allocationPendingDetailDao.save(allocationPendingDetail);
+					assignmentDetail.setStatusAssign("PENDING");
+					assignmentDetailDAO.save(assignmentDetail);
+					log.info("updatePendingDetail - appNumber: {} - PendingAppNumBefore: {} - pendingUser: {}",
+							assignmentDetail.getAppNumber(), userDetail.getPendingApp(), allocationPendingDetail.getPendingUser());
+					log.info("updatePendingDetail - appNumber: {} - QuotaAppNumBefore: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
+							userDetail.getQuotaApp(), allocationPendingDetail.getPendingUser());
+					int pendingApp = userDetail.getPendingApp()+1;
+					int quotaApp = userDetail.getPendingApp()-1;
+					userDetail.setPendingApp(pendingApp);
+					userDetail.setQuotaApp(quotaApp);
+					log.info("updatePendingDetail - appNumber: {} - PendingAppNumAfterAdd: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
+							pendingApp, allocationPendingDetail.getPendingUser());
+					log.info("updatePendingDetail - appNumber: {} - QuotaAppNumAfterSub: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
+							quotaApp, allocationPendingDetail.getPendingUser());
+					userDetailsDAO.save(userDetail);
+					responseModel.setResult_code(200);
+					responseModel.setMessage("Success");
+				}
+			}
+
+		}catch (Exception e) {
+			log.error("Error: " + e);
+			responseModel.setResult_code(500);
+			responseModel.setMessage("Others error");
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
 }

@@ -19,4 +19,6 @@ public interface AssignmentDetailDAO extends JpaRepository<AssignmentDetail, Lon
     AssignmentDetail findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(String appNumber, String assignee, String statusAssign);
 
     List<AssignmentDetail> findByAppNumberAndStageNameAndAndCreationApplStageTime(@Param("appNumber") String appNumber, @Param("stageName") String stageName, @Param("creationApplStageTime") Timestamp creationApplStageTime);
+
+    AssignmentDetail findByAppNumberAndStageName(@Param("appNumber") String appNumber, @Param("stageName") String stageName);
 }

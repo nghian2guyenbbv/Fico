@@ -35,4 +35,6 @@ public class AllocationPendingDetail {
     private Timestamp updatedTime;
     @Column(name = "USER_UPDATED")
     private String userUpdated;
+    @Column(name = "CURRENT_CYCLE")
+    private Long currentCycle;
 }
