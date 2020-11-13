@@ -143,51 +143,51 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
     public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
 
-        WebDriverWait wait = new WebDriverWait(_driver, Constant.TIME_OUT_S, 15000);
-
         Actions actions = new Actions(_driver);
 
-//        List<WebElement> deleteOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//ancestor::tr//*[contains(@id,'delete')]"));
+//        List<WebElement> occupationTypeName = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]"));
+//        for (WebElement occupationTypeNames: occupationTypeName){
+//            if ("Salaried".equals(occupationTypeNames.getText())){
+//                WebElement occupationDelete =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'Salaried')]//ancestor::tr//*[contains(@id,'delete')]"));
+//                occupationDelete.click();
 //
-//        if (deleteOccupationTypeElements.size() > 0){
-//            for (int i=0; i<deleteOccupationTypeElements.size(); i++) {
-//                WebElement var = deleteOccupationTypeElements.get(i);
-//                var.click();
-//                try {
-//                    await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
+//                Thread.sleep(5000);
+//
+//                Boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+//                if (checkModalMajorChange){
+//                    await("Confirm Delete visibale").atMost(Duration.TEN_MINUTES)
 //                            .until(() -> modalMajorChangeElement.isDisplayed());
 //                    Utilities.captureScreenShot(_driver);
 //                    btnMajorChangeElement.get(0).click();
-//                } catch (Exception e) {
-//                    System.out.println("Confirm Delete visibale");
 //                }
 //            }
 //        }
 
-        List<WebElement> occupationTypeName = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]"));
-        for (WebElement occupationTypeNames: occupationTypeName){
-            if ("Salaried".equals(occupationTypeNames.getText())){
-                WebElement occupationDelete =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'Salaried')]//ancestor::tr//*[contains(@id,'delete')]"));
-                occupationDelete.click();
-                try {
-                    await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
-                            .until(() -> modalMajorChangeElement.isDisplayed());
-                    Utilities.captureScreenShot(_driver);
-                    btnMajorChangeElement.get(0).click();
-                } catch (Exception e) {
-                    System.out.println("Confirm Delete visibale");
-                }
+        List<WebElement> listOccupationDelete = _driver.findElements(By.xpath("//table[@id = 'occupation_Info_Table']//tr//td[1]"));
+        for (WebElement OccupationDeleteButton: listOccupationDelete){
+
+            WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//*[contains(@id,'delete')]"));
+
+            actions.moveToElement(occupationDelete).click().build().perform();
+
+            Thread.sleep(5000);
+
+            boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+
+            if (checkModalMajorChange){
+                await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
+                        .until(() -> modalMajorChangeElement.isDisplayed());
+                Utilities.captureScreenShot(_driver);
+                btnMajorChangeElement.get(0).click();
             }
         }
 
-        Thread.sleep(15000);
-
-        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() > 0) {
-            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
-            actions.moveToElement(occupationEdit).click().build().perform();
-        }
-
-//        Thread.sleep(15000);
+//        Thread.sleep(5000);
+//
+//        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() > 0) {
+//            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
+//            actions.moveToElement(occupationEdit).click().build().perform();
+//        }
 
         with().pollInterval(Duration.FIVE_SECONDS).
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -230,7 +230,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
     }
 
-    public void setMajorOccupation(CRM_EmploymentDetailsDTO data) {
+    public void setMajorOccupation(CRM_EmploymentDetailsDTO data) throws InterruptedException {
         if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0) {
             Utilities.captureScreenShot(_driver);
             boolean isChecked = _driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).isSelected();
@@ -238,15 +238,17 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             webElement.click();
 
             Utilities.captureScreenShot(_driver);
-            try {
-                if (!isChecked) {
+
+            if (!isChecked) {
+                Thread.sleep(5000);
+                boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+                if (checkModalMajorChange){
+
                     await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> modalMajorChangeElement.isDisplayed());
                     Utilities.captureScreenShot(_driver);
                     btnMajorChangeElement.get(0).click();
                 }
-            } catch (Exception e) {
-                System.out.println("Confirm Delete visibale");
             }
 
             Utilities.captureScreenShot(_driver);

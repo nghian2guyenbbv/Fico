@@ -2,7 +2,6 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import jdk.jfr.Timespan;
 import lombok.Getter;
 import org.awaitility.Duration;
 import org.openqa.selenium.*;
@@ -18,7 +17,6 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
