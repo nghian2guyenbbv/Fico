@@ -159,7 +159,7 @@ public class CrmController {
 
 	@PostMapping("/crm/retryAddDocumentsWithCustIdAndFullApp")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-smartnet')")
-	ResponseEntity<?> addDocumentsWithCustIdAndFullApp(@RequestBody ObjectNode body) throws Exception {
+	public ResponseEntity<?> retryAddDocumentsWithCustIdAndFullApp(@RequestBody ObjectNode body) throws Exception {
 		body.put("reference_id", UUID.randomUUID().toString());
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "retryAddDocumentsWithCustIdAndFullApp");
