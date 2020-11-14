@@ -164,21 +164,26 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 //        }
 
         List<WebElement> listOccupationDelete = _driver.findElements(By.xpath("//table[@id = 'occupation_Info_Table']//tr//td[1]"));
-        for (WebElement OccupationDeleteButton: listOccupationDelete){
 
-            WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//*[contains(@id,'delete')]"));
+        boolean checkListOccupationDelete = listOccupationDelete.size() != 0;
 
-            actions.moveToElement(occupationDelete).click().build().perform();
+        if(checkListOccupationDelete){
+            for (WebElement OccupationDeleteButton: listOccupationDelete){
 
-            Thread.sleep(5000);
+                WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//*[contains(@id,'delete')]"));
 
-            boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+                actions.moveToElement(occupationDelete).click().build().perform();
 
-            if (checkModalMajorChange){
-                await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
-                        .until(() -> modalMajorChangeElement.isDisplayed());
-                Utilities.captureScreenShot(_driver);
-                btnMajorChangeElement.get(0).click();
+                Thread.sleep(5000);
+
+                boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+
+                if (checkModalMajorChange){
+                    await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
+                            .until(() -> modalMajorChangeElement.isDisplayed());
+                    Utilities.captureScreenShot(_driver);
+                    btnMajorChangeElement.get(0).click();
+                }
             }
         }
 

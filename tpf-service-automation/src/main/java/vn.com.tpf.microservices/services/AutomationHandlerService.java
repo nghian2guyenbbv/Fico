@@ -5465,9 +5465,6 @@ public class AutomationHandlerService {
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
-    //------------------------ END - CRM QUICKLEAD WITH CUSTID -----------------------------------------------------
-
-    //------------------------ EXISTING CUSTOMER -----------------------------------------------------
 
     public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
@@ -5482,9 +5479,11 @@ public class AutomationHandlerService {
             //*************************** GET DATA *********************//
             existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
             applicationId = existingCustomerDTO.getAppId();
-            if (applicationId != null || !applicationId.isEmpty() || applicationId.indexOf("UNKNOWN") == 0 || !"".equals(applicationId)) {
-                if (applicationId.indexOf("APPL") > 0) {
-                    stageError = "UPDATE";
+            if (applicationId != null) {
+                if (!applicationId.isEmpty() || applicationId.indexOf("UNKNOWN") == 0 || !"".equals(applicationId)) {
+                    if (applicationId.indexOf("APPL") > 0) {
+                        stageError = "UPDATE";
+                    }
                 }
             }
             //*************************** END GET DATA *********************//
@@ -5877,7 +5876,6 @@ public class AutomationHandlerService {
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("QUICKLEAD PASS" + " - " + "Session ID: " + session);
-            responseModel.setAutomation_result_message("SUCCESS");
 
             Utilities.captureScreenShot(driver);
 
@@ -5887,8 +5885,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session);
-            responseModel.setAutomation_result_message("Error: " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -5905,8 +5902,7 @@ public class AutomationHandlerService {
                         error += we.getText();
                     }
                     existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session);
-                    responseModel.setAutomation_result_message(existingCustomerDTO.getError());
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + existingCustomerDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -5916,8 +5912,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+            logoutV2(driver, accountDTO.getUserName());
+            updateAccountLogoutMongoDB(accountDTO, responseModel.getProject().toUpperCase());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
@@ -6232,7 +6228,6 @@ public class AutomationHandlerService {
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("QUICKLEAD PASS" + " - " + "Session ID: " + session);
-            responseModel.setAutomation_result_message("SUCCESS");
 
             Utilities.captureScreenShot(driver);
 
@@ -6242,8 +6237,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session);
-            responseModel.setAutomation_result_message("Error: " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -6260,8 +6254,7 @@ public class AutomationHandlerService {
                         error += we.getText();
                     }
                     existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session);
-                    responseModel.setAutomation_result_message(existingCustomerDTO.getError());
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + existingCustomerDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -6271,19 +6264,14 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+            logoutV2(driver, accountDTO.getUserName());
+            updateAccountLogoutMongoDB(accountDTO, responseModel.getProject().toUpperCase());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
                 driver.quit();
             }
         }
-    }
-
-    private void updateQuickleadExistingCustomer(CRM_ExistingCustomerDTO existingCustomerDTO) throws Exception {
-        mongoTemplate.save(existingCustomerDTO);
-
     }
 
     public void runAutomation_SendBack(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
@@ -6592,7 +6580,6 @@ public class AutomationHandlerService {
             responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
             responseModel.setApp_id(applicationId);
             responseModel.setAutomation_result("SALEQUEUE PASS" + " - " + "Session ID: " + session);
-            responseModel.setAutomation_result_message("SUCCESS");
 
             Utilities.captureScreenShot(driver);
 
@@ -6602,8 +6589,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(saleQueueDTO.getReference_id());
             responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session);
-            responseModel.setAutomation_result_message("Error: " + e.getMessage());
+            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -6620,8 +6606,7 @@ public class AutomationHandlerService {
                         error += we.getText();
                     }
                     saleQueueDTO.setError(error);
-                    responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session);
-                    responseModel.setAutomation_result_message(saleQueueDTO.getError());
+                    responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + saleQueueDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -6631,13 +6616,42 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+            logoutV2(driver, accountDTO.getUserName());
+            updateAccountLogoutMongoDB(accountDTO, responseModel.getProject().toUpperCase());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
                 driver.quit();
             }
+        }
+    }
+
+    private void updateQuickleadExistingCustomer(CRM_ExistingCustomerDTO existingCustomerDTO) throws Exception {
+        mongoTemplate.save(existingCustomerDTO);
+
+    }
+
+    public void logoutV2(WebDriver driver, String accountAuto) {
+        try {
+
+            System.out.println("Logout");
+            LogoutPageV2 logoutPage = new LogoutPageV2(driver);
+            logoutPage.logout();
+            log.info("Logout: Done => " + accountAuto);
+        } catch (Exception e) {
+            System.out.println("LOGOUT: =>" + accountAuto + " - " + e.toString());
+        }
+    }
+
+    private void updateAccountLogoutMongoDB(LoginDTO accountDTO, String project) throws InterruptedException {
+        if (!Objects.isNull(accountDTO)) {
+            Thread.sleep(10000);
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()).and("project").is(project));
+            Update update = new Update();
+            update.set("active", 0);
+            mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+            System.out.println("Update it:" + accountDTO.toString());
         }
     }
 
