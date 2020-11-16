@@ -3,12 +3,12 @@ server:
 spring:
   application:
     name: tpf-service-config
-  rabbitmq:
-    host: 127.0.0.1
-    port: 5672
-    username: tpf-service-config
-    password: tpf-service-config
-    app-id: tpf-service-config
+#  rabbitmq:
+#    host: 127.0.0.1
+#    port: 5672
+#    username: tpf-service-config
+#    password: tpf-service-config
+#    app-id: tpf-service-config
   cloud:
     config:
       server:

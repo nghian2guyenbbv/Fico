@@ -3,7 +3,7 @@ spring:
     name: tpf-service-zuul
   cloud:
     config:
-      uri: http://127.0.0.1:8888
+      uri: http://10.1.69.14:8888
 ---
 spring:
   profiles: dev
