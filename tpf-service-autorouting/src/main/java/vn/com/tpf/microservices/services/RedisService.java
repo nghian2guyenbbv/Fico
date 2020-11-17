@@ -33,8 +33,6 @@ public class RedisService implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         initAllCache();
-//        String a = getValueFromCache("chanelConfig","DEConfig");
-//        System.out.println(a.toString());
     }
 
     public void initAllCache() {

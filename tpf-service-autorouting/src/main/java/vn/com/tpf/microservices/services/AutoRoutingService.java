@@ -12,19 +12,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
-import vn.com.tpf.microservices.dao.ConfigRoutingDAO;
+
 import vn.com.tpf.microservices.dao.HistoryConfigDAO;
 import vn.com.tpf.microservices.dao.LogChoiceRoutingDAO;
 import vn.com.tpf.microservices.dao.ScheduleRoutingDAO;
 import vn.com.tpf.microservices.models.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -36,19 +31,7 @@ public class AutoRoutingService {
 	private ObjectMapper mapper;
 
 	@Autowired
-	private RabbitMQService rabbitMQService;
-
-	@Autowired
-	private TransactionTemplate transactionTemplate;
-
-	@Autowired
-	private ConfigRoutingDAO configRoutingDAO;
-
-	@Autowired
 	private LogChoiceRoutingDAO logChoiceRoutingDAO;
-
-	@PersistenceContext
-	private EntityManager entityManager;
 
 	@Autowired
 	private RedisService redisService;
@@ -74,27 +57,27 @@ public class AutoRoutingService {
 	 * @return 0: Robot, 1: API
 	 */
 	public Map<String, Object> checkRouting(JsonNode request) {
+		log.info("checkRouting - Request: {}", request);
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
 		try {
 			Assert.notNull(request.get("body"), "no body");
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 			if (requestModel.getData() == null ) {
-				responseModel.setRequest_id(request_id);
+				log.info("checkRouting - Request Data is null");
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(500);
 				responseModel.setMessage("Chanel Name is mandatory");
 			} else {
 				if (requestModel.getData().getChanelId() == null) {
-					responseModel.setRequest_id(request_id);
+					log.info("checkRouting - Chanel Id is null");
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(500);
 					responseModel.setMessage("Chanel Name is mandatory");
 				} else {
 					String chanelConfig = checkRule(requestModel.getData());
-
+					log.info("checkRouting - chanelConfig: {}", chanelConfig);
 					LogChoiceRouting logChoiceRouting = new LogChoiceRouting();
 					logChoiceRouting.setChanelId(requestModel.getData().getChanelId());
 					logChoiceRouting.setCreateDate(new Timestamp(new Date().getTime()));
@@ -102,8 +85,8 @@ public class AutoRoutingService {
 					logChoiceRouting.setVendorId(requestModel.getData().getVendorId());
 
 					logChoiceRoutingDAO.save(logChoiceRouting);
+					log.info("checkRouting - saveDB - checkRouting");
 
-					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
@@ -111,20 +94,23 @@ public class AutoRoutingService {
 				}
 			}
 		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
 
+	/**
+	 * Set Routing to DB receive from UI
+	 *
+	 * */
 	public Map<String, Object> setRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
+			log.info("setRouting - request {}", request);
 			ConfigRouting configRoutingUpdated = mapper.readValue(request.get("body").toString(),
 					new TypeReference<ConfigRouting>() {
 					});
@@ -139,6 +125,7 @@ public class AutoRoutingService {
 						.findByIdConfig(configRoutingUpdated.getIdConfig());
 				if (scheduleRouteList.size() > 0) {
 					saveHistoryConfig(scheduleRouteList, configRoutingUpdated.getIdConfig());
+					log.info("setRouting - save History to DB: {}", scheduleRouteList);
 					isNew = false;
 				}
 				changeInfoScheduleRoute(configRoutingUpdated.getScheduleRoutes(),
@@ -147,12 +134,12 @@ public class AutoRoutingService {
 				List<ScheduleRoute> scheduleRouteListNew = configRoutingUpdated.getScheduleRoutes();
 				Iterable<ScheduleRoute> scheduleRouteIterable = scheduleRouteListNew;
 				scheduleRoutingDAO.saveAll(scheduleRouteIterable);
+				log.info("setRouting - save list schedule to DB: {}", scheduleRouteListNew);
 				// Update Cache
 				List<Map<String, Object>> configRoutingListCache = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
 				for (Map<String, Object> stringObjectMap : configRoutingListCache) {
 					if (stringObjectMap.get("idConfig").equals(configRoutingUpdated.getIdConfig())) {
 						stringObjectMap.put("chanelConfig", configRoutingUpdated.getChanelConfig());
-						stringObjectMap.put("quota", configRoutingUpdated.getQuota());
 						List<ScheduleRoute> scheduleRoutes = configRoutingUpdated.getScheduleRoutes();
 						stringObjectMap.put("scheduleRoutes", scheduleRoutes);
 						for (ScheduleRoute scheduleRoute : scheduleRoutes) {
@@ -170,13 +157,14 @@ public class AutoRoutingService {
 					}
 				}
 				getDatAutoRoutingService.updateRoutingConfig(configRoutingListCache);
+				log.info("setRouting - update Cache");
 
 				responseModel.setData("Save Success");
 			}
 
 
 		} catch (Exception e) {
-			log.info("Error: " + e);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
@@ -186,12 +174,15 @@ public class AutoRoutingService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	public Map<String, Object> getRouting(JsonNode request) {
+	/**
+	 * Get Routing to Cache send to UI
+	 *
+	 * */
+	public Map<String, Object> getRouting() {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
 		try {
 			Object configRouting = redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
-			responseModel.setRequest_id(request_id);
+			log.info("getRouting - load from cache: {}", configRouting);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(200);
@@ -199,14 +190,11 @@ public class AutoRoutingService {
 			responseModel.setData(configRouting);
 
 		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
-			log.info("{}", e);
 		}
 
 		return Map.of("status", 200, "data", responseModel);
@@ -218,8 +206,8 @@ public class AutoRoutingService {
 	 */
 	public Map<String, Object> logRouting(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
 		try {
+			log.info("logRouting - request: {}", request);
 			Assert.notNull(request.get("body"), "no body");
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 			LogChoiceRouting logChoiceRouting = (LogChoiceRouting) requestModel.getData();
@@ -227,8 +215,9 @@ public class AutoRoutingService {
 
 			if (logChoiceRouting.getAppNumber() != null) {
 				logChoiceRoutingInsert = logChoiceRoutingDAO.findByIdLog(logChoiceRouting.getIdLog());
+				log.info("logRouting - logChoiceRoutingInsert: {}", logChoiceRoutingInsert);
 				if (logChoiceRoutingInsert == null) {
-					responseModel.setRequest_id(request_id);
+					log.info("logRouting - logChoiceRoutingInsert no idLog");
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
@@ -237,7 +226,7 @@ public class AutoRoutingService {
 				} else {
 					logChoiceRoutingInsert.setAppNumber(logChoiceRouting.getAppNumber());
 					logChoiceRoutingInsert.setVendorId(logChoiceRouting.getVendorId());
-
+					log.info("logRouting - save to DB");
 					logChoiceRoutingDAO.save(logChoiceRoutingInsert);
 
 					ObjectNode body = mapper.createObjectNode();
@@ -253,7 +242,6 @@ public class AutoRoutingService {
 						log.info("End call ESB");
 					}).start();
 
-					responseModel.setRequest_id(request_id);
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
 					responseModel.setResult_code(200);
@@ -261,7 +249,7 @@ public class AutoRoutingService {
 					responseModel.setData(logChoiceRoutingInsert);
 				}
 			} else {
-				responseModel.setRequest_id(request_id);
+				log.info("logRouting - No AppNumb");
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(200);
@@ -269,14 +257,11 @@ public class AutoRoutingService {
 				responseModel.setData(logChoiceRouting);
 			}
 		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
-			log.info("{}", e);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
@@ -287,6 +272,7 @@ public class AutoRoutingService {
 	 * @return
 	 */
 	public String checkRule (LogChoiceRouting request) {
+		log.info("checkRule - request: {}", request);
 		boolean checkRule = false;
 		String chanelNumber = "0" ;
 		String chanelConfig  = redisService.getValueFromCache("chanelConfig",request.getChanelId()+"Config" );
@@ -294,16 +280,20 @@ public class AutoRoutingService {
 		String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
 		long timeLocal = 	System.currentTimeMillis();
 		if (timeLocal > Long.parseLong(timeStart) && timeLocal < Long.parseLong(timeEnd)) {
+			log.info("checkRule - Time Local in range config");
 			int quota  = Integer.parseInt(redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota"));
+			log.info("checkRule - Quota before: {}", quota);
 			if (quota > 0) {
 				checkRule = true;
 				quota = quota - 1;
 				redisService.updateCache("chanelQuota",
 						request.getChanelId() + "Quota", quota);
+				log.info("checkRule - Quota after: {}", quota);
 			}
 		}
 
 		if (checkRule) {
+			log.info("checkRule is true - chanelNumber: {}", chanelConfig);
 			chanelNumber = chanelConfig;
 		} else {
 			if (chanelConfig.equals("1")) {
@@ -318,8 +308,8 @@ public class AutoRoutingService {
 
 	public Map<String, Object> getHistoryConfig(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
-		String request_id = null;
 		try {
+			log.info("getHistoryConfig - request: {}", request);
 			if (validateHistoryConfig(request.path("body").path("page").asText(),
 					request.path("body").path("limit").asText(), request.path("body").path("idConfig").asText(),
 					responseModel)) {
@@ -333,7 +323,6 @@ public class AutoRoutingService {
 				historyConfigResponse.put("totalRecords", historyConfigList.getTotalElements());
 				historyConfigResponse.put("data", historyConfigList.getContent());
 				historyConfigResponse.put("totalPages", historyConfigList.getTotalPages());
-				responseModel.setRequest_id(request_id);
 				responseModel.setReference_id(UUID.randomUUID().toString());
 				responseModel.setDate_time(new Timestamp(new Date().getTime()));
 				responseModel.setResult_code(200);
@@ -341,14 +330,11 @@ public class AutoRoutingService {
 				responseModel.setData(historyConfigResponse);
 			}
 		} catch (Exception e) {
-			log.info("Error: " + e);
-			responseModel.setRequest_id(request_id);
+			log.error("Error: " + e);
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code(500);
 			responseModel.setMessage("Others error");
-
-			log.info("{}", e);
 
 		}
 		return Map.of("status", 200, "data", responseModel);
@@ -380,6 +366,7 @@ public class AutoRoutingService {
 	}
 
 	public void changeInfoScheduleRoute(List<ScheduleRoute> scheduleRouteList, String idConfig, boolean isNew) {
+		log.info("setRouting - update Info");
 		Date dateToday = new Date();
 		Timestamp tsToDay = new Timestamp(dateToday.getTime());
 		for (ScheduleRoute scheduleRoute : scheduleRouteList) {

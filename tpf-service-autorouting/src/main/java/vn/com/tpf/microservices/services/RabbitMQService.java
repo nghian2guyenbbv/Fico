@@ -88,7 +88,7 @@ public class RabbitMQService {
 				case "setRouting":
 					return response(message, payload, autoRoutingServiceService.setRouting(request));
 				case "getRouting":
-					return response(message, payload, autoRoutingServiceService.getRouting(request));
+					return response(message, payload, autoRoutingServiceService.getRouting());
 				case "logRouting":
 					return response(message, payload, autoRoutingServiceService.logRouting(request));
 				case "historyConfig":

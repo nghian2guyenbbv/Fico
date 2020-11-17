@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import vn.com.tpf.microservices.models.HistoryConfig;
 
-import java.util.List;
 
 public interface HistoryConfigDAO extends JpaRepository<HistoryConfig, Long>,
         PagingAndSortingRepository<HistoryConfig, Long> {

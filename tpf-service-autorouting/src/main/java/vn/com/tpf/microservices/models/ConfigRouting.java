@@ -23,9 +23,6 @@ public class ConfigRouting {
     @Column(name = "chanel_config")
     private String chanelConfig;
 
-    @Column(name = "quota")
-    private Long quota;
-
     @Column(name = "create_date")
     private Timestamp create_date;
 
@@ -40,7 +37,6 @@ public class ConfigRouting {
                 "idConfig='" + idConfig + '\'' +
                 ", chanelName='" + chanelName + '\'' +
                 ", chanelConfig='" + chanelConfig + '\'' +
-                ", quota=" + quota +
                 ", create_date=" + create_date +
                 ", scheduleRoutes=" + scheduleRoutes +
                 '}';

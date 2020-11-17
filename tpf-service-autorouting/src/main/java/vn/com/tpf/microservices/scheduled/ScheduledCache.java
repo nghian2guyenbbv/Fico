@@ -1,4 +1,4 @@
-package vn.com.tpf.microservices.scheduled;//package vn.com.tpf.microservices.scheduled;
+package vn.com.tpf.microservices.scheduled;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
