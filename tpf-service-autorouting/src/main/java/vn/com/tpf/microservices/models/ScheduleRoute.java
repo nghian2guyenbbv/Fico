@@ -33,6 +33,7 @@ public class ScheduleRoute {
     @Column(name = "day_id")
     private String dayId;
 
+    // 0 - Auto & 1 - API
     @Column(name = "chanel_config")
     private String chanelConfig;
 

@@ -139,7 +139,6 @@ public class AutoRoutingService {
 				List<Map<String, Object>> configRoutingListCache = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
 				for (Map<String, Object> stringObjectMap : configRoutingListCache) {
 					if (stringObjectMap.get("idConfig").equals(configRoutingUpdated.getIdConfig())) {
-						stringObjectMap.put("chanelConfig", configRoutingUpdated.getChanelConfig());
 						List<ScheduleRoute> scheduleRoutes = configRoutingUpdated.getScheduleRoutes();
 						stringObjectMap.put("scheduleRoutes", scheduleRoutes);
 						for (ScheduleRoute scheduleRoute : scheduleRoutes) {
@@ -395,14 +394,6 @@ public class AutoRoutingService {
 				responseModel.setResult_code(500);
 				return false;
 			}
-		}
-		if (!validateChanelConfig(configRouting.getChanelConfig())) {
-			log.info("Error: " + "Invalid Chanel Config");
-			responseModel.setMessage("Chanel Config is 1 or 0 and required");
-			responseModel.setReference_id(UUID.randomUUID().toString());
-			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-			responseModel.setResult_code(500);
-			return false;
 		}
 		Set<String> checkScheduleId = new HashSet<>();
 		for (ScheduleRoute scheduleRoute: configRouting.getScheduleRoutes()) {

@@ -19,10 +19,6 @@ public class ConfigRouting {
     @Column(name = "chanel_name")
     private String chanelName;
 
-    // 0 - Auto & 1 - API
-    @Column(name = "chanel_config")
-    private String chanelConfig;
-
     @Column(name = "create_date")
     private Timestamp create_date;
 
@@ -36,7 +32,6 @@ public class ConfigRouting {
         return "ConfigRouting{" +
                 "idConfig='" + idConfig + '\'' +
                 ", chanelName='" + chanelName + '\'' +
-                ", chanelConfig='" + chanelConfig + '\'' +
                 ", create_date=" + create_date +
                 ", scheduleRoutes=" + scheduleRoutes +
                 '}';
