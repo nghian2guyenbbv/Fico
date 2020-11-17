@@ -511,6 +511,7 @@ public class ConvertService {
 		app.put("neoCustID", crm.getNeoCustID());
 		app.put("cifNumber", crm.getCifNumber());
 		app.put("idNumber", crm.getIdNumber());
+		app.put("appId", crm.getAppId());
 
 		ObjectNode quickLead = mapper.createObjectNode();
 		quickLead.put("identificationNumber", crm.getNationalId());
@@ -530,7 +531,7 @@ public class ConvertService {
 		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
 		quickLead.put("leadStatus", LeadStatus);
 		quickLead.put("communicationTranscript", CommunicationTranscript);
-		quickLead.put("appId", crm.getAppId());
+
 
 		ObjectNode fullApp = mapper.createObjectNode();
 		fullApp.put("firstName", crm.getFirstName());
