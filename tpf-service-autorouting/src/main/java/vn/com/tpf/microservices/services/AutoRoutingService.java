@@ -125,7 +125,7 @@ public class AutoRoutingService {
 						.findByIdConfig(configRoutingUpdated.getIdConfig());
 				if (scheduleRouteList.size() > 0) {
 					saveHistoryConfig(scheduleRouteList, configRoutingUpdated.getIdConfig());
-					log.info("setRouting - save History to DB: {}", scheduleRouteList);
+					log.info("setRouting - save History to DB");
 					isNew = false;
 				}
 				changeInfoScheduleRoute(configRoutingUpdated.getScheduleRoutes(),
