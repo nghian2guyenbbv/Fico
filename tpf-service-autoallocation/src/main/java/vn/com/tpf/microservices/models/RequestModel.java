@@ -1,11 +1,8 @@
 package vn.com.tpf.microservices.models;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.sql.Time;
-import java.sql.Timestamp;
 @Data
 public class RequestModel<T> implements Serializable {
 

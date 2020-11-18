@@ -3,7 +3,6 @@ package vn.com.tpf.microservices.models;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.sql.Time;
 import java.sql.Timestamp;
 
 @Entity

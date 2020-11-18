@@ -1,7 +1,6 @@
 package vn.com.tpf.microservices.models;
 
 import lombok.Data;
-import lombok.Generated;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
