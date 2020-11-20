@@ -1403,10 +1403,11 @@ public class MobilityService {
 
 		var c = 0;
 		for (JsonNode i : getListFinnOneFileds.path("data").path("resultOfficeVisit")) {
-			if ((i.has(data.path("resultOfficeVisit").asText())))
+			if ((i.has(data.path("resultOfficeVisit").asText()))) {
 				update.set("resultOfficeVisit", i.get(data.path("resultOfficeVisit").asText()).asText());
-			c++;
-			break;
+				c++;
+				break;
+			}
 		}
 		if (c == 0) {
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
@@ -1550,7 +1551,8 @@ public class MobilityService {
 		mobilityObjectNode.put("remarksDecisionFiv", mobilityfield.getRemarksDecisionFiv());
 		mobilityObjectNode.put("remarksDecisionFic", mobilityfield.getRemarksDecisionFic());
 		mobilityObjectNode.put("resonDecisionFic", mobilityfield.getResonDecisionFic());
-
+		mobilityObjectNode.put("resultDecisionFiv", mobilityfield.getResultDecisionFiv());
+		mobilityObjectNode.put("decisionFic", mobilityfield.getDecisionFic());
 		mobilitySubmitFields.add(mobilityObjectNode);
 
 		HashMap<String, Object> requestSend = new HashMap<>();
