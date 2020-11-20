@@ -125,6 +125,8 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.updateVendor(request));
 				case "updateRaiseQuery":
 					return response(message, payload, autoAllocationService.updateRaiseQuery(request));
+				case "reassign":
+					return response(message, payload, autoAllocationService.reassign(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

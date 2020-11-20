@@ -3,7 +3,7 @@ spring:
     name: tpf-service-restclient
   cloud:
     config:
-      uri: http://10.131.31.202:8888
+      uri: http://10.1.69.14:8888
 ---
 spring:
   profiles: dev
