@@ -1240,8 +1240,8 @@ public class MobilityService {
 		body.put("project", "mobility");
 		body.put("transaction_id", UUID.randomUUID().toString());
 		body.set("data", mobilityWaiveFields);
+		body.put("reference_id", request.path("body").path("reference_id").toString());
 		requestSend.put("body", body);
-		requestSend.put("reference_id", request.path("body").path("reference_id"));
 		rabbitMQService.send("tpf-service-esb", requestSend);
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
@@ -1562,8 +1562,8 @@ public class MobilityService {
 		bodySender.put("project", "mobility");
 		bodySender.put("transaction_id", UUID.randomUUID().toString());
 		bodySender.set("data", mobilitySubmitFields);
+		bodySender.put("reference_id", request.path("body").path("reference_id").toString());
 		requestSend.put("body", bodySender);
-		requestSend.put("reference_id", request.path("body").path("reference_id"));
 
 		rabbitMQService.send("tpf-service-esb", requestSend);
 
