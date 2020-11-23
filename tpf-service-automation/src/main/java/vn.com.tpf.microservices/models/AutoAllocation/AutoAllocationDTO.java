@@ -6,8 +6,6 @@ import java.util.List;
 
 @Data
 @Builder
-//@JsonInclude(JsonInclude.Include.NON_NULL)
-//@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AutoAllocationDTO {
     private String project;
     private String reference_id;
