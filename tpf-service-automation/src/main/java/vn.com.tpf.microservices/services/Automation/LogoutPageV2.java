@@ -37,9 +37,12 @@ public class LogoutPageV2 {
 
         Utilities.captureScreenShot(_driver);
 
-        with().pollInterval(Duration.TEN_SECONDS).
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("userPhotoElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> userPhotoElement.isDisplayed());
+
+        await("userPhotoElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> userPhotoElement.isEnabled());
 
         actions.moveToElement(userPhotoElement).click().build().perform();
 

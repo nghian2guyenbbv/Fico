@@ -5480,8 +5480,8 @@ public class AutomationHandlerService {
             existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
             applicationId = existingCustomerDTO.getAppId();
             if (applicationId != null) {
-                if (!applicationId.isEmpty() || applicationId.indexOf("UNKNOWN") == 0 || !"".equals(applicationId)) {
-                    if (applicationId.indexOf("APPL") > 0) {
+                if (!applicationId.isEmpty() || applicationId.indexOf("UNKNOWN") < 0 || !"".equals(applicationId)) {
+                    if (applicationId.indexOf("APPL") >= 0) {
                         stageError = "UPDATE";
                     }
                 }
@@ -5505,7 +5505,7 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            System.out.println(stage);
+            System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
         }
     }
 
@@ -5846,19 +5846,16 @@ public class AutomationHandlerService {
 
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
-            //tam thoi cho sleep de an notification moi click dc button movetonextstage
-            Thread.sleep(5000);
-
-            await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+            await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
 
-//            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
-
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().build().perform();
+            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
 
             Utilities.captureScreenShot(driver);
+
             System.out.println(stage + ": DONE");
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -5875,7 +5872,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD PASS" + " - " + "Session ID: " + session);
+            responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
 
@@ -5885,7 +5882,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - " + "Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -5902,7 +5899,7 @@ public class AutomationHandlerService {
                         error += we.getText();
                     }
                     existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + existingCustomerDTO.getError());
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session  + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -5912,8 +5909,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName());
-            updateAccountLogoutMongoDB(accountDTO, responseModel.getProject().toUpperCase());
+            logoutV2(driver, accountDTO.getUserName(), stage);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
@@ -6198,19 +6194,16 @@ public class AutomationHandlerService {
 
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
-            //tam thoi cho sleep de an notification moi click dc button movetonextstage
-            Thread.sleep(5000);
-
-            await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+            await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
 
-//            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
-
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().build().perform();
+            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
 
             Utilities.captureScreenShot(driver);
+
             System.out.println(stage + ": DONE");
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6227,7 +6220,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD PASS" + " - " + "Session ID: " + session);
+            responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
 
@@ -6237,7 +6230,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -6254,7 +6247,7 @@ public class AutomationHandlerService {
                         error += we.getText();
                     }
                     existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + existingCustomerDTO.getError());
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName()  + " - Error: " + existingCustomerDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -6264,8 +6257,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName());
-            updateAccountLogoutMongoDB(accountDTO, responseModel.getProject().toUpperCase());
+            logoutV2(driver, accountDTO.getUserName(), stage);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
@@ -6549,19 +6541,16 @@ public class AutomationHandlerService {
 
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
-            //tam thoi cho sleep de an notification moi click dc button movetonextstage
-            Thread.sleep(5000);
-
-            await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+            await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
 
-//            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
-
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().build().perform();
+            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
 
             Utilities.captureScreenShot(driver);
+
             System.out.println(stage + ": DONE");
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6579,7 +6568,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(saleQueueDTO.getReference_id());
             responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("SALEQUEUE PASS" + " - " + "Session ID: " + session);
+            responseModel.setAutomation_result("SALEQUEUE PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
 
@@ -6589,7 +6578,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(saleQueueDTO.getReference_id());
             responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + e.getMessage());
+            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -6606,7 +6595,7 @@ public class AutomationHandlerService {
                         error += we.getText();
                     }
                     saleQueueDTO.setError(error);
-                    responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session  + " - " + "Error: " + saleQueueDTO.getError());
+                    responseModel.setAutomation_result("SALEQUEUE FAILED" + " - Session ID: " + session  + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + saleQueueDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
@@ -6616,8 +6605,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName());
-            updateAccountLogoutMongoDB(accountDTO, responseModel.getProject().toUpperCase());
+            logoutV2(driver, accountDTO.getUserName(), stage);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
@@ -6631,27 +6619,49 @@ public class AutomationHandlerService {
 
     }
 
-    public void logoutV2(WebDriver driver, String accountAuto) {
-        try {
-
+    public void logoutAndUpdateAccountMongoDB (WebDriver driver, LoginDTO accountDTO, String project, String applicationId, String stage){
+        try{
             System.out.println("Logout");
             LogoutPageV2 logoutPage = new LogoutPageV2(driver);
             logoutPage.logout();
-            log.info("Logout: Done => " + accountAuto);
-        } catch (Exception e) {
-            System.out.println("LOGOUT: =>" + accountAuto + " - " + e.toString());
+
+            Thread.sleep(5000);
+
+            boolean checkTextLogout = "You have logged out Successfully.".equals(driver.findElement(By.xpath("//div[@id = 'neutrino-body']//div[@class = 'row-fluid p-10']//div[@class = 'span5']//h3")).getText());
+
+            if (checkTextLogout || "LOGIN FINONE".equals(stage)){
+                if (!Objects.isNull(accountDTO)) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 0);
+                    mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+                    System.out.println("Update it:" + accountDTO.toString());
+                }
+            }else if (applicationId.indexOf("APPL") >= 0){
+                logoutAndUpdateAccountMongoDB(driver, accountDTO, project, applicationId, stage);
+            }
+
+            log.info("Logout: Done => " + accountDTO.getUserName());
+        }catch (Exception e){
+            System.out.println("LOGOUT: =>" + accountDTO.getUserName() + " - " + e.toString());
         }
     }
 
-    private void updateAccountLogoutMongoDB(LoginDTO accountDTO, String project) throws InterruptedException {
-        if (!Objects.isNull(accountDTO)) {
-            Thread.sleep(10000);
-            Query queryUpdate = new Query();
-            queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()).and("project").is(project));
-            Update update = new Update();
-            update.set("active", 0);
-            mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
-            System.out.println("Update it:" + accountDTO.toString());
+    public void logoutV2(WebDriver driver, String accountAuto,String stage) {
+        try {
+            System.out.println("Logout");
+            LogoutPageV2 logoutPage = new LogoutPageV2(driver);
+            logoutPage.logout();
+
+            boolean checkTextLogout = "You have logged out Successfully.".equals(driver.findElement(By.xpath("//div[@id = 'neutrino-body']//div[@class = 'row-fluid p-10']//div[@class = 'span5']//h3")).getText());
+
+            if (!checkTextLogout && !"LOGIN FINONE".equals(stage)){
+                logoutV2(driver, accountAuto, stage);
+            }
+            log.info("Logout: Done => " + accountAuto);
+        } catch (Exception e) {
+            System.out.println("LOGOUT: =>" + accountAuto + " - " + e.toString());
         }
     }
 
