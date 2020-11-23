@@ -24,9 +24,9 @@ public class WaiveFieldDTO {
     @LastModifiedDate
     private Date lastDate;
     private String reasonCode;
-    private String reference_id;
+    private String referenceId;
     private String project;
-    private String transaction_id;
+    private String transactionId;
     private String automation_result;
     private String automation_result_message;
     private String funcProject;
