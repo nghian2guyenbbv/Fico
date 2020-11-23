@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class DE_ApplicationInfoPersonalTab {
@@ -381,7 +383,7 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void setValue(ApplicationInfoDTO applicationInfoDTO) throws IOException {
+    public void setValue(ApplicationInfoDTO applicationInfoDTO) throws IOException, InterruptedException {
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -566,7 +568,7 @@ public class DE_ApplicationInfoPersonalTab {
 
     }
 
-    public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException {
+    public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
         int index = 0;
         Actions actions = new Actions(_driver);
         Utilities.captureScreenShot(_driver);
@@ -583,10 +585,15 @@ public class DE_ApplicationInfoPersonalTab {
 //                    .until(() -> btnCreateAnotherElement.isEnabled());
 //            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
 
+            //Sleep Wait Address Type
+            Thread.sleep(15000);
 
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
+
             mobilePhoneNumberElement.click();
+
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressTypeElement.isDisplayed());
 
@@ -728,7 +735,7 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void updateAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, Exception {
+    public void updateAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, Exception, InterruptedException {
 
         Actions actions = new Actions(_driver);
 
@@ -756,6 +763,7 @@ public class DE_ApplicationInfoPersonalTab {
         for (AddressDTO data : datas) {
 
             System.out.println("data => " + data.getAddressType());
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("trAddressListElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> trAddressListElement.size() > 0);
             Utilities.captureScreenShot(_driver);
@@ -781,9 +789,13 @@ public class DE_ApplicationInfoPersonalTab {
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
                 we.click();
 
+                //Sleep Wait Address Type
+//                Thread.sleep(15000);
+
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
+                with().pollInterval(Duration.FIVE_SECONDS).
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
@@ -881,10 +893,13 @@ public class DE_ApplicationInfoPersonalTab {
                         .until(() -> btnCreateAnotherElement.isEnabled());
                 btnCreateAnotherElement.click();
 
+                //Sleep Wait Address Type
+//                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
+                with().pollInterval(Duration.FIVE_SECONDS).
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 

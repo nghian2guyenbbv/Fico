@@ -2,7 +2,9 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import jdk.jfr.Timespan;
 import lombok.Getter;
+import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -10,18 +12,19 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class CRM_ApplicationInfoEmploymentDetailsTab {
@@ -138,43 +141,62 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
         this._driver = driver;
     }
 
-    public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException {
+    public void setData(CRM_EmploymentDetailsDTO data) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
 
-        WebDriverWait wait = new WebDriverWait(_driver, Constant.TIME_OUT_S);
+        Actions actions = new Actions(_driver);
 
-        List<WebElement> deleteOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//ancestor::tr//*[contains(@id,'delete')]"));
+//        List<WebElement> occupationTypeName = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]"));
+//        for (WebElement occupationTypeNames: occupationTypeName){
+//            if ("Salaried".equals(occupationTypeNames.getText())){
+//                WebElement occupationDelete =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'Salaried')]//ancestor::tr//*[contains(@id,'delete')]"));
+//                occupationDelete.click();
+//
+//                Thread.sleep(5000);
+//
+//                Boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+//                if (checkModalMajorChange){
+//                    await("Confirm Delete visibale").atMost(Duration.TEN_MINUTES)
+//                            .until(() -> modalMajorChangeElement.isDisplayed());
+//                    Utilities.captureScreenShot(_driver);
+//                    btnMajorChangeElement.get(0).click();
+//                }
+//            }
+//        }
 
-        if (deleteOccupationTypeElements.size() > 0){
-            for (int i=0; i<deleteOccupationTypeElements.size()-1; i++) {
-                WebElement var = deleteOccupationTypeElements.get(i);
-                var.click();
-            }
+        List<WebElement> listOccupationDelete = _driver.findElements(By.xpath("//table[@id = 'occupation_Info_Table']//tr//td[1]"));
 
-            try {
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> modalMajorChangeElement.isDisplayed());
-                Utilities.captureScreenShot(_driver);
-                btnMajorChangeElement.get(0).click();
-            } catch (Exception e) {
-                System.out.println("Confirm Delete visibale");
+        boolean checkListOccupationDelete = listOccupationDelete.size() != 0;
+
+        if(checkListOccupationDelete){
+            for (WebElement OccupationDeleteButton: listOccupationDelete){
+
+                WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//*[contains(@id,'delete')]"));
+
+                actions.moveToElement(occupationDelete).click().build().perform();
+
+                Thread.sleep(5000);
+
+                boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+
+                if (checkModalMajorChange){
+                    await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
+                            .until(() -> modalMajorChangeElement.isDisplayed());
+                    Utilities.captureScreenShot(_driver);
+                    btnMajorChangeElement.get(0).click();
+                }
             }
         }
 
-        // Edit
-//        List<WebElement> editOccupationTypeElements =_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+//        Thread.sleep(5000);
 //
-//        if(editOccupationTypeElements.size()>0){
-//            editOccupationTypeElements.get(0).click();
+//        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() > 0) {
+//            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
+//            actions.moveToElement(occupationEdit).click().build().perform();
 //        }
 
-
-        wait.withMessage("occupation Type Loading timeout").until(ExpectedConditions.visibilityOf(occupationTypeElement));
-
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> occupationTypeElement.isDisplayed());
-
-        await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> occupationTypeElement.isEnabled());
+                .until(() -> occupationTypeElement.isDisplayed() && occupationTypeElement.isEnabled());
 
         occupationTypeElement.click();
 
@@ -213,7 +235,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
     }
 
-    public void setMajorOccupation(CRM_EmploymentDetailsDTO data) {
+    public void setMajorOccupation(CRM_EmploymentDetailsDTO data) throws InterruptedException {
         if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0) {
             Utilities.captureScreenShot(_driver);
             boolean isChecked = _driver.findElement(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).isSelected();
@@ -221,15 +243,17 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             webElement.click();
 
             Utilities.captureScreenShot(_driver);
-            try {
-                if (!isChecked) {
+
+            if (!isChecked) {
+                Thread.sleep(5000);
+                boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+                if (checkModalMajorChange){
+
                     await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> modalMajorChangeElement.isDisplayed());
                     Utilities.captureScreenShot(_driver);
                     btnMajorChangeElement.get(0).click();
                 }
-            } catch (Exception e) {
-                System.out.println("Confirm Delete visibale");
             }
 
             Utilities.captureScreenShot(_driver);
