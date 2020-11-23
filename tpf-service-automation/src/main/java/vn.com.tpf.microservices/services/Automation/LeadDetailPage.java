@@ -338,7 +338,7 @@ public class LeadDetailPage {
                 index++;
             }
 
-            Thread.sleep(3000);
+            Thread.sleep(5000);
             saveDocBtnElement.click();
 
             await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

@@ -77,16 +77,15 @@ public class AutoAssignAllocationPage {
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
-        Utilities.captureScreenShot(_driver);
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
 
-        await("Application Id not found !!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 0);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
-        Utilities.captureScreenShot(_driver);
+
         showTaskElement.click();
 
         await("taskTableDivElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -95,7 +94,6 @@ public class AutoAssignAllocationPage {
         await("editElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> editElement.isDisplayed());
 
-        Utilities.captureScreenShot(_driver);
         editElement.click();
 
         await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
