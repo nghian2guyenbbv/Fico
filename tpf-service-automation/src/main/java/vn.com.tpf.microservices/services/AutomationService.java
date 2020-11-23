@@ -1,8 +1,10 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.DataInitial;
 
 import javax.annotation.PostConstruct;
+import javax.swing.text.html.parser.Parser;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -457,12 +460,11 @@ public class AutomationService {
 	//------------------------ WAIVE_FIELD  --------------------------------------
 	public Map<String, Object> Waive_Field(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		String reference_id = request.path("reference_id").asText();
-		System.out.println(request);
+//		String referenceId = request.path("reference_id").toString();
 		Assert.notNull(request.get("body"), "no body");
 		RequestAutomationDTO requestWaiveField = mapper.convertValue(request.path("body"), new TypeReference<RequestAutomationDTO>(){});
 		List<WaiveFieldDTO> waiveFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveFieldDTO>>(){});
-		requestWaiveField.setReference_id(reference_id);
+//		requestWaiveField.setReference_id(referenceId);
 		requestWaiveField.setWaiveFieldDTO(waiveFieldDTOList);
 
 		new Thread(() -> {
@@ -491,12 +493,11 @@ public class AutomationService {
 	//------------------------ SUBMIT_FIELD  -------------------------------------
 	public Map<String, Object> Submit_Field(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-		String reference_id = request.path("reference_id").asText();
-		System.out.println(request);
+//		String referenceId = request.path("reference_id").toString();
 		Assert.notNull(request.get("body"), "no body");
 		RequestAutomationDTO requestSubmitField = mapper.convertValue(request.path("body"), new TypeReference<RequestAutomationDTO>(){});
 		List<SubmitFieldDTO> submitFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<SubmitFieldDTO>>(){});
-		requestSubmitField.setReference_id(reference_id);
+//		requestSubmitField.setReference_id(referenceId);
 		requestSubmitField.setSubmitFieldDTO(submitFieldDTOList);
 
 		new Thread(() -> {

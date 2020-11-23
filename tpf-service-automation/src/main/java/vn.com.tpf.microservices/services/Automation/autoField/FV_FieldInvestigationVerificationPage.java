@@ -5,10 +5,9 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.awaitility.Duration;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.CacheLookup;
@@ -23,6 +22,9 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
@@ -31,6 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 import static org.hamcrest.Matchers.is;
 
 
@@ -192,10 +195,10 @@ public class FV_FieldInvestigationVerificationPage {
         _driver = driver;
     }
 
-    @SneakyThrows
-    public void setData(SubmitFieldDTO submitFieldDTO, String downLoadFileURL, String accountAuto) {
+    public void setData(SubmitFieldDTO submitFieldDTO, String downLoadFileURL, String accountAuto) throws IOException, InterruptedException {
         String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+        Actions actions = new Actions(_driver);
 
         stage = "FI ALLOCATION GRID";
         menuApplicationElement.click();
@@ -231,11 +234,22 @@ public class FV_FieldInvestigationVerificationPage {
 
 //        doneButtonFIAllocationGridElement.click();
 
-        JavascriptExecutor jseBTNDone = (JavascriptExecutor)_driver;
-        jseBTNDone.executeScript("arguments[0].click();", doneButtonFIAllocationGridElement);
+//        JavascriptExecutor jseBTNDone = (JavascriptExecutor)_driver;
+//        jseBTNDone.executeScript("arguments[0].click();", doneButtonFIAllocationGridElement);
 
-        await("FI Entries Grid done timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("FI Entries Grid"));
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Done FI Allocation Grid Element visibale Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> doneButtonFIAllocationGridElement.isEnabled());
+
+        actions.moveToElement(doneButtonFIAllocationGridElement).click().build().perform();
+
+        System.out.println("Done Button FI Allocation Grid Click" + ": DONE");
+
+        System.out.println("FI ALLOCATION GRID Assigned" + ": DONE");
+
+        with().pollDelay(Duration.FIVE_SECONDS).
+        await("FI ALLOCATION GRID Assigned Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> menuApplicationElement.isEnabled());
 
         menuApplicationElement.click();
 
@@ -314,12 +328,16 @@ public class FV_FieldInvestigationVerificationPage {
         stage = "UPLOAD FILE";
         System.out.println(stage + ": START");
         for (SubmitFieldAttachmentDTO attachmentFileList : submitFieldDTO.getAttachmentField()) {
+
             attachmentsButtonUploadA.click();
 
-            Thread.sleep(1000);
-            Robot robotObj = new Robot();
-            this.pressEscapeKey(robotObj);
-            Thread.sleep(3000);
+            System.out.println("Click done attachments Button");
+
+            Thread.sleep(5000);
+            Actions action = new Actions(_driver);
+            action.sendKeys(Keys.ESCAPE).build().perform();
+
+            System.out.println("Click done Escape Key");
 
             WebElement attachmentsButtonUpload = _driver.findElement(new By.ByXPath("//div[@id = 'fileupload']//input[@id = 'single_file_" + i + "']"));
 
@@ -349,12 +367,13 @@ public class FV_FieldInvestigationVerificationPage {
         System.out.println(stage + ": DONE");
         //========================
 
-//        noOfAttemptsInput.sendKeys(fieldList.getNoOfAttempts());
         noOfAttemptsInput.sendKeys("1");
+
+        System.out.println("No Of Attempts Input" + ": DONE");
 
         if (StringUtils.isNotEmpty(submitFieldDTO.getVerificationAgent())){
             verificationAgentInputElement.sendKeys(submitFieldDTO.getVerificationAgent());
-//            verificationAgentInputElement.sendKeys("TPF Agent");
+
             await("verificationAgentUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> verificationAgentUlElement.isDisplayed());
 
@@ -365,19 +384,17 @@ public class FV_FieldInvestigationVerificationPage {
                     .until(() -> verificationAgentLiAndElement.size() > 0);
 
             for (WebElement e : verificationAgentLiElement) {
-//                if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("TPF Agent")) {
                 if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getVerificationAgent())) {
                     e.click();
                     break;
                 }
             }
         }
-//
 
-//        resultDescriptionSelect.sendKeys(fieldList.getResultDecisionFiv());
         resultDescriptionSelect.sendKeys("Positive");
 
-//        if ("PRE-APPROVED".equals(fieldList.getStatusField())){
+        System.out.println("Result Description Select" + ": DONE");
+
         if(!Objects.isNull(submitFieldDTO.getRemarksDecisionFiv())){
             remarksDescriptionTextArea.sendKeys(submitFieldDTO.getRemarksDecisionFiv());
         }
@@ -385,16 +402,22 @@ public class FV_FieldInvestigationVerificationPage {
         timeOfVisitElement.sendKeys(submitFieldDTO.getTimeOfVisit());
         verificationDateElement.clear();
         verificationDateElement.sendKeys(submitFieldDTO.getVerificationDate());
-//        }
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> buttonSaveAndProceed.isDisplayed());
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> buttonSaveAndProceed.isEnabled());
 
         buttonSaveAndProceed.click();
 
-        Utilities.captureScreenShot(_driver);
-    }
+        System.out.println("Button Save And Proceed" + ": DONE");
 
-    private void pressEscapeKey(Robot robot) throws InterruptedException {
-        robot.keyPress(KeyEvent.VK_ESCAPE);
-        robot.keyRelease(KeyEvent.VK_ESCAPE);
-        Thread.sleep(1000);
+        await("FI Entries Grid timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("FI Entries Grid"));
+
+        Utilities.captureScreenShot(_driver);
     }
 }

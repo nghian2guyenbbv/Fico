@@ -3,10 +3,12 @@ package vn.com.tpf.microservices.services.Automation.autoField;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
@@ -20,6 +22,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 import static org.hamcrest.Matchers.is;
 
 @Getter
@@ -89,29 +92,17 @@ public class FV_FieldInvestigationDetailsPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'fieldInvestigationEntryTable_wrapper']//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
     private List<WebElement> tbFieldInvestigationEntryTable;
 
-    @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_decision-control-group']//div[@id = 'application_fi_verdict_decision_chzn']//div[@class = 'chzn-drop']//div[@class = 'chzn-search']//input[@type = 'text']")
-    @CacheLookup
-    private WebElement decisionInputElement;
+    @FindBy(how = How.ID, using = "application_fi_verdict_decision_chzn")
+    private WebElement decisionOptionDivElement;
 
-    @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_decision-control-group']//div[@id = 'application_fi_verdict_decision_chzn']//div[@class = 'chzn-drop']//ul[@class = 'chzn-results']")
-    @CacheLookup
-    private WebElement decisionUlElement;
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'application_fi_verdict_decision_chzn_o_')]")
+    private List<WebElement> decisionOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_decision-control-group']//div[@id = 'application_fi_verdict_decision_chzn']//div[@class = 'chzn-drop']//ul[@class = 'chzn-results']//li[starts-with(@id, 'application_fi_verdict_decision_chzn_o_')]")
-    @CacheLookup
-    private List<WebElement> decisionSelectElement;
+    @FindBy(how = How.ID, using = "application_fi_verdict_reason0_chzn")
+    private WebElement reasonOptionDivElement;
 
-    @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_reason0-control-group']//div[@id = 'application_fi_verdict_reason0_chzn']//div[@class = 'chzn-drop']//div[@class = 'chzn-search']//input[@type = 'text']")
-    @CacheLookup
-    private WebElement reasonInputElement;
-
-    @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_reason0-control-group']//div[@id = 'application_fi_verdict_reason0_chzn']//div[@class = 'chzn-drop']//ul[@class = 'chzn-results']")
-    @CacheLookup
-    private WebElement reasonUlElement;
-
-    @FindBy(how = How.XPATH, using = "//form[@id = 'application_fi_verdict']//div[@id = 'application_fi_verdict_reason0-control-group']//div[@id = 'application_fi_verdict_reason0_chzn']//div[@class = 'chzn-drop']//ul[@class = 'chzn-results']//li[starts-with(@id, 'application_fi_verdict_reason0_chzn_o_')]")
-    @CacheLookup
-    private List<WebElement> reasonSelectElement;
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'application_fi_verdict_reason0_chzn_o_')]")
+    private List<WebElement> reasonOptionElement;
 
     @FindBy(how = How.XPATH, using = "//textarea[@id = 'application_fi_verdict_decision_comments']")
     @CacheLookup
@@ -125,15 +116,20 @@ public class FV_FieldInvestigationDetailsPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
+    @FindBy(how = How.XPATH, using = "//table[@id = 'LoanApplication_Assigned']//tbody//tr//td")
+    private List<WebElement> tableApplicationsElement;
+
+
 
     public FV_FieldInvestigationDetailsPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
 
-    @SneakyThrows
     public void setData(SubmitFieldDTO submitFieldDTO, String user) {
         String stage = "";
+
+        Actions actions = new Actions(_driver);
 
         menuApplicationElement.click();
 
@@ -209,61 +205,65 @@ public class FV_FieldInvestigationDetailsPage {
 
         applicationIdAssignedNumberElement.click();
 
+        System.out.println("Application Id Assigned" + ": DONE");
+
         await("tbFieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationEntryTable.size() > 2);
 
-//        decisionInputElement.sendKeys(fieldList.getDecisionFic());
-        decisionInputElement.sendKeys("Approve");
-
-        await("decisionUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> decisionUlElement.isDisplayed());
+        decisionOptionDivElement.click();
 
         await("decisionSelectElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> decisionSelectElement.size() > 0);
+                .until(() -> decisionOptionElement.size() > 0);
 
-        for (WebElement e : decisionSelectElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Approve")) {
-                e.click();
-                break;
-            }
-        }
+        Utilities.chooseDropdownValue("Approve", decisionOptionElement);
 
-        await("Reason Select loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> reasonSelectElement.size() > 0);
+        System.out.println("Decision Option" + ": DONE");
 
-        reasonInputElement.sendKeys(submitFieldDTO.getResonDecisionFic());
+        reasonOptionDivElement.click();
 
+        await("decisionSelectElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> reasonOptionElement.size() > 0);
 
-        await("reasonUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> reasonUlElement.isDisplayed());
+        Utilities.chooseDropdownValue(submitFieldDTO.getResonDecisionFic(), reasonOptionElement);
 
-        await("reasonSelectElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> reasonSelectElement.size() > 0);
-
-        for (WebElement e : reasonSelectElement) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResonDecisionFic())) {
-                e.click();
-                break;
-            }
-        }
+        System.out.println("Reason Option" + ": DONE");
 
         if(!Objects.isNull(submitFieldDTO.getRemarksDecisionFic())){
             decisionCommentsElement.sendKeys(submitFieldDTO.getRemarksDecisionFic());
         }
 
+        System.out.println("Decision Comments" + ": DONE");
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Save Decision Element loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnSaveDecisionElement.isDisplayed());
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Save Decision Element loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnSaveDecisionElement.isEnabled());
+
         btnSaveDecisionElement.click();
 
-        Thread.sleep(40000);
+        System.out.println("Button Save" + ": DONE");
 
-//        JavascriptExecutor jseMoveNextStage = (JavascriptExecutor) _driver;
-//        jseMoveNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isDisplayed());
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isEnabled());
 
         btnMoveToNextStageElement.click();
 
-        Utilities.captureScreenShot(_driver);
+        System.out.println("Button Move To Next Stage" + ": DONE");
 
-        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Grid"));
+        boolean checkMoveNextStage = tableApplicationsElement.size() != 0;
+
+        await("FIELD INITIATION COMPLETION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> checkMoveNextStage);
+
+        Utilities.captureScreenShot(_driver);
 
     }
 }
