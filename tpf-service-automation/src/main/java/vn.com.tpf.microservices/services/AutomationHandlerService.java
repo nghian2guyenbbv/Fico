@@ -5627,20 +5627,18 @@ public class AutomationHandlerService {
     }
 
     public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
-        ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
         String applicationId = "";
         String stageError = "";
-        CRM_ExistingCustomerDTO existingCustomerDTO = CRM_ExistingCustomerDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
-            existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
+            CRM_ExistingCustomerDTO existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
             applicationId = existingCustomerDTO.getAppId();
             if (applicationId != null) {
-                if (!applicationId.isEmpty() || !applicationId.contains("UNKNOWN") || !"".equals(applicationId)) {
+                if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
                     if (applicationId.contains("APPL")) {
                         stageError = "UPDATE";
                     }
@@ -6069,7 +6067,9 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName(), stage);
+            if (!"LOGIN FINONE".equals(stage)){
+                logoutV2(driver, accountDTO.getUserName());
+            }
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
@@ -6417,7 +6417,9 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName(), stage);
+            if (!"LOGIN FINONE".equals(stage)){
+                logoutV2(driver, accountDTO.getUserName());
+            }
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
@@ -6765,7 +6767,9 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName(), stage);
+            if (!"LOGIN FINONE".equals(stage)){
+                logoutV2(driver, accountDTO.getUserName());
+            }
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
             if (driver != null) {
                 driver.close();
@@ -6779,8 +6783,8 @@ public class AutomationHandlerService {
 
     }
 
-    public void logoutAndUpdateAccountMongoDB (WebDriver driver, LoginDTO accountDTO, String project, String applicationId, String stage){
-        try{
+    public void logoutV2(WebDriver driver, String accountAuto) {
+        try {
             System.out.println("Logout");
             LogoutPageV2 logoutPage = new LogoutPageV2(driver);
             logoutPage.logout();
@@ -6789,36 +6793,10 @@ public class AutomationHandlerService {
 
             boolean checkTextLogout = "You have logged out Successfully.".equals(driver.findElement(By.xpath("//div[@id = 'neutrino-body']//div[@class = 'row-fluid p-10']//div[@class = 'span5']//h3")).getText());
 
-            if (checkTextLogout || "LOGIN FINONE".equals(stage)){
-                if (!Objects.isNull(accountDTO)) {
-                    Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()).and("project").is(project));
-                    Update update = new Update();
-                    update.set("active", 0);
-                    mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
-                    System.out.println("Update it:" + accountDTO.toString());
-                }
-            }else if (applicationId.indexOf("APPL") >= 0){
-                logoutAndUpdateAccountMongoDB(driver, accountDTO, project, applicationId, stage);
+            if (!checkTextLogout){
+                logoutV2(driver, accountAuto);
             }
 
-            log.info("Logout: Done => " + accountDTO.getUserName());
-        }catch (Exception e){
-            System.out.println("LOGOUT: =>" + accountDTO.getUserName() + " - " + e.toString());
-        }
-    }
-
-    public void logoutV2(WebDriver driver, String accountAuto,String stage) {
-        try {
-            System.out.println("Logout");
-            LogoutPageV2 logoutPage = new LogoutPageV2(driver);
-            logoutPage.logout();
-
-            boolean checkTextLogout = "You have logged out Successfully.".equals(driver.findElement(By.xpath("//div[@id = 'neutrino-body']//div[@class = 'row-fluid p-10']//div[@class = 'span5']//h3")).getText());
-
-            if (!checkTextLogout && !"LOGIN FINONE".equals(stage)){
-                logoutV2(driver, accountAuto, stage);
-            }
             log.info("Logout: Done => " + accountAuto);
         } catch (Exception e) {
             System.out.println("LOGOUT: =>" + accountAuto + " - " + e.toString());
