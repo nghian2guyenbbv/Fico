@@ -2,10 +2,12 @@ package vn.com.tpf.microservices.services.Automation.autoField;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
@@ -14,13 +16,13 @@ import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 import static org.hamcrest.Matchers.is;
 
 @Getter
@@ -147,6 +149,9 @@ public class FV_FieldVerificationPage {
     @CacheLookup
     private WebElement popupError;
 
+    @FindBy(how = How.XPATH, using = "//table[@id = 'LoanApplication_Assigned']//tbody//tr//td")
+    private List<WebElement> tableApplicationsElement;
+
 
     public FV_FieldVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -156,30 +161,10 @@ public class FV_FieldVerificationPage {
     public void setData(SubmitFieldDTO submitFieldDTO, String user, String downdloadFileURL, Instant start) {
         String stage = "";
 
-        /*menuApplicationElement.click();
-
-        applicationManagerElement.click();*/
+        Actions actions = new Actions(_driver);
 
         // ========== APPLICATION MANAGER =================
         stage = "APPLICATION MANAGER";
-
-        /*await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Manager"));
-
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationManagerFormElement.isDisplayed());
-
-        applicationNumberElement.sendKeys(submitFieldDTO.getAppId());
-        searchApplicationElement.click();
-
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdApplicationElement.size() > 2);
-
-        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> showTaskElement.isDisplayed());
-
-        await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> "FII".equals(tdCheckStageApplicationElement.getText()));*/
 
         showTaskElement.click();
 
@@ -235,8 +220,6 @@ public class FV_FieldVerificationPage {
         await("Table Field Investigation Initiation visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
 
-
-
         System.out.println(tdCurrentVerificationStatus.getText());
         if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
 
@@ -269,7 +252,6 @@ public class FV_FieldVerificationPage {
 
         }
 
-
         await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbVerificationTypeElement.isDisplayed());
 
@@ -298,16 +280,26 @@ public class FV_FieldVerificationPage {
         await("Table Field Investigation Initiation visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnViewDetails.isDisplayed());
 
-        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isEnabled());
+
+        btnMoveToNextStageElement.click();
 
 //        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
 //        jseMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-        btnMoveToNextStageElement.click();
+//        await("INITIATE VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(_driver::getTitle, is("Application Grid"));
 
-        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Grid"));
+        boolean checkMoveNextStage = tableApplicationsElement.size() != 0;
+
+        await("INITIATE VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> checkMoveNextStage);
 
         Utilities.captureScreenShot(_driver);
     }
