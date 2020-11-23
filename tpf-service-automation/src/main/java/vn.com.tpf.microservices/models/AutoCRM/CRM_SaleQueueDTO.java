@@ -17,6 +17,8 @@ public class CRM_SaleQueueDTO {
     private String reference_id;
     private String project;
     private String transaction_id;
+    private String stage;
+    private String error;
 
     private CRM_FullInfoAppDTO fullInfoApp;
 }
