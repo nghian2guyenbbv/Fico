@@ -232,10 +232,9 @@ public class AutoRoutingService {
 					body.put("appNumber", logChoiceRouting.getAppNumber());
 					body.put("vendorId", logChoiceRouting.getVendorId());
 
-					log.info("logRouting - URL: {}", url);
-					log.info("logRouting - body: {}", body);
-
 					if (!logChoiceRouting.getAppNumber().equals("UNKNOWN")) {
+						log.info("logRouting - URL: {}", url);
+						log.info("logRouting - body: {}", body);
 						log.info("logRouting - send ESB: appNumb: {}", logChoiceRouting.getAppNumber());
 						new Thread(() -> {
 							log.info("Start call ESB");
