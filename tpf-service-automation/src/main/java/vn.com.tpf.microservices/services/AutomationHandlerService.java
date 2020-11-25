@@ -3,16 +3,13 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import okhttp3.internal.Util;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 import org.slf4j.Logger;
@@ -25,8 +22,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.driver.SeleniumGridDriver;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationDTO;
+import vn.com.tpf.microservices.models.AutoAllocation.AutoAllocationResponseDTO;
 import vn.com.tpf.microservices.models.AutoAllocation.AutoAssignAllocationDTO;
-import vn.com.tpf.microservices.models.AutoAllocation.AutoReassignUserDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.*;
@@ -37,7 +35,6 @@ import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.models.ResponseAutomationModel;
 import vn.com.tpf.microservices.services.Automation.*;
-import vn.com.tpf.microservices.services.Automation.autoAllocation.AutoAllocationReassignPage;
 import vn.com.tpf.microservices.services.Automation.autoAllocation.AutoAssignAllocationPage;
 import vn.com.tpf.microservices.services.Automation.autoCRM.*;
 import vn.com.tpf.microservices.services.Automation.autoField.*;
@@ -55,7 +52,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.*;
 import static org.hamcrest.Matchers.is;
 
 @Service
@@ -288,7 +285,7 @@ public class AutomationHandlerService {
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Existing_Customer":
-                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
@@ -312,7 +309,7 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead_Assign_Pool(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Sale_Queue_With_FullInfo":
-                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_SendBack(driver, mapValue, accountDTO);
                     break;
             }
@@ -4729,7 +4726,7 @@ public class AutomationHandlerService {
             } while (!Objects.isNull(accountDTONew));
 
             //*************************** GET DATA *********************//
-            if ("Waive_Field".equals(funcString)) {
+            if ("Waive_Field".equals(funcString)){
                 RequestAutomationDTO RequestAutomationWaiveFieldDTOList = (RequestAutomationDTO) mapValue.get("RequestAutomationWaiveFieldList");
                 _totalAppId = RequestAutomationWaiveFieldDTOList.getWaiveFieldDTO().size();
                 List<WaiveFieldDTO> waiveFieldDTOList = (List<WaiveFieldDTO>) mapValue.get("waiveFieldList");
@@ -4784,7 +4781,7 @@ public class AutomationHandlerService {
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
-            SessionId session = ((RemoteWebDriver) driver).getSessionId();
+            SessionId session = ((RemoteWebDriver)driver).getSessionId();
             //get account run
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
@@ -4873,7 +4870,7 @@ public class AutomationHandlerService {
                     update.set("status", 3);
                     update.set("checkUpdate", 1);
                     update.set("automation_result", "WAIVE_FIELD_FAILED");
-                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage());
+                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
                     mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
                     System.out.println(ex.getMessage());
                 }
@@ -4892,7 +4889,8 @@ public class AutomationHandlerService {
                 Query queryUpdateFailed = new Query();
                 queryUpdateFailed.addCriteria(Criteria.where("referenceId").is(referenceId).and("checkUpdate").is(1));
                 List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
-                if (resultRespone.size() == totalAppId) {
+                if (resultRespone.size() == totalAppId)
+                {
                     responseModel.setReference_id(referenceId);
                     responseModel.setProject(projectId);
                     responseModel.setTransaction_id("transaction_waive_field");
@@ -4925,7 +4923,7 @@ public class AutomationHandlerService {
         try {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
-            SessionId session = ((RemoteWebDriver) driver).getSessionId();
+            SessionId session = ((RemoteWebDriver)driver).getSessionId();
             //get account run
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
@@ -4990,7 +4988,7 @@ public class AutomationHandlerService {
                         String stageApplication = fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText();
 
                         System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
-                        if ("FII".equals(stageApplication)) {
+                        if ("FII".equals(stageApplication)){
                             // ========== FIELD VERIFICATION =================
                             stage = "FIELD VERIFICATION";
                             FV_FieldVerificationPage fv_FieldVerificationPage = new FV_FieldVerificationPage(driver);
@@ -4998,7 +4996,7 @@ public class AutomationHandlerService {
                             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                             stageApplication = "FIV";
                         }
-                        if ("FIV".equals(stageApplication)) {
+                        if ("FIV".equals(stageApplication)){
                             // ========== FIELD INVESTIGATION VERIFICATION =================
                             stage = "FIELD INVESTIGATION VERIFICATION";
                             FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(driver);
@@ -5006,7 +5004,7 @@ public class AutomationHandlerService {
                             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                             stageApplication = "FIC";
                         }
-                        if ("FIC".equals(stageApplication)) {
+                        if ("FIC".equals(stageApplication)){
                             // ========== FIELD INVESTIGATION DETAILS =================
                             stage = "FIELD INVESTIGATION DETAILS";
                             FV_FieldInvestigationDetailsPage fv_FieldInvestigationDetailsPage = new FV_FieldInvestigationDetailsPage(driver);
@@ -5054,7 +5052,7 @@ public class AutomationHandlerService {
                     update.set("status", 3);
                     update.set("checkUpdate", 1);
                     update.set("automation_result", "SUBMIT_FIELD_FAILED");
-                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage());
+                    update.set("automation_result_message", "Session ID:" + session + "- ERROR: " + ex.getMessage() );
                     mongoTemplate.findAndModify(queryUpdate, update, SubmitFieldDTO.class);
                     if(StringUtils.isEmpty(referenceId)){
                         Query queryUpdateFailed = new Query();
@@ -5447,7 +5445,7 @@ public class AutomationHandlerService {
     }
 
 
-    //------------------------ CRM QUICKLEAD WITH CUSTID -----------------------------------------------------
+    //------------------------ EXISTING CUSTOMER -----------------------------------------------------
     public void CRM_runAutomation_QuickLead_With_CustID(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
@@ -5620,26 +5618,23 @@ public class AutomationHandlerService {
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
-    //------------------------ END - CRM QUICKLEAD WITH CUSTID -----------------------------------------------------
-
-    //------------------------ EXISTING CUSTOMER -----------------------------------------------------
 
     public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
-        ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
         String applicationId = "";
         String stageError = "";
-        CRM_ExistingCustomerDTO existingCustomerDTO = CRM_ExistingCustomerDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
-            existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
+            CRM_ExistingCustomerDTO existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
             applicationId = existingCustomerDTO.getAppId();
             if (applicationId != null) {
-                if (!applicationId.isEmpty()) {
-                    stageError = "UPDATE";
+                if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
+                    if (applicationId.contains("APPL")) {
+                        stageError = "UPDATE";
+                    }
                 }
             }
             //*************************** END GET DATA *********************//
@@ -5661,7 +5656,7 @@ public class AutomationHandlerService {
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            System.out.println(stage);
+            System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
         }
     }
 
@@ -5669,12 +5664,13 @@ public class AutomationHandlerService {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
-        String applicationId = "UNKNOW";
+        String applicationId = "UNKNOWN";
         String neoCustNo = "";
         String cifNo = "";
         String idNo = "";
         CRM_ExistingCustomerDTO existingCustomerDTO = CRM_ExistingCustomerDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
+        Actions actions = new Actions(driver);
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -5685,6 +5681,7 @@ public class AutomationHandlerService {
             List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
             CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", existingCustomerDTO);
+            mongoTemplate.save(existingCustomerDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
@@ -5895,6 +5892,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -5905,17 +5903,29 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
-            Thread.sleep(15000);
+            Thread.sleep(5000);
 
-            try {
+//            try {
+//
+//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
+//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+//
+//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
+//            } catch (Exception e) {
+//                System.out.println("Confirm Delete Vap Next Visibale!!!");
+//            }
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
-                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+            boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
 
-                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
-            } catch (Exception e) {
-                System.out.println("Confirm Delete Vap Next Visibale!!!");
+            if (confirmDeleteVap){
+
+                await("Confirm Delete Vap Next Visibale!!!").atMost(15, TimeUnit.SECONDS)
+                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
+
+                Utilities.captureScreenShot(driver);
+
+                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
             }
 
             System.out.println(stage + ": DONE");
@@ -5979,21 +5989,26 @@ public class AutomationHandlerService {
             miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
             miscFrmAppDtlPage.setData(miscFrmAppDtlDTO);
             Utilities.captureScreenShot(driver);
+
             await("getBtnSaveElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
+
             miscFrmAppDtlPage._getBtnSaveElement().click();
-            Utilities.captureScreenShot(driver);
-            await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
             Utilities.captureScreenShot(driver);
 
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
-            //tam thoi cho sleep de an notification moi click dc button movetonextstage
-            Thread.sleep(15000);
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+                    await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+            Utilities.captureScreenShot(driver);
 
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+
             Utilities.captureScreenShot(driver);
+
             System.out.println(stage + ": DONE");
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6010,9 +6025,18 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD PASS" + " - " + "Session ID: " + session);
+            responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
 
         } catch (Exception e) {
 
@@ -6020,7 +6044,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session + " - " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - " + "Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -6034,22 +6058,38 @@ public class AutomationHandlerService {
                 if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
                     String error = "Error: ";
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += " - " + we.getText();
+                        error += we.getText();
                     }
                     existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session + " - " + existingCustomerDTO.getError());
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session  + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD FAILED");
+            update.set("description", "Error: " + existingCustomerDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+            Thread.sleep(5000);
+            if (!"LOGIN FINONE".equals(stage)){
+                logoutV2(driver, accountDTO.getUserName());
+            }
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
         }
     }
 
@@ -6060,6 +6100,7 @@ public class AutomationHandlerService {
         String applicationId = "";
         CRM_ExistingCustomerDTO existingCustomerDTO = CRM_ExistingCustomerDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
+        Actions actions = new Actions(driver);
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -6234,17 +6275,29 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
-            Thread.sleep(15000);
+            Thread.sleep(5000);
 
-            try {
+//            try {
+//
+//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
+//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+//
+//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
+//            } catch (Exception e) {
+//                System.out.println("Confirm Delete Vap Next Visibale!!!");
+//            }
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
-                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+            boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
 
-                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
-            } catch (Exception e) {
-                System.out.println("Confirm Delete Vap Next Visibale!!!");
+            if (confirmDeleteVap){
+
+                await("Confirm Delete Vap Next Visibale!!!").atMost(15, TimeUnit.SECONDS)
+                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
+
+                Utilities.captureScreenShot(driver);
+
+                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
             }
 
             System.out.println(stage + ": DONE");
@@ -6311,18 +6364,21 @@ public class AutomationHandlerService {
             await("getBtnSaveElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
             miscFrmAppDtlPage._getBtnSaveElement().click();
-            Utilities.captureScreenShot(driver);
-            await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
             Utilities.captureScreenShot(driver);
 
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
-            //tam thoi cho sleep de an notification moi click dc button movetonextstage
-            Thread.sleep(15000);
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+                    await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+            Utilities.captureScreenShot(driver);
 
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+
             Utilities.captureScreenShot(driver);
+
             System.out.println(stage + ": DONE");
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6339,9 +6395,18 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD PASS" + " - " + "Session ID: " + session);
+            responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
 
         } catch (Exception e) {
 
@@ -6349,7 +6414,7 @@ public class AutomationHandlerService {
             responseModel.setReference_id(existingCustomerDTO.getReference_id());
             responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session + " - " + e.getMessage());
+            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
@@ -6363,33 +6428,38 @@ public class AutomationHandlerService {
                 if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
                     String error = "Error: ";
                     for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += " - " + we.getText();
+                        error += we.getText();
                     }
                     existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - " + "Session ID: " + session + " - " + existingCustomerDTO.getError());
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName()  + " - Error: " + existingCustomerDTO.getError());
                     System.out.println(stage + "=>" + error);
                 }
             }
-
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD FAILED");
+            update.set("description", "Error: " + existingCustomerDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+            if (!"LOGIN FINONE".equals(stage)){
+                logoutV2(driver, accountDTO.getUserName());
+            }
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
         }
     }
-
-    private void updateQuickleadExistingCustomer(CRM_ExistingCustomerDTO existingCustomerDTO) throws Exception {
-        mongoTemplate.save(existingCustomerDTO);
-
-    }
-    //------------------------ END EXISTING CUSTOMER -----------------------------------------------------
-
-
-    //------------------------ EXISTING CUSTOMER -----------------------------------------------------
 
     public void runAutomation_SendBack(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
@@ -6398,6 +6468,7 @@ public class AutomationHandlerService {
         String applicationId = "";
         CRM_SaleQueueDTO saleQueueDTO = CRM_SaleQueueDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
+        Actions actions = new Actions(driver);
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -6409,6 +6480,7 @@ public class AutomationHandlerService {
             List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
             CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", saleQueueDTO);
+            mongoTemplate.save(saleQueueDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
@@ -6571,17 +6643,29 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
-            Thread.sleep(15000);
+            Thread.sleep(5000);
 
-            try {
+//            try {
+//
+//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
+//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+//
+//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
+//            } catch (Exception e) {
+//                System.out.println("Confirm Delete Vap Next Visibale!!!");
+//            }
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
-                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+            boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
 
-                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
-            } catch (Exception e) {
-                System.out.println("Confirm Delete Vap Next Visibale!!!");
+            if (confirmDeleteVap){
+
+                await("Confirm Delete Vap Next Visibale!!!").atMost(15, TimeUnit.SECONDS)
+                        .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
+
+                Utilities.captureScreenShot(driver);
+
+                loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
             }
 
             System.out.println(stage + ": DONE");
@@ -6648,18 +6732,21 @@ public class AutomationHandlerService {
             await("getBtnSaveElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
             miscFrmAppDtlPage._getBtnSaveElement().click();
-            Utilities.captureScreenShot(driver);
-            await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
             Utilities.captureScreenShot(driver);
 
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
-            //tam thoi cho sleep de an notification moi click dc button movetonextstage
-            Thread.sleep(15000);
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+                    await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+            Utilities.captureScreenShot(driver);
 
             miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+
             Utilities.captureScreenShot(driver);
+
             System.out.println(stage + ": DONE");
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6667,7 +6754,6 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            Utilities.captureScreenShot(driver);
             stage = "COMPLETE";
             System.out.println("AUTO SALEQUEUE OK: user run auto: " + accountDTO.getUserName());
 
@@ -6678,9 +6764,18 @@ public class AutomationHandlerService {
             responseModel.setReference_id(saleQueueDTO.getReference_id());
             responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("SALEQUEUE PASS");
+            responseModel.setAutomation_result("SALEQUEUE PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "SALEQUEUE PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
 
         } catch (Exception e) {
 
@@ -6688,19 +6783,77 @@ public class AutomationHandlerService {
             responseModel.setReference_id(saleQueueDTO.getReference_id());
             responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
             responseModel.setApp_id(applicationId);
-            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + "Session ID: " + session + " - " + e.getMessage());
+            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + e.getMessage());
 
             System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
             e.printStackTrace();
 
+            if (e.getMessage().contains("Work flow failed!!!")) {
+                stage = "END OF LEAD DETAIL";
+                saleQueueDTO.setStage(stage);
+                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+
+                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                    String error = "Error: ";
+                    for (WebElement we : driver.findElements(By.id("error-message"))) {
+                        error += we.getText();
+                    }
+                    saleQueueDTO.setError(error);
+                    responseModel.setAutomation_result("SALEQUEUE FAILED" + " - Session ID: " + session  + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + saleQueueDTO.getError());
+                    System.out.println(stage + "=>" + error);
+                }
+            }
+
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "SALEQUEUE FAILED");
+            update.set("description", "Error: " + saleQueueDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logout(driver, accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, responseModel.getProject().toUpperCase());
+            if (!"LOGIN FINONE".equals(stage)){
+                logoutV2(driver, accountDTO.getUserName());
+            }
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
+        }
+    }
+
+    private void updateQuickleadExistingCustomer(CRM_ExistingCustomerDTO existingCustomerDTO) throws Exception {
+        mongoTemplate.save(existingCustomerDTO);
+
+    }
+
+    public void logoutV2(WebDriver driver, String accountAuto) {
+        try {
+            System.out.println("Logout");
+            LogoutPageV2 logoutPage = new LogoutPageV2(driver);
+            logoutPage.logout();
+
+            Thread.sleep(5000);
+
+            boolean checkTextLogout = driver.findElements(By.xpath("//button[@id = 'redirectToLoginButton']")).size() != 0;
+
+            if (!checkTextLogout){
+                System.out.println("TEST Logout");
+                logoutV2(driver, accountAuto);
+            }
+
+            log.info("Logout: Done => " + accountAuto);
+        } catch (Exception e) {
+            System.out.println("LOGOUT: =>" + accountAuto + " - " + e.toString());
         }
     }
 
@@ -6890,4 +7043,255 @@ public class AutomationHandlerService {
         }
     }
 
+    //------------------------ AUTO ALLOCATION -----------------------------------------------------
+    public void runAutomation_autoAssignAllocation(Map<String, Object> mapValue, String project, String browser) throws Exception {
+        String stage = "";
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            AutoAllocationDTO autoAllocationDTOList = (AutoAllocationDTO) mapValue.get("AutoAssignAllocationList");
+            List<AutoAssignAllocationDTO> autoAssignAllocationDTOList = (List<AutoAssignAllocationDTO>) mapValue.get("AutoAssignAllocation");
+            //*************************** END GET DATA *********************//
+            List<LoginDTO> loginDTOList = new ArrayList<LoginDTO>();
+
+            LoginDTO accountDTONew = null;
+            do {
+                Query query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                if (!Objects.isNull(accountFinOneDTO)) {
+                    accountDTONew = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    Update update = new Update();
+                    update.set("active", 1);
+                    AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                    if (resultUpdate == null) {
+                        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                        accountDTONew = null;
+                    } else {
+                        loginDTOList.add(accountDTONew);
+                        System.out.println("Get it:" + accountDTONew.toString());
+                    }
+                } else
+                    accountDTONew = null;
+            } while (!Objects.isNull(accountDTONew));
+
+            //insert data
+            mongoTemplate.insert(autoAssignAllocationDTOList, AutoAssignAllocationDTO.class);
+
+            if (loginDTOList.size() > 0) {
+                ExecutorService workerThreadPoolDE = Executors.newFixedThreadPool(loginDTOList.size());
+
+                for (LoginDTO loginDTO : loginDTOList) {
+                    workerThreadPoolDE.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            runAutomation_autoAssignAllocation_run(loginDTO, browser, project);
+                        }
+                    });
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+        }
+    }
+
+    private void runAutomation_autoAssignAllocation_run(LoginDTO accountDTO, String browser, String project) {
+        WebDriver driver = null;
+        Instant start = Instant.now();
+        String stage = "";
+        String appID = "";
+        String referenceId = "";
+        String projectId = "";
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+        try {
+            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+            driver = setupTestDriver.getDriver();
+            SessionId session = ((RemoteWebDriver)driver).getSessionId();
+            //get account run
+            stage = "LOGIN FINONE";
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+            System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": LOGIN DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+            Utilities.captureScreenShot(driver);
+
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+            // ========== APPLICATIONS =================
+            homePage.getMenuApplicationElement().click();
+
+            stage = "APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            AutoAssignAllocationDTO autoAssignAllocationDTO = null;
+
+            do {
+                try {
+                    System.out.println("Auto: " + accountDTO.getUserName() + " - AUTO BEGIN " + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where("status").is(0));
+                    autoAssignAllocationDTO = mongoTemplate.findOne(query, AutoAssignAllocationDTO.class);
+
+                    if (!Objects.isNull(autoAssignAllocationDTO)) {
+
+                        //update app
+                        Query queryUpdate = new Query();
+                        queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
+                        Update update = new Update();
+                        update.set("userAuto", accountDTO.getUserName());
+                        update.set("status", 2);
+                        AutoAssignAllocationDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
+
+                        if (resultUpdate == null) {
+                            continue;
+                        }
+
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - App: " + autoAssignAllocationDTO.getAppId() + " - GET DATA DONE " + " - "  + " User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                        referenceId = resultUpdate.getReference_id();
+                        projectId = resultUpdate.getProject();
+
+                        appID = autoAssignAllocationDTO.getAppId();
+                        AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
+                        await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAssignAllocationPage.getApplicationManagerFormElement().isDisplayed());
+                        autoAssignAllocationPage.setData(appID, autoAssignAllocationDTO.getUserName().toLowerCase());
+
+                        System.out.println("Auto: " + accountDTO.getUserName() + " - App: " + autoAssignAllocationDTO.getAppId() + " - APPLICATION MANAGER " + " - "  + "User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAssignAllocationPage.getTdApplicationElement().size() > 2);
+
+                        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> autoAssignAllocationPage.getShowTaskElement().isDisplayed());
+
+                        String userName = autoAssignAllocationDTO.getUserName().toLowerCase();
+
+                        String userNameTable = autoAssignAllocationPage.getUserAssignManager().getAttribute("innerHTML").trim();
+
+                        await("No User Found!!!").atMost(15, TimeUnit.SECONDS)
+                                .until(() -> userName.equals(userNameTable));
+
+                        autoAssignAllocationPage.getBackBtnElement().click();
+
+                        await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Manager"));
+
+                        System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - AUTO FINISH " + " - " + "User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                        // ========= UPDATE DB ============================
+                        Query queryUpdate1 = new Query();
+                        queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
+                        Update update1 = new Update();
+                        update1.set("userAuto", accountDTO.getUserName());
+                        update1.set("status", 1);
+                        update1.set("assignStatus", 1);
+                        update1.set("automationResult", "AUTOASSIGN_PASS");
+                        update1.set("automationResultMessage", "Session ID:" + session);
+                        mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
+                        if(!StringUtils.isEmpty(referenceId)){
+                            Query queryUpdatePass = new Query();
+                            queryUpdatePass.addCriteria(Criteria.where("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
+                            List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdatePass, AutoAllocationResponseDTO.class);
+                            responseModel.setReference_id(referenceId);
+                            responseModel.setProject(projectId);
+                            responseModel.setData(resultRespone);
+                            autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
+                        }
+
+                        System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - UPDATE STATUS " + " - " + "User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                    }
+                } catch (Exception ex) {
+                    Query queryUpdate = new Query();
+                    queryUpdate.addCriteria(Criteria.where("status").in(0, 2).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
+                    Update update = new Update();
+                    update.set("userAuto", accountDTO.getUserName());
+                    update.set("status", 3);
+                    update.set("assignStatus", 1);
+                    update.set("automationResult", "AUTOASSIGN_FAILED");
+                    update.set("automationResultMessage", "Session ID:" + session + "- ERROR: " + ex.getMessage().substring(0, ex.getMessage().indexOf(" in")));
+                    mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
+
+                    if(!StringUtils.isEmpty(referenceId)){
+                        Query queryUpdateFail = new Query();
+                        queryUpdateFail.addCriteria(Criteria.where("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
+                        List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFail, AutoAllocationResponseDTO.class);
+                        responseModel.setReference_id(referenceId);
+                        responseModel.setProject(projectId);
+                        responseModel.setData(resultRespone);
+                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
+                    }
+
+                    boolean checkAdminError = driver.findElements(By.xpath("//div[@class = 'body-inner']//div[contains(text(), 'Some error occured. Please contact system admin.')]")).size() != 0;
+
+                    if (checkAdminError){
+                        HomePage homeFailedPage = new HomePage(driver);
+                        homeFailedPage.getMenuApplicationElement().click();
+                        homeFailedPage.getApplicationManagerElement().click();
+                        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Manager"));
+                    }else{
+                        AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
+                        autoAssignAllocationFailedPage.getBackBtnElement().click();
+                        await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Manager"));
+                    }
+
+                    System.out.println(ex.getMessage());
+                }
+            } while (!Objects.isNull(autoAssignAllocationDTO));
+        } catch (Exception e) {
+            System.out.println("User Auto:" + accountDTO.getUserName() + " - " + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            logout(driver,accountDTO.getUserName());
+            pushAccountToQueue(accountDTO, project);
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
+        }
+    }
+
+    private void autoUpdateStatusRabbitAllocation(ResponseAutomationModel responseAutomationModel, String func, String userAuto, String appID){
+        JsonNode jsonNode = null;
+        Query queryUpdateStatusRabbit = new Query();
+        Update updateStatusRabbit = new Update();
+        try {
+            jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+                    Map.of("func", func,
+                            "body", Map.of(
+                                    "project", responseAutomationModel.getProject(),
+                                    "reference_id", responseAutomationModel.getReference_id(),
+                                    "autoAssign",responseAutomationModel.getData()
+                            )));
+            System.out.println("rabit:=>" + jsonNode.toString());
+            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+            updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
+            mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
+        } catch (Exception e) {
+            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+            updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
+            mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
+        }
+    }
+
+    //------------------------ END AUTO ALLOCATION -----------------------------------------------------
 }
