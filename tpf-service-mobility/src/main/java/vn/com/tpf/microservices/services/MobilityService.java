@@ -1240,8 +1240,8 @@ public class MobilityService {
 		body.put("project", "mobility");
 		body.put("transaction_id", UUID.randomUUID().toString());
 		body.set("data", mobilityWaiveFields);
+		body.put("reference_id", request.path("body").path("reference_id").toString());
 		requestSend.put("body", body);
-		requestSend.put("reference_id", request.path("body").path("reference_id"));
 		rabbitMQService.send("tpf-service-esb", requestSend);
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
@@ -1403,10 +1403,11 @@ public class MobilityService {
 
 		var c = 0;
 		for (JsonNode i : getListFinnOneFileds.path("data").path("resultOfficeVisit")) {
-			if ((i.has(data.path("resultOfficeVisit").asText())))
+			if ((i.has(data.path("resultOfficeVisit").asText()))) {
 				update.set("resultOfficeVisit", i.get(data.path("resultOfficeVisit").asText()).asText());
-			c++;
-			break;
+				c++;
+				break;
+			}
 		}
 		if (c == 0) {
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
@@ -1550,7 +1551,8 @@ public class MobilityService {
 		mobilityObjectNode.put("remarksDecisionFiv", mobilityfield.getRemarksDecisionFiv());
 		mobilityObjectNode.put("remarksDecisionFic", mobilityfield.getRemarksDecisionFic());
 		mobilityObjectNode.put("resonDecisionFic", mobilityfield.getResonDecisionFic());
-
+		mobilityObjectNode.put("resultDecisionFiv", mobilityfield.getResultDecisionFiv());
+		mobilityObjectNode.put("decisionFic", mobilityfield.getDecisionFic());
 		mobilitySubmitFields.add(mobilityObjectNode);
 
 		HashMap<String, Object> requestSend = new HashMap<>();
@@ -1560,8 +1562,8 @@ public class MobilityService {
 		bodySender.put("project", "mobility");
 		bodySender.put("transaction_id", UUID.randomUUID().toString());
 		bodySender.set("data", mobilitySubmitFields);
+		bodySender.put("reference_id", request.path("body").path("reference_id").toString());
 		requestSend.put("body", bodySender);
-		requestSend.put("reference_id", request.path("body").path("reference_id"));
 
 		rabbitMQService.send("tpf-service-esb", requestSend);
 
