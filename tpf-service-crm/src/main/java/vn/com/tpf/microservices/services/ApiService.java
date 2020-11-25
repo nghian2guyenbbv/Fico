@@ -171,6 +171,7 @@ public class ApiService {
 			ObjectNode data = mapper.createObjectNode();
 			data.put("leadId", String.format("%s", crm.getLeadId()));
 			data.put("appId", crm.getAppId());
+			data.put("description", crm.getAutomationDescription());
 			request.set("data", data);
 
 			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(request, requestHeaders);

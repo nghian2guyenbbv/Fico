@@ -100,6 +100,7 @@ public class Crm {
 	private List<Object> family;
 	private List<Object> identifications;
 	private String maritalStatus;
+	private String automationDescription;
 }
 
 

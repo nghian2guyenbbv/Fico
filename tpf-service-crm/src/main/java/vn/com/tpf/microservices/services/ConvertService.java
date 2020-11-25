@@ -502,4 +502,116 @@ public class ConvertService {
 
 		return app;
 	}
+
+	public ObjectNode toRetryAppFinnoneWithFullApp(Crm crm) {
+
+		ObjectNode app = mapper.createObjectNode();
+		app.put("project", "crm");
+		app.put("quickLeadId", crm.getId());
+		app.put("neoCustID", crm.getNeoCustID());
+		app.put("cifNumber", crm.getCifNumber());
+		app.put("idNumber", crm.getIdNumber());
+		app.put("appId", crm.getAppId());
+
+		ObjectNode quickLead = mapper.createObjectNode();
+		quickLead.put("identificationNumber", crm.getNationalId());
+		quickLead.put("productTypeCode", ProductTypeCode);
+		quickLead.put("customerType", CustomerType);
+		quickLead.put("productCode", crm.getProductFinnOne());
+		quickLead.put("loanAmountRequested", crm.getLoanRequest());
+		quickLead.put("firstName", crm.getFirstName());
+		quickLead.put("lastName", crm.getLastName());
+		quickLead.put("city", crm.getCityFinnOne());
+		quickLead.put("sourcingChannel", crm.getChanel());
+		quickLead.put("dateOfBirth", crm.getDateOfBirth());
+		quickLead.put("sourcingBranch", crm.getBranch());
+		quickLead.put("natureOfOccupation", NatureOfOccupation);
+		quickLead.put("schemeCode", crm.getSchemeFinnOne());
+		quickLead.put("comment", Comment);
+		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
+		quickLead.put("leadStatus", LeadStatus);
+		quickLead.put("communicationTranscript", CommunicationTranscript);
+
+
+		ObjectNode fullApp = mapper.createObjectNode();
+		fullApp.put("firstName", crm.getFirstName());
+		fullApp.put("middleName", crm.getMiddleName());
+		fullApp.put("lastName", crm.getLastName());
+		fullApp.put("gender", crm.getGender());
+		fullApp.put("dateOfBirth", crm.getDateOfBirth());
+		fullApp.put("maritalStatus", crm.getMaritalStatus());
+		fullApp.put("primaryAddress", crm.getPrimaryAddress());
+		fullApp.put("phoneNumber", crm.getPhoneNumber());
+		fullApp.put("employmentName", crm.getEmploymentName());
+		fullApp.put("incomeExpense", crm.getIncomeExpense());
+		fullApp.put("amount", crm.getAmount());
+		fullApp.put("modeOfPayment", crm.getModeOfPayment());
+		fullApp.put("dayOfSalaryPayment", crm.getDayOfSalaryPayment());
+		fullApp.put("sourcingBranch", crm.getBranch());
+		fullApp.put("sourcingChannel", crm.getChanel());
+		fullApp.put("loanApplicationType", crm.getLoanApplicationType());
+		fullApp.put("productCode", crm.getProductFinnOne());
+		fullApp.put("schemeCode", crm.getSchemeFinnOne());
+		fullApp.put("loanAmountRequested", crm.getLoanAmountRequested());
+		fullApp.put("requestedTenure", crm.getRequestedTenure());
+		fullApp.put("interestRate", crm.getInterestRate());
+		fullApp.put("saleAgentCodeLoanDetails", crm.getSaleAgentCodeLoanDetails());
+		fullApp.put("vapProduct", crm.getVapProduct());
+		fullApp.put("vapTreatment", crm.getVapTreatment());
+		fullApp.put("insuranceCompany", crm.getInsuranceCompany());
+		fullApp.put("loanPurpose", crm.getLoanPurpose());
+		fullApp.put("loanPurposeOther", crm.getLoanPurposeOther());
+		fullApp.put("numberOfDependents", crm.getNumberOfDependents());
+		fullApp.put("monthlyRental", crm.getMonthlyRental());
+		fullApp.put("houseOwnership", crm.getHouseOwnership());
+		fullApp.put("newBankCardNumber", crm.getNewBankCardNumber());
+		fullApp.put("remarksDynamicForm", crm.getRemarksDynamicForm());
+		fullApp.put("saleAgentCodeDynamicForm", crm.getSaleAgentCodeDynamicForm());
+		fullApp.put("courierCode", crm.getCourierCode());
+		fullApp.put("maximumInterestedRate", crm.getMaximumInterestedRate());
+
+
+		ArrayNode documents = mapper.createArrayNode();
+		ArrayNode addresses = mapper.createArrayNode();
+		ArrayNode references = mapper.createArrayNode();
+		ArrayNode family = mapper.createArrayNode();
+		ArrayNode identifications = mapper.createArrayNode();
+
+		crm.getFilesUpload().forEach(e -> {
+			JsonNode crmDoc = mapper.convertValue(e, JsonNode.class);
+			ObjectNode doc = mapper.createObjectNode();
+			doc.put("type", crmDoc.path("type").asText());
+			doc.put("originalname", crmDoc.path("originalname").asText());
+			doc.put("filename", crmDoc.path("filename").asText());
+			documents.add(doc);
+		});
+
+		crm.getAddresses().forEach(e -> {
+			JsonNode crmAdresses = mapper.convertValue(e, JsonNode.class);
+			addresses.add(crmAdresses);
+		});
+
+		crm.getReferences().forEach(e -> {
+			JsonNode crmReferences= mapper.convertValue(e, JsonNode.class);
+			references.add(crmReferences);
+		});
+		crm.getFamily().forEach(e -> {
+			JsonNode crmFamilys= mapper.convertValue(e, JsonNode.class);
+			family.add(crmFamilys);
+		});
+		crm.getIdentifications().forEach(e -> {
+			JsonNode crmIdentifications= mapper.convertValue(e, JsonNode.class);
+			identifications.add(crmIdentifications);
+		});
+		quickLead.set("documents", documents);
+		fullApp.set("addresses", addresses);
+		fullApp.set("documents", documents);
+		fullApp.set("references", references);
+		fullApp.set("family", family);
+		fullApp.set("identifications", identifications);
+		app.set("quickLead", quickLead);
+		app.set("fullInfoApp", fullApp);
+
+		return app;
+	}
 }
