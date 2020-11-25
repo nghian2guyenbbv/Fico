@@ -285,7 +285,7 @@ public class AutomationHandlerService {
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Existing_Customer":
-                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
@@ -309,7 +309,7 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead_Assign_Pool(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Sale_Queue_With_FullInfo":
-                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_SendBack(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_AutoAssign_Allocation":
@@ -5688,6 +5688,7 @@ public class AutomationHandlerService {
             List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
             CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", existingCustomerDTO);
+            mongoTemplate.save(existingCustomerDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
@@ -5898,6 +5899,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6034,6 +6036,15 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } catch (Exception e) {
 
             responseModel.setProject(existingCustomerDTO.getProject());
@@ -6063,10 +6074,21 @@ public class AutomationHandlerService {
             }
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD FAILED");
+            update.set("description", "Error: " + existingCustomerDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
+            Thread.sleep(5000);
             if (!"LOGIN FINONE".equals(stage)){
                 logoutV2(driver, accountDTO.getUserName());
             }
@@ -6384,6 +6406,15 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } catch (Exception e) {
 
             responseModel.setProject(existingCustomerDTO.getProject());
@@ -6411,8 +6442,17 @@ public class AutomationHandlerService {
                     System.out.println(stage + "=>" + error);
                 }
             }
-
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD FAILED");
+            update.set("description", "Error: " + existingCustomerDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
@@ -6447,6 +6487,7 @@ public class AutomationHandlerService {
             List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
             CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", saleQueueDTO);
+            mongoTemplate.save(saleQueueDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
@@ -6734,6 +6775,15 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "SALEQUEUE PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } catch (Exception e) {
 
             responseModel.setProject(saleQueueDTO.getProject());
@@ -6763,6 +6813,16 @@ public class AutomationHandlerService {
             }
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "SALEQUEUE FAILED");
+            update.set("description", "Error: " + saleQueueDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
@@ -6791,9 +6851,10 @@ public class AutomationHandlerService {
 
             Thread.sleep(5000);
 
-            boolean checkTextLogout = "You have logged out Successfully.".equals(driver.findElement(By.xpath("//div[@id = 'neutrino-body']//div[@class = 'row-fluid p-10']//div[@class = 'span5']//h3")).getText());
+            boolean checkTextLogout = driver.findElements(By.xpath("//button[@id = 'redirectToLoginButton']")).size() != 0;
 
             if (!checkTextLogout){
+                System.out.println("TEST Logout");
                 logoutV2(driver, accountAuto);
             }
 

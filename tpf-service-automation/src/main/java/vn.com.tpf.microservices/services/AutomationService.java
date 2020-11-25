@@ -602,7 +602,7 @@ public class AutomationService {
 		String browser = "chrome";
 		String projectJson = existingCustomerDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Existing_Customer(existingCustomerDTOList);
-		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer",projectJson);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer",projectJson.toUpperCase());
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
@@ -632,7 +632,7 @@ public class AutomationService {
 		String browser = "chrome";
 		String projectJson = saleQueueDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Sale_Queue_FullInfo(saleQueueDTOList);
-		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Sale_Queue_With_FullInfo",projectJson);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Sale_Queue_With_FullInfo",projectJson.toUpperCase());
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
