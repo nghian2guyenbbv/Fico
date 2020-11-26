@@ -465,9 +465,12 @@ public class CRM_ApplicationInfoPersonalTab {
 
         //Update Identification
         loadIdentificationSection();
+        System.out.println("identification Tab Element");
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> identificationDivElement.isDisplayed());
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> deleteIdDetailElement.size() > 0);
 
@@ -484,6 +487,7 @@ public class CRM_ApplicationInfoPersonalTab {
                         if (idCardTypeSelect.equals("Current National ID")){
                             if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
                                 actions.moveToElement(idCardButtonDelete).click().build().perform();
+                                break;
                             }else{
                                 List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
                                 if (listDeleteIdCard.size() != 0) {
@@ -511,6 +515,7 @@ public class CRM_ApplicationInfoPersonalTab {
                         if (idCardTypeSelect.equals("Spouse Current National ID")){
                             if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
                                 actions.moveToElement(idCardButtonDelete).click().build().perform();
+                                break;
                             }else{
                                 List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
                                 if (listDeleteIdCard.size() != 0) {

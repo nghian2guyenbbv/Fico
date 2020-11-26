@@ -5847,7 +5847,7 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
-                Thread.sleep(15000);
+                Thread.sleep(5000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
@@ -5899,7 +5899,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
-            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+            with().pollInterval(5, TimeUnit.SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6220,10 +6220,11 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
-                Thread.sleep(15000);
+                Thread.sleep(5000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
+                with().pollInterval(5, TimeUnit.SECONDS).
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
                 financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
@@ -6272,6 +6273,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+            with().pollInterval(5, TimeUnit.SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6457,6 +6459,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
+            Thread.sleep(5000);
             if (!"LOGIN FINONE".equals(stage)){
                 logoutV2(driver, accountDTO.getUserName());
             }
@@ -6587,10 +6590,11 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
-                Thread.sleep(15000);
+                Thread.sleep(5000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
+                with().pollInterval(5, TimeUnit.SECONDS).
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
 //                financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
@@ -6640,6 +6644,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+            with().pollInterval(5, TimeUnit.SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6855,7 +6860,7 @@ public class AutomationHandlerService {
 
             if (!checkTextLogout){
                 System.out.println("TEST Logout");
-                logoutV2(driver, accountAuto);
+//                logoutPage.logout();
             }
 
             log.info("Logout: Done => " + accountAuto);
