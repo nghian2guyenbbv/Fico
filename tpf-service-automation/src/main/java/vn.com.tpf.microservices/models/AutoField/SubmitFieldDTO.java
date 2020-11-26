@@ -45,7 +45,7 @@ public class SubmitFieldDTO {
     private String transactionId;
     private String automation_result;
     private String automation_result_message;
-    private String funcProject;
+    private String projectAuto;
     private int checkUpdate = 0;
 
     private String stageApplication;

@@ -267,16 +267,9 @@ public class AutomationHandlerService {
                         driver.close();
                         driver.quit();
                     }
-                    String funcWaiveField = "Waive_Field";
-                    runAutomation_Field(driver, mapValue, project, browser, funcWaiveField);
+                    runAutomation_Field(driver, mapValue, browser, project);
                     break;
                 case "runAutomation_Submit_Field":
-//                    if (driver != null) {
-//                        driver.close();
-//                        driver.quit();
-//                    }
-//                    String funcSubmitField = "Submit_Field";
-//                    runAutomation_Field(driver, mapValue, project, browser, funcSubmitField);
                     accountDTO = pollAccountFromQueue(accounts, project);
                     runAutomation_Submit_Fields_run(driver, mapValue, accountDTO);
                     break;
@@ -4698,7 +4691,7 @@ public class AutomationHandlerService {
     //------------------------ END - QUICKLEAD -----------------------------------------------------
 
     //------------------------ FIELD -----------------------------------------------------
-    public void runAutomation_Field(WebDriver driver, Map<String, Object> mapValue, String project, String browser, String funcString) throws Exception {
+    public void runAutomation_Field(WebDriver driver, Map<String, Object> mapValue, String browser, String projectAuto) throws Exception {
         String stage = "";
         int _totalAppId = 0;
         try {
@@ -4710,13 +4703,13 @@ public class AutomationHandlerService {
             do {
                 //get list account finone available
                 Query query = new Query();
-                query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(projectAuto));
                 AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
                 if (!Objects.isNull(accountFinOneDTO)) {
                     accountDTONew = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
 
                     Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                    queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(projectAuto));
                     Update update = new Update();
                     update.set("active", 1);
                     AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
@@ -4733,18 +4726,10 @@ public class AutomationHandlerService {
             } while (!Objects.isNull(accountDTONew));
 
             //*************************** GET DATA *********************//
-            if ("Waive_Field".equals(funcString)){
-                RequestAutomationDTO RequestAutomationWaiveFieldDTOList = (RequestAutomationDTO) mapValue.get("RequestAutomationWaiveFieldList");
-                _totalAppId = RequestAutomationWaiveFieldDTOList.getWaiveFieldDTO().size();
-                List<WaiveFieldDTO> waiveFieldDTOList = (List<WaiveFieldDTO>) mapValue.get("waiveFieldList");
-                mongoTemplate.insert(waiveFieldDTOList, WaiveFieldDTO.class);
-            }
-//            else if ("Submit_Field".equals(funcString)){
-//                RequestAutomationDTO RequestAutomationSubmitFieldDTOList = (RequestAutomationDTO) mapValue.get("RequestAutomationSubmitFieldList");
-//                _totalAppId = RequestAutomationSubmitFieldDTOList.getSubmitFieldDTO().size();
-//                List<SubmitFieldDTO> submitFieldDTOList = (List<SubmitFieldDTO>) mapValue.get("submitFieldList");
-//                mongoTemplate.insert(submitFieldDTOList, SubmitFieldDTO.class);
-//            }
+            RequestAutomationDTO RequestAutomationWaiveFieldDTOList = (RequestAutomationDTO) mapValue.get("RequestAutomationWaiveFieldList");
+            _totalAppId = RequestAutomationWaiveFieldDTOList.getWaiveFieldDTO().size();
+            List<WaiveFieldDTO> waiveFieldDTOList = (List<WaiveFieldDTO>) mapValue.get("waiveFieldList");
+            mongoTemplate.insert(waiveFieldDTOList, WaiveFieldDTO.class);
             //*************************** END GET DATA *********************//
 
             if (loginDTOList.size() > 0) {
@@ -4756,12 +4741,7 @@ public class AutomationHandlerService {
                         @SneakyThrows
                         @Override
                         public void run() {
-                            if ("Waive_Field".equals(funcString)){
-                                runAutomation_Waive_Field_run(loginDTO, browser, project, totalAppId);
-                            }
-//                            else if ("Submit_Field".equals(funcString)){
-//                                runAutomation_Submit_Field_run(loginDTO, browser, project, totalAppId);
-//                            }
+                            runAutomation_Waive_Field_run(loginDTO, browser, projectAuto, totalAppId);
                         }
                     });
                 }
@@ -4777,7 +4757,7 @@ public class AutomationHandlerService {
     //------------------------ END FIELD -----------------------------------------------------
 
     //------------------------ WAIVE FIELD -----------------------------------------------------
-    private void runAutomation_Waive_Field_run(LoginDTO accountDTO, String browser, String project, int totalAppId) {
+    private void runAutomation_Waive_Field_run(LoginDTO accountDTO, String browser, String projectAuto, int totalAppId) {
         WebDriver driver = null;
         Instant start = Instant.now();
         String stage = "";
@@ -4813,10 +4793,9 @@ public class AutomationHandlerService {
 
                         //update app
                         Query queryUpdate = new Query();
-                        queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(waiveFieldDTO.getId())).and("status").is(0).and("project").is(waiveFieldDTO.getProject()).and("funcProject").is("WaiveField"));
+                        queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(waiveFieldDTO.getId())).and("status").is(0).and("project").is(waiveFieldDTO.getProject()).and("projectAuto").is("WAIVEFIELD"));
                         Update update = new Update();
                         update.set("userAuto", accountDTO.getUserName());
-//                        update.set("referenceId", waiveFieldDTO.getReferenceId());
                         update.set("status", 2);
                         WaiveFieldDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, WaiveFieldDTO.class);
 
@@ -4859,7 +4838,7 @@ public class AutomationHandlerService {
 
                         // ========= UPDATE DB ============================
                         Query queryUpdate1 = new Query();
-                        queryUpdate1.addCriteria(Criteria.where("_id").is(new ObjectId(waiveFieldDTO.getId())).and("status").is(2).and("project").is(waiveFieldDTO.getProject()).and("funcProject").is("WaiveField"));
+                        queryUpdate1.addCriteria(Criteria.where("_id").is(new ObjectId(waiveFieldDTO.getId())).and("status").is(2).and("project").is(waiveFieldDTO.getProject()).and("projectAuto").is("WAIVEFIELD"));
                         Update update1 = new Update();
                         update1.set("userAuto", accountDTO.getUserName());
                         update1.set("status", 1);
@@ -4871,7 +4850,7 @@ public class AutomationHandlerService {
                     }
                 } catch (Exception ex) {
                     Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(waiveFieldDTO.getId())).and("status").is(2).and("project").is(waiveFieldDTO.getProject()).and("funcProject").is("WaiveField"));
+                    queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(waiveFieldDTO.getId())).and("status").is(2).and("project").is(waiveFieldDTO.getProject()).and("projectAuto").is("WAIVEFIELD"));
                     Update update = new Update();
                     update.set("userAuto", accountDTO.getUserName());
                     update.set("status", 3);
@@ -4891,7 +4870,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             logout(driver,accountDTO.getUserName());
-            pushAccountToQueue(accountDTO, project);
+            pushAccountToQueue(accountDTO, projectAuto);
             if(!StringUtils.isEmpty(referenceId)){
                 Query queryUpdateFailed = new Query();
                 queryUpdateFailed.addCriteria(Criteria.where("referenceId").is(referenceId).and("checkUpdate").is(1));
