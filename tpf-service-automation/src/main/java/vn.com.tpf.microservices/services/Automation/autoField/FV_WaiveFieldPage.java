@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation.autoField;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -19,6 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 import static org.hamcrest.Matchers.is;
 
 @Getter
@@ -241,9 +243,6 @@ public class FV_WaiveFieldPage {
 
             if(tableFiiBtnAddElement.size() < 2){
 
-//                JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
-//                btnInverseJE.executeScript("arguments[0].click();", btnInverse);
-
                 btnInverse.click();
 
                 await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -268,13 +267,18 @@ public class FV_WaiveFieldPage {
 //        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
 //                .until(() -> "false".equals(popupError.isDisplayed()));
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-//        btnMoveToNextStageElement.click();
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isEnabled());
 
-        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
-        btnMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        btnMoveToNextStageElement.click();
+
+//        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
+//        btnMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
