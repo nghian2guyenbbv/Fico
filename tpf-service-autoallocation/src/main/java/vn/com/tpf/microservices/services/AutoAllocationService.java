@@ -81,14 +81,18 @@ public class AutoAllocationService {
     @Autowired
     AssignConfigViewDAO assignConfigViewDAO;
 
+    @Autowired
+    AllocationLogQuotaDao allocationLogQuotaDao;
+
     private static String ROLE_LEADER = "role_leader";
     private static String ROLE_SUB = "role_supervisor";
     private static String KEY_ASSIGN_APP = "WAITING";
 
     public Map<String, Object> getAllUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        String request_id = null;
         log.info("getAllUser: " + request);
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
@@ -107,9 +111,6 @@ public class AutoAllocationService {
                 if (requestModel.getTeamName().size() > 0) {
                     listUserDetails = userDetailsViewDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
                 } else {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(500);
                     responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
                     return Map.of("status", 200, "data", responseModel);
@@ -117,17 +118,11 @@ public class AutoAllocationService {
             }
 
             if (listUserDetails.getContent().size() <= 0 || listUserDetails.getContent() == null) {
-                responseModel.setRequest_id(request_id);
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Empty");
                 return Map.of("status", 200, "data", responseModel);
             }
 
-            responseModel.setRequest_id(request_id);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(200);
             responseModel.setMessage("Get success");
             Map<String, Object> result = new HashMap<>();
@@ -136,29 +131,23 @@ public class AutoAllocationService {
             responseModel.setData(result);
 
         } catch (Exception e) {
-            log.info("Error: " + e);
-            responseModel.setRequest_id(request_id);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+            log.error("Error: " + e);
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
-            log.info("{}", e);
         }
         return Map.of("status", 200, "data", responseModel);
     }
 
     public Map<String, Object> getUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        String request_id = null;
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("getUser: " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
 
             if (requestModel == null) {
-                responseModel.setRequest_id(request_id);
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Empty");
                 return Map.of("status", 200, "data", responseModel);
@@ -169,16 +158,10 @@ public class AutoAllocationService {
                         requestModel.getUserLogin());
 
                 if (userDetailView == null) {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(500);
                     responseModel.setMessage("Empty");
                     return Map.of("status", 200, "data", responseModel);
                 } else {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(200);
                     Map<String, Object> result = new HashMap<>();
                     List<UserDetailView> userDetailViewList = new ArrayList<>();
@@ -200,17 +183,11 @@ public class AutoAllocationService {
                             requestModel.getUserLeader(), pageable);
 
                     if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
-                        responseModel.setRequest_id(request_id);
-                        responseModel.setReference_id(UUID.randomUUID().toString());
-                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
                         responseModel.setResult_code(500);
                         responseModel.setMessage("Empty");
                         return Map.of("status", 200, "data", responseModel);
                     }
 
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(200);
                     responseModel.setMessage("Get success");
                     Map<String, Object> result = new HashMap<>();
@@ -223,25 +200,16 @@ public class AutoAllocationService {
                         userDetailView = userDetailsViewDAO.findByUserNameAndTeamName(requestModel.getUserName(),
                                 requestModel.getTeamName());
                     } else {
-                        responseModel.setRequest_id(request_id);
-                        responseModel.setReference_id(UUID.randomUUID().toString());
-                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
                         responseModel.setResult_code(500);
                         responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
                         return Map.of("status", 200, "data", responseModel);
                     }
 
                     if (userDetailView == null) {
-                        responseModel.setRequest_id(request_id);
-                        responseModel.setReference_id(UUID.randomUUID().toString());
-                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
                         responseModel.setResult_code(500);
                         responseModel.setMessage("Empty");
                         return Map.of("status", 200, "data", responseModel);
                     } else {
-                        responseModel.setRequest_id(request_id);
-                        responseModel.setReference_id(UUID.randomUUID().toString());
-                        responseModel.setDate_time(new Timestamp(new Date().getTime()));
                         responseModel.setResult_code(200);
                         Map<String, Object> result = new HashMap<>();
                         result.put("data", userDetailView);
@@ -252,9 +220,6 @@ public class AutoAllocationService {
             }
         } catch (Exception e) {
             log.info("Error: " + e);
-            responseModel.setRequest_id(request_id);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
             log.info("{}", e);
@@ -355,6 +320,8 @@ public class AutoAllocationService {
             result.put("data", allocationHistoryViews.getContent());
             result.put("totalRecords", allocationHistoryViews.getTotalElements());
             responseModel.setData(result);
+            responseModel.setResult_code(200);
+            responseModel.setMessage("Success");
         } catch (Exception e) {
             log.info("getHistoryApp - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -369,23 +336,19 @@ public class AutoAllocationService {
 
     public Map<String, Object> uploadUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        String request_id = null;
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("uploadUser: " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestImportFile requestModel = mapper.treeToValue(request.get("body"), RequestImportFile.class);
 
             if (requestModel == null) {
-                responseModel.setRequest_id(request_id);
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+
                 responseModel.setResult_code(500);
                 responseModel.setMessage("File is mandatory");
             } else {
                 if (requestModel.getListUser() == null || requestModel.getListUser().size() <= 0 || requestModel.getListUser().isEmpty()) {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(500);
                     responseModel.setMessage("List user in file is empty.");
                     return Map.of("status", 200, "data", responseModel);
@@ -410,29 +373,18 @@ public class AutoAllocationService {
                                 ));
 
                 if (row_string == null || row_string.isEmpty()) {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(200);
                     responseModel.setMessage("Add user success !");
                 } else {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(500);
                     responseModel.setMessage(row_string + "add failed.");
                     return Map.of("status", 200, "data", responseModel);
                 }
             }
         } catch (Exception e) {
-            log.info("Error: " + e);
-            responseModel.setRequest_id(request_id);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+            log.error("Error: " + e);
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
-
-            log.info("{}", e);
         }
         return Map.of("status", 200, "data", responseModel);
     }
@@ -440,21 +392,19 @@ public class AutoAllocationService {
 
     public Map<String, Object> addUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        String request_id = null;
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("addUser: " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
 
             if (requestModel == null) {
-                responseModel.setRequest_id(request_id);
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Add User Failed. Please fill all data of User.");
             } else {
                 if (requestModel.getUserName().isEmpty()) {
-                    responseModel.setRequest_id(request_id);
                     responseModel.setReference_id(UUID.randomUUID().toString());
                     responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(500);
@@ -480,29 +430,18 @@ public class AutoAllocationService {
                                 ));
 
                 if (row_string.equals("ADD USER SUCCESS")) {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(200);
                     responseModel.setMessage("ADD USER SUCCESS !");
                 } else {
-                    responseModel.setRequest_id(request_id);
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(500);
                     responseModel.setMessage(row_string);
                     return Map.of("status", 200, "data", responseModel);
                 }
             }
         } catch (Exception e) {
-            log.info("Error: " + e);
-            responseModel.setRequest_id(request_id);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+            log.error("Error: " + e);
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
-
-            log.info("{}", e);
         }
         return Map.of("status", 200, "data", responseModel);
     }
@@ -516,14 +455,14 @@ public class AutoAllocationService {
     public Map<String, Object> sendAppFromF1(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         log.info("sendAppFromF1: " + request);
-        Timestamp ts = Timestamp.valueOf(request.get("body").get("createdDate").asText());
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//        Timestamp ts = Timestamp.valueOf(request.get("body").get("createdDate").asText());
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
 
             if (requestModel == null) {
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Data is empty");
             } else {
@@ -536,16 +475,11 @@ public class AutoAllocationService {
                     etlDataPush = listEtlDataPush.get(0);
                     saveEtlDataPush(etlDataPush, requestModel);
                 }
-
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(200);
                 responseModel.setMessage("Push success.");
             }
         } catch (Exception e) {
-            log.info("Error: " + e);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+            log.error("Error: " + e);
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -571,6 +505,8 @@ public class AutoAllocationService {
 
     public Map<String, Object> getAssignConfig() {
         ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
             Map<String, Object> result = new HashMap<>();
             Map<String, AssignConfigResponse> mapAssignConfig = new HashMap<>();
@@ -603,22 +539,19 @@ public class AutoAllocationService {
             result.put("lstTeamName", listTeamName);
             responseModel.setData(result);
             responseModel.setResult_code(200);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
         } catch (Exception e) {
             log.error("getAssignConfig - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
-
         }
         return Map.of("status", 200, "data", responseModel);
     }
 
     public Map<String, Object> setAssignConfig(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
             log.info("setAssignConfig - Request: " + request);
             AssignConfig assignConfigRequest = mapper.readValue(request.get("body").toString(),
@@ -636,13 +569,9 @@ public class AutoAllocationService {
                     assignConfigRequest.setCreateDate(now);
                 }
                 assignConfigDAO.save(assignConfigRequest);
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(200);
                 responseModel.setMessage("Save success");
             } else {
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Request error");
             }
@@ -650,8 +579,6 @@ public class AutoAllocationService {
         } catch (Exception e) {
             log.info("setAssignConfig - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -663,6 +590,7 @@ public class AutoAllocationService {
         logStr += "Request Data : " + request;
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
             String SQL = "SELECT * FROM {PAGE} WHERE CASE {USER_ROLE} WHEN 'role_user' THEN ASSIGNEE WHEN 'role_leader' THEN NVL(TEAM_LEADER,ASSIGNEE) END = {USER_LOGIN}";
             String SQLSUP = "SELECT A.* FROM {PAGE} A JOIN ALLOCATION_USER_DETAIL B ON A.TEAM_NAME = B.TEAM_NAME AND B.USER_ROLE = 'role_supervisor' AND B.USER_NAME = {USER_LOGIN}";
@@ -690,10 +618,11 @@ public class AutoAllocationService {
                 }
             }
             responseModel.setData(dataArrayNode);
+            responseModel.setResult_code(200);
+            responseModel.setMessage("Save success");
             logStr += "Response: " + responseModel.toString();
         } catch (Exception e) {
             log.error("Error: " + e);
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         } finally {
@@ -707,6 +636,7 @@ public class AutoAllocationService {
         logStr += "Request Data : " + request;
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
             String SQL = "SELECT * FROM V_ALLOCATION_TEAM_CONFIG P WHERE P.USER_NAME = {USER_LOGIN}";
             SQL = SQL.replace("{USER_LOGIN}", "'" + request.path("body").path("userLogin").textValue() + "'");
@@ -734,10 +664,11 @@ public class AutoAllocationService {
                 }
             }
             responseModel.setData(dataArrayNode);
+            responseModel.setResult_code(200);
+            responseModel.setMessage("Save success");
             logStr += "Response: " + responseModel.toString();
         } catch (Exception e) {
             log.error("Error: " + e);
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         } finally {
@@ -751,6 +682,7 @@ public class AutoAllocationService {
         logStr += "Request Data : " + request;
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
             List<TeamConfig> listTeamName = teamConfigDAO.findByTeamName(request.path("body").path("userTeam").textValue());
             Iterator<TeamConfig> it = listTeamName.iterator();
@@ -762,12 +694,10 @@ public class AutoAllocationService {
                 teamConfig.setUpdateDate(new Timestamp(new Date().getTime()));
                 teamConfigDAO.save(teamConfig);
             }
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(200);
             responseModel.setMessage("Save success");
         } catch (Exception e) {
             log.error("Error: " + e);
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         } finally {
@@ -778,14 +708,14 @@ public class AutoAllocationService {
 
     public Map<String, Object> getInfoUserLogin(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("getInfoUserLogin: " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
 
             if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("User name is mandatory!");
                 return Map.of("status", 200, "data", responseModel);
@@ -794,23 +724,17 @@ public class AutoAllocationService {
             List<UserDetailView> userDetailViewList = userDetailsViewDAO.findAllByUserName(requestModel.getUserName());
 
             if (userDetailViewList.size() <= 0 || userDetailViewList == null) {
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("Empty");
                 return Map.of("status", 200, "data", responseModel);
             }
 
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(200);
             responseModel.setMessage("Get success");
             responseModel.setData(userDetailViewList);
 
         } catch (Exception e) {
             log.error("Error: " + e);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -819,30 +743,25 @@ public class AutoAllocationService {
 
     public Map<String, Object> removeUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("removeUser: " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
 
             if (requestModel.getUserId() == null) {
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("User ID is mandatory!");
                 return Map.of("status", 200, "data", responseModel);
             }
 
             userDetailsDAO.deleteById(requestModel.getUserId());
-
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(200);
             responseModel.setMessage("Delete success");
 
         } catch (Exception e) {
             log.error("Error: " + e);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -851,6 +770,8 @@ public class AutoAllocationService {
 
     public Map<String, Object> changeActiveUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("changeActiveUser: " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
@@ -865,16 +786,11 @@ public class AutoAllocationService {
             }
 
             userDetailsDAO.save(requestModel);
-
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(200);
             responseModel.setMessage("Change success");
 
         } catch (Exception e) {
-            log.info("Error: " + e);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+            log.error("Error: " + e);
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -979,6 +895,8 @@ public class AutoAllocationService {
 
     public Map<String, Object> updateStatusApp(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("updateStatusApp: " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
@@ -986,8 +904,6 @@ public class AutoAllocationService {
             });
 
             if (requestModel.getAutoAssign() == null) {
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
                 responseModel.setResult_code(500);
                 responseModel.setMessage("User ID is mandatory!");
                 return Map.of("status", 200, "data", responseModel);
@@ -998,22 +914,19 @@ public class AutoAllocationService {
                         ad.getAppId(), ad.getUserName(), "ASSIGNING");
                 UserDetail userDetail = userDetailsDAO.findByUserName(ad.getUserName());
                 if (assignmentDetail == null) {
-                    responseModel.setReference_id(UUID.randomUUID().toString());
-                    responseModel.setDate_time(new Timestamp(new Date().getTime()));
                     responseModel.setResult_code(200);
                     responseModel.setMessage(ad.getAppId() + "is empty.");
                 } else {
                     assignmentDetail.setBotName(ad.getUserAuto());
                     assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
                     if (ad.getAutomationResult().equals("AUTOASSIGN_FAILED")) {
+                        //add log quota
+                        insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateStatusApp : FAILED", "SUB", "QUOTA", userDetail.getQuotaApp());
+
                         assignmentDetail.setStatusAssign("FAILED");
                         assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
                         assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
-                        log.info("updateStatusApp - appNumber: {} - QuotaAppNumBefore: {} - Assignee: {}", assignmentDetail.getAppNumber(),
-                                userDetail.getQuotaApp(), assignmentDetail.getAssignee());
                         int quotaApp = userDetail.getQuotaApp() - 1;
-                        log.info("updateStatusApp - appNumber: {} - QuotaAppNumAfterSub: {} - Assignee: {}", assignmentDetail.getAppNumber(),
-                                quotaApp, assignmentDetail.getAssignee());
                         userDetail.setQuotaApp(quotaApp);
                         userDetailsDAO.save(userDetail);
                     } else {
@@ -1024,15 +937,11 @@ public class AutoAllocationService {
                 }
             }
 
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
             responseModel.setResult_code(200);
             responseModel.setMessage("Update success");
 
         } catch (Exception e) {
-            log.info("Error: " + e);
-            responseModel.setReference_id(UUID.randomUUID().toString());
-            responseModel.setDate_time(new Timestamp(new Date().getTime()));
+            log.error("Error: " + e);
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -1119,6 +1028,8 @@ public class AutoAllocationService {
                 dataArrayNode.add(data);
             }
             responseModel.setData(dataArrayNode);
+            responseModel.setResult_code(200);
+            responseModel.setMessage("Success");
 
         } catch (Exception e) {
             log.error("Error: " + e);
@@ -1173,22 +1084,19 @@ public class AutoAllocationService {
                 allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
                 allocationPendingDetail.setTeamUser(request.path("body").path("teamUser").textValue());
                 allocationPendingDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
-                allocationPendingDetailDao.save(allocationPendingDetail);
 
+                //update status assignment Detail
                 assignmentDetail.setStatusAssign("PENDING");
-                assignmentDetailDAO.save(assignmentDetail);
-                log.info("updatePendingDetail - appNumber: {} - PendingAppNumBefore: {} - pendingUser: {}",
-                        assignmentDetail.getAppNumber(), userDetail.getPendingApp(), allocationPendingDetail.getPendingUser());
+                //add log quota
+                insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateInfor", "ADD", "PENDING", userDetail.getPendingApp());
+                insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateInfor", "SUB", "QUOTA", userDetail.getQuotaApp());
+
                 int pendingApp = userDetail.getPendingApp() + 1;
-                log.info("updatePendingDetail - appNumber: {} - PendingAppNumAfterAdd: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
-                        pendingApp, allocationPendingDetail.getPendingUser());
                 userDetail.setPendingApp(pendingApp);
-                log.info("updatePendingDetail - appNumber: {} - QuotaAppNumBefore: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
-                        userDetail.getQuotaApp(), allocationPendingDetail.getPendingUser());
                 int quotaApp = userDetail.getQuotaApp() - 1;
-                log.info("updatePendingDetail - appNumber: {} - QuotaAppNumAfterSub: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
-                        quotaApp, allocationPendingDetail.getPendingUser());
                 userDetail.setQuotaApp(quotaApp);
+                allocationPendingDetailDao.save(allocationPendingDetail);
+                assignmentDetailDAO.save(assignmentDetail);
                 userDetailsDAO.save(userDetail);
                 responseModel.setResult_code(200);
                 responseModel.setMessage("SUCCESS");
@@ -1218,6 +1126,7 @@ public class AutoAllocationService {
             etlDataPushDAO.save(etlDataPush);
             responseModel.setResult_code(200);
             responseModel.setMessage("SUCCESS");
+            log.info("updateVendor success : " + request.path("body").path("appNumber").textValue());
         } catch (Exception e) {
             log.error("Error: " + e);
             responseModel.setResult_code(500);
@@ -1260,19 +1169,16 @@ public class AutoAllocationService {
                     } else {
                         allocationPendingDetailDao.save(allocationPendingDetail);
                         //Check condition <> FAILED to sub Quota
-                        log.info("updateRaiseQuery - appNumber: {} - PendingAppNumBefore: {} - pendingUser: {}",
-                                assignmentDetail.getAppNumber(), userDetail.getPendingApp(), allocationPendingDetail.getPendingUser());
+                        //add log quota
+                        insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateRaiseQuery", "ADD", "PENDING", userDetail.getPendingApp());
+
                         int pendingApp = userDetail.getPendingApp() + 1;
                         userDetail.setPendingApp(pendingApp);
-                        log.info("updateRaiseQuery - appNumber: {} - PendingAppNumAfterAdd: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
-                                pendingApp, allocationPendingDetail.getPendingUser());
+
                         if(!assignmentDetail.getStatusAssign().equals("FAILED")){
-                            log.info("updateRaiseQuery - appNumber: {} - QuotaAppNumBefore: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
-                                    userDetail.getQuotaApp(), allocationPendingDetail.getPendingUser());
+                            insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateRaiseQuery : <> FAILED", "SUB", "QUOTA", userDetail.getQuotaApp());
                             int quotaApp = userDetail.getQuotaApp() - 1;
                             userDetail.setQuotaApp(quotaApp);
-                            log.info("updateRaiseQuery - appNumber: {} - QuotaAppNumAfterSub: {} - pendingUser: {}", assignmentDetail.getAppNumber(),
-                                    quotaApp, allocationPendingDetail.getPendingUser());
                         }
                         userDetailsDAO.save(userDetail);
                         //update status for assigment detail
@@ -1283,6 +1189,8 @@ public class AutoAllocationService {
                     }
                 }
             } else {
+                responseModel.setResult_code(207);
+                responseModel.setMessage("Query status different raised");
                 log.error("AppNum = " + request.path("body").path("applicationNo").textValue() + "with assign status = " + request.path("body").path("queryStatus").textValue() + "received raised query from raisedBy " + request.path("body").path("raiseBy").textValue() + "at stage" + request.path("body").path("stage").textValue());
             }
         } catch (Exception e) {
@@ -1331,56 +1239,43 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         log.info("reassign" + request);
         try{
+            String userNameAssignee = request.path("body").path("assignee").textValue();
+            String userNameReassignee = request.path("body").path("reassignTo").textValue();
             AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("appNumber").textValue(), request.path("body").path("stageName").textValue());
-            UserDetail assignee = userDetailsDAO.findByUserNameAndTeamName(request.path("body").path("assignee").textValue(), request.path("body").path("teamUser").textValue());
-            UserDetail reassignee = userDetailsDAO.findByUserNameAndTeamName(request.path("body").path("reassignTo").textValue(), request.path("body").path("teamUser").textValue());
+            UserDetail assignee = userDetailsDAO.findByUserNameAndTeamName(userNameAssignee, request.path("body").path("teamUser").textValue());
+            UserDetail reassignee = userDetailsDAO.findByUserNameAndTeamName(userNameReassignee, request.path("body").path("teamUser").textValue());
 
             //update quotaApp or Pending App follow status assign
-            if (assignmentDetail == null) {
-                log.info("reassign: Can not find " + request.path("body").path("appNumber").textValue() + "in Assignment Detail");
-                responseModel.setResult_code(204);
-                responseModel.setMessage("Can not found appNo");
-            }else if(assignmentDetail.getStatusAssign().equals("PROCESSING")){
+             if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PROCESSING")){
                 //For assignee
-                log.info("reassign(assignee) - appNumber: {} - QuotaAppNumBefore: {} - User: {}", assignmentDetail.getAppNumber(),
-                        assignee.getQuotaApp(), request.path("body").path("assignee").textValue());
+                //add log quota
+                insertLogQuota(assignmentDetail, assignee.getUserName(), "assignee : PROCESSING", "SUB", "QUOTA", assignee.getQuotaApp());
                 int quotaAssign = assignee.getQuotaApp()-1;
                 assignee.setQuotaApp(quotaAssign);
-                log.info("reassign(assignee) - appNumber: {} - QuotaAppNumAfterSub: {} - User: {}", assignmentDetail.getAppNumber(),
-                        quotaAssign, request.path("body").path("assignee").textValue());
-
                 //For reassignee
-                log.info("reassign(reassignee) - appNumber: {} - QuotaAppNumBefore: {} - User: {}", assignmentDetail.getAppNumber(),
-                        reassignee.getQuotaApp(), request.path("body").path("reassignTo").textValue());
+                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PROCESSING", "ADD", "QUOTA", reassignee.getQuotaApp());
                 int quotaReassign = reassignee.getQuotaApp()+1;
                 reassignee.setQuotaApp(quotaReassign);
-                log.info("reassign(assignee) - appNumber: {} - QuotaAppNumAfterSub: {} - User: {}", assignmentDetail.getAppNumber(),
-                        quotaReassign, request.path("body").path("reassignTo").textValue());
             }else if(assignmentDetail.getStatusAssign().equals("FAILED")){
                 //For reassignee
-                log.info("reassign(reassignee) - appNumber: {} - QuotaAppNumBefore: {} - User: {}", assignmentDetail.getAppNumber(),
-                        reassignee.getQuotaApp(), request.path("body").path("reassignTo").textValue());
+                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : FAILED", "ADD", "QUOTA", reassignee.getQuotaApp());
                 int quotaReassign = reassignee.getQuotaApp()+1;
                 reassignee.setQuotaApp(quotaReassign);
-                log.info("reassign(assignee) - appNumber: {} - QuotaAppNumAfterSub: {} - User: {}", assignmentDetail.getAppNumber(),
-                        quotaReassign, request.path("body").path("reassignTo").textValue());
-            }else if(assignmentDetail.getStatusAssign().equals("PENDING")){
-                //For reassignee
-                log.info("reassign(assignee) - appNumber: {} - PendingAppNumBefore: {} - User: {}", assignmentDetail.getAppNumber(),
-                        assignee.getPendingApp(), request.path("body").path("assignee").textValue());
-                int pendingApp = assignee.getPendingApp()+1;
-                assignee.setQuotaApp(pendingApp);
 
-                log.info("reassign(assignee) - appNumber: {} - PendingAppNumAfterAdd: {} - User: {}", assignmentDetail.getAppNumber(),
-                        pendingApp, request.path("body").path("assignee").textValue());
+            }else if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PENDING")){
+                //For assignee
+                insertLogQuota(assignmentDetail, assignee.getUserName(), "Assignee : PENDING", "SUB", "PENDING", assignee.getPendingApp());
+                int pendingApp = assignee.getPendingApp()-1;
+                assignee.setPendingApp(pendingApp);
                 //For reassignee
-                log.info("reassign(reassignee) - appNumber: {} - QuotaAppNumBefore: {} - User: {}", assignmentDetail.getAppNumber(),
-                        reassignee.getQuotaApp(), request.path("body").path("reassignTo").textValue());
+                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PENDING", "ADD", "QUOTA", reassignee.getQuotaApp());
                 int quotaReassign = reassignee.getQuotaApp()+1;
                 reassignee.setQuotaApp(quotaReassign);
-                log.info("reassign(assignee) - appNumber: {} - QuotaAppNumAfterSub: {} - User: {}", assignmentDetail.getAppNumber(),
-                        quotaReassign, request.path("body").path("reassignTo").textValue());
-            }
+            }else if(userNameAssignee.equals(userNameReassignee) && (assignmentDetail.getStatusAssign().equals("PROCESSING") || assignmentDetail.getStatusAssign().equals("PENDING"))){
+                 responseModel.setResult_code(201);
+                 responseModel.setMessage("Application is already assigned to " + userNameAssignee +". Do not allow to re-assign to "+userNameReassignee);
+                 return Map.of("status", 200, "data", responseModel);
+             }
             //insert into ALLOCATION_REASSIGNED_DETAIL
             AllocationReassignedDetail allocationReassignedDetail = new AllocationReassignedDetail();
             allocationReassignedDetail.setAppNumber(assignmentDetail.getAppNumber());
@@ -1412,5 +1307,25 @@ public class AutoAllocationService {
             responseModel.setMessage("Others error");
         }
         return Map.of("status", 200, "data", responseModel);
+    }
+
+    private void insertLogQuota(AssignmentDetail assignmentDetail, String userName, String comment, String method, String type, int oldValue){
+        AllocationLogQuota logReasssignQuota = new AllocationLogQuota();
+        logReasssignQuota.setAppNumber(assignmentDetail.getAppNumber());
+        logReasssignQuota.setCreationApplStageTime(assignmentDetail.getCreationApplStageTime());
+        logReasssignQuota.setCurrentCycle(assignmentDetail.getCurrentCycle());
+        logReasssignQuota.setStageName(assignmentDetail.getStageName());
+        logReasssignQuota.setCreationTimeStamp(new Timestamp(new Date().getTime()));
+        logReasssignQuota.setAssignee(userName);
+        logReasssignQuota.setTeamAssignee(assignmentDetail.getTeamAssignee());
+        logReasssignQuota.setAssignedBy(assignmentDetail.getAssignedBy());
+        logReasssignQuota.setAppType(assignmentDetail.getAppType());
+        logReasssignQuota.setSourceChanel(assignmentDetail.getSourceChanel());
+        logReasssignQuota.setComments(comment);
+        logReasssignQuota.setMethodSubAdd(method);
+        logReasssignQuota.setQuotaPending(type);
+        logReasssignQuota.setOldValues(oldValue);
+        allocationLogQuotaDao.save(logReasssignQuota);
+
     }
 }
