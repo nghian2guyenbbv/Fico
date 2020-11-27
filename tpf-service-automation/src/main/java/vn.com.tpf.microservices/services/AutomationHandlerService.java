@@ -12,6 +12,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -5636,6 +5638,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
+            logoutV2(driver, accountDTO);
         }
     }
 
@@ -5669,6 +5672,8 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
+
+//            boolean checkLogin
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -5984,7 +5989,10 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            WebDriverWait wait = new WebDriverWait(driver, 10);
+            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6061,7 +6069,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            logoutV2(driver, accountDTO);
+//            logoutV2(driver, accountDTO);
         }
     }
 
@@ -6425,7 +6433,7 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            logoutV2(driver, accountDTO);
+//            logoutV2(driver, accountDTO);
         }
     }
 
@@ -6805,11 +6813,6 @@ public class AutomationHandlerService {
             System.out.println("Logout");
             LogoutPageV2 logoutPage = new LogoutPageV2(driver);
             logoutPage.logout();
-
-            with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
-            await("Logging out failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Logging out"));
-
             log.info("Logout: Done => " + accountAuto.getUserName());
         } catch (Exception e) {
             System.out.println("LOGOUT: =>" + accountAuto.getUserName() + " - " + e.toString());
