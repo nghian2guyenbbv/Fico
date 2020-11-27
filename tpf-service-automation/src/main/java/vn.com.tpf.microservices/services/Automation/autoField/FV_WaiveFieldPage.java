@@ -11,6 +11,8 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -141,6 +143,7 @@ public class FV_WaiveFieldPage {
     }
 
     public void setData(WaiveFieldDTO waiveFieldDTO, String user) {
+        WebDriverWait wait = new WebDriverWait(_driver, 10);
         String stage = "";
 
         // ========== APPLICATION MANAGER =================
@@ -251,6 +254,8 @@ public class FV_WaiveFieldPage {
         await("btnWaiveOffVerificationPopupElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnWaiveOffVerificationPopupElement.isDisplayed());
 
+        wait.until(ExpectedConditions.elementToBeClickable(btnWaiveOffVerificationPopupElement));
+
         btnWaiveOffVerificationPopupElement.click();
 
 //        JavascriptExecutor btnWaiveOffVerificationPopup = (JavascriptExecutor)_driver;
@@ -267,6 +272,8 @@ public class FV_WaiveFieldPage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isEnabled());
 
+
+        wait.until(ExpectedConditions.elementToBeClickable(btnMoveToNextStageElement));
         btnMoveToNextStageElement.click();
 
 //        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
