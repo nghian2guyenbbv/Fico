@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
+import static org.hamcrest.Matchers.is;
 
 public class LogoutPageV2 {
     private WebDriver _driver;
@@ -46,10 +47,14 @@ public class LogoutPageV2 {
 
         actions.moveToElement(userPhotoElement).click().build().perform();
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("logoutLinkElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> logoutLinkElement.isDisplayed());
 
-        logoutLinkElement.click();
+        await("logoutLinkElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> logoutLinkElement.isEnabled());
+
+        actions.moveToElement(logoutLinkElement).click().build().perform();
 
         Utilities.captureScreenShot(_driver);
 
