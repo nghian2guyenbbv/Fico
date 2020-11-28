@@ -286,9 +286,13 @@ public class AutomationHandlerService {
                     accountDTO = pollAccountFromQueue(accounts, project);
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
-                case "runAutomation_Existing_Customer":
+                case "runAutomation_Existing_Customer_Full":
                     accountDTO = pollAccountFromQueue(accounts, project);
-                    runAutomation_Existing_Customer(driver, mapValue, accountDTO);
+                    runAutomation_Existing_Customer_Full(mapValue, driver, accountDTO);
+                    break;
+                case "runAutomation_Existing_Customer_Update":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    runAutomation_Existing_Customer_Update(mapValue, driver, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
@@ -337,6 +341,13 @@ public class AutomationHandlerService {
             if (driver != null) {
                 driver.close();
                 driver.quit();
+                driver.manage().deleteAllCookies();
+            }
+
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -5628,47 +5639,47 @@ public class AutomationHandlerService {
         }
     }
 
-    public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
-        Instant start = Instant.now();
-        String stage = "";
-        String applicationId = "";
-        String stageError = "";
-        SessionId session = ((RemoteWebDriver) driver).getSessionId();
-        try {
-            stage = "INIT DATA";
-            //*************************** GET DATA *********************//
-            CRM_ExistingCustomerDTO existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
-            applicationId = existingCustomerDTO.getAppId();
-            if (applicationId != null) {
-                if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
-                    if (applicationId.contains("APPL")) {
-                        stageError = "UPDATE";
-                    }
-                }
-            }
-            //*************************** END GET DATA *********************//
-            //---------------- GET STAGE -------------------------//
-            switch (stageError) {
-                case "UPDATE":
-                    runAutomation_Existing_Customer_Update(mapValue, driver, accountDTO, stageError);
-                    break;
-                default:
-                    runAutomation_Existing_Customer_Full(mapValue, driver, accountDTO);
-                    break;
-            }
-
-            return;
-
-        } catch (Exception e) {
-            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
-            e.printStackTrace();
-        } finally {
-            Instant finish = Instant.now();
-            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
-            System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
-            logoutV2(driver, accountDTO);
-        }
-    }
+//    public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+//        Instant start = Instant.now();
+//        String stage = "";
+//        String applicationId = "";
+//        String stageError = "";
+//        SessionId session = ((RemoteWebDriver) driver).getSessionId();
+//        try {
+//            stage = "INIT DATA";
+//            //*************************** GET DATA *********************//
+//            CRM_ExistingCustomerDTO existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
+//            applicationId = existingCustomerDTO.getAppId();
+//            if (applicationId != null) {
+//                if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
+//                    if (applicationId.contains("APPL")) {
+//                        stageError = "UPDATE";
+//                    }
+//                }
+//            }
+//            //*************************** END GET DATA *********************//
+//            //---------------- GET STAGE -------------------------//
+//            switch (stageError) {
+//                case "UPDATE":
+//                    runAutomation_Existing_Customer_Update(mapValue, driver, accountDTO, stageError);
+//                    break;
+//                default:
+//                    runAutomation_Existing_Customer_Full(mapValue, driver, accountDTO);
+//                    break;
+//            }
+//
+//            return;
+//
+//        } catch (Exception e) {
+//            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+//            e.printStackTrace();
+//        } finally {
+//            Instant finish = Instant.now();
+//            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+//            System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
+//            logoutV2(driver, accountDTO);
+//        }
+//    }
 
     public void runAutomation_Existing_Customer_Full(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
@@ -5700,8 +5711,6 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
-//            boolean checkLogin
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6097,11 +6106,15 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-//            logoutV2(driver, accountDTO);
+            logoutV2(driver, accountDTO);
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
         }
     }
 
-    public void runAutomation_Existing_Customer_Update(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO, String stageError) throws Exception {
+    public void runAutomation_Existing_Customer_Update(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -6385,7 +6398,10 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            WebDriverWait wait = new WebDriverWait(driver, 10);
+            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6461,7 +6477,11 @@ public class AutomationHandlerService {
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-//            logoutV2(driver, accountDTO);
+            logoutV2(driver, accountDTO);
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
         }
     }
 
@@ -6749,7 +6769,10 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            WebDriverWait wait = new WebDriverWait(driver, 10);
+            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 
             Utilities.captureScreenShot(driver);
 

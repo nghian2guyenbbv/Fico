@@ -581,7 +581,7 @@ public class AutomationService {
 	//------------------------ END - QUICKLEAD
 
 	//------------------------ EXISTING_CUSTOMER -------------------------------------
-	public Map<String, Object> Existing_Customer(JsonNode request) throws Exception {
+	public Map<String, Object> Existing_Customer_Full(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
@@ -589,7 +589,7 @@ public class AutomationService {
 
 		new Thread(() -> {
 			try {
-				runAutomation_Existing_Customer(existingCustomerDTOList);
+				runAutomation_Existing_Customer_Full(existingCustomerDTOList);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -598,15 +598,43 @@ public class AutomationService {
 		return response(0, body, existingCustomerDTOList);
 	}
 
-	private void runAutomation_Existing_Customer(CRM_ExistingCustomerDTO existingCustomerDTOList) throws Exception {
+	private void runAutomation_Existing_Customer_Full(CRM_ExistingCustomerDTO existingCustomerDTOList) throws Exception {
 		String browser = "chrome";
 		String projectJson = existingCustomerDTOList.getProject();
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Existing_Customer(existingCustomerDTOList);
-		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer",projectJson.toUpperCase());
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer_Full",projectJson.toUpperCase());
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
+
+	public Map<String, Object> Existing_Customer_Update(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		CRM_ExistingCustomerDTO existingCustomerDTOList = mapper.treeToValue(request.path("body"), CRM_ExistingCustomerDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_Existing_Customer_Update(existingCustomerDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, existingCustomerDTOList);
+	}
+
+	private void runAutomation_Existing_Customer_Update(CRM_ExistingCustomerDTO existingCustomerDTOList) throws Exception {
+		String browser = "chrome";
+		String projectJson = existingCustomerDTOList.getProject();
+		Map<String, Object> mapValue = DataInitial.getDataFrom_Existing_Customer(existingCustomerDTOList);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Existing_Customer_Update",projectJson.toUpperCase());
+
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+
 	//------------------------ END - EXISTING_CUSTOMER -------------------------------------
 
 

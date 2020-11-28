@@ -147,13 +147,23 @@ public class RabbitMQService {
 				else if (project.equals("mobility")){
 					return response(message, payload, automationService.MOBILITY_quickLeadApp(request));
 				}else if (project.equals("crm")){
-					String checkCustID = request.path("body").path("neoCustID").textValue();
-					String checkCifNumber = request.path("body").path("cifNumber").textValue();
-					String checkIdNumber = request.path("body").path("idNumber").textValue();
-					if (StringUtils.isEmpty(checkCustID) && StringUtils.isEmpty(checkCifNumber) && StringUtils.isEmpty(checkIdNumber)){
-						return response(message, payload, automationService.CRM_quickLeadApp(request));
-					}else{
-						return response(message, payload, automationService.Existing_Customer(request));
+//					String checkCustID = request.path("body").path("neoCustID").textValue();
+//					String checkCifNumber = request.path("body").path("cifNumber").textValue();
+//					String checkIdNumber = request.path("body").path("idNumber").textValue();
+//					if (StringUtils.isEmpty(checkCustID) && StringUtils.isEmpty(checkCifNumber) && StringUtils.isEmpty(checkIdNumber)){
+//						return response(message, payload, automationService.CRM_quickLeadApp(request));
+//					}else{
+//						return response(message, payload, automationService.Existing_Customer_Full(request));
+//					}
+					String appId = request.path("body").path("appId").textValue();
+					if (!StringUtils.isEmpty(appId) && !appId.contains("UNKNOWN")) {
+						if (appId.contains("APPL")) {
+							return response(message, payload, automationService.Existing_Customer_Update(request));
+						}else {
+							return response(message, payload, automationService.Existing_Customer_Full(request));
+						}
+					}else {
+						return response(message, payload, automationService.Existing_Customer_Full(request));
 					}
 				}
 				else
@@ -183,8 +193,6 @@ public class RabbitMQService {
 				return response(message, payload, automationService.Waive_Field(request));
 			case "submitField":
 				return response(message, payload, automationService.Submit_Field(request));
-			case "existingCustomer":
-				return response(message, payload, automationService.Existing_Customer(request));
 			case "quickLeadAppAssignPool":
 				return response(message, payload, automationService.quickLeadAppAssignPool(request));
 			case "saleQueueWithFullInfo":
