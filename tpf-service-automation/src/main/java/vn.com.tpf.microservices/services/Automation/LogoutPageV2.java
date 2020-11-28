@@ -61,13 +61,6 @@ public class LogoutPageV2 {
         await("Logging out failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Logging out"));
 
-//        boolean checkLogout = _driver.findElements(By.xpath("//div[@id = 'neutrino-body']//button[@id = 'redirectToLoginButton']")).size() != 0;
-//
-//        if (checkLogout){
-//            WebElement checkLogoutButton = _driver.findElement(By.xpath("//div[@id = 'neutrino-body']//button[@id = 'redirectToLoginButton']"));
-//            checkLogoutButton.click();
-//            System.out.println("LOGOUT Success");
-//        }
 
         Utilities.captureScreenShot(_driver);
 
