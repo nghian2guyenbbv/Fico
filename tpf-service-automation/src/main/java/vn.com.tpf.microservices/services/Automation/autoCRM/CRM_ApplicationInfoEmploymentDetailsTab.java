@@ -136,6 +136,9 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'MajorChange')]//a")
     private List<WebElement> btnMajorChangeElement;
 
+    @FindBy(how = How.XPATH, using = "//table[@id = 'occupation_Info_Table']//tr//td")
+    private List<WebElement> deleteIdDetailElement;
+
     public CRM_ApplicationInfoEmploymentDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         this._driver = driver;
@@ -145,54 +148,41 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         Actions actions = new Actions(_driver);
 
-//        List<WebElement> occupationTypeName = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//td[3]"));
-//        for (WebElement occupationTypeNames: occupationTypeName){
-//            if ("Salaried".equals(occupationTypeNames.getText())){
-//                WebElement occupationDelete =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'Salaried')]//ancestor::tr//*[contains(@id,'delete')]"));
-//                occupationDelete.click();
-//
-//                Thread.sleep(5000);
-//
-//                Boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
-//                if (checkModalMajorChange){
-//                    await("Confirm Delete visibale").atMost(Duration.TEN_MINUTES)
-//                            .until(() -> modalMajorChangeElement.isDisplayed());
-//                    Utilities.captureScreenShot(_driver);
-//                    btnMajorChangeElement.get(0).click();
-//                }
-//            }
-//        }
 
         List<WebElement> listOccupationDelete = _driver.findElements(By.xpath("//table[@id = 'occupation_Info_Table']//tr//td[1]"));
 
         boolean checkListOccupationDelete = listOccupationDelete.size() != 0;
 
-        if(checkListOccupationDelete){
+        if(checkListOccupationDelete && deleteIdDetailElement.size() > 2){
             for (WebElement OccupationDeleteButton: listOccupationDelete){
+                String occupationType = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//td[3]//a[@id = 'view']")).getAttribute("innerHTML").trim();
+                if ("Salaried".equals(occupationType)){
+                    WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML").trim() + "')]//ancestor::tr//*[contains(@id,'delete')]"));
 
-                WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//*[contains(@id,'delete')]"));
+                    actions.moveToElement(occupationDelete).click().build().perform();
 
-                actions.moveToElement(occupationDelete).click().build().perform();
+                    Thread.sleep(5000);
 
-                Thread.sleep(5000);
+                    boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
 
-                boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
-
-                if (checkModalMajorChange){
-                    await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
-                            .until(() -> modalMajorChangeElement.isDisplayed());
-                    Utilities.captureScreenShot(_driver);
-                    btnMajorChangeElement.get(0).click();
+                    if (checkModalMajorChange){
+                        await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
+                                .until(() -> modalMajorChangeElement.isDisplayed());
+                        Utilities.captureScreenShot(_driver);
+                        btnMajorChangeElement.get(0).click();
+                    }
+                    break;
                 }
+
             }
         }
 
-//        Thread.sleep(5000);
-//
-//        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() > 0) {
-//            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
-//            actions.moveToElement(occupationEdit).click().build().perform();
-//        }
+        Thread.sleep(5000);
+
+        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() > 0) {
+            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
+            actions.moveToElement(occupationEdit).click().build().perform();
+        }
 
         with().pollInterval(Duration.FIVE_SECONDS).
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

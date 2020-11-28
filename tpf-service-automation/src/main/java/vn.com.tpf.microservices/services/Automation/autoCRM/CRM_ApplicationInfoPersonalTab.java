@@ -477,9 +477,9 @@ public class CRM_ApplicationInfoPersonalTab {
 
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-            List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
             for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
                 if ("Current National ID".equals(data.getIdentificationType())){
+                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
                     for(WebElement idCardHiden: listHidenIdCard){
                         String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
                         String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
@@ -508,6 +508,7 @@ public class CRM_ApplicationInfoPersonalTab {
                     }
                 }
                 if ("Spouse Current National ID".equals(data.getIdentificationType())){
+                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
                     for(WebElement idCardHiden: listHidenIdCard){
                         String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
                         String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
