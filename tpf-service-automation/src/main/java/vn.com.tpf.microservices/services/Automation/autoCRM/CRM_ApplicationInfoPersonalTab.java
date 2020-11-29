@@ -1054,13 +1054,21 @@ public class CRM_ApplicationInfoPersonalTab {
 
 
             if(!data.getMobilePhone().isEmpty()){
-                if ("Current Address".equals(data.getAddressType())){
+                boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
+                if (checkMobilephoneNumber){
                     mobilePhoneNumberCurrentAddressElement.clear();
                     mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
-                }else{
+                }else {
                     mobilePhoneNumberElement.clear();
                     mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 }
+//                if ("Current Address".equals(data.getAddressType())){
+//                    mobilePhoneNumberCurrentAddressElement.clear();
+//                    mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+//                }else{
+//                    mobilePhoneNumberElement.clear();
+//                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+//                }
             }
 
             Utilities.captureScreenShot(_driver);
@@ -1199,13 +1207,21 @@ public class CRM_ApplicationInfoPersonalTab {
                 System.out.println("Address Ward");
 
                 if(!data.getMobilePhone().isEmpty()){
-                    if ("Current Address".equals(data.getAddressType())){
+                    boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
+                    if (checkMobilephoneNumber){
                         mobilePhoneNumberCurrentAddressElement.clear();
                         mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
-                    }else{
+                    }else {
                         mobilePhoneNumberElement.clear();
                         mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                     }
+//                    if ("Current Address".equals(data.getAddressType())){
+//                        mobilePhoneNumberCurrentAddressElement.clear();
+//                        mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+//                    }else{
+//                        mobilePhoneNumberElement.clear();
+//                        mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+//                    }
                 }
 
                 Utilities.captureScreenShot(_driver);
