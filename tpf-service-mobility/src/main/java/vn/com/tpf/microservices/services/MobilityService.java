@@ -463,20 +463,13 @@ public class MobilityService {
 		}
 		update.set("partnerId", partnerId);
 		update.set("partnerName", partnerName);
-		if(1 == partnerId || 2 == partnerId) {
-			if(1 == partnerId){
-				rabbitMQService.send("tpf-service-dataentry", Map.of("func", "sendAppNonWeb", "body",
-						convertService.toSendAppNonWebFinnone(mobility, partnerId ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
-			} else {
-				rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
-						convertService.toSendAppNonWebFinnone(mobility, partnerId, body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
-			}
-			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Mobility.class);
-		} else {
-			rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
+
+		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Mobility.class);
+
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
 					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
-		}
+
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
@@ -659,6 +652,17 @@ public class MobilityService {
 							mapper.createObjectNode().put("message", e.getMessage())));
 				}
 			}).start();
+
+			if(1 == mobility.getPartnerId() || 2 == mobility.getPartnerId()) {
+				if(1 == mobility.getPartnerId()){
+					rabbitMQService.send("tpf-service-dataentry", Map.of("func", "sendAppNonWeb", "body",
+							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId() ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+				} else {
+					rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
+							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId(), body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+				}
+
+			}
 
 		}
 		if (automationResult.contains(AUTOMATION_QUICKLEAD_FAILED)) {
