@@ -16,6 +16,9 @@ import vn.com.tpf.microservices.models.MobilityWaiveField;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.UUID;
 
 @Service
 public class ConvertService {
@@ -24,7 +27,7 @@ public class ConvertService {
 
 	private final String ProductTypeCode = "Personal Finance";
 	private final String CustomerType = "Individual";
-//	private final String SourcingChannel = "DIRECT";
+	//	private final String SourcingChannel = "DIRECT";
 //	private final String SourcingBranch = "SMARTNET";
 	private final String NatureOfOccupation = "Others";
 	private final String Comment = "Comments";
@@ -263,6 +266,7 @@ public class ConvertService {
 		ObjectNode app = mapper.createObjectNode();
 		app.put("request_id", requestId);
 		app.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+		app.put("routingNumber", mobility.getObjectAutoApi().get("routingNumber").toString());
 
 		ObjectNode quickLead = mapper.createObjectNode();
 		quickLead.put("project", "mobility");
@@ -330,4 +334,72 @@ public class ConvertService {
 		return app;
 	}
 
+	public HashMap<String, Object> toAutorouting(long partnerId) {
+
+		HashMap<String, Object> data = new HashMap<>();
+		HashMap<String, Object> dataAuRouting = new HashMap<>();
+		data.put("chanelId", "M4S");
+		data.put("createDate", new Date());
+		data.put("vendorId", partnerId);
+
+		dataAuRouting.put("data", data);
+		dataAuRouting.put("request_id", UUID.randomUUID().toString());
+		dataAuRouting.put("date_time", new Date());
+
+		return dataAuRouting;
+	}
+
+	public ObjectNode toSendAppEformFinnone(Mobility mobility, long partnerId, String requestId) {
+
+		ObjectNode app = mapper.createObjectNode();
+		app.put("request_id", requestId);
+		app.put("date_time", ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+
+		ObjectNode data = mapper.createObjectNode();
+		data.put("project", "mobility");
+		data.put("partnerId", partnerId);
+		data.put("partnerName", mobility.getPartnerName());
+		data.put("createFrom", "mobility");
+		data.put("applicationId", mobility.getAppId());
+
+		ObjectNode quickLead = mapper.createObjectNode();
+		quickLead.put("quickLeadId", mobility.getId());
+		quickLead.put("identificationNumber", mobility.getNationalId());
+		quickLead.put("productTypeCode", ProductTypeCode);
+		quickLead.put("customerType", CustomerType);
+		quickLead.put("productCode", mobility.getProductFinnOne());
+		quickLead.put("loanAmountRequested", mobility.getLoanRequest());
+		quickLead.put("firstName", mobility.getFirstName());
+		quickLead.put("lastName", mobility.getLastName());
+		quickLead.put("city", mobility.getCityFinnOne());
+		quickLead.put("sourcingChannel", mobility.getChanel());
+		quickLead.put("dateOfBirth", mobility.getDateOfBirth());
+		quickLead.put("sourcingBranch", mobility.getBranch());
+		quickLead.put("natureOfOccupation", NatureOfOccupation);
+		quickLead.put("schemeCode", mobility.getSchemeFinnOne());
+		quickLead.put("comment", Comment);
+		quickLead.put("preferredModeOfCommunication", PreferredModeOfCommunication);
+		quickLead.put("leadStatus", LeadStatus);
+		quickLead.put("communicationTranscript", mobility.getCommunicationTranscript());
+		quickLead.put("alternateChannelMode",mCas);
+
+		ArrayNode documents = mapper.createArrayNode();
+
+		mobility.getFilesUpload().forEach(e -> {
+			JsonNode mobilityDoc = mapper.convertValue(e, JsonNode.class);
+			ObjectNode doc = mapper.createObjectNode();
+			doc.put("type", mobilityDoc.path("type").asText());
+			doc.put("originalname", mobilityDoc.path("originalname").asText());
+			doc.put("filename", mobilityDoc.path("filename").asText());
+			doc.put("md5", mobilityDoc.path("documentMd5").asText());
+			doc.put("contentType", mobilityDoc.path("documentFileExtension").asText());
+			documents.add(doc);
+		});
+
+		quickLead.set("documents", documents);
+		data.set("quickLead",quickLead);
+		app.set("data", data);
+
+		return app;
+	}
 }

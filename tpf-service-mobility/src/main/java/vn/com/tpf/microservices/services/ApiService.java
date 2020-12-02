@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,7 +43,7 @@ public class ApiService {
 
 	@Value("${spring.url.mobility-push-app-id}")
 	private String urlMobilityPushAppId;
-	
+
 	@Value("${spring.url.mobility-push-data-field}")
 	private String urlMobilityPushDataField;
 
@@ -91,15 +92,15 @@ public class ApiService {
 			final String documentFilename = data.path("documentFilename").asText();
 			final String documentFileExtension = data.path("documentFileExtension").asText();
 			final String documentUrlDownload = data.path("documentUrlDownload").asText();
-			
+
 			String fileName = "";
 			if (documentCode.isBlank()) {
 				fileName = documentFilename.concat(".").concat(documentFileExtension);
-				
+
 			} else {
 				fileName = documentCode.concat(".").concat(documentFileExtension);
 			}
-			
+
 			log.info("{}", dataLogReq);
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
@@ -181,7 +182,7 @@ public class ApiService {
 
 			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityPushAppId, HttpMethod.POST,
 					requestEntity, ObjectNode.class);
-			
+
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
 			dataLogReq.put("method", "POST");
@@ -197,7 +198,7 @@ public class ApiService {
 			dataLogRes.set("Body response", mapper.convertValue(responseEntity.getBody(), JsonNode.class));
 			dataLogRes.set("payload", request);
 			log.info("{}", dataLogRes);
-			
+
 			ObjectNode response = mapper.createObjectNode();
 			if (responseEntity.getStatusCode().is2xxSuccessful())
 				response.put("resultCode", 200);
@@ -216,11 +217,11 @@ public class ApiService {
 			return response;
 		}
 	}
-	
-	
+
+
 	public ObjectNode pushCeateFieldEsb(ArrayNode mobilityFields, String request_id) {
 
-		ObjectNode request =  mapper.createObjectNode(); 
+		ObjectNode request =  mapper.createObjectNode();
 
 		try {
 			HttpHeaders requestHeaders = new HttpHeaders();
@@ -234,9 +235,9 @@ public class ApiService {
 			HttpEntity<ObjectNode> requestEntity = new HttpEntity<>(request, requestHeaders);
 			ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(urlMobilityPushDataField, HttpMethod.POST,
 					requestEntity, ObjectNode.class);
-			
 
-			
+
+
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST-MobilityField==]");
 			dataLogReq.put("method", "POST");
@@ -252,7 +253,7 @@ public class ApiService {
 			dataLogRes.set("Body response", mapper.convertValue(responseEntity.getBody(), JsonNode.class));
 			dataLogRes.set("payload", request);
 			log.info("{}", dataLogRes);
-			
+
 			ObjectNode response = mapper.createObjectNode();
 			if (responseEntity.getStatusCode().is2xxSuccessful())
 				response.put("resultCode", 200);
@@ -331,7 +332,55 @@ public class ApiService {
 			return response;
 		}
 	}
+	public JsonNode callApiF1(String url, JsonNode application){
+		MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+		headers.add("clientId", "1");
+		headers.add("sign", "1");
+		headers.add("Content-Type", "application/json");
+		ObjectNode logInfo = mapper.createObjectNode();
+		try {
+			HttpEntity<?> payload = new HttpEntity<>(application, headers);
+			ObjectNode log = mapper.createObjectNode();
+			log.put("type", "[==REQUEST-ESB==]");
+			log.put("url", url);
+			log.put("headers", headers.toString());
+			ObjectNode appLog = application.deepCopy();
+			if (appLog.hasNonNull("documents")){
+				appLog.put("documents", "have document");
+			}
 
+			log.set("body", appLog);
+			logInfo.set("request", log);
+			ResponseEntity<String> response = restTemplate.postForEntity(url, payload , String.class);
+			log = mapper.createObjectNode();
+			log.put("type", "[==RESPONSE-ESB==]");
+			log.put("headers", headers.toString());
+			if (StringUtils.hasLength(response.toString()) && response.toString().length() >= 2000){
+				log.put("body", response.toString().substring(0, 2000));
+			}else{
+				log.put("body", response.toString());
+			}
+			logInfo.set("response", log);
+			String bodyString = response.getBody();
+			if(StringUtils.hasLength(bodyString)){
+				bodyString = bodyString.replaceAll("\u00A0", "");
+			}
+			JsonNode result = mapper.readTree(bodyString);
+			log = mapper.createObjectNode();
+			log.put("type", "[==RESPONSE-ESB-PARSED==]");
+			log.put("body", bodyString);
+			logInfo.set("response-parse", log);
+			return result;
+		}catch (Exception e){
+			ObjectNode log = mapper.createObjectNode();
+			log.put("type", "[==EXCEPTION==]");
+			log.put("body", e.toString());
+			logInfo.set("exception", log);
+			return mapper.createObjectNode().put("errMsg", e.toString()).set("appConvert", application);
+		}finally {
+			log.info("{}", logInfo);
+		}
+	}
 //	private ObjectNode getPartnerAccessToken() {
 //		ObjectNode user = mapper.createObjectNode();
 //		try {

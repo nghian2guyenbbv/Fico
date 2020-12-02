@@ -103,7 +103,8 @@ public class RabbitMQService {
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.waiveField((request))));
 				case "commentApp":
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.commentApp((request))));
-					
+				case "convertToLeadF1":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.convertAndCallAPIF1((request))));
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
 							mapper.createObjectNode().put("message", "function not found"))));

@@ -55,7 +55,7 @@ public class Mobility {
 	private String branch = "SMARTNET";
 	private String scheme;
 	private String schemeFinnOne;
-	private String product;	
+	private String product;
 	private String productFinnOne;
 	private String stage;
 	private String status;
@@ -64,8 +64,8 @@ public class Mobility {
 	private List<Object> filesUpload;
 	private String viewLastUpdated;
 	private String userCreatedQueue;
-    private Map<String, Object> preChecks;
-    private Map<String, Object> returns;
+	private Map<String, Object> preChecks;
+	private Map<String, Object> returns;
 	@CreatedDate
 	private Date createdAt;
 	@LastModifiedDate
@@ -75,6 +75,7 @@ public class Mobility {
 	private String partnerName;
 	@Builder.Default
 	private List<Object> commentApps3PNew = Arrays.asList();
+	private Map<String, Object> objectAutoApi;
 }
 
 
