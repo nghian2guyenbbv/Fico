@@ -153,7 +153,8 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.district not blank"));
 		if (data.path("city").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode());
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.city not blank"));
 		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getAddressFinnOne", "reference_id", body.path("reference_id"), "param",
 						Map.of("areaCode", data.path("district").asText())));
@@ -470,7 +471,6 @@ public class MobilityService {
 		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
 					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 
-
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
 
@@ -656,10 +656,10 @@ public class MobilityService {
 			if(1 == mobility.getPartnerId() || 2 == mobility.getPartnerId()) {
 				if(1 == mobility.getPartnerId()){
 					rabbitMQService.send("tpf-service-dataentry", Map.of("func", "sendAppNonWeb", "body",
-							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId() ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId() ,request.path("reference_id").asText()).put("reference_id", request.path("reference_id").asText())));
 				} else {
 					rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
-							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId(), body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
+							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId(), request.path("reference_id").asText()).put("reference_id", request.path("reference_id").asText())));
 				}
 
 			}
