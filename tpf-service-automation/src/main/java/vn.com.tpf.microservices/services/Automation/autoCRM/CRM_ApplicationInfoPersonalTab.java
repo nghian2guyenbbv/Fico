@@ -428,6 +428,7 @@ public class CRM_ApplicationInfoPersonalTab {
     }
 
     public void setValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
+        Actions actions = new Actions(_driver);
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -464,43 +465,73 @@ public class CRM_ApplicationInfoPersonalTab {
 
         //Update Identification
         loadIdentificationSection();
+        System.out.println("identification Tab Element");
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> identificationDivElement.isDisplayed());
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> deleteIdDetailElement.size() > 0);
 
 
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-            for (int i=0; i<documentType.size()-1; i++) {
-                String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
-                    if (data.getIdentificationType().equals(optionIdentificationTypeLabel)){
-                        String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
-                        if (docNumber != null && docNumber.equals(data.getIdentificationNumber())){
-                            _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]")).click();
-                        }else if (docNumber != null && !docNumber.equals(data.getIdentificationNumber())){
-                            if (optionIdentificationTypeLabel.equals("Current National ID")){
-                                for (int j=0; j<documentType.size()-1; j++){
-                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                                    if(deleteIdentificationTypeLabel.equals("Other National ID")){
-                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
-                                        break;
+            for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
+                if ("Current National ID".equals(data.getIdentificationType())){
+                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                    for(WebElement idCardHiden: listHidenIdCard){
+                        String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                        String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
+                        WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                        if (idCardTypeSelect.equals("Current National ID")){
+                            if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
+                                actions.moveToElement(idCardButtonDelete).click().build().perform();
+                                break;
+                            }else{
+                                List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                                if (listDeleteIdCard.size() != 0) {
+                                    for (WebElement deleteIdCard : listDeleteIdCard) {
+                                        String idCardTypeOtherSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                                        if (idCardTypeOtherSelect.equals("Other National ID")){
+                                            WebElement idCardButtonOtherDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                                            actions.moveToElement(idCardButtonOtherDelete).click().build().perform();
+                                            break;
+                                        }
                                     }
                                 }
-                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                                new Select(type).selectByVisibleText("Other National ID");
+                                WebElement idCardTypeSelectElement = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
+                                new Select(idCardTypeSelectElement).selectByVisibleText("Other National ID");
+                                break;
                             }
-                            if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
-                                for (int j=0; j<documentType.size()-1; j++){
-                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                                    if(deleteIdentificationTypeLabel.equals("Spouse Other National ID")){
-                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
+                        }
+                    }
+                }
+                if ("Spouse Current National ID".equals(data.getIdentificationType())){
+                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                    for(WebElement idCardHiden: listHidenIdCard){
+                        String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                        String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
+                        WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                        if (idCardTypeSelect.equals("Spouse Current National ID")){
+                            if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
+                                actions.moveToElement(idCardButtonDelete).click().build().perform();
+                                break;
+                            }else{
+                                List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                                if (listDeleteIdCard.size() != 0) {
+                                    for (WebElement deleteIdCard : listDeleteIdCard) {
+                                        String idCardTypeOtherSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                                        if (idCardTypeOtherSelect.equals("Spouse Other National ID")){
+                                            WebElement idCardButtonOtherDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                                            actions.moveToElement(idCardButtonOtherDelete).click().build().perform();
+                                            break;
+                                        }
                                     }
                                 }
-                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                                new Select(type).selectByVisibleText("Spouse Other National ID");
+                                WebElement idCardTypeSelectElement = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
+                                new Select(idCardTypeSelectElement).selectByVisibleText("Spouse Other National ID");
+                                break;
                             }
                         }
                     }
@@ -698,7 +729,7 @@ public class CRM_ApplicationInfoPersonalTab {
     }
 
     public void setValueSendBack(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
-
+        Actions actions = new Actions(_driver);
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -743,34 +774,61 @@ public class CRM_ApplicationInfoPersonalTab {
 
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-            for (int i=0; i<documentType.size()-1; i++) {
-                String optionIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
-                    if (data.getIdentificationType().equals(optionIdentificationTypeLabel)){
-                        String docNumber = _driver.findElement(By.id("idDetail_identificationNumber" + i)).getAttribute("value");
-                        if (docNumber != null && docNumber.equals(data.getIdentificationNumber())){
-                            _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ i +"')]")).click();
-                        }else if (docNumber != null && !docNumber.equals(data.getIdentificationNumber())){
-                            if (optionIdentificationTypeLabel.equals("Current National ID")){
-                                for (int j=0; j<documentType.size()-1; j++){
-                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                                    if(deleteIdentificationTypeLabel.equals("Other National ID")){
-                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
-                                        break;
+            for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
+                if ("Current National ID".equals(data.getIdentificationType())){
+                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                    for(WebElement idCardHiden: listHidenIdCard){
+                        String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                        String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
+                        WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                        if (idCardTypeSelect.equals("Current National ID")){
+                            if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
+                                actions.moveToElement(idCardButtonDelete).click().build().perform();
+                                break;
+                            }else{
+                                List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                                if (listDeleteIdCard.size() != 0) {
+                                    for (WebElement deleteIdCard : listDeleteIdCard) {
+                                        String idCardTypeOtherSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                                        if (idCardTypeOtherSelect.equals("Other National ID")){
+                                            WebElement idCardButtonOtherDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                                            actions.moveToElement(idCardButtonOtherDelete).click().build().perform();
+                                            break;
+                                        }
                                     }
                                 }
-                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                                new Select(type).selectByVisibleText("Other National ID");
+                                WebElement idCardTypeSelectElement = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
+                                new Select(idCardTypeSelectElement).selectByVisibleText("Other National ID");
+                                break;
                             }
-                            if (optionIdentificationTypeLabel.equals("Spouse Current National ID")){
-                                for (int j=0; j<documentType.size()-1; j++){
-                                    String deleteIdentificationTypeLabel = new Select(_driver.findElement(By.xpath("//select[@id='idDetail_identificationType"+ i +"']"))).getFirstSelectedOption().getText();
-                                    if(deleteIdentificationTypeLabel.equals("Spouse Other National ID")){
-                                        _driver.findElement(By.xpath("//*[contains(@id, 'DeleteIdDetails"+ j +"')]")).click();
+                        }
+                    }
+                }
+                if ("Spouse Current National ID".equals(data.getIdentificationType())){
+                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                    for(WebElement idCardHiden: listHidenIdCard){
+                        String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                        String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
+                        WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                        if (idCardTypeSelect.equals("Spouse Current National ID")){
+                            if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
+                                actions.moveToElement(idCardButtonDelete).click().build().perform();
+                                break;
+                            }else{
+                                List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+                                if (listDeleteIdCard.size() != 0) {
+                                    for (WebElement deleteIdCard : listDeleteIdCard) {
+                                        String idCardTypeOtherSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                                        if (idCardTypeOtherSelect.equals("Spouse Other National ID")){
+                                            WebElement idCardButtonOtherDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                                            actions.moveToElement(idCardButtonOtherDelete).click().build().perform();
+                                            break;
+                                        }
                                     }
                                 }
-                                WebElement type = _driver.findElement(By.id("idDetail_identificationType" + i));
-                                new Select(type).selectByVisibleText("Spouse Other National ID");
+                                WebElement idCardTypeSelectElement = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
+                                new Select(idCardTypeSelectElement).selectByVisibleText("Spouse Other National ID");
+                                break;
                             }
                         }
                     }
@@ -999,13 +1057,21 @@ public class CRM_ApplicationInfoPersonalTab {
 
 
             if(!data.getMobilePhone().isEmpty()){
-                if ("Current Address".equals(data.getAddressType())){
+                boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
+                if (checkMobilephoneNumber){
                     mobilePhoneNumberCurrentAddressElement.clear();
                     mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
-                }else{
+                }else {
                     mobilePhoneNumberElement.clear();
                     mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                 }
+//                if ("Current Address".equals(data.getAddressType())){
+//                    mobilePhoneNumberCurrentAddressElement.clear();
+//                    mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+//                }else{
+//                    mobilePhoneNumberElement.clear();
+//                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+//                }
             }
 
             Utilities.captureScreenShot(_driver);
@@ -1144,13 +1210,21 @@ public class CRM_ApplicationInfoPersonalTab {
                 System.out.println("Address Ward");
 
                 if(!data.getMobilePhone().isEmpty()){
-                    if ("Current Address".equals(data.getAddressType())){
+                    boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
+                    if (checkMobilephoneNumber){
                         mobilePhoneNumberCurrentAddressElement.clear();
                         mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
-                    }else{
+                    }else {
                         mobilePhoneNumberElement.clear();
                         mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
                     }
+//                    if ("Current Address".equals(data.getAddressType())){
+//                        mobilePhoneNumberCurrentAddressElement.clear();
+//                        mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+//                    }else{
+//                        mobilePhoneNumberElement.clear();
+//                        mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+//                    }
                 }
 
                 Utilities.captureScreenShot(_driver);

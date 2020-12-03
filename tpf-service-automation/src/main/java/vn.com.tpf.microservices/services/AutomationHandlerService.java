@@ -7,11 +7,14 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -285,7 +288,13 @@ public class AutomationHandlerService {
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Existing_Customer":
-                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    SeleniumGridDriver setupExistingCustDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupExistingCustDriver.getDriver();
                     runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
@@ -294,6 +303,8 @@ public class AutomationHandlerService {
                     break;
                 case "CRM_quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+//                    SeleniumGridDriver setupQuickLeadDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+//                    driver = setupQuickLeadDriver.getDriver();
                     CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
                     break;
                 case "runAutomation_ResponseQuery":
@@ -309,7 +320,13 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead_Assign_Pool(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Sale_Queue_With_FullInfo":
-                    accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    SeleniumGridDriver setupSendbackDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupSendbackDriver.getDriver();
                     runAutomation_SendBack(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_AutoAssign_Allocation":
@@ -5122,7 +5139,7 @@ public class AutomationHandlerService {
             //*************************** GET DATA *********************//
             System.out.println("Auto: " + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Query query = new Query();
-            query.addCriteria(Criteria.where("status").is(0).and("appId").is(applicationId).and("project").is(projectId).and("funcProject").is("SubmitField"));
+            query.addCriteria(Criteria.where("status").is(0).and("appId").is(applicationId).and("project").is(projectId).and("projectAuto").is("SUBMITFIELD"));
             submitFieldDTO = mongoTemplate.findOne(query, SubmitFieldDTO.class);
             log.info("{}", submitFieldDTO);
 
@@ -5198,7 +5215,7 @@ public class AutomationHandlerService {
 
             // ========= UPDATE DB ============================
             Query queryUpdate1 = new Query();
-            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("funcProject").is("SubmitField"));
+            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("projectAuto").is("SUBMITFIELD"));
             Update update1 = new Update();
             update1.set("userAuto", accountDTO.getUserName());
             update1.set("status", 1);
@@ -5210,7 +5227,7 @@ public class AutomationHandlerService {
 
         } catch (Exception e) {
             Query queryUpdate = new Query();
-            queryUpdate.addCriteria(Criteria.where("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("funcProject").is("SubmitField"));
+            queryUpdate.addCriteria(Criteria.where("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("projectAuto").is("SUBMITFIELD"));
             Update update = new Update();
             update.set("userAuto", accountDTO.getUserName());
             update.set("status", 3);
@@ -5422,7 +5439,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             try {
-                CRM_updateStatusRabbit(application, "updateAutomation", project);
+                CRM_updateStatusRabbit(application, "updateAutomation", project.toLowerCase());
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
@@ -5627,20 +5644,18 @@ public class AutomationHandlerService {
     }
 
     public void runAutomation_Existing_Customer(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
-        ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
         String applicationId = "";
         String stageError = "";
-        CRM_ExistingCustomerDTO existingCustomerDTO = CRM_ExistingCustomerDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
-            existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
+            CRM_ExistingCustomerDTO existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
             applicationId = existingCustomerDTO.getAppId();
             if (applicationId != null) {
-                if (!applicationId.isEmpty() || !applicationId.contains("UNKNOWN") || !"".equals(applicationId)) {
+                if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
                     if (applicationId.contains("APPL")) {
                         stageError = "UPDATE";
                     }
@@ -5650,7 +5665,7 @@ public class AutomationHandlerService {
             //---------------- GET STAGE -------------------------//
             switch (stageError) {
                 case "UPDATE":
-                    runAutomation_Existing_Customer_Update(mapValue, driver, accountDTO, stageError);
+                    runAutomation_Existing_Customer_Update(mapValue, driver, accountDTO);
                     break;
                 default:
                     runAutomation_Existing_Customer_Full(mapValue, driver, accountDTO);
@@ -5666,6 +5681,11 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
+            logoutV2(driver, accountDTO);
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+            }
         }
     }
 
@@ -5690,6 +5710,7 @@ public class AutomationHandlerService {
             List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
             CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", existingCustomerDTO);
+            mongoTemplate.save(existingCustomerDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
@@ -5697,7 +5718,22 @@ public class AutomationHandlerService {
 
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
             loginPage.clickLogin();
+
+            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
+
+            if (checkLogin){
+                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
+                if ("Your page is expired. Please login again".equals(messErrorlogin)){
+                    LoginPage loginPage2 = new LoginPage(driver);
+                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+                    Utilities.captureScreenShot(driver);
+                    loginPage2.clickLogin();
+                }
+            }
+
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -5848,7 +5884,7 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
-                Thread.sleep(15000);
+                Thread.sleep(5000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
@@ -5900,6 +5936,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+            with().pollInterval(5, TimeUnit.SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6012,7 +6049,17 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
+
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6035,6 +6082,15 @@ public class AutomationHandlerService {
             responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
 
         } catch (Exception e) {
 
@@ -6065,20 +6121,25 @@ public class AutomationHandlerService {
             }
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD FAILED");
+            update.set("description", "Error: " + existingCustomerDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName(), stage);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            if (driver != null) {
-                driver.close();
-                driver.quit();
-            }
         }
     }
 
-    public void runAutomation_Existing_Customer_Update(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO, String stageError) throws Exception {
+    public void runAutomation_Existing_Customer_Update(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -6105,6 +6166,18 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
+
+            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
+
+            if (checkLogin){
+                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
+                if ("Your page is expired. Please login again".equals(messErrorlogin)){
+                    LoginPage loginPage2 = new LoginPage(driver);
+                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+                    Utilities.captureScreenShot(driver);
+                    loginPage2.clickLogin();
+                }
+            }
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6198,10 +6271,11 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
-                Thread.sleep(15000);
+                Thread.sleep(5000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
+                with().pollInterval(5, TimeUnit.SECONDS).
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
                 financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
@@ -6250,6 +6324,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+            with().pollInterval(5, TimeUnit.SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6355,12 +6430,22 @@ public class AutomationHandlerService {
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
             with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
-            await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
 
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
+
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6383,6 +6468,15 @@ public class AutomationHandlerService {
             responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
 
         } catch (Exception e) {
 
@@ -6411,18 +6505,22 @@ public class AutomationHandlerService {
                     System.out.println(stage + "=>" + error);
                 }
             }
-
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "QUICKLEAD FAILED");
+            update.set("description", "Error: " + existingCustomerDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName(), stage);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            if (driver != null) {
-                driver.close();
-                driver.quit();
-            }
         }
     }
 
@@ -6445,6 +6543,7 @@ public class AutomationHandlerService {
             List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
             CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
             log.info("{}", saleQueueDTO);
+            mongoTemplate.save(saleQueueDTO);
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
@@ -6453,6 +6552,18 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
+
+            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
+
+            if (checkLogin){
+                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
+                if ("Your page is expired. Please login again".equals(messErrorlogin)){
+                    LoginPage loginPage2 = new LoginPage(driver);
+                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+                    Utilities.captureScreenShot(driver);
+                    loginPage2.clickLogin();
+                }
+            }
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6544,10 +6655,11 @@ public class AutomationHandlerService {
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getFinancialDetail() != null) {
-                Thread.sleep(15000);
+                Thread.sleep(5000);
                 CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
                 financialDetailsTab.openFinancialDetailsTabSection();
                 financialDetailsTab.openIncomeDetailSection();
+                with().pollInterval(5, TimeUnit.SECONDS).
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
 //                financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
@@ -6597,6 +6709,7 @@ public class AutomationHandlerService {
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+            with().pollInterval(5, TimeUnit.SECONDS).
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6702,12 +6815,23 @@ public class AutomationHandlerService {
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
             with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
-            await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
 
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
+
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
+
 
             Utilities.captureScreenShot(driver);
 
@@ -6731,6 +6855,15 @@ public class AutomationHandlerService {
             responseModel.setAutomation_result("SALEQUEUE PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "SALEQUEUE PASS");
+            update.set("description", "Success");
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
 
         } catch (Exception e) {
 
@@ -6761,16 +6894,22 @@ public class AutomationHandlerService {
             }
 
             Utilities.captureScreenShot(driver);
+
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
+            Update update = new Update();
+            update.set("automationAcc", accountDTO.getUserName());
+            update.set("appId", applicationId);
+            update.set("status", "SALEQUEUE FAILED");
+            update.set("description", "Error: " + saleQueueDTO.getError());
+            mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO.getUserName(), stage);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            if (driver != null) {
-                driver.close();
-                driver.quit();
-            }
+            logoutV2(driver, accountDTO);
         }
     }
 
@@ -6779,49 +6918,32 @@ public class AutomationHandlerService {
 
     }
 
-    public void logoutAndUpdateAccountMongoDB (WebDriver driver, LoginDTO accountDTO, String project, String applicationId, String stage){
-        try{
-            System.out.println("Logout");
-            LogoutPageV2 logoutPage = new LogoutPageV2(driver);
-            logoutPage.logout();
-
-            Thread.sleep(5000);
-
-            boolean checkTextLogout = "You have logged out Successfully.".equals(driver.findElement(By.xpath("//div[@id = 'neutrino-body']//div[@class = 'row-fluid p-10']//div[@class = 'span5']//h3")).getText());
-
-            if (checkTextLogout || "LOGIN FINONE".equals(stage)){
-                if (!Objects.isNull(accountDTO)) {
-                    Query queryUpdate = new Query();
-                    queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()).and("project").is(project));
-                    Update update = new Update();
-                    update.set("active", 0);
-                    mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
-                    System.out.println("Update it:" + accountDTO.toString());
-                }
-            }else if (applicationId.indexOf("APPL") >= 0){
-                logoutAndUpdateAccountMongoDB(driver, accountDTO, project, applicationId, stage);
-            }
-
-            log.info("Logout: Done => " + accountDTO.getUserName());
-        }catch (Exception e){
-            System.out.println("LOGOUT: =>" + accountDTO.getUserName() + " - " + e.toString());
-        }
-    }
-
-    public void logoutV2(WebDriver driver, String accountAuto,String stage) {
+    public void logoutV2(WebDriver driver, LoginDTO accountAuto) {
         try {
             System.out.println("Logout");
             LogoutPageV2 logoutPage = new LogoutPageV2(driver);
             logoutPage.logout();
-
-            boolean checkTextLogout = "You have logged out Successfully.".equals(driver.findElement(By.xpath("//div[@id = 'neutrino-body']//div[@class = 'row-fluid p-10']//div[@class = 'span5']//h3")).getText());
-
-            if (!checkTextLogout && !"LOGIN FINONE".equals(stage)){
-                logoutV2(driver, accountAuto, stage);
+            boolean checkLogout = driver.findElements(By.xpath("//div[@id = 'neutrino-body']//button[@id = 'redirectToLoginButton']")).size() != 0;
+            if (checkLogout){
+                WebElement checkLogoutButton = driver.findElement(By.xpath("//div[@id = 'neutrino-body']//button[@id = 'redirectToLoginButton']"));
+                checkLogoutButton.click();
+                System.out.println("LOGOUT Success");
             }
-            log.info("Logout: Done => " + accountAuto);
+            log.info("Logout: Done => " + accountAuto.getUserName());
         } catch (Exception e) {
-            System.out.println("LOGOUT: =>" + accountAuto + " - " + e.toString());
+            System.out.println("LOGOUT: =>" + accountAuto.getUserName() + " - " + e.toString());
+        }
+    }
+
+    private void pushAccountToQueueV2(LoginDTO accountDTO, String project) throws InterruptedException {
+        if (!Objects.isNull(accountDTO)) {
+            Thread.sleep(60000);
+            Query queryUpdate = new Query();
+            queryUpdate.addCriteria(Criteria.where("username").is(accountDTO.getUserName()).and("project").is(project));
+            Update update = new Update();
+            update.set("active", 0);
+            mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+            System.out.println("Update it:" + accountDTO.toString());
         }
     }
 

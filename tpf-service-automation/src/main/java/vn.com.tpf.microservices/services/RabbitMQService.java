@@ -155,9 +155,7 @@ public class RabbitMQService {
 					}else{
 						return response(message, payload, automationService.Existing_Customer(request));
 					}
-				}
-				else
-				{
+				} else {
 					return response(message, payload, automationService.quickLeadApp(request));
 				}
 			case "fullInfoApp":
@@ -183,8 +181,6 @@ public class RabbitMQService {
 				return response(message, payload, automationService.Waive_Field(request));
 			case "submitField":
 				return response(message, payload, automationService.Submit_Field(request));
-			case "existingCustomer":
-				return response(message, payload, automationService.Existing_Customer(request));
 			case "quickLeadAppAssignPool":
 				return response(message, payload, automationService.quickLeadAppAssignPool(request));
 			case "saleQueueWithFullInfo":

@@ -749,13 +749,14 @@ public class DataInitial {
         map.put("RequestAutomationSubmitFieldList", submitFieldDTOList);
         ////********************************REASSIGN USER************************************////
         List<SubmitFieldDTO> submitFieldDTOs = new ArrayList<>();
+        SubmitFieldDTO submitFieldDTO = SubmitFieldDTO.builder().build();
         for(SubmitFieldDTO submitField : submitFieldDTOList.getSubmitFieldDTO()) {
-            SubmitFieldDTO submitFieldDTO = SubmitFieldDTO.builder()
+            submitFieldDTO = SubmitFieldDTO.builder()
                     .appId(submitField.getAppId())
                     .project(submitFieldDTOList.getProject())
                     .referenceId(submitFieldDTOList.getReference_id())
                     .transactionId(submitFieldDTOList.getTransaction_id())
-                    .funcProject("WaiveField")
+                    .funcProject("SubmitField")
                     .phoneConfirmed(submitField.getPhoneConfirmed())
                     .resultHomeVisit(submitField.getResultHomeVisit())
                     .resultOfficeVisit(submitField.getResultOfficeVisit())
@@ -769,7 +770,7 @@ public class DataInitial {
                     .build();
             submitFieldDTOs.add(submitFieldDTO);
         }
-        map.put("submitFieldList", submitFieldDTOs);
+        map.put("submitFieldList", submitFieldDTO);
         return map;
     }
 
