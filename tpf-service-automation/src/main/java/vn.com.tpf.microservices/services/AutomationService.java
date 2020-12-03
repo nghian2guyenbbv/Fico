@@ -456,11 +456,9 @@ public class AutomationService {
 	//------------------------ WAIVE_FIELD  --------------------------------------
 	public Map<String, Object> Waive_Field(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
-//		String referenceId = request.path("reference_id").toString();
 		Assert.notNull(request.get("body"), "no body");
 		RequestAutomationDTO requestWaiveField = mapper.convertValue(request.path("body"), new TypeReference<RequestAutomationDTO>(){});
 		List<WaiveFieldDTO> waiveFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveFieldDTO>>(){});
-//		requestWaiveField.setReference_id(referenceId);
 		requestWaiveField.setWaiveFieldDTO(waiveFieldDTOList);
 
 		new Thread(() -> {
@@ -476,10 +474,10 @@ public class AutomationService {
 
 	private void runAutomation_Waive_Field(RequestAutomationDTO waiveFieldDTOList) throws Exception {
 		String browser = "chrome";
-        String projectJson = waiveFieldDTOList.getProject();
+		String projectAuto = "WAIVEFIELD";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Waive_Field(waiveFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field",projectJson.toUpperCase());
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field", projectAuto);
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
@@ -509,10 +507,10 @@ public class AutomationService {
 
 	private void runAutomation_Submit_Field(RequestAutomationDTO submitFieldDTOList) throws Exception {
 		String browser = "chrome";
-        String projectJson = submitFieldDTOList.getProject();
+		String projectAuto = "SUBMITFIELD";
 		Map<String, Object> mapValue = DataInitial.getDataFrom_Submit_Field(submitFieldDTOList);
 
-		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field", projectJson.toUpperCase());
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Submit_Field", projectAuto);
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
 		workerThreadPool.submit(automationThreadService);
 	}
