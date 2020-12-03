@@ -7130,12 +7130,16 @@ public class AutomationHandlerService {
                         System.out.println("Auto: " + accountDTO.getUserName() + " - App: " + autoAssignAllocationDTO.getAppId() + " - GET DATA DONE " + " - "  + " User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
                         referenceId = resultUpdate.getReference_id();
+
                         projectId = resultUpdate.getProject();
 
                         appID = autoAssignAllocationDTO.getAppId();
+
                         AutoAssignAllocationPage autoAssignAllocationPage = new AutoAssignAllocationPage(driver);
+
                         await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> autoAssignAllocationPage.getApplicationManagerFormElement().isDisplayed());
+
                         autoAssignAllocationPage.setData(appID, autoAssignAllocationDTO.getUserName().toLowerCase());
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " - App: " + autoAssignAllocationDTO.getAppId() + " - APPLICATION MANAGER " + " - "  + "User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
@@ -7170,15 +7174,14 @@ public class AutomationHandlerService {
                         update1.set("automationResult", "AUTOASSIGN_PASS");
                         update1.set("automationResultMessage", "Session ID:" + session);
                         mongoTemplate.findAndModify(queryUpdate1, update1, AutoAssignAllocationDTO.class);
-                        if(!StringUtils.isEmpty(referenceId)){
-                            Query queryUpdatePass = new Query();
-                            queryUpdatePass.addCriteria(Criteria.where("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
-                            List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdatePass, AutoAllocationResponseDTO.class);
-                            responseModel.setReference_id(referenceId);
-                            responseModel.setProject(projectId);
-                            responseModel.setData(resultRespone);
-                            autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
-                        }
+
+                        Query queryUpdatePass = new Query();
+                        queryUpdatePass.addCriteria(Criteria.where("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
+                        List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdatePass, AutoAllocationResponseDTO.class);
+                        responseModel.setReference_id(referenceId);
+                        responseModel.setProject(projectId);
+                        responseModel.setData(resultRespone);
+                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " App: " + autoAssignAllocationDTO.getAppId() + " - UPDATE STATUS " + " - " + "User: " + autoAssignAllocationDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
@@ -7194,30 +7197,18 @@ public class AutomationHandlerService {
                     update.set("automationResultMessage", "Session ID:" + session + "- ERROR: " + ex.getMessage().substring(0, ex.getMessage().indexOf(" in")));
                     mongoTemplate.findAndModify(queryUpdate, update, AutoAssignAllocationDTO.class);
 
-                    if(!StringUtils.isEmpty(referenceId)){
-                        Query queryUpdateFail = new Query();
-                        queryUpdateFail.addCriteria(Criteria.where("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
-                        List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFail, AutoAllocationResponseDTO.class);
-                        responseModel.setReference_id(referenceId);
-                        responseModel.setProject(projectId);
-                        responseModel.setData(resultRespone);
-                        autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
-                    }
+                    Query queryUpdateFail = new Query();
+                    queryUpdateFail.addCriteria(Criteria.where("appId").is(appID).and("userAuto").is(accountDTO.getUserName()));
+                    List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFail, AutoAllocationResponseDTO.class);
+                    responseModel.setReference_id(referenceId);
+                    responseModel.setProject(projectId);
+                    responseModel.setData(resultRespone);
+                    autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
 
-                    boolean checkAdminError = driver.findElements(By.xpath("//div[@class = 'body-inner']//div[contains(text(), 'Some error occured. Please contact system admin.')]")).size() != 0;
-
-                    if (checkAdminError){
-                        HomePage homeFailedPage = new HomePage(driver);
-                        homeFailedPage.getMenuApplicationElement().click();
-                        homeFailedPage.getApplicationManagerElement().click();
-                        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(driver::getTitle, is("Application Manager"));
-                    }else{
-                        AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
-                        autoAssignAllocationFailedPage.getBackBtnElement().click();
-                        await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(driver::getTitle, is("Application Manager"));
-                    }
+                    AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
+                    autoAssignAllocationFailedPage.getBackBtnElement().click();
+                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
 
                     System.out.println(ex.getMessage());
                 }
@@ -7238,27 +7229,49 @@ public class AutomationHandlerService {
         }
     }
 
-    private void autoUpdateStatusRabbitAllocation(ResponseAutomationModel responseAutomationModel, String func, String userAuto, String appID){
-        JsonNode jsonNode = null;
-        Query queryUpdateStatusRabbit = new Query();
-        Update updateStatusRabbit = new Update();
-        try {
-            jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+    private void autoUpdateStatusRabbitAllocation(ResponseAutomationModel responseAutomationModel, String func, String userAuto, String appID) throws Exception {
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
                     Map.of("func", func,
                             "body", Map.of(
                                     "project", responseAutomationModel.getProject(),
                                     "reference_id", responseAutomationModel.getReference_id(),
                                     "autoAssign",responseAutomationModel.getData()
                             )));
+
+        boolean checkJsonNode = jsonNode.isNull();
+        Query queryUpdateStatusRabbit = new Query();
+        Update updateStatusRabbit = new Update();
+        if (!checkJsonNode){
             System.out.println("rabit:=>" + jsonNode.toString());
             queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
             updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
             mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
-        } catch (Exception e) {
+        }else{
             queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
             updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
             mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
         }
+
+//        JsonNode jsonNode = null;
+//        Query queryUpdateStatusRabbit = new Query();
+//        Update updateStatusRabbit = new Update();
+//        try {
+//            jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+//                    Map.of("func", func,
+//                            "body", Map.of(
+//                                    "project", responseAutomationModel.getProject(),
+//                                    "reference_id", responseAutomationModel.getReference_id(),
+//                                    "autoAssign",responseAutomationModel.getData()
+//                            )));
+//            System.out.println("rabit:=>" + jsonNode.toString());
+//            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+//            updateStatusRabbit.set("automationResultRabbit", "rabit: => PASS");
+//            mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
+//        } catch (Exception e) {
+//            queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
+//            updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
+//            mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
+//        }
     }
 
     //------------------------ END AUTO ALLOCATION -----------------------------------------------------

@@ -734,8 +734,8 @@ public class DataInitial {
             WaiveFieldDTO waiveFieldDTO = WaiveFieldDTO.builder()
                     .appId(waiveField.getAppId())
                     .project(waiveFieldDTOList.getProject())
-                    .reference_id(waiveFieldDTOList.getReference_id())
-                    .transaction_id(waiveFieldDTOList.getTransaction_id())
+                    .referenceId(waiveFieldDTOList.getReference_id())
+                    .transactionId(waiveFieldDTOList.getTransaction_id())
                     .funcProject("WaiveField")
                     .build();
             waiveFieldDTOs.add(waiveFieldDTO);
@@ -753,8 +753,8 @@ public class DataInitial {
             SubmitFieldDTO submitFieldDTO = SubmitFieldDTO.builder()
                     .appId(submitField.getAppId())
                     .project(submitFieldDTOList.getProject())
-                    .reference_id(submitFieldDTOList.getReference_id())
-                    .transaction_id(submitFieldDTOList.getTransaction_id())
+                    .referenceId(submitFieldDTOList.getReference_id())
+                    .transactionId(submitFieldDTOList.getTransaction_id())
                     .funcProject("WaiveField")
                     .phoneConfirmed(submitField.getPhoneConfirmed())
                     .resultHomeVisit(submitField.getResultHomeVisit())
