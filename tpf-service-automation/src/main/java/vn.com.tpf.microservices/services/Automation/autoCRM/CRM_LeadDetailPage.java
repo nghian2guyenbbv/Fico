@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -266,15 +267,22 @@ public class CRM_LeadDetailPage {
             System.out.println("URLdownload: " + fromFile);
 
             int index = 0;
-            List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card","TPF_Notarization of ID card","TPF_Family Book","TPF_Notarization of Family Book",
-                    "TPF_Customer Photograph","TPF_Health Insurance Card","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
-                    "TPF_Employer Confirmation","TPF_Labor Contract","TPF_Salary slip",
-                    "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac",
-                    "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills","TPF_Confirm_student_infomation", "TPF_Confirm_student_Infomation",
-                    "TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
-                    "TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card","TPF_Collab document","TPF_Credit contract documentations",
-                    "TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon","TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
-                    "TPF_Transcript","TPF_Representatives "); //
+            List<String> requiredFiled = Arrays.asList(
+                    "TPF_Application cum Credit Contract (ACCA)","TPF_ID Card","TPF_Notarization of ID card","TPF_Family Book",
+                    "TPF_Notarization of Family Book","TPF_Customer Photograph","TPF_Customer Signature",
+                    "TPF_Health Insurance Card","TPF_Banking Statement","TPF_Employer Confirmation","TPF_Labor Contract",
+                    "TPF_Salary slip","TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Electricity bills",
+                    "TPF_Water bill","TPF_Map to Customer House","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
+                    "TPF_Salary_SMS_Banking","TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card",
+                    "TPF_Collab document","TPF_Internet bills","TPF_Phone bills","TPF_Cable TV bills","TPF_Credit contract documentations",
+                    "TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac","TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon",
+                    "TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
+                    "TPF_ Confirm_student_Information","TPF_ Confirm_student_Infomation","TPF_Confirm_student_infomation",
+                    "TPF_Confirm_student_Infomation","TPF_Confirm_student_information","TPF_Confirm_student_Information",
+                    "TPF_Offer_Letter","TPF_Diploma","TPF_Transcript","TPF_Representatives","TPF_Representatives ",
+                    "TPF_Student_Portal_Login_Photo","TPF_Insurance Bill","TPF_Insurance_Bill","TPF_Insurance Contract",
+                    "TPF_Insurance_Contract","TPF_student_Card","TPF_School_Confirmation","TPF_student_ID_Card"
+            );
             Utilities.captureScreenShot(_driver);
 
             for (WebElement element : docNameElement) {
@@ -318,10 +326,15 @@ public class CRM_LeadDetailPage {
 
             Utilities.captureScreenShot(_driver);
 
-            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> modalConfirmElement.isDisplayed());
+//            Thread.sleep(5000);
 
-            modalBtnConfirmElement.click();
+            boolean checkModalConfirm = _driver.findElements(By.xpath("//div[@id = 'moveToAppConfirmDialog'][contains(@style, 'block')]")).size() != 0;
+
+            if (checkModalConfirm){
+                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
+                modalBtnConfirmElement.click();
+            }
 
             Utilities.captureScreenShot(_driver);
         } catch (Exception e) {

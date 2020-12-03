@@ -19,6 +19,7 @@ import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -148,32 +149,32 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         Actions actions = new Actions(_driver);
 
-
         List<WebElement> listOccupationDelete = _driver.findElements(By.xpath("//table[@id = 'occupation_Info_Table']//tr//td[1]"));
+
+        List<String> listStringOccupationDelete = new ArrayList<>();
+
+        for (WebElement e: listOccupationDelete){
+            listStringOccupationDelete.add(e.getAttribute("innerHTML").trim());
+        }
 
         boolean checkListOccupationDelete = listOccupationDelete.size() != 0;
 
         if(checkListOccupationDelete && deleteIdDetailElement.size() > 2){
-            for (WebElement OccupationDeleteButton: listOccupationDelete){
-                String occupationType = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//td[3]//a[@id = 'view']")).getAttribute("innerHTML").trim();
-                if ("Salaried".equals(occupationType)){
-                    WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML").trim() + "')]//ancestor::tr//*[contains(@id,'delete')]"));
+            for (String OccupationDeleteButton: listStringOccupationDelete){
+                WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//*[contains(@id,'delete')]"));
 
-                    actions.moveToElement(occupationDelete).click().build().perform();
+                actions.moveToElement(occupationDelete).click().build().perform();
 
-                    Thread.sleep(5000);
+                Thread.sleep(5000);
 
-                    boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+                boolean checkModalMajorChange = _driver.findElements(By.xpath("//*[contains(@id, 'MajorChange')][contains(@style,'block')]")).size() != 0;
 
-                    if (checkModalMajorChange){
-                        await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
-                                .until(() -> modalMajorChangeElement.isDisplayed());
-                        Utilities.captureScreenShot(_driver);
-                        btnMajorChangeElement.get(0).click();
-                    }
-                    break;
+                if (checkModalMajorChange){
+                    await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
+                            .until(() -> modalMajorChangeElement.isDisplayed());
+                    Utilities.captureScreenShot(_driver);
+                    btnMajorChangeElement.get(0).click();
                 }
-
             }
         }
 

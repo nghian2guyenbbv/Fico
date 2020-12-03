@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -287,7 +288,13 @@ public class AutomationHandlerService {
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Existing_Customer":
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    SeleniumGridDriver setupExistingCustDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupExistingCustDriver.getDriver();
                     runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
@@ -296,6 +303,8 @@ public class AutomationHandlerService {
                     break;
                 case "CRM_quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+//                    SeleniumGridDriver setupQuickLeadDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+//                    driver = setupQuickLeadDriver.getDriver();
                     CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
                     break;
                 case "runAutomation_ResponseQuery":
@@ -311,7 +320,13 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead_Assign_Pool(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Sale_Queue_With_FullInfo":
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    SeleniumGridDriver setupSendbackDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupSendbackDriver.getDriver();
                     runAutomation_SendBack(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_AutoAssign_Allocation":
@@ -5424,7 +5439,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             try {
-                CRM_updateStatusRabbit(application, "updateAutomation", project);
+                CRM_updateStatusRabbit(application, "updateAutomation", project.toLowerCase());
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
@@ -6034,10 +6049,17 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            WebDriverWait wait = new WebDriverWait(driver, 10);
-            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6413,10 +6435,17 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            WebDriverWait wait = new WebDriverWait(driver, 10);
-            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6791,10 +6820,18 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            WebDriverWait wait = new WebDriverWait(driver, 10);
-            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
+
 
             Utilities.captureScreenShot(driver);
 
