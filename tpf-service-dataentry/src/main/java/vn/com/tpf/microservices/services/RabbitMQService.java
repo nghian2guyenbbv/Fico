@@ -137,7 +137,7 @@ public class RabbitMQService {
 		if(isWriteLog){
 			log.info("{}", dataLog);
 		}
-		log.info("{}", dataLog);
+
 		if (message.getMessageProperties().getReplyTo() != null) {
 			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
 		}
@@ -171,7 +171,7 @@ public class RabbitMQService {
 				case "getAll":
 					return response(message, payload, dataEntryService.getAll(request));
 				case "getByAppId":
-					return response(message, payload, dataEntryService.getByAppId(request));
+					return response(message, payload, dataEntryService.getByAppId(request), false);
 				case "getDetail":
 					return response(message, payload, dataEntryService.getDetail(request, token));
 				case "getAddress":
@@ -195,7 +195,7 @@ public class RabbitMQService {
 				case "uploadDigiTex":
 					return response(message, payload, dataEntryService.uploadDigiTex(request, token));
 				case "getTATReport":
-					return response(message, payload, dataEntryService.getTATReport(request, token));
+					return response(message, payload, dataEntryService.getTATReport_New(request, token));
 				case "getStatusReport":
 					return response(message, payload, dataEntryService.getStatusReport(request, token));
 				case "getDocumentId":
@@ -205,7 +205,7 @@ public class RabbitMQService {
 				case "getSearchReport":
 					return response(message, payload, dataEntryService.getSearchReport(request,token));
 				case "getPartner":
-					return response(message, payload, dataEntryService.getPartner(request,token));
+					return response(message, payload, dataEntryService.getPartner(request,token), false);
 				case "quickLead":
 					return response(message, payload, dataEntryService.quickLead(request, token));
 				case "commentApp":

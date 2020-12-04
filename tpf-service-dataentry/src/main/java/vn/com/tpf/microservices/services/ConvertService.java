@@ -134,7 +134,29 @@ public class ConvertService {
 	}
 
 	public JsonNode toApiF1(Application application) {
-		JsonNode app = mapper.createObjectNode();
+		JsonNode app;
+		try {
+			app = toApiF1(application, true);
+		}catch (Exception e){
+			app = mapper.convertValue(Map.of("error", e.toString()), JsonNode.class);
+			log.info("{}", e.toString());
+		}
+		return app;
+	}
+
+	public JsonNode toApiF1NotDoc(Application application) {
+		JsonNode app;
+		try {
+			app = toApiF1(application, false);
+		}catch (Exception e){
+			app = mapper.convertValue(Map.of("error", e.toString()), JsonNode.class);
+			log.info("{}", e.toString());
+		}
+		return app;
+	}
+
+	private JsonNode toApiF1(Application application, boolean hasDoc){
+		JsonNode app;
 		try {
 			LeadCreationRequest leadCreationRequest = new LeadCreationRequest();
 
@@ -210,39 +232,43 @@ public class ConvertService {
 			leadCreationRequest.setUserName("system");
 
 			/*-----------------------------------------------------documents------------------------------------------------------ */
-			application.getQuickLead().getDocuments().stream().forEach(qlDocument -> {
-				Documents documents = new Documents();
-				documents.setReferenceType("Customer");
-				documents.setEntityType(application.getQuickLead().getFirstName().toUpperCase().trim() + " " + application.getQuickLead().getLastName().toUpperCase().trim());
-				documents.setDocumentName(qlDocument.getType());
+			if (hasDoc) {
+				application.getQuickLead().getDocuments().stream().forEach(qlDocument -> {
+					Documents documents = new Documents();
+					documents.setReferenceType("Customer");
+					documents.setEntityType(application.getQuickLead().getFirstName().toUpperCase().trim() + " " + application.getQuickLead().getLastName().toUpperCase().trim());
+					documents.setDocumentName(qlDocument.getType());
 
-				cal.setTime(new Date());
-				try {
-					documents.setRecievingDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
-				} catch (DatatypeConfigurationException e) {
-					log.info("{}", e.toString());
-				}
+					cal.setTime(new Date());
+					try {
+						documents.setRecievingDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+					} catch (DatatypeConfigurationException e) {
+						log.info("{}", e.toString());
+					}
 
-				documents.setRemarks("Document received");
+					documents.setRemarks("Document received");
 
-				AttachmentDetails attachmentDetails = new AttachmentDetails();
-				attachmentDetails.setAttachedDocName(qlDocument.getOriginalname());
+					AttachmentDetails attachmentDetails = new AttachmentDetails();
+					attachmentDetails.setAttachedDocName(qlDocument.getOriginalname());
+					HttpHeaders headers = new HttpHeaders();
+					headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+					HttpEntity<String> entity = new HttpEntity<>(headers);
 
-				HttpHeaders headers = new HttpHeaders();
-				headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-				HttpEntity<String> entity = new HttpEntity<>(headers);
+					ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + qlDocument.getFilename(), HttpMethod.GET, entity, byte[].class);
 
-				ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + qlDocument.getFilename(), HttpMethod.GET, entity, byte[].class);
-
-				attachmentDetails.setAttachedDocument(response.getBody());
-
-				documents.setAttachmentDetails(attachmentDetails);
-				leadCreationRequest.getDocuments().add(documents);
-			});
+					attachmentDetails.setAttachedDocument(response.getBody());
+					documents.setAttachmentDetails(attachmentDetails);
+					leadCreationRequest.getDocuments().add(documents);
+				});
+			}
 
 			/*---------------------------------------------------sourcingDetails---------------------------------------------------- */
 			SourcingDetails sourcingDetails = new SourcingDetails();
-			if (application.getPartnerId().equals("3")){
+			if (StringUtils.hasLength(application.getCreateFrom())){
+				if (StringUtils.hasLength(application.getQuickLead().getSourcingChannel())){
+					sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
+				}
+			}else if (application.getPartnerId().equals("3")){
 				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
 			}else{
 				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
@@ -250,6 +276,9 @@ public class ConvertService {
 
 			/*-------------------------dummy-------------------------*/
 			sourcingDetails.setAlternateChannelMode("");
+			if (StringUtils.hasLength(application.getQuickLead().getAlternateChannelMode())){
+				sourcingDetails.setAlternateChannelMode(getDataF1Service.getAlternateChannelMode(application.getQuickLead().getAlternateChannelMode()));
+			}
 			sourcingDetails.setSourcingBranch("");
 			sourcingDetails.setEmployeeName("");
 			sourcingDetails.setEmployeeNumber("");
@@ -318,6 +347,7 @@ public class ConvertService {
 
 			app = mapper.convertValue(leadCreationRequest, JsonNode.class);
 		}catch (Exception e){
+			app = mapper.convertValue(Map.of("error", e.toString()), JsonNode.class);
 			log.info("{}", e.toString());
 		}
 		return app;
@@ -367,9 +397,10 @@ public class ConvertService {
 			/*-------------------------------------------EMPLOYMENT DETAILS-------------------------------------------*/
 			List<UpdateOccupationInfo> updateOccupationInfoList = convertUpdateOccupationInfo(application);
 			customerDet.getUpdateOccupationInfo().addAll(updateOccupationInfoList);
-
-			customerDet.setYearsInTotalOccupation(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getTotalYearsInOccupation()));
-			customerDet.setMonthsInTotalOccupation(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getTotalMonthsInOccupation()));
+			if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getTotalYearsInOccupation()))
+				customerDet.setYearsInTotalOccupation(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getTotalYearsInOccupation()));
+			if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getTotalMonthsInOccupation()))
+				customerDet.setMonthsInTotalOccupation(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getTotalMonthsInOccupation()));
 
 			/*-------------------------------------------FINANCIAL DETAILS-------------------------------------------*/
 			UpdateFinancialDetails updateFinancialDetails = convertUpdateFinancialDetails(application);
@@ -405,7 +436,9 @@ public class ConvertService {
 //			logInfo.set("appConverted", app);
 			return app;
 		}catch (Exception e){
-			logInfo.put("exception", e.toString());
+			logInfo.put("exception", e.toString()
+					+ " - class: " + e.getStackTrace()[0].getClassName()
+					+ " - line: " + e.getStackTrace()[0].getLineNumber());
 			throw e;
 		}finally {
 			log.info("{}", logInfo);
@@ -530,62 +563,67 @@ public class ConvertService {
 
 	private UpdateLoanDetails convertUpdateLoanDetails(Application application) {
 		/*-------------------------------------------SOURCING DETAILS-------------------------------------------*/
-		UpdateSourcingDetail sourcingDetail = new UpdateSourcingDetail();
-		LoanInfo loanInfo = new LoanInfo();
-		String productCode = getDataF1Service.getLoanProduct(application.getLoanDetails().getSourcingDetails().getSchemeCode());
-		loanInfo.setProductCode(productCode);
-		String schemeCode = getDataF1Service.getScheme(application.getLoanDetails().getSourcingDetails().getSchemeCode());
-		loanInfo.setSchemeCode(schemeCode);
-		MoneyType amountRequested = new MoneyType();
-		if (StringUtils.hasLength(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested())){
-			amountRequested.setCurrencyCode("VND");
-			amountRequested.setValue(new BigDecimal(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested().replace(",", "")));
-			loanInfo.setLoanAmountRequested(amountRequested);
-		}
-		loanInfo.setRequestedTenure(Integer.valueOf(application.getLoanDetails().getSourcingDetails().getRequestedTenure()));
-		loanInfo.setLoanPurpose("OTHERS");
-		if (StringUtils.hasLength(application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc()))
-			loanInfo.setLoanPurposeDesc(application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc());
-		sourcingDetail.setLoanInfo(loanInfo);
+		UpdateLoanDetails updateLoanDetails = new UpdateLoanDetails();
+		try {
+			UpdateSourcingDetail sourcingDetail = new UpdateSourcingDetail();
+			LoanInfo loanInfo = new LoanInfo();
+			String productCode = getDataF1Service.getLoanProduct(application.getLoanDetails().getSourcingDetails().getSchemeCode());
+			loanInfo.setProductCode(productCode);
+			String schemeCode = getDataF1Service.getScheme(application.getLoanDetails().getSourcingDetails().getSchemeCode());
+			loanInfo.setSchemeCode(schemeCode);
+			MoneyType amountRequested = new MoneyType();
+			if (StringUtils.hasLength(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested())){
+				amountRequested.setCurrencyCode("VND");
+				amountRequested.setValue(new BigDecimal(application.getLoanDetails().getSourcingDetails().getLoanAmountRequested().replace(",", "")));
+				loanInfo.setLoanAmountRequested(amountRequested);
+			}
+			if (StringUtils.hasLength(application.getLoanDetails().getSourcingDetails().getRequestedTenure()))
+				loanInfo.setRequestedTenure(Integer.valueOf(application.getLoanDetails().getSourcingDetails().getRequestedTenure()));
+			loanInfo.setLoanPurpose("OTHERS");
+			if (StringUtils.hasLength(application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc()))
+				loanInfo.setLoanPurposeDesc(application.getLoanDetails().getSourcingDetails().getLoanPurposeDesc());
+			sourcingDetail.setLoanInfo(loanInfo);
 
-		LoanApplication loanApplication = new LoanApplication();
-		if (StringUtils.hasLength(application.getQuickLead().getSourcingBranch()))
-			loanApplication.setLoanBranch(getDataF1Service.getBranchCode(application.getQuickLead().getSourcingBranch()));
-		sourcingDetail.setLoanApplication(loanApplication);
+			LoanApplication loanApplication = new LoanApplication();
+			if (StringUtils.hasLength(application.getQuickLead().getSourcingBranch()))
+				loanApplication.setLoanBranch(getDataF1Service.getBranchCode(application.getQuickLead().getSourcingBranch()));
+			sourcingDetail.setLoanApplication(loanApplication);
 
-		ApplicationDetails applicationDetails = new ApplicationDetails();
-		applicationDetails.setApplicationFormNumber(application.getLoanDetails().getSourcingDetails().getChassisApplicationNum());
-		applicationDetails.setLoanApplicationType(getDataF1Service.getLoanApplicationType(application.getLoanDetails().getSourcingDetails().getLoanApplicationType()));
-		applicationDetails.setOfficer(getDataF1Service.getOfficer(application.getLoanDetails().getSourcingDetails().getSaleAgentCode()));
+			ApplicationDetails applicationDetails = new ApplicationDetails();
+			applicationDetails.setApplicationFormNumber(application.getLoanDetails().getSourcingDetails().getChassisApplicationNum());
+			applicationDetails.setLoanApplicationType(getDataF1Service.getLoanApplicationType(application.getLoanDetails().getSourcingDetails().getLoanApplicationType()));
+			applicationDetails.setOfficer(getDataF1Service.getOfficer(application.getLoanDetails().getSourcingDetails().getSaleAgentCode()));
 //		if (StringUtils.hasLength(application.getQuickLead().getSourcingChannel()))
 //			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
-		if (application.getPartnerId().equals("3")){
-			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
-		}else{
-			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
-		}
-		sourcingDetail.setApplicationDetails(applicationDetails);
+			if (application.getPartnerId().equals("3")){
+				applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
+			}else{
+				applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
+			}
+			sourcingDetail.setApplicationDetails(applicationDetails);
 
-		/*-------------------------------------------VAP DETAILS-------------------------------------------*/
-		UpdateVapDetail updateVapDetail = new UpdateVapDetail();
-        UpdateLoanDetails updateLoanDetails = new UpdateLoanDetails();
-		if (StringUtils.hasLength(application.getLoanDetails().getVapDetails().getVapProduct())){
-			String vapProductApi = getDataF1Service.getVapProduct(application.getLoanDetails().getVapDetails().getVapProduct());
-			updateVapDetail.setVapProduct(vapProductApi);
-			updateVapDetail.setVapTreatment(getDataF1Service.getVapTreatment(application.getLoanDetails().getVapDetails().getVapProduct(), productCode));
-			updateVapDetail.setInsuranceCompany(getDataF1Service.getInsuranceCompany(application.getLoanDetails().getVapDetails().getVapProduct(), productCode));
-			Map<String, Object> amtPayOut = getDataF1Service.getAmtCompPolicy(application.getLoanDetails().getVapDetails().getVapProduct(), productCode);
-			updateVapDetail.setAmtCompPolicy(amtPayOut.get("CODE_AMT_COMP").toString());
-			updateVapDetail.setPayOutCompPolicy(amtPayOut.get("CODE_PAY_OUT").toString());
-			MoneyType amount = new MoneyType();
-			amount.setCurrencyCode("VND");
-			amount.setValue(BigDecimal.ZERO);
-			updateVapDetail.setCoverageAmount(amount);
-			updateVapDetail.setPremiumAmount(amount);
-            updateLoanDetails.getVapDetail().add(updateVapDetail);
-		}
-		updateLoanDetails.setSourcingDetail(sourcingDetail);
+			/*-------------------------------------------VAP DETAILS-------------------------------------------*/
+			UpdateVapDetail updateVapDetail = new UpdateVapDetail();
 
+			if (application.getLoanDetails().getVapDetails() != null && StringUtils.hasLength(application.getLoanDetails().getVapDetails().getVapProduct())){
+				String vapProductApi = getDataF1Service.getVapProduct(application.getLoanDetails().getVapDetails().getVapProduct());
+				updateVapDetail.setVapProduct(vapProductApi);
+				updateVapDetail.setVapTreatment(getDataF1Service.getVapTreatment(application.getLoanDetails().getVapDetails().getVapProduct(), productCode));
+				updateVapDetail.setInsuranceCompany(getDataF1Service.getInsuranceCompany(application.getLoanDetails().getVapDetails().getVapProduct(), productCode));
+				Map<String, Object> amtPayOut = getDataF1Service.getAmtCompPolicy(application.getLoanDetails().getVapDetails().getVapProduct(), productCode);
+				updateVapDetail.setAmtCompPolicy(amtPayOut.get("CODE_AMT_COMP").toString());
+				updateVapDetail.setPayOutCompPolicy(amtPayOut.get("CODE_PAY_OUT").toString());
+				MoneyType amount = new MoneyType();
+				amount.setCurrencyCode("VND");
+				amount.setValue(BigDecimal.ZERO);
+				updateVapDetail.setCoverageAmount(amount);
+				updateVapDetail.setPremiumAmount(amount);
+				updateLoanDetails.getVapDetail().add(updateVapDetail);
+			}
+			updateLoanDetails.setSourcingDetail(sourcingDetail);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 		return updateLoanDetails;
 	}
 
@@ -633,27 +671,32 @@ public class ConvertService {
 
 	private List<UpdateOccupationInfo> convertUpdateOccupationInfo(Application application) {
 		List<UpdateOccupationInfo> updateOccupationInfoList = new ArrayList<>();
-		UpdateOccupationInfo updateOccupationInfo = new UpdateOccupationInfo();
-		OccupationInfo occupationInfo = new OccupationInfo();
-		occupationInfo.setOccupationType(getDataF1Service.getOccupationType(application.getApplicationInformation().getEmploymentDetails().getOccupationType()));
-		occupationInfo.setEmployerCode(application.getApplicationInformation().getEmploymentDetails().getEmployerCode());
-		occupationInfo.setNatureOfBusiness(getDataF1Service.getNatureOfBusiness(application.getApplicationInformation().getEmploymentDetails().getNatureOfBusiness()));
-		occupationInfo.setRemarks(application.getApplicationInformation().getEmploymentDetails().getRemarks());
-		if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getOtherCompanyTaxCode()))
-			occupationInfo.setEmployeeNumber(application.getApplicationInformation().getEmploymentDetails().getOtherCompanyTaxCode());
-		occupationInfo.setIndustry(getDataF1Service.getIndustry(application.getApplicationInformation().getEmploymentDetails().getIndustry()));
-		occupationInfo.setEmploymentType(getDataF1Service.getEmploymentType(application.getApplicationInformation().getEmploymentDetails().getEmploymentType()));
-		occupationInfo.setEmploymentStatus(getDataF1Service.getEmploymentStatus(application.getApplicationInformation().getEmploymentDetails().getEmploymentStatus()));
-		occupationInfo.setDepartmentName(application.getApplicationInformation().getEmploymentDetails().getDepartmentName());
-		occupationInfo.setDesignation(application.getApplicationInformation().getEmploymentDetails().getDesignation());
-		occupationInfo.setYearsInJob(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getYearsInJob()));
-		occupationInfo.setMonthsInJob(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getMonthsInJob()));
-		occupationInfo.setIsMajorEmployment(1);
-		if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getNatureOfOccupation()))
-			occupationInfo.setNatureOfOccupation(getDataF1Service.getNatureOfOccupation(application.getApplicationInformation().getEmploymentDetails().getNatureOfOccupation()));
-		updateOccupationInfo.setOccupationInfo(occupationInfo);
-		updateOccupationInfoList.add(updateOccupationInfo);
-
+		try {
+			UpdateOccupationInfo updateOccupationInfo = new UpdateOccupationInfo();
+			OccupationInfo occupationInfo = new OccupationInfo();
+			occupationInfo.setOccupationType(getDataF1Service.getOccupationType(application.getApplicationInformation().getEmploymentDetails().getOccupationType()));
+			occupationInfo.setEmployerCode(application.getApplicationInformation().getEmploymentDetails().getEmployerCode());
+			occupationInfo.setNatureOfBusiness(getDataF1Service.getNatureOfBusiness(application.getApplicationInformation().getEmploymentDetails().getNatureOfBusiness()));
+			occupationInfo.setRemarks(application.getApplicationInformation().getEmploymentDetails().getRemarks());
+			if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getOtherCompanyTaxCode()))
+				occupationInfo.setEmployeeNumber(application.getApplicationInformation().getEmploymentDetails().getOtherCompanyTaxCode());
+			occupationInfo.setIndustry(getDataF1Service.getIndustry(application.getApplicationInformation().getEmploymentDetails().getIndustry()));
+			occupationInfo.setEmploymentType(getDataF1Service.getEmploymentType(application.getApplicationInformation().getEmploymentDetails().getEmploymentType()));
+			occupationInfo.setEmploymentStatus(getDataF1Service.getEmploymentStatus(application.getApplicationInformation().getEmploymentDetails().getEmploymentStatus()));
+			occupationInfo.setDepartmentName(application.getApplicationInformation().getEmploymentDetails().getDepartmentName());
+			occupationInfo.setDesignation(application.getApplicationInformation().getEmploymentDetails().getDesignation());
+			if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getYearsInJob()))
+				occupationInfo.setYearsInJob(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getYearsInJob()));
+			if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getMonthsInJob()))
+				occupationInfo.setMonthsInJob(Integer.valueOf(application.getApplicationInformation().getEmploymentDetails().getMonthsInJob()));
+			occupationInfo.setIsMajorEmployment(1);
+			if (StringUtils.hasLength(application.getApplicationInformation().getEmploymentDetails().getNatureOfOccupation()))
+				occupationInfo.setNatureOfOccupation(getDataF1Service.getNatureOfOccupation(application.getApplicationInformation().getEmploymentDetails().getNatureOfOccupation()));
+			updateOccupationInfo.setOccupationInfo(occupationInfo);
+			updateOccupationInfoList.add(updateOccupationInfo);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 		return updateOccupationInfoList;
 	}
 
@@ -684,42 +727,49 @@ public class ConvertService {
 	}
 
 	private List<UpdateAddressDetails> convertUpdateAddressDetails(Application application) {
-		List<UpdateAddressDetails> updateAddressDetailsList = application.getApplicationInformation().getPersonalInformation().getAddresses()
-				.stream()
-				.map(address -> {
-					UpdateAddressDetails updateAddressDetails = new UpdateAddressDetails();
-					updateAddressDetails.setDeleteFlag(false);
-					AddressDetails addressDetails = new AddressDetails();
-					addressDetails.setAddressType(getDataF1Service.getAddressType(address.getAddressType()));
-					addressDetails.setCountry(getDataF1Service.getCountry(address.getCountry()));
-					Map<String, Object> cityMap = getDataF1Service.getState_City_Zip(address.getCity());
-					addressDetails.setState(cityMap.get("STATE").toString());
-					addressDetails.setCity(cityMap.get("CITY").toString());
-					addressDetails.setZipcode(cityMap.get("ZIP").toString());
-					if (StringUtils.hasLength(address.getArea()))
-						addressDetails.setArea(getDataF1Service.getArea(address.getArea(), cityMap.get("CITY").toString()));
-					if (StringUtils.hasLength(address.getLandMark()))
-						addressDetails.setLandMark(address.getLandMark());
-					if (StringUtils.hasLength(address.getAddressLine1()))
-						addressDetails.setAddressLine1(address.getAddressLine1());
-					if (StringUtils.hasLength(address.getAddressLine2()))
-						addressDetails.setAddressLine2(address.getAddressLine2());
-					if (StringUtils.hasLength(address.getAddressLine3()))
-						addressDetails.setAddressLine3(address.getAddressLine3());
-					addressDetails.setYearsInCurrentAddress(Integer.valueOf(address.getYearsInCurrentAddress()));
-					addressDetails.setMonthsInCurrentAddress(Integer.valueOf(address.getMonthsInCurrentAddress()));
-					if(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryAddress().toUpperCase().equals(address.getAddressType().toUpperCase())){
-						addressDetails.setPrimaryAddress(1);
-					}else{
-						addressDetails.setPrimaryAddress(0);
-					}
-					addressDetails.setPhoneNumber(address.getPhoneNumbers().stream().map(this::convertPhoneNumber).collect(Collectors.toList()));
-					addressDetails.setAccomodationType("OTHERS");
-					updateAddressDetails.setAddressDetails(addressDetails);
-					return updateAddressDetails;
-				}).collect(Collectors.toList());
+		try {
+			List<UpdateAddressDetails> updateAddressDetailsList = application.getApplicationInformation().getPersonalInformation().getAddresses()
+					.stream()
+					.map(address -> {
+						UpdateAddressDetails updateAddressDetails = new UpdateAddressDetails();
+						updateAddressDetails.setDeleteFlag(false);
+						AddressDetails addressDetails = new AddressDetails();
+						addressDetails.setAddressType(getDataF1Service.getAddressType(address.getAddressType()));
+						addressDetails.setCountry(getDataF1Service.getCountry(address.getCountry()));
+						Map<String, Object> cityMap = getDataF1Service.getState_City_Zip(address.getCity());
+						addressDetails.setState(cityMap.get("STATE").toString());
+						addressDetails.setCity(cityMap.get("CITY").toString());
+						addressDetails.setZipcode(cityMap.get("ZIP").toString());
+						if (StringUtils.hasLength(address.getArea()))
+							addressDetails.setArea(getDataF1Service.getArea(address.getArea(), cityMap.get("CITY").toString()));
+						if (StringUtils.hasLength(address.getLandMark()))
+							addressDetails.setLandMark(address.getLandMark());
+						if (StringUtils.hasLength(address.getAddressLine1()))
+							addressDetails.setAddressLine1(address.getAddressLine1());
+						if (StringUtils.hasLength(address.getAddressLine2()))
+							addressDetails.setAddressLine2(address.getAddressLine2());
+						if (StringUtils.hasLength(address.getAddressLine3()))
+							addressDetails.setAddressLine3(address.getAddressLine3());
+						if (StringUtils.hasLength(address.getYearsInCurrentAddress()))
+							addressDetails.setYearsInCurrentAddress(Integer.valueOf(address.getYearsInCurrentAddress()));
+						if (StringUtils.hasLength(address.getMonthsInCurrentAddress()))
+							addressDetails.setMonthsInCurrentAddress(Integer.valueOf(address.getMonthsInCurrentAddress()));
+						if(application.getApplicationInformation().getPersonalInformation().getCommunicationDetails().getPrimaryAddress().toUpperCase().equals(address.getAddressType().toUpperCase())){
+							addressDetails.setPrimaryAddress(1);
+						}else{
+							addressDetails.setPrimaryAddress(0);
+						}
+						addressDetails.setPhoneNumber(address.getPhoneNumbers().stream().map(this::convertPhoneNumber).collect(Collectors.toList()));
+						addressDetails.setAccomodationType("OTHERS");
+						updateAddressDetails.setAddressDetails(addressDetails);
+						return updateAddressDetails;
+					}).collect(Collectors.toList());
 
-		return updateAddressDetailsList;
+			return updateAddressDetailsList;
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
 	}
 
 	private vn.com.tpf.microservices.models.Finnone.PersonInfo convertPersonInfo(Application application) {
@@ -763,7 +813,8 @@ public class ConvertService {
 		if(application.getApplicationInformation().getPersonalInformation().getIdentifications().size() == 0){
 			return new ArrayList<>();
 		}
-		List<UpdateIdentificationDetails> updateIdentificationDetailsList = application.getApplicationInformation().getPersonalInformation().getIdentifications()
+
+		return application.getApplicationInformation().getPersonalInformation().getIdentifications()
 				.stream()
 				.map(identification -> {
 					UpdateIdentificationDetails updateIdentificationDetails = new UpdateIdentificationDetails();
@@ -796,8 +847,6 @@ public class ConvertService {
 					updateIdentificationDetails.setIdentificationDetails(identificationDetails);
 					return updateIdentificationDetails;
 				}).collect(Collectors.toList());
-
-		return  updateIdentificationDetailsList;
 	}
 
 	public Application toApplication(JsonNode node){
@@ -829,68 +878,74 @@ public class ConvertService {
 	}
 
 	public String toApplication(JsonNode node, Application application) {
+		StringBuilder sb = new StringBuilder();
 		try {
+			sb.append("FUNC: ").append(new Throwable().getStackTrace()[0].getMethodName());
 			String comment = node.findPath("commentText").asText("");
 			if (StringUtils.isEmpty(comment)){
 				throw new Exception("comment null");
 			}
-			if (node.findPath("dataDocument").isMissingNode()){
-				throw new Exception("dataDocument null");
-			}
-			String fileName = node.findPath("dataDocument").path("fileName").asText("");
-			if (StringUtils.isEmpty(fileName)){
-				throw new Exception("fileName null");
-			}
-			String documentName = node.findPath("dataDocument").path("documentName").asText("");
-			if (StringUtils.isEmpty(documentName)){
-				throw new Exception("documentName null");
-			}
-			String extension = node.findPath("dataDocument").path("contentType").asText("");
-			if (StringUtils.isEmpty(extension)){
-				throw new Exception("contentType null");
-			}
-			String md5 = node.findPath("dataDocument").path("md5").asText("");
-			if (StringUtils.isEmpty(extension)){
-				throw new Exception("md5 null");
-			}
+
 			CommentModel commentModel = new CommentModel();
 			CommentResponseModel commentResponseModel = new CommentResponseModel();
 			commentResponseModel.setComment(comment);
-			fileName = fileName.trim();
-
-			Link link = new Link();
-			link.setUrlFico(fileName);
-			vn.com.tpf.microservices.models.Document document = new vn.com.tpf.microservices.models.Document();
-			document.setType(documentName);
-			document.setOriginalname(documentName + "." + extension);
-			document.setFilename(fileName);
-			document.setLink(link);
-			commentResponseModel.setDocuments(Arrays.asList(document));
-			commentModel.setResponse(commentResponseModel);
-
 			QuickLead quickLead = new QuickLead();
-			QLDocument qlDocument = new QLDocument();
-			qlDocument.setFilename(fileName);
-			qlDocument.setType(documentName);
-			qlDocument.setOriginalname(documentName + "." + extension);
-			qlDocument.setMd5(md5);
-			qlDocument.setContentType(extension);
-			quickLead.setDocumentsComment(Arrays.asList(qlDocument));
-
 			String applicationId = node.findPath("appId").asText("");
 			application.setApplicationId(applicationId);
 			String project = node.findPath("project").asText("");
 			application.setCreateFrom(project);
-			application.setComment(Arrays.asList(commentModel));
 			application.setQuickLead(quickLead);
+
+			if (!node.findPath("dataDocument").isMissingNode()){
+				String fileName = node.findPath("dataDocument").path("fileName").asText("");
+				if (StringUtils.isEmpty(fileName)){
+					throw new Exception("fileName null");
+				}
+				String documentName = node.findPath("dataDocument").path("documentName").asText("");
+				if (StringUtils.isEmpty(documentName)){
+					throw new Exception("documentName null");
+				}
+				String extension = node.findPath("dataDocument").path("contentType").asText("");
+				if (StringUtils.isEmpty(extension)){
+					throw new Exception("contentType null");
+				}
+				String md5 = node.findPath("dataDocument").path("md5").asText("");
+				if (StringUtils.isEmpty(extension)){
+					throw new Exception("md5 null");
+				}
+				fileName = fileName.trim();
+				Link link = new Link();
+				link.setUrlFico(fileName);
+				vn.com.tpf.microservices.models.Document document = new vn.com.tpf.microservices.models.Document();
+				document.setType(documentName);
+				document.setOriginalname(documentName + "." + extension);
+				document.setFilename(fileName);
+				document.setLink(link);
+				commentResponseModel.setDocuments(Collections.singletonList(document));
+
+				QLDocument qlDocument = new QLDocument();
+				qlDocument.setFilename(fileName);
+				qlDocument.setType(documentName);
+				qlDocument.setOriginalname(documentName + "." + extension);
+				qlDocument.setMd5(md5);
+				qlDocument.setContentType(extension);
+				quickLead.setDocumentsComment(Collections.singletonList(qlDocument));
+			}
+			commentModel.setResponse(commentResponseModel);
+
+			application.setComment(Collections.singletonList(commentModel));
 			return "";
 		}catch (Exception e){
-			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
-			return "func: " + new Throwable().getStackTrace()[0].getMethodName() + error;
+			sb.append(" - EXCEPTION: ").append(e.toString())
+					.append(" - CLASS: ").append(e.getStackTrace()[0].getClassName())
+					.append(" - LINE: ").append(e.getStackTrace()[0].getLineNumber());
+			return e.toString();
+		}finally {
+			log.info("{}", sb);
 		}
 	}
 
-    public JsonNode toCancelApiF1(Application application) {
+	public JsonNode toCancelApiF1(Application application) {
 		ObjectNode objectNode = mapper.createObjectNode();
 		try {
 			List<String> reasonCodeList = Arrays.asList(application.getReasonCancel().split(";"));
@@ -899,7 +954,7 @@ public class ConvertService {
 			objectNode.set("reasonCodelist", mapper.convertValue(reasonCodeList, ArrayNode.class));
 			objectNode.put("comment", application.getDescription());
 			objectNode.put("operationFlag", "CANCEL");
-			objectNode.put("userID", "casadmin");
+			objectNode.put("userID", "serviceacc_api_cancel");
 			objectNode.put("productProcessor", "EXTERNAL");
 		}catch (Exception e){
 			log.error(e.getMessage(), e);

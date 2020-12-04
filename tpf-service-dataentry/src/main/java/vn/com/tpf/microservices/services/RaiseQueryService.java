@@ -52,8 +52,8 @@ public class RaiseQueryService {
     @Value("${spring.url.esb.responsequery}")
     private String urlResponseQuery;
 
-    public Map<String, Object> addRaiseQuery(JsonNode request) {
-        String slog="addRaiseQuery:" + request.get("body").asText();
+    public Map<String, Object> addRaiseQuery(JsonNode request) throws JsonProcessingException {
+        String slog="addRaiseQuery:" + mapper.writeValueAsString(request);
 
         ResponseModel responseModel = new ResponseModel();
         String referenceId = UUID.randomUUID().toString();
@@ -65,7 +65,7 @@ public class RaiseQueryService {
 
             //call function add comment cua Trung here, de gia lap hien thi tren porta IH
             new Thread(() -> {
-                String err = callCommentApp();
+                String err = callCommentApp(requestModel.getApplicationNo());
                 if (StringUtils.hasLength(err)){
                     log.info("callComment ---------------------> {}", err);
                 }
@@ -78,7 +78,7 @@ public class RaiseQueryService {
             responseModel.setResult_code("0");
         }
         catch (Exception e) {
-            slog+="; ERROR: " + e.toString();
+            slog += " - exception: " + e.toString() + "; class: " + e.getStackTrace()[0].getClassName() + "; line: " + e.getStackTrace()[0].getLineNumber();
             responseModel.setRequest_id(referenceId);
             responseModel.setReference_id(referenceId);
             responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -171,17 +171,15 @@ public class RaiseQueryService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    private String callCommentApp() {
+    private String callCommentApp(String applicationNo) {
+        String slog = new Throwable().getStackTrace()[0].getMethodName() + ": " + applicationNo;
         try {
             Query query = new Query();
-            query.addCriteria(Criteria.where("queryStatus").is("Raised"));
+            query.addCriteria(Criteria.where("queryStatus").is("Raised").and("applicationNo").is(applicationNo));
             query.with(Sort.by(Sort.Direction.DESC, "createdDate"));
             List<RaiseQueryModel> raiseQueryModel = mongoTemplate.find(query, RaiseQueryModel.class);
 
-            Set<String> listAppId = raiseQueryModel.stream().map(RaiseQueryModel::getApplicationNo).collect(Collectors.toSet());
-            log.info("listAppId -----------------> {}", listAppId.toString());
-
-            Criteria criteria = Criteria.where("applicationId").in(listAppId);
+            Criteria criteria = Criteria.where("applicationId").is(applicationNo);
             criteria = criteria.and("createFrom").in(null, "WEB", "web");
             criteria = criteria.and("partnerId").is("3");
             criteria = criteria.andOperator(new Criteria().orOperator(Criteria.where("comment").is(null), Criteria.where("comment.response").ne(null)));
@@ -191,8 +189,8 @@ public class RaiseQueryService {
             if (applications.size() <= 0){
                 throw new Exception("app not exist");
             }
-            log.info("applications -----------------> {}", applications.toString());
 
+            slog += " - applications commented: " + applications.stream().map(Application::getApplicationId).collect(Collectors.joining(";"));
             applications.stream().map(application -> {
                 raiseQueryModel
                         .stream()
@@ -223,8 +221,10 @@ public class RaiseQueryService {
             }).collect(Collectors.toList());
             return "";
         }catch (Exception e){
-            log.info("exception ----------------> {}", e.toString());
+            slog += " - exception: " + e.toString() + "; class: " + e.getStackTrace()[0].getClassName() + "; line: " + e.getStackTrace()[0].getLineNumber();
             return e.getMessage();
+        } finally {
+            log.info("{}", slog);
         }
     }
 }

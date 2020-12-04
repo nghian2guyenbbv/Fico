@@ -36,6 +36,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.sql.Timestamp;
 import java.util.*;
 
 @Service
@@ -106,8 +107,8 @@ public class ApiService {
 		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
 
 		SimpleClientHttpRequestFactory upFile3P = new SimpleClientHttpRequestFactory();
-		scrfCall3P.setConnectTimeout(300_000);
-		scrfCall3P.setReadTimeout(300_000);
+		upFile3P.setConnectTimeout(600_000);
+		upFile3P.setReadTimeout(600_000);
 		ClientHttpRequestFactory factoryUpFile3P = new BufferingClientHttpRequestFactory(upFile3P);
 		restTemplate3P = new RestTemplate(factoryUpFile3P);
 
@@ -2495,5 +2496,31 @@ public class ApiService {
 			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
 			throw new Exception("func: " + new Throwable().getStackTrace()[0].getMethodName() + ": " + error);
 		}
+	}
+
+	public String getTokenDGT(String url, Map account){
+		String slog = "func: " + new Throwable().getStackTrace()[0].getMethodName();
+		try {
+			HttpHeaders headersAuth = new HttpHeaders();
+			headersAuth.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			MultiValueMap<String, String> mapToken= new LinkedMultiValueMap<String, String>();
+			mapToken.add("username", account.get("userName").toString());
+			mapToken.add("password", account.get("passWord").toString());
+			mapToken.add("client_id", account.get("userAuthorization").toString());
+			mapToken.add("client_secret", account.get("passwordAuthorization").toString());
+			mapToken.add("grant_type", "password");
+			HttpEntity<MultiValueMap<String, String>> requestToken = new HttpEntity<MultiValueMap<String, String>>(mapToken, headersAuth);
+			slog += " - request: " + requestToken.toString();
+			ResponseEntity<?> responseGetToken = restTemplate.postForEntity(url, requestToken , Object.class );
+			slog += " - response: " + responseGetToken.toString();
+			JsonNode body = mapper.convertValue(responseGetToken.getBody(), JsonNode.class);
+			String tokenPartner = body.path("access_token").asText();
+			return tokenPartner;
+		}catch (Exception e){
+			slog += " - exception: " + e.toString() + " - line: " + e.getStackTrace()[0].getLineNumber();
+		}finally {
+			log.info("{}", slog);
+		}
+		return "";
 	}
 }

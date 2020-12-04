@@ -4,7 +4,6 @@ import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 //@Document(collection = "dataentry")
@@ -36,4 +35,5 @@ public class QuickLead {
 
     private String partnerId;
     private String customerId;
+    private String alternateChannelMode;
 }

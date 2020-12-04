@@ -56,7 +56,13 @@ public class GetDataF1Service {
 
     public String getSourcingChannel(String sourcingChannel){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("sourcingChannel", sourcingChannel);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='SourcingChannel' AND NAME = :sourcingChannel";
+        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='SourcingChannel' AND LOWER(NAME) = LOWER(:sourcingChannel)";
+        return executeQuery(sql, namedParameters);
+    }
+
+    public String getAlternateChannelMode(String alternateChannelMode){
+        SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("alternateChannelMode", alternateChannelMode);
+        String sql = "SELECT CODE from NEO_CAS_LMS_GA25_GIR_SD.generic_parameter WHERE LOWER(DTYPE)=LOWER('AlternateChannelMode') AND LOWER(NAME) = LOWER(:alternateChannelMode)";
         return executeQuery(sql, namedParameters);
     }
 
