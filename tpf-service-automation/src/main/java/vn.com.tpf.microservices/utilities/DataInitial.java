@@ -736,7 +736,7 @@ public class DataInitial {
                     .project(waiveFieldDTOList.getProject())
                     .referenceId(waiveFieldDTOList.getReference_id())
                     .transactionId(waiveFieldDTOList.getTransaction_id())
-                    .funcProject("WaiveField")
+                    .projectAuto("WAIVEFIELD")
                     .build();
             waiveFieldDTOs.add(waiveFieldDTO);
         }
@@ -756,7 +756,7 @@ public class DataInitial {
                     .project(submitFieldDTOList.getProject())
                     .referenceId(submitFieldDTOList.getReference_id())
                     .transactionId(submitFieldDTOList.getTransaction_id())
-                    .funcProject("SubmitField")
+                    .projectAuto("SUBMITFIELD")
                     .phoneConfirmed(submitField.getPhoneConfirmed())
                     .resultHomeVisit(submitField.getResultHomeVisit())
                     .resultOfficeVisit(submitField.getResultOfficeVisit())

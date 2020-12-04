@@ -5660,7 +5660,6 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
-            logoutV2(driver, accountDTO);
             if (driver != null) {
                 driver.close();
                 driver.quit();
@@ -5699,18 +5698,6 @@ public class AutomationHandlerService {
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             Utilities.captureScreenShot(driver);
             loginPage.clickLogin();
-
-            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
-
-            if (checkLogin){
-                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
-                if ("Your page is expired. Please login again".equals(messErrorlogin)){
-                    LoginPage loginPage2 = new LoginPage(driver);
-                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-                    Utilities.captureScreenShot(driver);
-                    loginPage2.clickLogin();
-                }
-            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6114,6 +6101,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
+            logoutV2(driver, accountDTO);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
@@ -6145,18 +6133,6 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
-            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
-
-            if (checkLogin){
-                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
-                if ("Your page is expired. Please login again".equals(messErrorlogin)){
-                    LoginPage loginPage2 = new LoginPage(driver);
-                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-                    Utilities.captureScreenShot(driver);
-                    loginPage2.clickLogin();
-                }
-            }
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6499,6 +6475,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
+            logoutV2(driver, accountDTO);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
@@ -6531,18 +6508,6 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
-            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
-
-            if (checkLogin){
-                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
-                if ("Your page is expired. Please login again".equals(messErrorlogin)){
-                    LoginPage loginPage2 = new LoginPage(driver);
-                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-                    Utilities.captureScreenShot(driver);
-                    loginPage2.clickLogin();
-                }
-            }
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6887,8 +6852,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            autoUpdateStatusRabbit(responseModel, "updateAutomation");
             logoutV2(driver, accountDTO);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
 
