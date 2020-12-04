@@ -11,6 +11,8 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -141,29 +143,11 @@ public class FV_WaiveFieldPage {
     }
 
     public void setData(WaiveFieldDTO waiveFieldDTO, String user) {
+        WebDriverWait wait = new WebDriverWait(_driver, 10);
         String stage = "";
-
-        /*menuApplicationElement.click();
-
-        applicationManagerElement.click();*/
 
         // ========== APPLICATION MANAGER =================
         stage = "APPLICATION MANAGER";
-
-        /*await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Manager"));
-
-        await("applicationManagerFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationManagerFormElement.isDisplayed());
-
-        applicationNumberElement.sendKeys(waiveFieldDTO.getAppId());
-        searchApplicationElement.click();
-
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdApplicationElement.size() > 2);
-
-        await("Stage wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> "FII".equals(tdCheckStageApplicationElement.getText()));*/
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
@@ -224,32 +208,43 @@ public class FV_WaiveFieldPage {
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
 
         System.out.println(tdCurrentVerificationStatus.getText());
-        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
 
-            btnWaiveOffAllElement.click();
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("button Waive Off All Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnWaiveOffAllElement.isDisplayed() && btnWaiveOffAllElement.isEnabled());
 
-            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableInDialogElement.size() > 2);
+        btnWaiveOffAllElement.click();
 
-        }else{
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tableInDialogElement.size() > 2);
 
-            btnViewDetails.click();
-
-            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableInDialogElement2.isDisplayed());
-
-            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> btnInverse.isDisplayed());
-
-            if(tableFiiBtnAddElement.size() < 2){
-
-                btnInverse.click();
-
-                await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> tableFiiBtnAddElement.size() > 1);
-            }
-
-        }
+//        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
+//
+//            btnWaiveOffAllElement.click();
+//
+//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> tableInDialogElement.size() > 2);
+//
+//        }else{
+//
+//            btnViewDetails.click();
+//
+//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> tableInDialogElement2.isDisplayed());
+//
+//            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> btnInverse.isDisplayed());
+//
+//            if(tableFiiBtnAddElement.size() < 2){
+//
+//                btnInverse.click();
+//
+//                await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> tableFiiBtnAddElement.size() > 1);
+//            }
+//
+//        }
 
         await("selectReasonCodeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> selectReasonCodeElement.isDisplayed());
@@ -258,6 +253,8 @@ public class FV_WaiveFieldPage {
 
         await("btnWaiveOffVerificationPopupElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnWaiveOffVerificationPopupElement.isDisplayed());
+
+        wait.until(ExpectedConditions.elementToBeClickable(btnWaiveOffVerificationPopupElement));
 
         btnWaiveOffVerificationPopupElement.click();
 
@@ -268,13 +265,15 @@ public class FV_WaiveFieldPage {
 //                .until(() -> "false".equals(popupError.isDisplayed()));
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isEnabled());
 
+
+        wait.until(ExpectedConditions.elementToBeClickable(btnMoveToNextStageElement));
         btnMoveToNextStageElement.click();
 
 //        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
