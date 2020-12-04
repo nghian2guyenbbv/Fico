@@ -7077,7 +7077,7 @@ public class AutomationHandlerService {
         }
     }
 
-    //------------------------ AUTO ALLOCATION -----------------------------------------------------
+    //region PROJECT: AUTO ALLOCATION
     public void runAutomation_autoAssignAllocation(Map<String, Object> mapValue, String project, String browser) throws Exception {
         String stage = "";
         try {
@@ -7271,8 +7271,10 @@ public class AutomationHandlerService {
                     responseModel.setData(resultRespone);
                     autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
 
-                    AutoAssignAllocationPage autoAssignAllocationFailedPage = new AutoAssignAllocationPage(driver);
-                    autoAssignAllocationFailedPage.getBackBtnElement().click();
+                    WebElement buttonBackElement = driver.findElement(By.xpath("//*[contains(@class,'backSaveBtns')]//input[@type='button']"));
+
+                    buttonBackElement.click();
+
                     await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Manager"));
 
@@ -7340,5 +7342,5 @@ public class AutomationHandlerService {
 //        }
     }
 
-    //------------------------ END AUTO ALLOCATION -----------------------------------------------------
+    //endregion
 }

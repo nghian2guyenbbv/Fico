@@ -139,7 +139,14 @@ public class AutoAssignAllocationPage {
 
         System.out.println("Search User Assign" + ": DONE");
 
-        selectUserOption(user);
+        for (WebElement e : textSelectUserOptionElement) {
+            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
+                e.click();
+                break;
+            }
+        }
+
+//        selectUserOption(user);
 
         System.out.println("Assign User Auto" + ": DONE");
 
