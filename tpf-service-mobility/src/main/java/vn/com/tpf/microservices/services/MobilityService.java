@@ -1129,27 +1129,27 @@ public class MobilityService {
 			}
 		}
 
-		if (mobilityfieldSender.size() > 0) {
-			new Thread(() -> {
-				try {
-					int sendCount = 0;
-					do {
-						ArrayNode array = mapper.convertValue(mobilityfieldSender, ArrayNode.class);
-						JsonNode result = apiService.pushCeateFieldEsb(array,
-								request.path("body").path("request_id").asText());
-						if (result.path("resultCode").asText().equals("200")) {
-							return;
-						}
-						sendCount++;
-						Thread.sleep(5 * 60 * 1000);
-					} while (sendCount <= 2);
-				} catch (Exception e) {
-					log.info("{}", utils.getJsonNodeResponse(0, request.path("body"),
-							mapper.createObjectNode().put("message", e.getMessage())));
-				}
-			}).start();
-
-		}
+//		if (mobilityfieldSender.size() > 0) {
+//			new Thread(() -> {
+//				try {
+//					int sendCount = 0;
+//					do {
+//						ArrayNode array = mapper.convertValue(mobilityfieldSender, ArrayNode.class);
+//						JsonNode result = apiService.pushCeateFieldEsb(array,
+//								request.path("body").path("request_id").asText());
+//						if (result.path("resultCode").asText().equals("200")) {
+//							return;
+//						}
+//						sendCount++;
+//						Thread.sleep(5 * 60 * 1000);
+//					} while (sendCount <= 2);
+//				} catch (Exception e) {
+//					log.info("{}", utils.getJsonNodeResponse(0, request.path("body"),
+//							mapper.createObjectNode().put("message", e.getMessage())));
+//				}
+//			}).start();
+//
+//		}
 
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
