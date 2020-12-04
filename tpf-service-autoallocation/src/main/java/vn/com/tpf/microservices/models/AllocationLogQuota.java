@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 @Data
 public class AllocationLogQuota {
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
 

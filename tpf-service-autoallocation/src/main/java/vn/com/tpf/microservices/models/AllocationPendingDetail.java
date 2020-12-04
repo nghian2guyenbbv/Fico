@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 public class AllocationPendingDetail {
     @Id
     @Column(name = "ID")
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
     @Column(name = "APP_NUMBER")
     private String appNumber;

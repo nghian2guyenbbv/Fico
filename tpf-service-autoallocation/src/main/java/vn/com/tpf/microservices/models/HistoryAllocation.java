@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 public class HistoryAllocation {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "ID_HISTORY")
     private Long idHistory;
 

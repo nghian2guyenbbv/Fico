@@ -60,4 +60,7 @@ public class ETLDataPush {
     @Column(name = "VENDOR_NAME")
     private String vendorName;
 
+    @Column(name = "ASSIGNED_FLAG")
+    private String assignedFlag;
+
 }

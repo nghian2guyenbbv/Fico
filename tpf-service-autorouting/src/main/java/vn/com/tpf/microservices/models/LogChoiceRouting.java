@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 public class LogChoiceRouting {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "id_log")
     private Long idLog;
 
