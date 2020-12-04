@@ -3886,6 +3886,7 @@ public class AutomationHandlerService {
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 
+    //region PROJECT: AUTO SMARTNET
     //------------------------ RESPONSE_QUERY-----------------------------------------------------
     private LoginDTO return_pollAccountFromQueue(Queue<LoginDTO> accounts, String project, Map<String, Object> mapValue) throws Exception {
         LoginDTO accountDTO = null;
@@ -4452,7 +4453,9 @@ public class AutomationHandlerService {
 
     }
     //------------------------ END SMARTNET -----------------------------------------------------
+    //endregion
 
+    //region PROJECT: AUTO MOBILITY
     //------------------------ QUICKLEAD - MOBILITY-----------------------------------------------------
     public void MOBILITY_runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
@@ -5251,8 +5254,9 @@ public class AutomationHandlerService {
     }
 
     //------------------------ END UPDATE RABBITMQ -----------------------------------------------------
+    //endregion
 
-    //------------------------ PROJECT CRM -----------------------------------------------------
+    //region PROJECT: AUTO CRM
     //------------------------ QUICKLEAD CRM -----------------------------------------------------
     public void CRM_runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO, String project) throws Exception {
         Instant start = Instant.now();
@@ -6893,7 +6897,7 @@ public class AutomationHandlerService {
 
     //------------------------ END EXISTING CUSTOMER -----------------------------------------------------
 
-    //------------------------ END PROJECT CRM -----------------------------------------------------
+    //endregion
 
     public void runAutomation_QuickLead_Assign_Pool(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
