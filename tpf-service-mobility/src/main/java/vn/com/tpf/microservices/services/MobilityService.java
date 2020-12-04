@@ -153,7 +153,8 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.district not blank"));
 		if (data.path("city").asText().isBlank())
-			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode());
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.city not blank"));
 		JsonNode address = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getAddressFinnOne", "reference_id", body.path("reference_id"), "param",
 						Map.of("areaCode", data.path("district").asText())));
@@ -463,20 +464,12 @@ public class MobilityService {
 		}
 		update.set("partnerId", partnerId);
 		update.set("partnerName", partnerName);
-		if(1 == partnerId || 2 == partnerId) {
-			if(1 == partnerId){
-				rabbitMQService.send("tpf-service-dataentry", Map.of("func", "sendAppNonWeb", "body",
-						convertService.toSendAppNonWebFinnone(mobility, partnerId ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
-			} else {
-				rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
-						convertService.toSendAppNonWebFinnone(mobility, partnerId, body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
-			}
-			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Mobility.class);
-		} else {
-			rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
+
+		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Mobility.class);
+
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
 					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
-		}
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
@@ -659,6 +652,17 @@ public class MobilityService {
 							mapper.createObjectNode().put("message", e.getMessage())));
 				}
 			}).start();
+
+			if(1 == mobility.getPartnerId() || 2 == mobility.getPartnerId()) {
+				if(1 == mobility.getPartnerId()){
+					rabbitMQService.send("tpf-service-dataentry", Map.of("func", "sendAppNonWeb", "body",
+							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId() ,request.path("reference_id").asText()).put("reference_id", request.path("reference_id").asText())));
+				} else {
+					rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "sendAppNonWeb", "body",
+							convertService.toSendAppNonWebFinnone(mobility, mobility.getPartnerId(), request.path("reference_id").asText()).put("reference_id", request.path("reference_id").asText())));
+				}
+
+			}
 
 		}
 		if (automationResult.contains(AUTOMATION_QUICKLEAD_FAILED)) {
@@ -1125,27 +1129,27 @@ public class MobilityService {
 			}
 		}
 
-		if (mobilityfieldSender.size() > 0) {
-			new Thread(() -> {
-				try {
-					int sendCount = 0;
-					do {
-						ArrayNode array = mapper.convertValue(mobilityfieldSender, ArrayNode.class);
-						JsonNode result = apiService.pushCeateFieldEsb(array,
-								request.path("body").path("request_id").asText());
-						if (result.path("resultCode").asText().equals("200")) {
-							return;
-						}
-						sendCount++;
-						Thread.sleep(5 * 60 * 1000);
-					} while (sendCount <= 2);
-				} catch (Exception e) {
-					log.info("{}", utils.getJsonNodeResponse(0, request.path("body"),
-							mapper.createObjectNode().put("message", e.getMessage())));
-				}
-			}).start();
-
-		}
+//		if (mobilityfieldSender.size() > 0) {
+//			new Thread(() -> {
+//				try {
+//					int sendCount = 0;
+//					do {
+//						ArrayNode array = mapper.convertValue(mobilityfieldSender, ArrayNode.class);
+//						JsonNode result = apiService.pushCeateFieldEsb(array,
+//								request.path("body").path("request_id").asText());
+//						if (result.path("resultCode").asText().equals("200")) {
+//							return;
+//						}
+//						sendCount++;
+//						Thread.sleep(5 * 60 * 1000);
+//					} while (sendCount <= 2);
+//				} catch (Exception e) {
+//					log.info("{}", utils.getJsonNodeResponse(0, request.path("body"),
+//							mapper.createObjectNode().put("message", e.getMessage())));
+//				}
+//			}).start();
+//
+//		}
 
 		return utils.getJsonNodeResponse(0, request.path("body"), null);
 	}
