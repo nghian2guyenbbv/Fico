@@ -273,7 +273,13 @@ public class AutomationHandlerService {
                     runAutomation_Field(driver, mapValue, browser, project);
                     break;
                 case "runAutomation_Submit_Field":
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    SeleniumGridDriver setupSubmitFieldDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupSubmitFieldDriver.getDriver();
                     runAutomation_Submit_Fields_run(driver, mapValue, accountDTO);
                     break;
                 case "MOBILITY_quickLead":
@@ -295,9 +301,13 @@ public class AutomationHandlerService {
                     CRM_runAutomation_QuickLead_With_CustID(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead":
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
-//                    SeleniumGridDriver setupQuickLeadDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-//                    driver = setupQuickLeadDriver.getDriver();
+                    SeleniumGridDriver setupQuickLeadDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupQuickLeadDriver.getDriver();
                     CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
                     break;
                 case "runAutomation_ResponseQuery":
