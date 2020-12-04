@@ -187,7 +187,7 @@ public class CRM_QuickLeadPage {
             await("alternateChannelModeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> alternateChannelModeOptionElement.size() >0);
 
-            alternateChannelModeInputElement.sendKeys(quickLead.getSourcingChannel());
+            alternateChannelModeInputElement.sendKeys(quickLead.getAlternateChannelMode());
             alternateChannelModeInputElement.sendKeys(Keys.ENTER);
         }
 

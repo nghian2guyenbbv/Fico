@@ -221,36 +221,42 @@ public class FV_FieldVerificationPage {
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
 
         System.out.println(tdCurrentVerificationStatus.getText());
-        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
 
-            btnInitiateVerificationElement.click();
+        btnInitiateVerificationElement.click();
 
-            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableInDialogElement.size() > 2);
+        await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tableInDialogElement.size() > 2);
 
-        }else{
-
-            btnViewDetails.click();
-
-            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tableInDialogElement.size() > 2);
-
-            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> btnInverse.isDisplayed());
-
-            if(tableFiiBtnAddElement.size() < 2){
-
-                btnInverse.click();
-
-                JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
-                btnInverseJE.executeScript("arguments[0].click();", btnInverse);
-
-
-                await("Line visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> tableFiiBtnAddElement.size() > 1);
-            }
-
-        }
+//        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
+//
+//            btnInitiateVerificationElement.click();
+//
+//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> tableInDialogElement.size() > 2);
+//
+//        }else{
+//
+//            btnViewDetails.click();
+//
+//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> tableInDialogElement.size() > 2);
+//
+//            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> btnInverse.isDisplayed());
+//
+//            if(tableFiiBtnAddElement.size() < 2){
+//
+//                btnInverse.click();
+//
+//                JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
+//                btnInverseJE.executeScript("arguments[0].click();", btnInverse);
+//
+//
+//                await("Line visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> tableFiiBtnAddElement.size() > 1);
+//            }
+//
+//        }
 
         await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbVerificationTypeElement.isDisplayed());

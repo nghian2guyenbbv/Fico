@@ -178,7 +178,7 @@ public class FV_FieldInvestigationVerificationPage {
     @CacheLookup
     private WebElement remarksDescriptionTextArea;
 
-    @FindBy(how = How.XPATH, using = "//div[@class = 'txt-r']//input[@id = 'move_to_next_stage']")
+    @FindBy(how = How.XPATH, using = "//input[@id = 'move_to_next_stage']")
     @CacheLookup
     private WebElement buttonSaveAndProceed;
 
@@ -189,6 +189,11 @@ public class FV_FieldInvestigationVerificationPage {
     @FindBy(how = How.XPATH, using = "//input[@id = 'field_investigation_entry_fDate']")
     @CacheLookup
     private WebElement verificationDateElement;
+
+    @FindBy(how = How.XPATH, using = "//textarea[@id = 'field_investigation_entry_remarks']")
+    @CacheLookup
+    private WebElement textareaRemarkElement;
+
 
     public FV_FieldInvestigationVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -411,12 +416,23 @@ public class FV_FieldInvestigationVerificationPage {
         await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> buttonSaveAndProceed.isEnabled());
 
-        buttonSaveAndProceed.click();
+        textareaRemarkElement.click();
 
-        System.out.println("Button Save And Proceed" + ": DONE");
+        Thread.sleep(5000);
+
+        Actions actionKey = new Actions(_driver);
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.ENTER).build().perform();
+
+//        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
+//        jseMoveToNextStage.executeScript("arguments[0].click();", buttonSaveAndProceed);
 
         await("FI Entries Grid timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("FI Entries Grid"));
+
+        System.out.println("FI Entries Grid" + ": DONE");
 
         Utilities.captureScreenShot(_driver);
     }

@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -280,7 +281,13 @@ public class AutomationHandlerService {
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Existing_Customer":
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    SeleniumGridDriver setupExistingCustDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupExistingCustDriver.getDriver();
                     runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
@@ -289,6 +296,8 @@ public class AutomationHandlerService {
                     break;
                 case "CRM_quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+//                    SeleniumGridDriver setupQuickLeadDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+//                    driver = setupQuickLeadDriver.getDriver();
                     CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
                     break;
                 case "runAutomation_ResponseQuery":
@@ -304,7 +313,13 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead_Assign_Pool(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Sale_Queue_With_FullInfo":
+                    if (driver != null) {
+                        driver.close();
+                        driver.quit();
+                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    SeleniumGridDriver setupSendbackDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupSendbackDriver.getDriver();
                     runAutomation_SendBack(driver, mapValue, accountDTO);
                     break;
             }
@@ -3864,6 +3879,7 @@ public class AutomationHandlerService {
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 
+    //region PROJECT: AUTO SMARTNET
     //------------------------ RESPONSE_QUERY-----------------------------------------------------
     private LoginDTO return_pollAccountFromQueue(Queue<LoginDTO> accounts, String project, Map<String, Object> mapValue) throws Exception {
         LoginDTO accountDTO = null;
@@ -4430,7 +4446,9 @@ public class AutomationHandlerService {
 
     }
     //------------------------ END SMARTNET -----------------------------------------------------
+    //endregion
 
+    //region PROJECT: AUTO MOBILITY
     //------------------------ QUICKLEAD - MOBILITY-----------------------------------------------------
     public void MOBILITY_runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
@@ -5229,8 +5247,9 @@ public class AutomationHandlerService {
     }
 
     //------------------------ END UPDATE RABBITMQ -----------------------------------------------------
+    //endregion
 
-    //------------------------ PROJECT CRM -----------------------------------------------------
+    //region PROJECT: AUTO CRM
     //------------------------ QUICKLEAD CRM -----------------------------------------------------
     public void CRM_runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO, String project) throws Exception {
         Instant start = Instant.now();
@@ -5396,7 +5415,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             try {
-                CRM_updateStatusRabbit(application, "updateAutomation", project);
+                CRM_updateStatusRabbit(application, "updateAutomation", project.toLowerCase());
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
@@ -5638,7 +5657,6 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("DONE: " + accountDTO.getUserName() + " - SessionId: " + session);
-            logoutV2(driver, accountDTO);
             if (driver != null) {
                 driver.close();
                 driver.quit();
@@ -5677,18 +5695,6 @@ public class AutomationHandlerService {
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             Utilities.captureScreenShot(driver);
             loginPage.clickLogin();
-
-            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
-
-            if (checkLogin){
-                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
-                if ("Your page is expired. Please login again".equals(messErrorlogin)){
-                    LoginPage loginPage2 = new LoginPage(driver);
-                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-                    Utilities.captureScreenShot(driver);
-                    loginPage2.clickLogin();
-                }
-            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6006,10 +6012,17 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            WebDriverWait wait = new WebDriverWait(driver, 10);
-            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6085,6 +6098,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
+            logoutV2(driver, accountDTO);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
@@ -6116,18 +6130,6 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
-            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
-
-            if (checkLogin){
-                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
-                if ("Your page is expired. Please login again".equals(messErrorlogin)){
-                    LoginPage loginPage2 = new LoginPage(driver);
-                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-                    Utilities.captureScreenShot(driver);
-                    loginPage2.clickLogin();
-                }
-            }
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6385,10 +6387,17 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            WebDriverWait wait = new WebDriverWait(driver, 10);
-            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6463,6 +6472,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
+            logoutV2(driver, accountDTO);
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
@@ -6495,18 +6505,6 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             loginPage.clickLogin();
-
-            boolean checkLogin = driver.findElements(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).size() != 0;
-
-            if (checkLogin){
-                String messErrorlogin = driver.findElement(By.xpath("//div[@id = 'login_box_id']//div[@id = 'error-msg']")).getAttribute("innerHTML").trim();
-                if ("Your page is expired. Please login again".equals(messErrorlogin)){
-                    LoginPage loginPage2 = new LoginPage(driver);
-                    loginPage2.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-                    Utilities.captureScreenShot(driver);
-                    loginPage2.clickLogin();
-                }
-            }
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6763,10 +6761,18 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            WebDriverWait wait = new WebDriverWait(driver, 10);
-            wait.until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            if (waitPopupNotify){
+                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+            }else{
+                (new WebDriverWait(driver, 15))
+                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+
+                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            }
+
 
             Utilities.captureScreenShot(driver);
 
@@ -6843,8 +6849,8 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            autoUpdateStatusRabbit(responseModel, "updateAutomation");
             logoutV2(driver, accountDTO);
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
 
@@ -6884,7 +6890,7 @@ public class AutomationHandlerService {
 
     //------------------------ END EXISTING CUSTOMER -----------------------------------------------------
 
-    //------------------------ END PROJECT CRM -----------------------------------------------------
+    //endregion
 
     public void runAutomation_QuickLead_Assign_Pool(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
@@ -7068,7 +7074,7 @@ public class AutomationHandlerService {
         }
     }
 
-    //------------------------ AUTO ALLOCATION -----------------------------------------------------
+    //region PROJECT: AUTO ALLOCATION
     public void runAutomation_autoAssignAllocation(Map<String, Object> mapValue, String project, String browser) throws Exception {
         String stage = "";
         try {
@@ -7320,5 +7326,5 @@ public class AutomationHandlerService {
         }
     }
 
-    //------------------------ END AUTO ALLOCATION -----------------------------------------------------
+    //endregion
 }

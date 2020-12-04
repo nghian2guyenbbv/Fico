@@ -210,7 +210,7 @@ public class FV_WaiveFieldPage {
         System.out.println(tdCurrentVerificationStatus.getText());
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("button Waive Off All Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("button Waive Off All Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnWaiveOffAllElement.isDisplayed() && btnWaiveOffAllElement.isEnabled());
 
         btnWaiveOffAllElement.click();
@@ -265,11 +265,11 @@ public class FV_WaiveFieldPage {
 //                .until(() -> "false".equals(popupError.isDisplayed()));
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isEnabled());
 
 
