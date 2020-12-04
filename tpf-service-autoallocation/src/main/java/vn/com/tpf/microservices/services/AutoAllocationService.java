@@ -470,6 +470,7 @@ public class AutoAllocationService {
                 ETLDataPush etlDataPush = null;
                 if (listEtlDataPush.isEmpty()) {
                     etlDataPush = new ETLDataPush();
+                    etlDataPush.setAssignedFlag("N");
                     saveEtlDataPush(etlDataPush, requestModel);
                 } else {
                     etlDataPush = listEtlDataPush.get(0);
@@ -487,6 +488,7 @@ public class AutoAllocationService {
     }
 
     private void saveEtlDataPush(ETLDataPush etlDataPush, RequestModel requestModel) {
+        log.info("saveEtlDataPush - ETLDataPush: {}", etlDataPush);
         etlDataPush.setAppNumber(requestModel.getApplicationNo());
         etlDataPush.setCreateDate(requestModel.getCreatedDate());
         etlDataPush.setCreateUser(requestModel.getCreatedUser());
