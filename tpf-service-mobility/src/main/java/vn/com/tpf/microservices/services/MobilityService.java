@@ -843,8 +843,8 @@ public class MobilityService {
 					Map.of("returnQueries", returnQueriesNew, "returnQueues", returns.path("returnQueues")));
 		else
 			update.set("returns", Map.of("returnQueries", returnQueriesNew));
-		update.set("status", STATUS_RESUBMITING);
-
+//		update.set("status", STATUS_RESUBMITING);
+//
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 		if(3 != mobility.getPartnerId() && !mobility.getStatus().equals(STATUS_T_RETURN) ){
@@ -859,7 +859,10 @@ public class MobilityService {
 			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
 					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 		}
+		update.set("status", STATUS_RESUBMITING);
 
+		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+				Mobility.class);
 
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
