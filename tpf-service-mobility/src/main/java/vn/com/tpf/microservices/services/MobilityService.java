@@ -847,7 +847,7 @@ public class MobilityService {
 
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
-		if(3 != mobility.getPartnerId()){
+		if(3 != mobility.getPartnerId() && !mobility.getStatus().equals(STATUS_T_RETURN) ){
 			if(1 == mobility.getPartnerId()){
 				rabbitMQService.send("tpf-service-dataentry", Map.of("func", "commentAppNonWeb", "body",
 						convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
