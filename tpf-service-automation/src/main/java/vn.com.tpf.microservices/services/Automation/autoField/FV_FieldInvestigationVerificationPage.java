@@ -420,14 +420,14 @@ public class FV_FieldInvestigationVerificationPage {
 
         Thread.sleep(5000);
 
-        Actions actionKey = new Actions(_driver);
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.ENTER).build().perform();
+//        Actions actionKey = new Actions(_driver);
+//        actionKey.sendKeys(Keys.TAB).build().perform();
+//        actionKey.sendKeys(Keys.TAB).build().perform();
+//        actionKey.sendKeys(Keys.TAB).build().perform();
+//        actionKey.sendKeys(Keys.ENTER).build().perform();
 
-//        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
-//        jseMoveToNextStage.executeScript("arguments[0].click();", buttonSaveAndProceed);
+        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
+        jseMoveToNextStage.executeScript("arguments[0].click();", buttonSaveAndProceed);
 
         await("FI Entries Grid timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("FI Entries Grid"));
