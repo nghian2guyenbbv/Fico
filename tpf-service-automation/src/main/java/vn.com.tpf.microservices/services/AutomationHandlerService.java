@@ -339,6 +339,10 @@ public class AutomationHandlerService {
                     }
                     runAutomation_autoAssignAllocation(mapValue, project, browser);
                     break;
+                case "MOBILITY_quickLead_Vendor":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    MOBILITY_runAutomation_QuickLead_Vendor(driver, mapValue, accountDTO);
+                    break;
             }
 
         } catch (Exception e) {
@@ -7340,6 +7344,207 @@ public class AutomationHandlerService {
             queryUpdateStatusRabbit.addCriteria(Criteria.where("status").in(1, 3).and("appId").is(appID).and("userAuto").is(userAuto));
             updateStatusRabbit.set("automationResultRabbit", "rabit: => FAIL");
             mongoTemplate.findAndModify(queryUpdateStatusRabbit, updateStatusRabbit, AutoAssignAllocationDTO.class);
+        }
+    }
+
+    //endregion
+
+    //region PROJECT: AUTO QUICKLEAD MOBILITY VENDOR
+    public void MOBILITY_runAutomation_QuickLead_Vendor(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        Instant start = Instant.now();
+        String appId = "";
+        String stage = "";
+        Application application = Application.builder().build();
+        log.info("{}", application);
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            application = (Application) mapValue.get("ApplicationDTO");
+            application.setAutomationAcc(accountDTO.getUserName());
+            QuickLead quickLead = application.getQuickLead();
+            //mongoTemplate.save(application);
+
+
+            //*************************** END GET DATA *********************//
+            Actions actions = new Actions(driver);
+            System.out.println(stage + ": DONE");
+            stage = "LOGIN FINONE";
+            HashMap<String, String> dataControl = new HashMap<>();
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.clickLogin();
+            //actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "QUICK LEAD";
+            // ========== QUICK LEAD =================
+            homePage.menuClick();
+            homePage.leadQuickClick();
+
+            await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Quick Lead Entry"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
+            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            quickLeadPage.setData(quickLead);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "LEADS GRID";
+            // ========== LEAD PAGE =================
+            LeadsPage leadsPage = new LeadsPage(driver);
+            await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Lead Grid"));
+
+            await("notifyTextElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
+
+            String notify = leadsPage.getNotifyTextElement().getText();
+            String leadApp = "";
+            if (notify.contains("LEAD")) {
+                leadApp = notify.substring(notify.indexOf("LEAD"), notify.length());
+            }
+
+            System.out.println("LEAD APP: =>" + leadApp);
+            leadsPage.setData(leadApp);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "LEAD STAGE";
+            // ========== LEAD STAGE =================
+            LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
+            await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadDetailPage.getContentElement().isDisplayed());
+
+            boolean flagResult = leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            if (flagResult == false) {
+                application.setApplicationId("UNKNOW");
+                application.setStatus("ERROR");
+                application.setStage(stage);
+                application.setDescription("File not enough!!!");
+                return;
+            }
+
+            Utilities.captureScreenShot(driver);
+
+            await("Lead Page timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Lead Grid"));
+
+            leadsPage.getSpanAllNotifyElement().click();
+            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
+
+            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
+            leadsPage.getBtnAllNotifyElement().click();
+
+            Utilities.captureScreenShot(driver);
+            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
+
+            String leadAppID = "";
+            //update thêm phần assign về acc tạo app để tranh rơi vào pool
+            stage = "APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getMenuApplicationElement().click();
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+            //get appID moi o day
+            leadAppID = de_applicationManagerPage.getAppID(leadApp);
+            System.out.println(" APP: =>" + leadAppID);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
+
+            de_applicationManagerPage.getBackBtnElement().click();
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            //-------------------- END ---------------------------
+
+            application.setApplicationId(leadAppID);
+            application.setLeadApp(leadApp);
+
+            //UPDATE STATUS
+            application.setStatus("QUICKLEAD PASS");
+            application.setDescription("Thanh cong");
+
+
+            Utilities.captureScreenShot(driver);
+            //logout(driver);
+
+        } catch (Exception e) {
+            //UPDATE STATUS
+            application.setStatus("QUICKLEAD FAIL");
+            application.setStage(stage);
+            application.setDescription(e.getMessage());
+
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+
+            if (e.getMessage().contains("Work flow failed!!!")) {
+                stage = "END OF LEAD DETAIL";
+
+                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+
+                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                    String error = "Error: ";
+                    for (WebElement we : driver.findElements(By.id("error-message"))) {
+                        error += " - " + we.getText();
+                    }
+                    System.out.println(stage + "=>" + error);
+                }
+            }
+        } finally {
+            if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
+                application.setApplicationId("UNKNOW");
+                application.setStatus("QUICKLEAD_FAILED");
+                if (!"File not enough!!!".equals(application.getDescription())) {
+                    application.setDescription("Khong thanh cong");
+                }
+            }
+
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            try {
+                MOBILITY_updateStatusRabbit(application, "updateAutomation", "mobility");
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            }
+            MOBILITY_updateDB(application);
+            logout(driver, accountDTO.getUserName());
+
         }
     }
 

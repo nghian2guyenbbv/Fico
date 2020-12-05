@@ -187,6 +187,8 @@ public class RabbitMQService {
 				return response(message, payload, automationService.Sale_Queue_With_FullInfo(request));
 			case "autoAssignUser":
 					return response(message, payload, automationService.AutoAssign_Allocation(request));
+			case "quickLeadMobilityVendor":
+					return response(message, payload, automationService.MOBILITY_quickLeadApp_Vendor(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
