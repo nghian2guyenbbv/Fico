@@ -4572,28 +4572,19 @@ public class DataEntryService {
 				}
 				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 				String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
-				int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
-				if (data.getPartnerId().equals("1")) {
-					String tokenPartner;
-					if (version == 1){
-						tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-					} else {
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						tokenPartner = apiService.getTokenDGT(urlGetToken, account);
-						if (StringUtils.isEmpty(tokenPartner)) {
-							return Map.of("result_code", 3, "message", "Not get token digitexx");
-						}
-					}
-					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, data.getPartnerId());
-				} else if (data.getPartnerId().equals("2")) {
+
+				if (appData.get(0).getPartnerId().equals("1")) {
+					String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, appData.get(0).getPartnerId());
+//							apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
+				} else if (appData.get(0).getPartnerId().equals("2")) {
 					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 					String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
 					if (StringUtils.isEmpty(tokenPartner)) {
 						return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
 					}
-					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, data.getPartnerId());
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, appData.get(0).getPartnerId());
 				}
 			}
 

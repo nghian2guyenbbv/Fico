@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.Authenticator;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1201,14 +1202,13 @@ public class DataEntryController {
 
 		String partnerName = this.getPartnerName(body);
 
+		request.put("func", "uploadPartner");
 		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			request.put("func", "uploadPartner");
 			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
 			return ResponseEntity.status(response.path("status").asInt(500))
 					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 		}
 
-		request.put("func", "uploadDigiTex");
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -1260,13 +1260,19 @@ public class DataEntryController {
 				HttpHeaders headers = new HttpHeaders();
 				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 				headers.setBearerAuth(token.replace("Bearer", "").trim());
-				HttpEntity<?> entity = new HttpEntity<>(mapper.convertValue(Map.of("request_id", UUID.randomUUID().toString()), JsonNode.class), headers);
+				ObjectNode objectNode = mapper.createObjectNode();
+				objectNode.put("request_id", UUID.randomUUID().toString());
+				objectNode.put("reference_id", UUID.randomUUID().toString());
+				String schemeCode = NumberUtils.isDigits(partnerId) ? "" : partnerId;
+				objectNode.put("schemeCode", schemeCode);
+				HttpEntity<?> entity = new HttpEntity<>(objectNode, headers);
+
 				ResponseEntity<String> res = restTemplate.postForEntity(urlAutoRouting, entity, String.class);
 
 				if (!res.getStatusCode().is2xxSuccessful()) {
 					return ResponseEntity.status(200)
 							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-									"result_code", 3, "message", "Not get partner"));
+									"result_code", 3, "message", "auto_assign not available"));
 				}
 				partnerIdToGetPartner = mapper.readTree(res.getBody()).path("data").path("vendorId").asText("");
 				routingId = mapper.readTree(res.getBody()).path("data").path("routingId").asLong(-1);
@@ -1295,7 +1301,8 @@ public class DataEntryController {
 				}
 				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
 			}
-			if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
+//			if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
+			if (validateIdCard && validateACCA) {
 			} else {
 				return ResponseEntity.status(200)
 						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
@@ -1964,13 +1971,22 @@ public class DataEntryController {
 
 	}
 
-	@PostMapping("/v1/dataentry/raiseQueryData")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
-	public ResponseEntity<?> raiseQueryData(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	@PostMapping("/v1/dataentry/cancel-app")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
+	public ResponseEntity<?> cancelF1(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
+		request.put("func", "cancelF1");
+		request.put("token", token);
 		request.put("body", body);
-		request.put("func", "raiseQueryData");
+
+		String partnerName = this.getPartnerName(body);
+
+		if (partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)) {
+			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+			return ResponseEntity.status(response.path("status").asInt(500))
+					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -1989,20 +2005,6 @@ public class DataEntryController {
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
-	@PostMapping("/v1/dataentry/cancel-app")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
-	public ResponseEntity<?> cancelF1(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
-			throws Exception {
-		Map<String, Object> request = new HashMap<>();
-		request.put("func", "cancelF1");
-		request.put("token", token);
-		request.put("body", body);
-
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
-		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-	}
-
 	@PostMapping("/v1/dataentry/get-stage")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
 	public ResponseEntity<?> getStageF1(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
@@ -2012,7 +2014,26 @@ public class DataEntryController {
 		request.put("token", token);
 		request.put("body", body);
 
-		JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+		String partnerName = this.getPartnerName(body);
+
+		if (partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)) {
+			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+			return ResponseEntity.status(response.path("status").asInt(500))
+					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+		}
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	@PostMapping("/v1/dataentry/raiseQueryData")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> raiseQueryData(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("body", body);
+		request.put("func", "raiseQueryData");
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
