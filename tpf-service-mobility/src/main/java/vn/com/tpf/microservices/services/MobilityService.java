@@ -467,9 +467,13 @@ public class MobilityService {
 
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
-
-		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
+		if(3 != mobility.getPartnerId()){
+			rabbitMQService.send("tpf-service-automation-mobility", Map.of("func", "quickLeadMobilityVendor", "body",
 					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+		} else {
+			rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
+					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+		}
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(mobility).put("reference_id", body.path("reference_id").asText())));
