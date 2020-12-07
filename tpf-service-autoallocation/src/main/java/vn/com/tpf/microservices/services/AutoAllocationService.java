@@ -90,7 +90,7 @@ public class AutoAllocationService {
 
     public Map<String, Object> getAllUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("getAllUser: " + request);
+        log.info("getAllUser - request: {}" + request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
@@ -143,7 +143,7 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("getUser: " + request);
+        log.info("getUser - request: {}" + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
@@ -230,7 +230,7 @@ public class AutoAllocationService {
 
     public Map<String, Object> getHistoryApp(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("getHistoryApp - Request: " + request);
+        log.info("getHistoryApp - Request: {}" + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             Map<String, Object> result = new HashMap<>();
@@ -339,7 +339,7 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("uploadUser: " + request);
+        log.info("uploadUser - Request: {}" + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestImportFile requestModel = mapper.treeToValue(request.get("body"), RequestImportFile.class);
@@ -396,7 +396,7 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("addUser: " + request);
+        log.info("addUser - Request: {} " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
@@ -457,7 +457,7 @@ public class AutoAllocationService {
      */
     public Map<String, Object> sendAppFromF1(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("sendAppFromF1: " + request);
+        log.info("sendAppFromF1 - Request: {} " + request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
@@ -506,7 +506,7 @@ public class AutoAllocationService {
         etlDataPush.setStatus(requestModel.getStatus());
         etlDataPush.setSuorceChanel(requestModel.getSourceChannel());
         etlDataPush.setSuorceEtl("ESB");
-        log.info("saveEtlDataPush - ETLDataPush: {}", etlDataPush);
+        log.info("sendAppFromF1 - saveEtlDataPush - ETLDataPush: {}", etlDataPush);
         etlDataPushDAO.save(etlDataPush);
     }
 
@@ -720,7 +720,7 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("getInfoUserLogin: " + request);
+        log.info("getInfoUserLogin - Request: {} " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
@@ -756,7 +756,7 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("removeUser: " + request);
+        log.info("removeUser - Request: {} " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
@@ -784,7 +784,7 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("changeActiveUser: " + request);
+        log.info("changeActiveUser - Request: {} " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
@@ -911,7 +911,7 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("updateStatusApp: " + request);
+        log.info("updateStatusApp - Request: {} " + request);
         try {
             Assert.notNull(request.get("body"), "no body");
             BodyAssignRobot requestModel = mapper.readValue(request.get("body").toString(), new TypeReference<BodyAssignRobot>() {
@@ -1029,7 +1029,7 @@ public class AutoAllocationService {
 
     public Map<String, Object> getAllPendingCode(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("getAllPendingCode" + request);
+        log.info("getAllPendingCode - Request: {}", request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
@@ -1056,7 +1056,7 @@ public class AutoAllocationService {
 
     public Map<String, Object> updatePendingDetail(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("updatePendingDetail" + request);
+        log.info("updatePendingDetail - Request: {}", request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
@@ -1117,7 +1117,8 @@ public class AutoAllocationService {
                 responseModel.setResult_code(200);
                 responseModel.setMessage("SUCCESS");
             } catch (Exception e) {
-                log.error("updateInfor - Error: " + e);
+                log.error("updatePendingDetail - updateInfor - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                        e.getStackTrace()[0].getLineNumber());
                 responseModel.setResult_code(201);
                 responseModel.setMessage("Insert into Assignment Detail not success");
             }
@@ -1126,7 +1127,7 @@ public class AutoAllocationService {
 
     public Map<String, Object> updateVendor(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("updateVendor" + request);
+        log.info("updateVendor - Request: {}", request);
         try {
             List<ETLDataPush> listETLData = etlDataPushDAO.findByAppNumberAndSuorceEtl(request.path("body").path("appNumber").textValue(), "ESB");
             ETLDataPush etlDataPush = null;
@@ -1159,7 +1160,7 @@ public class AutoAllocationService {
 
     public Object updateRaiseQuery(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("updateRaiseQuery" + request);
+        log.info("updateRaiseQuery - Request: {}", request);
         try {
             if (request.path("body").path("queryStatus").textValue().equals("Raised")) {
                 AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("applicationNo").textValue(), request.path("body").path("stage").textValue());
@@ -1259,7 +1260,7 @@ public class AutoAllocationService {
 
     public Object reassign(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("reassign" + request);
+        log.info("reassign - Request: {}", request);
         try{
             String userNameAssignee = request.path("body").path("assignee").textValue();
             String userNameReassignee = request.path("body").path("reassignTo").textValue();
