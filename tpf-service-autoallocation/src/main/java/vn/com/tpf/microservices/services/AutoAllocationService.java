@@ -382,7 +382,8 @@ public class AutoAllocationService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("uploadUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -439,7 +440,8 @@ public class AutoAllocationService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("addUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -480,7 +482,8 @@ public class AutoAllocationService {
                 responseModel.setMessage("Push success.");
             }
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("sendAppFromF1 - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -624,7 +627,8 @@ public class AutoAllocationService {
             responseModel.setMessage("Save success");
             logStr += "Response: " + responseModel.toString();
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("getDashboard - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         } finally {
@@ -670,7 +674,8 @@ public class AutoAllocationService {
             responseModel.setMessage("Save success");
             logStr += "Response: " + responseModel.toString();
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("getPending - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         } finally {
@@ -699,7 +704,8 @@ public class AutoAllocationService {
             responseModel.setResult_code(200);
             responseModel.setMessage("Save success");
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("updatePending - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         } finally {
@@ -736,7 +742,8 @@ public class AutoAllocationService {
             responseModel.setData(userDetailViewList);
 
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("getInfoUserLogin - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -763,7 +770,8 @@ public class AutoAllocationService {
             responseModel.setMessage("Delete success");
 
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("removeUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -792,7 +800,8 @@ public class AutoAllocationService {
             responseModel.setMessage("Change success");
 
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("changeActiveUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -889,7 +898,8 @@ public class AutoAllocationService {
                         log.info("pushAssignToRobot push success " + requestAssignRobot);
                     }
                 } catch (Exception e) {
-                    log.info("Error: pushAssignToRobot " + e);
+                    log.info("pushAssignToRobot - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                            e.getStackTrace()[0].getLineNumber());
                 }
             }
         }
@@ -943,7 +953,8 @@ public class AutoAllocationService {
             responseModel.setMessage("Update success");
 
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("updateStatusApp - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -1065,7 +1076,8 @@ public class AutoAllocationService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("getAllPendingCode - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -1103,7 +1115,7 @@ public class AutoAllocationService {
                 responseModel.setResult_code(200);
                 responseModel.setMessage("SUCCESS");
             } catch (Exception e) {
-                log.error("Error: " + e);
+                log.error("updateInfor - Error: " + e);
                 responseModel.setResult_code(201);
                 responseModel.setMessage("Insert into Assignment Detail not success");
             }
@@ -1130,7 +1142,8 @@ public class AutoAllocationService {
             responseModel.setMessage("SUCCESS");
             log.info("updateVendor success : " + request.path("body").path("appNumber").textValue());
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("updateVendor - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -1196,7 +1209,8 @@ public class AutoAllocationService {
                 log.error("AppNum = " + request.path("body").path("applicationNo").textValue() + "with assign status = " + request.path("body").path("queryStatus").textValue() + "received raised query from raisedBy " + request.path("body").path("raiseBy").textValue() + "at stage" + request.path("body").path("stage").textValue());
             }
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("updateRaiseQuery - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -1304,7 +1318,8 @@ public class AutoAllocationService {
             responseModel.setResult_code(200);
             responseModel.setMessage("Success");
         }catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("reassign - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
