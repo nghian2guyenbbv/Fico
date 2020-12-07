@@ -131,7 +131,8 @@ public class AutoAllocationService {
             responseModel.setData(result);
 
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("getAllUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -219,10 +220,10 @@ public class AutoAllocationService {
                 }
             }
         } catch (Exception e) {
-            log.info("Error: " + e);
+            log.info("getUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
-            log.info("{}", e);
         }
         return Map.of("status", 200, "data", responseModel);
     }
@@ -491,7 +492,6 @@ public class AutoAllocationService {
     }
 
     private void saveEtlDataPush(ETLDataPush etlDataPush, RequestModel requestModel) {
-        log.info("saveEtlDataPush - ETLDataPush: {}", etlDataPush);
         etlDataPush.setAppNumber(requestModel.getApplicationNo());
         etlDataPush.setCreateDate(requestModel.getCreatedDate());
         etlDataPush.setCreateUser(requestModel.getCreatedUser());
@@ -505,6 +505,7 @@ public class AutoAllocationService {
         etlDataPush.setStatus(requestModel.getStatus());
         etlDataPush.setSuorceChanel(requestModel.getSourceChannel());
         etlDataPush.setSuorceEtl("ESB");
+        log.info("saveEtlDataPush - ETLDataPush: {}", etlDataPush);
         etlDataPushDAO.save(etlDataPush);
     }
 
@@ -1137,6 +1138,7 @@ public class AutoAllocationService {
                 etlDataPush.setCreatedTimeVendor(new Timestamp(new Date().getTime()));
                 etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
             }
+            log.info("updateVendor - ETLDataPush: {}", etlDataPush);
             etlDataPushDAO.save(etlDataPush);
             responseModel.setResult_code(200);
             responseModel.setMessage("SUCCESS");
