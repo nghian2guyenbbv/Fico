@@ -460,7 +460,6 @@ public class AutoAllocationService {
         log.info("sendAppFromF1: " + request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//        Timestamp ts = Timestamp.valueOf(request.get("body").get("createdDate").asText());
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
@@ -474,8 +473,10 @@ public class AutoAllocationService {
                 if (listEtlDataPush.isEmpty()) {
                     etlDataPush = new ETLDataPush();
                     etlDataPush.setAssignedFlag("N");
+                    log.info("sendAppFromF1 - newETL");
                     saveEtlDataPush(etlDataPush, requestModel);
                 } else {
+                    log.info("sendAppFromF1 - updateETL");
                     etlDataPush = listEtlDataPush.get(0);
                     saveEtlDataPush(etlDataPush, requestModel);
                 }
@@ -1132,9 +1133,12 @@ public class AutoAllocationService {
             if (listETLData.isEmpty()) {
                 etlDataPush = new ETLDataPush();
                 etlDataPush.setCreatedTimeVendor(new Timestamp(new Date().getTime()));
+                etlDataPush.setAssignedFlag("N");
+                log.info("updateVendor - New_ETL_DataPush - ETLDataPush: {}", etlDataPush);
                 etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
             } else {
                 etlDataPush = listETLData.get(0);
+                log.info("updateVendor - Query_DB - ETLDataPush: {}", etlDataPush);
                 etlDataPush.setCreatedTimeVendor(new Timestamp(new Date().getTime()));
                 etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
             }
