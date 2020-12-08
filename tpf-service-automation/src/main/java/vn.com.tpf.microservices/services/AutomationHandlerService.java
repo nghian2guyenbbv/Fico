@@ -321,6 +321,8 @@ public class AutomationHandlerService {
                     break;
                 case "runAutomation_ResponseQuery":
                     accountDTO = return_pollAccountFromQueue(accounts, project, mapValue);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomationDE_responseQuery(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_SaleQueue":
@@ -331,6 +333,8 @@ public class AutomationHandlerService {
                     break;
                 case "quickLead_Assign_Pool":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_QuickLead_Assign_Pool(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Sale_Queue_With_FullInfo":
