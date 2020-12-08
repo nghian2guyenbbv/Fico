@@ -2,18 +2,13 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import jdk.jfr.Timespan;
 import lombok.Getter;
 import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.FluentWait;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -21,7 +16,6 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -161,26 +155,33 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         if(checkListOccupationDelete && deleteIdDetailElement.size() > 2){
             for (String OccupationDeleteButton: listStringOccupationDelete){
-                WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//*[contains(@id,'delete')]"));
+                String occupationTypeElement = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[3]/a[@id = 'view']")).getAttribute("innerHTML").trim();
+                if ("Salaried".equals(occupationTypeElement)){
+                    WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//*[contains(@id,'delete')]"));
 
-                actions.moveToElement(occupationDelete).click().build().perform();
+                    actions.moveToElement(occupationDelete).click().build().perform();
 
-                Thread.sleep(5000);
+                    Thread.sleep(5000);
 
-                boolean checkModalMajorChange = _driver.findElements(By.xpath("//*[contains(@id, 'MajorChange')][contains(@style,'block')]")).size() != 0;
+                    boolean checkModalMajorChange = _driver.findElements(By.xpath("//*[contains(@id, 'MajorChange')][contains(@style,'block')]")).size() != 0;
 
-                if (checkModalMajorChange){
-                    await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
-                            .until(() -> modalMajorChangeElement.isDisplayed());
-                    Utilities.captureScreenShot(_driver);
-                    btnMajorChangeElement.get(0).click();
+                    if (checkModalMajorChange){
+                        await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
+                                .until(() -> modalMajorChangeElement.isDisplayed());
+                        Utilities.captureScreenShot(_driver);
+                        btnMajorChangeElement.get(0).click();
+                    }
+
+                    break;
                 }
             }
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
 
-        if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() > 0) {
+        boolean occupationEditChange = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() != 0;
+
+        if(occupationEditChange) {
             WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
             actions.moveToElement(occupationEdit).click().build().perform();
         }
