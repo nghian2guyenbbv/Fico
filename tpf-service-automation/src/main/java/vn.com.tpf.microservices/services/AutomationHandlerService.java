@@ -222,92 +222,101 @@ public class AutomationHandlerService {
 
     public void executor(Queue<LoginDTO> accounts, String browser, Map<String, Object> mapValue, String function, String project) {
         WebDriver driver = null;
+        SeleniumGridDriver setupTestDriver = null;
         LoginDTO accountDTO = null;
         try {
 
-            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-            driver = setupTestDriver.getDriver();
+//            SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+//            driver = setupTestDriver.getDriver();
 
             switch (function) {
                 case "runAutomation_UpdateInfo":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_UpdateInfo(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_UpdateAppError":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_UpdateAppError(driver, mapValue, accountDTO);
                     break;
                 case "quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "momoCreateApp":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_momoCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "fptCreateApp":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_fptCreateApp(driver, mapValue, accountDTO);
                     break;
                 case "runAutomationDE_AutoAssign":
                     //chay get account trong function
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomationDE_autoAssign(driver, mapValue, project, browser);
                     break;
                 case "runAutomationDE_ResponseQuery":
                     accountDTO = return_pollAccountFromQueue(accounts, project.toUpperCase(), mapValue);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomationDE_responseQuery(driver, mapValue, accountDTO);
                     break;
                 case "runAutomationDE_SaleQueue":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomationDE_saleQueue(driver, mapValue, accountDTO);
                     break;
                 case "SN_quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     SN_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Waive_Field":
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_Field(driver, mapValue, browser, project);
                     break;
                 case "runAutomation_Submit_Field":
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
-                    SeleniumGridDriver setupSubmitFieldDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-                    driver = setupSubmitFieldDriver.getDriver();
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_Submit_Fields_run(driver, mapValue, accountDTO);
                     break;
                 case "MOBILITY_quickLead":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     MOBILITY_runAutomation_QuickLead(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Existing_Customer":
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
-                    SeleniumGridDriver setupExistingCustDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-                    driver = setupExistingCustDriver.getDriver();
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_Existing_Customer(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead_With_CustID":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     CRM_runAutomation_QuickLead_With_CustID(driver, mapValue, accountDTO);
                     break;
                 case "CRM_quickLead":
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
-                    SeleniumGridDriver setupQuickLeadDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-                    driver = setupQuickLeadDriver.getDriver();
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
                     break;
                 case "runAutomation_ResponseQuery":
@@ -316,6 +325,8 @@ public class AutomationHandlerService {
                     break;
                 case "runAutomation_SaleQueue":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomationDE_saleQueue(driver, mapValue, accountDTO);
                     break;
                 case "quickLead_Assign_Pool":
@@ -323,24 +334,20 @@ public class AutomationHandlerService {
                     runAutomation_QuickLead_Assign_Pool(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_Sale_Queue_With_FullInfo":
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
                     accountDTO = pollAccountFromQueue(accounts, project);
-                    SeleniumGridDriver setupSendbackDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-                    driver = setupSendbackDriver.getDriver();
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     runAutomation_SendBack(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_AutoAssign_Allocation":
-                    if (driver != null) {
-                        driver.close();
-                        driver.quit();
-                    }
+//                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+//                    driver = setupTestDriver.getDriver();
                     runAutomation_autoAssignAllocation(mapValue, project, browser);
                     break;
                 case "MOBILITY_quickLead_Vendor":
                     accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
                     MOBILITY_runAutomation_QuickLead_Vendor(driver, mapValue, accountDTO);
                     break;
             }
@@ -6033,17 +6040,23 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
+            (new WebDriverWait(driver, 30))
+                    .pollingEvery(Duration.ofSeconds(5)).withMessage("can't click on the Button MoveToNextStage")
+                    .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
 
-            if (waitPopupNotify){
-                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
-                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
-            }else{
-                (new WebDriverWait(driver, 15))
-                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 
-                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-            }
+//            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
+//
+//            if (waitPopupNotify){
+//                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
+//                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
+//            }else{
+//                (new WebDriverWait(driver, 15)).withMessage("can't click on the Button MoveToNextStage")
+//                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
+//
+//                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+//            }
 
             Utilities.captureScreenShot(driver);
 
@@ -6408,17 +6421,11 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
+            (new WebDriverWait(driver, 30))
+                    .pollingEvery(Duration.ofSeconds(5)).withMessage("can't click on the Button MoveToNextStage")
+                    .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
 
-            if (waitPopupNotify){
-                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
-                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
-            }else{
-                (new WebDriverWait(driver, 15))
-                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
-
-                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-            }
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6782,18 +6789,11 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
+            (new WebDriverWait(driver, 30))
+                    .pollingEvery(Duration.ofSeconds(5)).withMessage("can't click on the Button MoveToNextStage")
+                    .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
 
-            if (waitPopupNotify){
-                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
-                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
-            }else{
-                (new WebDriverWait(driver, 15))
-                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
-
-                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-            }
-
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 
             Utilities.captureScreenShot(driver);
 
