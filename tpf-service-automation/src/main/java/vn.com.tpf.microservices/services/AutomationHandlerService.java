@@ -6420,7 +6420,7 @@ public class AutomationHandlerService {
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
             with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
-                    await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
@@ -6788,7 +6788,7 @@ public class AutomationHandlerService {
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
             with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
-                    await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
