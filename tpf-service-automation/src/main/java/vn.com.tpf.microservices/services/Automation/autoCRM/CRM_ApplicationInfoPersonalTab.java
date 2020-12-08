@@ -1142,7 +1142,7 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 //Đợi load Address Type
 //                Thread.sleep(15000);
-                with().pollInterval(Duration.TEN_SECONDS).
+                with().pollInterval(Duration.FIVE_SECONDS).
                 await("Address Div display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
@@ -1238,7 +1238,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 //Đợi load Address Type
 //                Thread.sleep(15000);
 
-                with().pollInterval(Duration.TEN_SECONDS).
+                with().pollInterval(Duration.FIVE_SECONDS).
                 await("Address Div display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
