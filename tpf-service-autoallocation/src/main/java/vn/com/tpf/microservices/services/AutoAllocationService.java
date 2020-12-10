@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,11 +17,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
 
@@ -30,11 +28,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
-import java.time.LocalTime;
 import java.util.*;
 
 @Service
-@EnableScheduling
 public class AutoAllocationService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -69,9 +65,6 @@ public class AutoAllocationService {
     UserDetailsDAO userDetailsDAO;
 
     @Autowired
-    private RabbitMQService rabbitMQService;
-
-    @Autowired
     AssignmentDetailDAO assignmentDetailDAO;
 
     @Autowired
@@ -88,49 +81,62 @@ public class AutoAllocationService {
 
     private static String ROLE_LEADER = "role_leader";
     private static String ROLE_SUB = "role_supervisor";
-    private static String KEY_ASSIGN_APP = "WAITING";
+    private static String ROLE_USER = "role_user";
 
+
+    /**
+     * Get user team
+     */
     public Map<String, Object> getAllUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
-        log.info("getAllUser - request: {}" + request);
+        log.info("getAllUser - request: {}", request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
             Assert.notNull(request.get("body"), "no body");
             RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
+            if (requestModel != null) {
+                Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
+                if (requestModel.getTypeSort().equals("ASC")) {
+                    typeSort = Sort.by(requestModel.getSortItem()).ascending();
+                }
 
-            Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
-            if (requestModel.getTypeSort().equals("ASC")) {
-                typeSort = Sort.by(requestModel.getSortItem()).ascending();
-            }
+                Pageable pageable = PageRequest.of(requestModel.getPage(), requestModel.getItemPerPage(), typeSort);
 
-            Pageable pageable = PageRequest.of(requestModel.getPage(), requestModel.getItemPerPage(), typeSort);
+                Page<UserDetailView> listUserDetails;
+                String roleUser = checkRoleUser(requestModel.getUserLogin());
+                log.info("getAllUser - roleUser: {} , userLogin: {}", roleUser, requestModel.getUserLogin());
 
-            Page<UserDetailView> listUserDetails;
-            if (requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
-                listUserDetails = userDetailsViewDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
-            } else {
-                if (requestModel.getTeamName().size() > 0) {
-                    listUserDetails = userDetailsViewDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
+                if (roleUser.equals(ROLE_LEADER)) {
+                    listUserDetails = userDetailsViewDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
+                } else if (roleUser.equals(ROLE_SUB)) {
+                    if (requestModel.getTeamName().size() > 0) {
+                        listUserDetails = userDetailsViewDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
+                    } else {
+                        responseModel.setResult_code(500);
+                        responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
+                        return Map.of("status", 200, "data", responseModel);
+                    }
                 } else {
-                    responseModel.setResult_code(500);
-                    responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
+                    responseModel.setMessage("Permission Denied");
                     return Map.of("status", 200, "data", responseModel);
                 }
-            }
 
-            if (listUserDetails.getContent().size() <= 0 || listUserDetails.getContent() == null) {
-                responseModel.setResult_code(500);
-                responseModel.setMessage("Empty");
-                return Map.of("status", 200, "data", responseModel);
-            }
+                log.info("getAllUser - UserDetailList: {}", listUserDetails.getContent());
 
-            responseModel.setResult_code(200);
-            responseModel.setMessage("Get success");
-            Map<String, Object> result = new HashMap<>();
-            result.put("data", listUserDetails.getContent());
-            result.put("totalRecords", listUserDetails.getTotalElements());
-            responseModel.setData(result);
+                if (listUserDetails.getContent().size() <= 0 || listUserDetails.getContent() == null) {
+                    //responseModel.setResult_code(500);
+                    responseModel.setMessage("Empty");
+                    return Map.of("status", 200, "data", responseModel);
+                }
+
+                responseModel.setResult_code(200);
+                responseModel.setMessage("Get success");
+                Map<String, Object> result = new HashMap<>();
+                result.put("data", listUserDetails.getContent());
+                result.put("totalRecords", listUserDetails.getTotalElements());
+                responseModel.setData(result);
+            }
 
         } catch (Exception e) {
             log.error("getAllUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
@@ -141,95 +147,98 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    public Map<String, Object> getUser(JsonNode request) {
-        ResponseModel responseModel = new ResponseModel();
-        responseModel.setReference_id(UUID.randomUUID().toString());
-        responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("getUser - request: {}" + request);
-        try {
-            Assert.notNull(request.get("body"), "no body");
-            RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
+//    public Map<String, Object> getUser(JsonNode request) {
+//        ResponseModel responseModel = new ResponseModel();
+//        responseModel.setReference_id(UUID.randomUUID().toString());
+//        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//        log.info("getUser - request: {}" + request);
+//        try {
+//            Assert.notNull(request.get("body"), "no body");
+//            RequestGetUserDetail requestModel = mapper.treeToValue(request.get("body"), RequestGetUserDetail.class);
+//
+//            if (requestModel == null) {
+//                responseModel.setResult_code(500);
+//                responseModel.setMessage("Empty");
+//                return Map.of("status", 200, "data", responseModel);
+//            }
+//
+//            if (requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
+//                UserDetailView userDetailView = userDetailsViewDAO.findByUserNameAndTeamLeader(requestModel.getUserName(),
+//                        requestModel.getUserLogin());
+//
+//                if (userDetailView == null) {
+//                    responseModel.setResult_code(500);
+//                    responseModel.setMessage("Empty");
+//                    return Map.of("status", 200, "data", responseModel);
+//                } else {
+//                    responseModel.setResult_code(200);
+//                    Map<String, Object> result = new HashMap<>();
+//                    List<UserDetailView> userDetailViewList = new ArrayList<>();
+//                    userDetailViewList.add(userDetailView);
+//                    result.put("data", userDetailViewList);
+//                    result.put("totalRecords", 1);
+//                    responseModel.setData(result);
+//                }
+//            } else if (requestModel.getRoleUserLogin().equals(ROLE_SUB)) {
+//                if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
+//                    Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
+//                    if (requestModel.getTypeSort() == "ESC") {
+//                        typeSort = Sort.by(requestModel.getSortItem()).ascending();
+//                    }
+//
+//                    Pageable pageable = PageRequest.of(requestModel.getPage(), requestModel.getItemPerPage(), typeSort);
+//
+//                    Page<UserDetailView> listUserDetails = userDetailsViewDAO.findAllByTeamLeader(
+//                            requestModel.getUserLeader(), pageable);
+//
+//                    if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
+//                        responseModel.setResult_code(500);
+//                        responseModel.setMessage("Empty");
+//                        return Map.of("status", 200, "data", responseModel);
+//                    }
+//
+//                    responseModel.setResult_code(200);
+//                    responseModel.setMessage("Get success");
+//                    Map<String, Object> result = new HashMap<>();
+//                    result.put("data", listUserDetails.getContent());
+//                    result.put("totalRecords", listUserDetails.getTotalElements());
+//                    responseModel.setData(result);
+//                } else {
+//                    List<UserDetailView> userDetailView;
+//                    if (requestModel.getTeamName().size() > 0) {
+//                        userDetailView = userDetailsViewDAO.findByUserNameAndTeamName(requestModel.getUserName(),
+//                                requestModel.getTeamName());
+//                    } else {
+//                        responseModel.setResult_code(500);
+//                        responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
+//                        return Map.of("status", 200, "data", responseModel);
+//                    }
+//
+//                    if (userDetailView == null) {
+//                        responseModel.setResult_code(500);
+//                        responseModel.setMessage("Empty");
+//                        return Map.of("status", 200, "data", responseModel);
+//                    } else {
+//                        responseModel.setResult_code(200);
+//                        Map<String, Object> result = new HashMap<>();
+//                        result.put("data", userDetailView);
+//                        result.put("totalRecords", userDetailView.size());
+//                        responseModel.setData(result);
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            log.info("getUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+//                    e.getStackTrace()[0].getLineNumber());
+//            responseModel.setResult_code(500);
+//            responseModel.setMessage("Others error");
+//        }
+//        return Map.of("status", 200, "data", responseModel);
+//    }
 
-            if (requestModel == null) {
-                responseModel.setResult_code(500);
-                responseModel.setMessage("Empty");
-                return Map.of("status", 200, "data", responseModel);
-            }
-
-            if (requestModel.getRoleUserLogin().equals(ROLE_LEADER)) {
-                UserDetailView userDetailView = userDetailsViewDAO.findByUserNameAndTeamLeader(requestModel.getUserName(),
-                        requestModel.getUserLogin());
-
-                if (userDetailView == null) {
-                    responseModel.setResult_code(500);
-                    responseModel.setMessage("Empty");
-                    return Map.of("status", 200, "data", responseModel);
-                } else {
-                    responseModel.setResult_code(200);
-                    Map<String, Object> result = new HashMap<>();
-                    List<UserDetailView> userDetailViewList = new ArrayList<>();
-                    userDetailViewList.add(userDetailView);
-                    result.put("data", userDetailViewList);
-                    result.put("totalRecords", 1);
-                    responseModel.setData(result);
-                }
-            } else if (requestModel.getRoleUserLogin().equals(ROLE_SUB)) {
-                if (requestModel.getUserName() == null || requestModel.getUserName().isEmpty()) {
-                    Sort typeSort = Sort.by(requestModel.getSortItem()).descending();
-                    if (requestModel.getTypeSort() == "ESC") {
-                        typeSort = Sort.by(requestModel.getSortItem()).ascending();
-                    }
-
-                    Pageable pageable = PageRequest.of(requestModel.getPage(), requestModel.getItemPerPage(), typeSort);
-
-                    Page<UserDetailView> listUserDetails = userDetailsViewDAO.findAllByTeamLeader(
-                            requestModel.getUserLeader(), pageable);
-
-                    if (listUserDetails.getSize() <= 0 || listUserDetails == null) {
-                        responseModel.setResult_code(500);
-                        responseModel.setMessage("Empty");
-                        return Map.of("status", 200, "data", responseModel);
-                    }
-
-                    responseModel.setResult_code(200);
-                    responseModel.setMessage("Get success");
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("data", listUserDetails.getContent());
-                    result.put("totalRecords", listUserDetails.getTotalElements());
-                    responseModel.setData(result);
-                } else {
-                    List<UserDetailView> userDetailView;
-                    if (requestModel.getTeamName().size() > 0) {
-                        userDetailView = userDetailsViewDAO.findByUserNameAndTeamName(requestModel.getUserName(),
-                                requestModel.getTeamName());
-                    } else {
-                        responseModel.setResult_code(500);
-                        responseModel.setMessage("Team Name is empty. Please send item teamName in request.");
-                        return Map.of("status", 200, "data", responseModel);
-                    }
-
-                    if (userDetailView == null) {
-                        responseModel.setResult_code(500);
-                        responseModel.setMessage("Empty");
-                        return Map.of("status", 200, "data", responseModel);
-                    } else {
-                        responseModel.setResult_code(200);
-                        Map<String, Object> result = new HashMap<>();
-                        result.put("data", userDetailView);
-                        result.put("totalRecords", userDetailView.size());
-                        responseModel.setData(result);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.info("getUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
-                    e.getStackTrace()[0].getLineNumber());
-            responseModel.setResult_code(500);
-            responseModel.setMessage("Others error");
-        }
-        return Map.of("status", 200, "data", responseModel);
-    }
-
+    /**
+     * Get History data
+     */
     public Map<String, Object> getHistoryApp(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         log.info("getHistoryApp - Request: {}" + request);
@@ -337,6 +346,9 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
+    /**
+     * Upload user from excel file
+     */
     public Map<String, Object> uploadUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
@@ -351,38 +363,47 @@ public class AutoAllocationService {
                 responseModel.setResult_code(500);
                 responseModel.setMessage("File is mandatory");
             } else {
-                if (requestModel.getListUser() == null || requestModel.getListUser().size() <= 0 || requestModel.getListUser().isEmpty()) {
-                    responseModel.setResult_code(500);
-                    responseModel.setMessage("List user in file is empty.");
-                    return Map.of("status", 200, "data", responseModel);
-                }
+                String userLogin = requestModel.getUserLogin();
+                if (checkRoleUser(userLogin).equals(ROLE_LEADER)) {
+                    if (requestModel.getListUser() == null || requestModel.getListUser().size() <= 0
+                            || requestModel.getListUser().isEmpty()) {
+                        //responseModel.setResult_code(500);
+                        responseModel.setMessage("List user in file is empty.");
+                        return Map.of("status", 200, "data", responseModel);
+                    }
 
-                for (UserChecking us : requestModel.getListUser()) {
-                    us.setCreateDate(new Timestamp(new Date().getTime()));
-                    us.setUserRole("role_user");
-                    us.setCheckedFlag("OPEN");
-                    us.setUserLogin(requestModel.getUserLogin());
-                }
+                    for (UserChecking us : requestModel.getListUser()) {
+                        us.setCreateDate(new Timestamp(new Date().getTime()));
+                        us.setUserRole("role_user");
+                        us.setCheckedFlag("OPEN");
+                        us.setUserLogin(requestModel.getUserLogin());
+                    }
 
-                userCheckingDAO.saveAll(requestModel.getListUser());
+                    userCheckingDAO.saveAll(requestModel.getListUser());
 
-                String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
-                        requestModel.getUserLogin(),
-                        requestModel.getTeamNameUser());
+                    String query = String.format("SELECT  FN_CHECKING_USER ('%s','%s') RESULT FROM DUAL",
+                            requestModel.getUserLogin(),
+                            requestModel.getTeamNameUser());
 
-                String row_string = jdbcTemplate.queryForObject(query, new Object[]{},
-                        (rs, rowNum) ->
-                                rs.getString(("RESULT")
-                                ));
+                    String row_string = jdbcTemplate.queryForObject(query, new Object[]{},
+                            (rs, rowNum) ->
+                                    rs.getString(("RESULT")
+                                    ));
 
-                if (row_string == null || row_string.isEmpty()) {
-                    responseModel.setResult_code(200);
-                    responseModel.setMessage("Add user success !");
+                    if (row_string == null || row_string.isEmpty()) {
+                        responseModel.setResult_code(200);
+                        responseModel.setMessage("Add user success !");
+                    } else {
+                        //TODO responseModel.setResult_code(500);
+                        responseModel.setMessage(row_string + " add failed.");
+                        return Map.of("status", 200, "data", responseModel);
+                    }
                 } else {
-                    responseModel.setResult_code(500);
-                    responseModel.setMessage(row_string + "add failed.");
+                    //TODO: responseModel.setResult_code(500);
+                    responseModel.setMessage("Permission is denied");
                     return Map.of("status", 200, "data", responseModel);
                 }
+
             }
         } catch (Exception e) {
             log.error("uploadUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
@@ -393,52 +414,60 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-
+    /**
+     * Add user to team
+     */
     public Map<String, Object> addUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("addUser - Request: {} " + request);
+        log.info("addUser - Request: {} ", request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
 
             if (requestModel == null) {
-
-                responseModel.setResult_code(500);
+                //TODO: responseModel.setResult_code(500);
                 responseModel.setMessage("Add User Failed. Please fill all data of User.");
             } else {
                 if (requestModel.getUserName().isEmpty()) {
                     responseModel.setReference_id(UUID.randomUUID().toString());
                     responseModel.setDate_time(new Timestamp(new Date().getTime()));
-                    responseModel.setResult_code(500);
+                    //responseModel.setResult_code(500);
                     responseModel.setMessage("User name is mandatory !");
                     return Map.of("status", 200, "data", responseModel);
                 }
+                String userRole = checkRoleUser(requestModel.getUserLogin());
+                if (!userRole.equals(ROLE_USER)) {
+                    requestModel.setCreateDate(new Timestamp(new Date().getTime()));
 
-                requestModel.setCreateDate(new Timestamp(new Date().getTime()));
+                    String query = String.format("SELECT  FN_ADD_USER ('%s','%s','%s','%s','%s','%s','%s') RESULT FROM DUAL",
+                            requestModel.getUserLogin(),
+                            userRole,
+                            requestModel.getUserName(),
+                            requestModel.getUserRole(),
+                            requestModel.getTeamName(),
+                            requestModel.getActiveFlag(),
+                            requestModel.getTeamLeader()
+                    );
 
-                String query = String.format("SELECT  FN_ADD_USER ('%s','%s','%s','%s','%s','%s','%s') RESULT FROM DUAL",
-                        requestModel.getUserLogin(),
-                        requestModel.getRoleUserLogin(),
-                        requestModel.getUserName(),
-                        requestModel.getUserRole(),
-                        requestModel.getTeamName(),
-                        requestModel.getActiveFlag(),
-                        requestModel.getTeamLeader()
-                );
+                    String row_string = jdbcTemplate.queryForObject(query, new Object[]{},
+                            (rs, rowNum) ->
+                                    rs.getString(("RESULT")
+                                    ));
 
-                String row_string = jdbcTemplate.queryForObject(query, new Object[]{},
-                        (rs, rowNum) ->
-                                rs.getString(("RESULT")
-                                ));
+                    log.info("addUser - result_from_DB: {}", row_string);
 
-                if (row_string.equals("ADD USER SUCCESS")) {
-                    responseModel.setResult_code(200);
-                    responseModel.setMessage("ADD USER SUCCESS !");
+                    if (row_string.equals("ADD USER SUCCESS")) {
+                        responseModel.setResult_code(200);
+                        responseModel.setMessage("ADD USER SUCCESS!");
+                    } else {
+                        //TODO: responseModel.setResult_code(500);
+                        responseModel.setMessage(row_string);
+                        return Map.of("status", 200, "data", responseModel);
+                    }
                 } else {
-                    responseModel.setResult_code(500);
-                    responseModel.setMessage(row_string);
+                    responseModel.setMessage("Permission is denied");
                     return Map.of("status", 200, "data", responseModel);
                 }
             }
@@ -512,6 +541,9 @@ public class AutoAllocationService {
         etlDataPushDAO.save(etlDataPush);
     }
 
+    /**
+     * Get All Configuration
+     */
     public Map<String, Object> getAssignConfig() {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
@@ -557,6 +589,9 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
+    /**
+     * Update Configuration
+     */
     public Map<String, Object> setAssignConfig(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
@@ -628,7 +663,7 @@ public class AutoAllocationService {
             }
             responseModel.setData(dataArrayNode);
             responseModel.setResult_code(200);
-            responseModel.setMessage("Success");
+            responseModel.setMessage("Save success");
             logStr += "Response: " + responseModel.toString();
         } catch (Exception e) {
             log.error("getDashboard - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
@@ -688,6 +723,9 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
+    /**
+     * Update config maxPending & Max App by team
+     */
     public Map<String, Object> updatePending(JsonNode request) {
         String logStr = "";
         logStr += "Request Data : " + request;
@@ -695,18 +733,24 @@ public class AutoAllocationService {
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
-            List<TeamConfig> listTeamName = teamConfigDAO.findByTeamName(request.path("body").path("userTeam").textValue());
-            Iterator<TeamConfig> it = listTeamName.iterator();
-            while (it.hasNext()) {
-                TeamConfig teamConfig = it.next();
-                teamConfig.setMaxPending(request.path("body").path("maxPending").intValue());
-                teamConfig.setMaxQuota(request.path("body").path("maxQuota").intValue());
-                teamConfig.setUserUpdate(request.path("body").path("userLogin").textValue());
-                teamConfig.setUpdateDate(new Timestamp(new Date().getTime()));
-                teamConfigDAO.save(teamConfig);
+            String userRole = checkRoleUser(request.path("body").path("userLogin").asText());
+            if (userRole.equals(ROLE_SUB)) {
+                List<TeamConfig> listTeamName = teamConfigDAO.findByTeamName(request.path("body").path("userTeam").textValue());
+                Iterator<TeamConfig> it = listTeamName.iterator();
+                while (it.hasNext()) {
+                    TeamConfig teamConfig = it.next();
+                    teamConfig.setMaxPending(request.path("body").path("maxPending").intValue());
+                    teamConfig.setMaxQuota(request.path("body").path("maxQuota").intValue());
+                    teamConfig.setUserUpdate(request.path("body").path("userLogin").textValue());
+                    teamConfig.setUpdateDate(new Timestamp(new Date().getTime()));
+                    teamConfigDAO.save(teamConfig);
+                }
+                responseModel.setResult_code(200);
+                responseModel.setMessage("Save success");
+            } else {
+                //TODO: result code
+                responseModel.setMessage("Permission is denied");
             }
-            responseModel.setResult_code(200);
-            responseModel.setMessage("Save success");
         } catch (Exception e) {
             log.error("updatePending - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -718,11 +762,14 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
+    /**
+     * Get user team information of 1 user
+     */
     public Map<String, Object> getInfoUserLogin(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("getInfoUserLogin - Request: {} " + request);
+        log.info("getInfoUserLogin - Request: {} ", request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
@@ -736,7 +783,7 @@ public class AutoAllocationService {
             List<UserDetailView> userDetailViewList = userDetailsViewDAO.findAllByUserName(requestModel.getUserName());
 
             if (userDetailViewList.size() <= 0 || userDetailViewList == null) {
-                responseModel.setResult_code(500);
+                //responseModel.setResult_code(500);
                 responseModel.setMessage("Empty");
                 return Map.of("status", 200, "data", responseModel);
             }
@@ -754,25 +801,32 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
+    /**
+     * Remove user team
+     */
     public Map<String, Object> removeUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("removeUser - Request: {} " + request);
+        log.info("removeUser - Request: {} ", request);
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
+            String userRole = checkRoleUser(request.path("body").path("userLogin").asText());
+            if (userRole.equals(ROLE_SUB)) {
+                if (requestModel.getUserId() == null) {
+                    //responseModel.setResult_code(500);
+                    responseModel.setMessage("User ID is mandatory!");
+                    return Map.of("status", 200, "data", responseModel);
+                }
 
-            if (requestModel.getUserId() == null) {
-                responseModel.setResult_code(500);
-                responseModel.setMessage("User ID is mandatory!");
-                return Map.of("status", 200, "data", responseModel);
+                userDetailsDAO.deleteById(requestModel.getUserId());
+                responseModel.setResult_code(200);
+                responseModel.setMessage("Delete success");
+            } else {
+                //TODO : result code
+                responseModel.setMessage("Permission is denied");
             }
-
-            userDetailsDAO.deleteById(requestModel.getUserId());
-            responseModel.setResult_code(200);
-            responseModel.setMessage("Delete success");
-
         } catch (Exception e) {
             log.error("removeUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -782,27 +836,44 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
+    /**
+     * Update user team
+     */
     public Map<String, Object> changeActiveUser(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("changeActiveUser - Request: {} " + request);
+        log.info("changeActiveUser - Request: {} ", request);
         try {
             Assert.notNull(request.get("body"), "no body");
-            UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
+            //UserDetail requestModel = mapper.treeToValue(request.get("body"), UserDetail.class);
 
-            if (requestModel.getUserId() == null) {
-                responseModel.setReference_id(UUID.randomUUID().toString());
-                responseModel.setDate_time(new Timestamp(new Date().getTime()));
-                responseModel.setResult_code(500);
-                responseModel.setMessage("User ID is mandatory!");
-                return Map.of("status", 200, "data", responseModel);
+            long userId = request.path("body").path("userId").asLong();
+            String userLogin = request.path("body").path("userLogin").asText();
+            String teamLeader = request.path("body").path("teamLeader").asText();
+            String activeFlag = request.path("body").path("activeFlag").asText();
+            String userRole = checkRoleUser(userLogin);
+            if (userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) {
+                UserDetail userDetail = userDetailsDAO.findById(userId).get();
+                Date date = new Date();
+                Timestamp now = new Timestamp(date.getTime());
+                userDetail.setTeamLeader(teamLeader);
+                userDetail.setActiveFlag(activeFlag);
+                userDetail.setUpdateTime(now);
+                userDetailsDAO.save(userDetail);
+                responseModel.setResult_code(200);
+                responseModel.setMessage("Change success");
+            } else {
+                //TODO: result code
+                responseModel.setMessage("Permission is denied");
             }
-
-            userDetailsDAO.save(requestModel);
-            responseModel.setResult_code(200);
-            responseModel.setMessage("Change success");
-
+//            if (requestModel.getUserId() == null) {
+//                responseModel.setReference_id(UUID.randomUUID().toString());
+//                responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//                responseModel.setResult_code(500);
+//                responseModel.setMessage("User ID is mandatory!");
+//                return Map.of("status", 200, "data", responseModel);
+//            }
         } catch (Exception e) {
             log.error("changeActiveUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -812,177 +883,27 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    @Async
-    @Scheduled(fixedRateString = "${spring.syncfunc.fixedRate}")
-    public void callFunctionAssignApp() {
-        log.info("callFunctionAssignApp is start.");
-        String sql = "select * from VIEW_ALLOCATION_FUNCTION";
-        List<ConfigFunction> listConfigFunction = jdbcTemplate.query(sql, new Object[]{}, (rs, rowNum) -> {
-            ConfigFunction configFunction = new ConfigFunction();
-            configFunction.setConfig(rs.getString("CONFIG"));
-            configFunction.setFromTime(rs.getString("FROM_TIME"));
-            configFunction.setToTime(rs.getString("TO_TIME"));
-            configFunction.setLimit(rs.getInt("LIMIT"));
-            return configFunction;
-        });
-        ConfigFunction configFunction = listConfigFunction.get(0);
-        if (configFunction == null) {
-            log.error("No config");
-        } else {
-            LocalTime now = LocalTime.now();
-            LocalTime fromTime = LocalTime.parse(configFunction.getFromTime());
-            LocalTime toTime = LocalTime.parse(configFunction.getToTime());
-            if (now.isBefore(toTime) && now.isAfter(fromTime) && configFunction.getConfig().equals("TRUE")) {
-                try {
-                    log.info("callFunctionAssignApp is running " + now);
-                    String query = String.format("SELECT FN_ALLOCATION_ASSIGN_APP() FROM DUAL");
-                    String result = jdbcTemplate.queryForObject(
-                            query, String.class);
-
-                    log.info("callFunctionAssignApp - time: {} - result: {} ", now, result);
-                } catch (Exception e) {
-                    log.info("callFunctionAssignApp: - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
-                            e.getStackTrace()[0].getLineNumber());
-                }
-            }
-        }
-    }
-
-    @Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
-    public void pushAssignToRobot() {
-        log.info("pushAssignToRobot - get config from DB");
-        String sql = "select * from VIEW_ALLOCATION_ROBOT";
-        List<ConfigRobot> listConfigRobot = jdbcTemplate.query(sql, new Object[]{}, (rs, rowNum) -> {
-            ConfigRobot configRobot = new ConfigRobot();
-            configRobot.setConfig(rs.getString("CONFIG"));
-            configRobot.setFromTime(rs.getString("FROM_TIME"));
-            configRobot.setToTime(rs.getString("TO_TIME"));
-            configRobot.setLimit(rs.getInt("LIMIT"));
-            return configRobot;
-        });
-        ConfigRobot configRobot = listConfigRobot.get(0);
-        if (configRobot == null) {
-            log.error("No Config");
-        } else {
-            LocalTime now = LocalTime.now();
-            LocalTime fromTime = LocalTime.parse(configRobot.getFromTime());
-            LocalTime toTime = LocalTime.parse(configRobot.getToTime());
-            if (now.isBefore(toTime) && now.isAfter(fromTime) && configRobot.getConfig().equals("TRUE")) {
-                log.info("pushAssignToRobot is start.");
-                try {
-                    Pageable pageable = PageRequest.of(0, configRobot.getLimit(), Sort.by("id").ascending());
-                    Page<AssignmentDetail> assignmentDetailsList = assignmentDetailDAO.findByStatusAssign(KEY_ASSIGN_APP, pageable);
-
-                    if (assignmentDetailsList.getContent() == null || assignmentDetailsList.getContent().size() <= 0
-                            || assignmentDetailsList.getContent().isEmpty()) {
-                        log.info("pushAssignToRobotApplication to assign is empty");
-                    } else {
-                        log.info("pushAssignToRobot is running");
-                        BodyAssignRobot bodyAssignRobot = new BodyAssignRobot();
-                        bodyAssignRobot.setProject("allocation");
-                        bodyAssignRobot.setReference_id(UUID.randomUUID().toString());
-
-                        RequestAssignRobot requestAssignRobot = new RequestAssignRobot();
-                        requestAssignRobot.setFunc("autoAssignUser");
-                        requestAssignRobot.setBody(bodyAssignRobot);
-                        List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
-                        for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
-                            AutoAssignModel autoAssignModel = new AutoAssignModel();
-                            autoAssignModel.setAppId(ad.getAppNumber());
-                            autoAssignModel.setUserName(ad.getAssignee());
-                            autoAssignModelsList.add(autoAssignModel);
-                            ad.setPickUptime(new Timestamp(new Date().getTime()));
-                            ad.setStatusAssign("ASSIGNING");
-                            assignmentDetailDAO.save(ad);
-                            log.info("pushAssignToRobot is save to DB: appNum - {}", ad.getAppNumber());
-                            bodyAssignRobot.setAutoAssign(autoAssignModelsList);
-                        }
-                        rabbitMQService.send("tpf-service-automation-allocation",
-                                requestAssignRobot);
-                        log.info("pushAssignToRobot push success " + requestAssignRobot);
-                    }
-                } catch (Exception e) {
-                    log.info("pushAssignToRobot - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
-                            e.getStackTrace()[0].getLineNumber());
-                }
-            }
-        }
-    }
-
-//    public Map<String, Object> updateStatusApp(JsonNode request) {
-//        ResponseModel responseModel = new ResponseModel();
-//        responseModel.setReference_id(UUID.randomUUID().toString());
-//        responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//        log.info("updateStatusApp - Request: {} " + request);
-//        try {
-//            Assert.notNull(request.get("body"), "no body");
-//            BodyAssignRobot requestModel = mapper.readValue(request.get("body").toString(), new TypeReference<BodyAssignRobot>() {
-//            });
-//
-//            if (requestModel.getAutoAssign() == null) {
-//                responseModel.setResult_code(500);
-//                responseModel.setMessage("User ID is mandatory!");
-//                return Map.of("status", 200, "data", responseModel);
-//            }
-//            List<AutoAssignModel> autoAssignModels = requestModel.getAutoAssign();
-//            for (AutoAssignModel ad : autoAssignModels) {
-//                AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
-//                        ad.getAppId(), ad.getUserName(), "ASSIGNING");
-//                UserDetail userDetail = userDetailsDAO.findByUserName(ad.getUserName());
-//                if (assignmentDetail == null) {
-//                    responseModel.setResult_code(200);
-//                    responseModel.setMessage(ad.getAppId() + "is empty.");
-//                } else {
-//                    assignmentDetail.setBotName(ad.getUserAuto());
-//                    assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
-//                    if (ad.getAutomationResult().equals("AUTOASSIGN_FAILED")) {
-//                        //add log quota
-//                        insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateStatusApp : FAILED", "SUB", "QUOTA", userDetail.getQuotaApp());
-//
-//                        assignmentDetail.setStatusAssign("FAILED");
-//                        assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
-//                        assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
-//                        int quotaApp = userDetail.getQuotaApp() - 1;
-//                        userDetail.setQuotaApp(quotaApp);
-//                        userDetailsDAO.save(userDetail);
-//                    } else {
-//                        assignmentDetail.setStatusAssign("PROCESSING");
-//                        log.info("Update Status Assign Success" + assignmentDetail.getAppNumber());
-//                    }
-//                    assignmentDetailDAO.save(assignmentDetail);
-//                }
-//            }
-//
-//            responseModel.setResult_code(200);
-//            responseModel.setMessage("Update success");
-//
-//        } catch (Exception e) {
-//            log.error("updateStatusApp - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
-//                    e.getStackTrace()[0].getLineNumber());
-//            responseModel.setResult_code(500);
-//            responseModel.setMessage("Others error");
-//        }
-//        return Map.of("status", 200, "data", responseModel);
-//    }
-
+    /**
+     * Robot reponse result to Allocation
+     */
     public Map<String, Object> updateStatusApp(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
-        log.info("updateStatusApp - Request: {} " + request);
+        log.info("updateStatusApp - Request: {} ", request);
         try {
-            String result = getResult("ROBOT_ASSIGN",request.path("body").path("appId").textValue(),"","",0,request.path("body").path("automationResult").textValue(),request.path("body").path("automationResultMessage").textValue(),request.path("body").path("userAuto").textValue());
+            String result = getResult("ROBOT_ASSIGN", request.path("body").path("appId").textValue(), "", "", 0, request.path("body").path("automationResult").textValue(), request.path("body").path("automationResultMessage").textValue(), request.path("body").path("userAuto").textValue());
 
-            if(result.equals("200")){
+            if (result.equals("200")) {
                 responseModel.setResult_code(200);
                 responseModel.setMessage("Success");
-            }else if(result.equals("205")){
+            } else if (result.equals("205")) {
                 responseModel.setResult_code(205);
                 responseModel.setMessage("Application not exist or status_assign difference assigning");
-            }else{
+            } else {
                 responseModel.setResult_code(203);
                 responseModel.setMessage("Fail");
-                log.error("Wrong DB: "+result);
+                log.error("Wrong DB: " + result);
             }
         } catch (Exception e) {
             log.error("updateStatusApp - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
@@ -993,70 +914,9 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-//	public Map<String, Object> getConfigRobotProcedure() {
-//		ResponseModel responseModel = new ResponseModel();
-//		log.info("getConfigRobotProcedure is running");
-//		try {
-//			List<ConfigRobotProcedure> configRobotProcedure = configRobotProcedureDAO.findAll();
-//
-//			if (configRobotProcedure.size() <=0 || configRobotProcedure.isEmpty()) {
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code(500);
-//				responseModel.setMessage("Config is empty");
-//				return Map.of("status", 200, "data", responseModel);
-//			}
-//
-//			responseModel.setReference_id(UUID.randomUUID().toString());
-//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//			responseModel.setResult_code(200);
-//			responseModel.setMessage("Get success");
-//			responseModel.setData(configRobotProcedure);
-//
-//		} catch (Exception e) {
-//			log.info("Error: " + e);
-//			responseModel.setReference_id(UUID.randomUUID().toString());
-//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//			responseModel.setResult_code(500);
-//			log.info("{}", e);
-//			responseModel.setMessage("Others error");
-//		}
-//		return Map.of("status", 200, "data", responseModel);
-//	}
-//
-//	public Map<String, Object> updateConfigRobotProcedure(JsonNode request) {
-//		ResponseModel responseModel = new ResponseModel();
-//		log.info("updateConfigRobotProcedure" + request);
-//		try {
-//			Assert.notNull(request.get("body"), "no body");
-//			ConfigRobotProcedure requestModel = mapper.treeToValue(request.get("body"), ConfigRobotProcedure.class);
-//
-//			if (requestModel == null) {
-//				responseModel.setReference_id(UUID.randomUUID().toString());
-//				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//				responseModel.setResult_code(500);
-//				responseModel.setMessage("Config is empty");
-//				return Map.of("status", 200, "data", responseModel);
-//			}
-//
-//			configRobotProcedureDAO.save(requestModel);
-//
-//			responseModel.setReference_id(UUID.randomUUID().toString());
-//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//			responseModel.setResult_code(200);
-//			responseModel.setMessage("Update success");
-//
-//		} catch (Exception e) {
-//			log.info("Error: " + e);
-//			responseModel.setReference_id(UUID.randomUUID().toString());
-//			responseModel.setDate_time(new Timestamp(new Date().getTime()));
-//			responseModel.setResult_code(500);
-//			log.info("{}", e);
-//			responseModel.setMessage("Others error");
-//		}
-//		return Map.of("status", 200, "data", responseModel);
-//	}
-
+    /**
+     *
+     */
     public Map<String, Object> getAllPendingCode(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         log.info("getAllPendingCode - Request: {}", request);
@@ -1077,7 +937,8 @@ public class AutoAllocationService {
             responseModel.setMessage("Success");
 
         } catch (Exception e) {
-            log.error("Error: " + e);
+            log.error("getAllPendingCode - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
             responseModel.setMessage("Others error");
         }
@@ -1161,23 +1022,32 @@ public class AutoAllocationService {
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
+            String userRole = checkRoleUser(request.path("body").path("pendingUser").textValue());
+            if (userRole.equals(ROLE_USER)) {
+                String result = getResult("HOLD", request.path("body").path("appNumber").textValue(),
+                        request.path("body").path("pendingCode").textValue(),
+                        request.path("body").path("pendingComments").textValue(),
+                        request.path("body").path("maxPending").intValue(), "", "", "");
 
-            String result = getResult("HOLD",request.path("body").path("appNumber").textValue(),request.path("body").path("pendingCode").textValue(),request.path("body").path("pendingComments").textValue(),request.path("body").path("maxPending").intValue(),"","","");
-
-            if(result.equals("200")){
-                responseModel.setResult_code(200);
-                responseModel.setMessage("Success");
-            }else if(result.equals("201")){
-                responseModel.setResult_code(201);
-                responseModel.setMessage("Application can not be hold. Please reload page");
-            }else if(result.equals("202")){
-                responseModel.setResult_code(202);
-                responseModel.setMessage("Number of pending app is limited. Please contact your supervisor for support");
-            }else{
-                responseModel.setResult_code(203);
-                responseModel.setMessage("Fail");
-                log.error("Wrong DB: "+result);
+                if (result.equals("200")) {
+                    responseModel.setResult_code(200);
+                    responseModel.setMessage("Success");
+                } else if (result.equals("201")) {
+                    responseModel.setResult_code(201);
+                    responseModel.setMessage("Application can not be hold. Please reload page");
+                } else if (result.equals("202")) {
+                    responseModel.setResult_code(202);
+                    responseModel.setMessage("Number of pending app is limited. Please contact your supervisor for support");
+                } else {
+                    responseModel.setResult_code(203);
+                    responseModel.setMessage("Fail");
+                    log.error("Wrong DB: " + result);
+                }
+            } else {
+                //TODO : result code
+                responseModel.setMessage("Permission is denied");
             }
+
 
         } catch (Exception e) {
             log.error("getAllPendingCode - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
@@ -1199,13 +1069,12 @@ public class AutoAllocationService {
                 etlDataPush.setCreatedTimeVendor(new Timestamp(new Date().getTime()));
                 etlDataPush.setAssignedFlag("N");
                 log.info("updateVendor - New_ETL_DataPush - ETLDataPush: {}", etlDataPush);
-                etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
             } else {
                 etlDataPush = listETLData.get(0);
                 log.info("updateVendor - Query_DB - ETLDataPush: {}", etlDataPush);
                 etlDataPush.setCreatedTimeVendor(new Timestamp(new Date().getTime()));
-                etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
             }
+            etlDataPush.setVendorName(request.path("body").path("vendorId").textValue());
             log.info("updateVendor - ETLDataPush: {}", etlDataPush);
             etlDataPushDAO.save(etlDataPush);
             responseModel.setResult_code(200);
@@ -1291,26 +1160,25 @@ public class AutoAllocationService {
         ResponseModel responseModel = new ResponseModel();
         log.info("updateRaiseQuery - Request: {}", request);
         try {
-            if(request.path("body").path("queryStatus").textValue().equals("Raised")){
+            if (request.path("body").path("queryStatus").textValue().equals("Raised")) {
 
-                String result = getResult("RAISE_QUERY",request.path("body").path("applicationNo").textValue(),"PENRS",request.path("body").path("comment").textValue(),0,"","","");
+                String result = getResult("RAISE_QUERY", request.path("body").path("applicationNo").textValue(), "PENRS", request.path("body").path("comment").textValue(), 0, "", "", "");
 
-                if(result.equals("200")){
+                if (result.equals("200")) {
                     responseModel.setResult_code(200);
                     responseModel.setMessage("Success");
-                }else if(result.equals("204")){
+                } else if (result.equals("204")) {
                     responseModel.setResult_code(204);
                     responseModel.setMessage("Application is pending status assign");
-                }else if(result.equals("203")){
+                } else if (result.equals("203")) {
                     responseModel.setResult_code(203);
                     responseModel.setMessage("Application not exist");
-                }else{
+                } else {
                     responseModel.setResult_code(9999);
                     responseModel.setMessage("Fail");
-                    log.error("Wrong DB: "+result);
+                    log.error("Wrong DB: " + result);
                 }
             }
-
         } catch (Exception e) {
             log.error("updateRaiseQuery - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -1320,139 +1188,38 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    @Bean
-    @Scheduled(fixedDelayString ="3600000")
-    public String getTimeCronjob(){
-        String cronJob = null;
-        try{
-            String sql = "SELECT PARAMETER_VALUE FROM ALLOCATION_PARAMETERS WHERE PARAMETER_NAME = 'INACTIVE_FLAG'";
-
-            cronJob = (String) jdbcTemplate.queryForObject(
-                    sql, new Object[]{}, String.class);
-            log.info("Time CronJob: " + cronJob);
-        }catch (Exception e) {
-            log.error("Error getTimeCronjob: " + e);
-        }
-        return cronJob;
-    }
-
-    @Scheduled(cron = "#{@getTimeCronjob}")
-    public void cronJobInactive(){
-        try{
-            List<UserDetail> userDetail = userDetailsDAO.findByActiveFlag("Y");
-            userDetail.forEach(u->
-                    u.setActiveFlag("N")
-            );
-            userDetailsDAO.saveAll(userDetail);
-
-            String sql = "SELECT FN_ALLOCATION_BACKUP_DAILY() FROM DUAL";
-            String backupDaily = jdbcTemplate.queryForObject(sql, String.class);
-            log.info("Result run backupDaily : " + backupDaily);
-
-        }catch (Exception e) {
-            log.error("Error cronJobInactive: " + e);
-        }
-    }
-
-//    public Object reassign(JsonNode request) {
-//        ResponseModel responseModel = new ResponseModel();
-//        log.info("reassign" + request);
-//        try{
-//            String userNameAssignee = request.path("body").path("assignee").textValue();
-//            String userNameReassignee = request.path("body").path("reassignTo").textValue();
-//            AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("appNumber").textValue(), request.path("body").path("stageName").textValue());
-//            UserDetail assignee = userDetailsDAO.findByUserNameAndTeamName(userNameAssignee, request.path("body").path("teamUser").textValue());
-//            UserDetail reassignee = userDetailsDAO.findByUserNameAndTeamName(userNameReassignee, request.path("body").path("teamUser").textValue());
-//
-//            //update quotaApp or Pending App follow status assign
-//             if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PROCESSING")){
-//                //For assignee
-//                //add log quota
-//                insertLogQuota(assignmentDetail, assignee.getUserName(), "assignee : PROCESSING", "SUB", "QUOTA", assignee.getQuotaApp());
-//                int quotaAssign = assignee.getQuotaApp()-1;
-//                assignee.setQuotaApp(quotaAssign);
-//                //For reassignee
-//                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PROCESSING", "ADD", "QUOTA", reassignee.getQuotaApp());
-//                int quotaReassign = reassignee.getQuotaApp()+1;
-//                reassignee.setQuotaApp(quotaReassign);
-//            }else if(assignmentDetail.getStatusAssign().equals("FAILED")){
-//                //For reassignee
-//                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : FAILED", "ADD", "QUOTA", reassignee.getQuotaApp());
-//                int quotaReassign = reassignee.getQuotaApp()+1;
-//                reassignee.setQuotaApp(quotaReassign);
-//
-//            }else if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PENDING")){
-//                //For assignee
-//                insertLogQuota(assignmentDetail, assignee.getUserName(), "Assignee : PENDING", "SUB", "PENDING", assignee.getPendingApp());
-//                int pendingApp = assignee.getPendingApp()-1;
-//                assignee.setPendingApp(pendingApp);
-//                //For reassignee
-//                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PENDING", "ADD", "QUOTA", reassignee.getQuotaApp());
-//                int quotaReassign = reassignee.getQuotaApp()+1;
-//                reassignee.setQuotaApp(quotaReassign);
-//            }else if(userNameAssignee.equals(userNameReassignee) && (assignmentDetail.getStatusAssign().equals("PROCESSING") || assignmentDetail.getStatusAssign().equals("PENDING"))){
-//                 responseModel.setResult_code(201);
-//                 responseModel.setMessage("Application is already assigned to " + userNameAssignee +". Do not allow to re-assign to "+userNameReassignee);
-//                 return Map.of("status", 200, "data", responseModel);
-//             }
-//            //insert into ALLOCATION_REASSIGNED_DETAIL
-//            AllocationReassignedDetail allocationReassignedDetail = new AllocationReassignedDetail();
-//            allocationReassignedDetail.setAppNumber(assignmentDetail.getAppNumber());
-//            allocationReassignedDetail.setCreationApplStageTime(assignmentDetail.getCreationApplStageTime());
-//            allocationReassignedDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
-//            allocationReassignedDetail.setStageName(assignmentDetail.getStageName());
-//            allocationReassignedDetail.setStatusApp(assignmentDetail.getStatusApp());
-//            allocationReassignedDetail.setCreationTimeStamp(new Timestamp(new Date().getTime()));
-//            allocationReassignedDetail.setAssignee(request.path("body").path("assignee").textValue());
-//            allocationReassignedDetail.setTeamAssignee(assignmentDetail.getTeamAssignee());
-//            allocationReassignedDetail.setAppType(assignmentDetail.getAppType());
-//            allocationReassignedDetail.setSourceChanel(assignmentDetail.getSourceChanel());
-//            allocationReassignedDetail.setReassignBy(request.path("body").path("reassignBy").textValue());
-//            allocationReassignedDetail.setReassignTo(request.path("body").path("reassignTo").textValue());
-//            allocationReassignedDetail.setComments(request.path("body").path("comments").textValue());
-//
-//            //update status assign in Assignment Detail
-//            assignmentDetail.setStatusAssign("WAITING");
-//            assignmentDetail.setAssignee(request.path("body").path("reassignTo").textValue());
-//            userDetailsDAO.save(assignee);
-//            userDetailsDAO.save(reassignee);
-//            reassignedDetailDao.save(allocationReassignedDetail);
-//            assignmentDetailDAO.save(assignmentDetail);
-//            responseModel.setResult_code(200);
-//            responseModel.setMessage("Success");
-//        }catch (Exception e) {
-//            log.error("Error: " + e);
-//            responseModel.setResult_code(500);
-//            responseModel.setMessage("Others error");
-//        }
-//        return Map.of("status", 200, "data", responseModel);
-//    }
-
     public Object reassign(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("reassign - Request: {}", request);
-        try{
-            SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_REASSIGN_APP");
-            MapSqlParameterSource paramMap = new MapSqlParameterSource();
-            paramMap.addValue("P_APP_NUM",request.path("body").path("appNumber").textValue());
-            paramMap.addValue("P_STAGE_NAME",request.path("body").path("stageName").textValue());
-            paramMap.addValue("P_REASSIGN_BY",request.path("body").path("reassignBy").textValue());
-            paramMap.addValue("P_REASSIGN_TO",request.path("body").path("reassignTo").textValue());
-            paramMap.addValue("P_COMMENTS",request.path("body").path("comments").textValue());
+        try {
+            String userRole = checkRoleUser(request.path("body").path("reassignBy").textValue());
+            if (!userRole.equals(ROLE_USER)) {
+                SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_REASSIGN_APP");
+                MapSqlParameterSource paramMap = new MapSqlParameterSource();
+                paramMap.addValue("P_APP_NUM", request.path("body").path("appNumber").textValue());
+                paramMap.addValue("P_STAGE_NAME", request.path("body").path("stageName").textValue());
+                paramMap.addValue("P_REASSIGN_BY", request.path("body").path("reassignBy").textValue());
+                paramMap.addValue("P_REASSIGN_TO", request.path("body").path("reassignTo").textValue());
+                paramMap.addValue("P_COMMENTS", request.path("body").path("comments").textValue());
 
-            String result = call.executeFunction(String.class, paramMap);
+                String result = call.executeFunction(String.class, paramMap);
 
-            if(result.equals("200")){
-                responseModel.setResult_code(200);
-                responseModel.setMessage("Success");
-            }else{
-                responseModel.setResult_code(201);
-                responseModel.setMessage("Fail");
-                log.error("Wrong DB: "+result);
+                if (result.equals("200")) {
+                    responseModel.setResult_code(200);
+                    responseModel.setMessage("Success");
+                } else {
+                    responseModel.setResult_code(201);
+                    responseModel.setMessage("Fail");
+                    log.error("Wrong DB: " + result);
+                }
+            } else {
+                //TODO result code
+                responseModel.setMessage("Permission is denied");
             }
-        }catch (Exception e) {
+
+        } catch (Exception e) {
             log.error("reassign - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
             responseModel.setResult_code(500);
@@ -1461,21 +1228,30 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    private String getResult(String action, String appNumber, String pendingCode, String pendingDes, int maxPending, String resultRobot, String resultMess, String botName){
+    private String getResult(String action, String appNumber, String pendingCode, String pendingDes,
+                             int maxPending, String resultRobot, String resultMess, String botName) {
         SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_ACTION_APP");
         MapSqlParameterSource paramMap = new MapSqlParameterSource();
-        paramMap.addValue("P_ACTION",action);
-        paramMap.addValue("P_APP_NUM",appNumber);
+        paramMap.addValue("P_ACTION", action);
+        paramMap.addValue("P_APP_NUM", appNumber);
         //HOLD APPLICATION
-        paramMap.addValue("P_PENDING_CODE",pendingCode);
-        paramMap.addValue("P_PENDING_DES",pendingDes);
-        paramMap.addValue("P_MAX_PENDING",maxPending);
+        paramMap.addValue("P_PENDING_CODE", pendingCode);
+        paramMap.addValue("P_PENDING_DES", pendingDes);
+        paramMap.addValue("P_MAX_PENDING", maxPending);
         // ROBOT ASSIGN
-        paramMap.addValue("P_RESULT_ROBOT",resultRobot);
-        paramMap.addValue("P_ERROR_MESSAGE",resultMess);
-        paramMap.addValue("P_BOT_NAME",botName);
+        paramMap.addValue("P_RESULT_ROBOT", resultRobot);
+        paramMap.addValue("P_ERROR_MESSAGE", resultMess);
+        paramMap.addValue("P_BOT_NAME", botName);
 
         return call.executeFunction(String.class, paramMap);
+
+    }
+
+    private String checkRoleUser(String userLogin) {
+        if (StringUtils.isEmpty(userLogin)) {
+            return null;
+        }
+        return userDetailsViewDAO.findAllByUserName(userLogin).get(0).getUserRole();
     }
 
 //    private void insertLogQuota(AssignmentDetail assignmentDetail, String userName, String comment, String method, String type, int oldValue){

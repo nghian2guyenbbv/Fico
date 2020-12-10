@@ -30,10 +30,4 @@ public interface UserDetailsViewDAO extends JpaRepository<UserDetailView, Long> 
 
     UserDetailView findByUserRoleAndUserNameAndTeamName(String userRole, String userName, String teamName);
 
-    @Query("SELECT u.teamName " +
-            "FROM UserDetailView u " +
-            "WHERE u.userRole = 'role_supervisor' " +
-            "  AND u.userName = :userName " +
-            "  AND u.teamName = :teamName ")
-    String findTeamNameSupRole(@Param("userName") String userName, @Param("teamName") String teamName);
 }

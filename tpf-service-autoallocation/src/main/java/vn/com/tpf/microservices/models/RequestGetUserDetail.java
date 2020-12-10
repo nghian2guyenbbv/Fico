@@ -12,7 +12,6 @@ public class RequestGetUserDetail {
     private int itemPerPage = 10;
     private String sortItem = "userId";
     private String typeSort = "ASC";
-    private String roleUserLogin;
     private String userName;
     private String userLogin;
     private String userLeader;

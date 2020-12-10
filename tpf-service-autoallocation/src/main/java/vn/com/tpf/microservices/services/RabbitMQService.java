@@ -97,8 +97,6 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.addUser(request));
 				case "getAllUser":
 					return response(message, payload, autoAllocationService.getAllUser(request));
-				case "getUser":
-					return response(message, payload, autoAllocationService.getUser(request));
 				case "getInfoUserLogin":
 					return response(message, payload, autoAllocationService.getInfoUserLogin(request));
 				case "removeUser":
