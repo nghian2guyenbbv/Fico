@@ -9,6 +9,8 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -157,6 +159,9 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             for (String OccupationDeleteButton: listStringOccupationDelete){
                 String occupationTypeElement = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[3]/a[@id = 'view']")).getAttribute("innerHTML").trim();
                 if ("Salaried".equals(occupationTypeElement)){
+
+                    Thread.sleep(5000);
+
                     WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//*[contains(@id,'delete')]"));
 
                     actions.moveToElement(occupationDelete).click().build().perform();

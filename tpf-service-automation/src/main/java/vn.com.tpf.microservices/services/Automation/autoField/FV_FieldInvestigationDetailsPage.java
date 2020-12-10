@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
@@ -254,7 +251,8 @@ public class FV_FieldInvestigationDetailsPage {
         await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isEnabled());
 
-        btnMoveToNextStageElement.click();
+//        btnMoveToNextStageElement.click();
+        actions.moveToElement(btnMoveToNextStageElement).sendKeys(btnMoveToNextStageElement, Keys.ENTER).perform();
 
         System.out.println("Button Move To Next Stage" + ": DONE");
 

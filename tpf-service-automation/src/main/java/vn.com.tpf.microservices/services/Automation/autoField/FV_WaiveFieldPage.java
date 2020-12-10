@@ -3,10 +3,8 @@ package vn.com.tpf.microservices.services.Automation.autoField;
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
@@ -143,7 +141,8 @@ public class FV_WaiveFieldPage {
     }
 
     public void setData(WaiveFieldDTO waiveFieldDTO, String user) {
-        WebDriverWait wait = new WebDriverWait(_driver, 10);
+//        WebDriverWait wait = new WebDriverWait(_driver, 10);
+        Actions actions = new Actions(_driver);
         String stage = "";
 
         // ========== APPLICATION MANAGER =================
@@ -254,9 +253,10 @@ public class FV_WaiveFieldPage {
         await("btnWaiveOffVerificationPopupElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnWaiveOffVerificationPopupElement.isDisplayed());
 
-        wait.until(ExpectedConditions.elementToBeClickable(btnWaiveOffVerificationPopupElement));
+//        wait.until(ExpectedConditions.elementToBeClickable(btnWaiveOffVerificationPopupElement));
+//        btnWaiveOffVerificationPopupElement.click();
 
-        btnWaiveOffVerificationPopupElement.click();
+        actions.moveToElement(btnWaiveOffVerificationPopupElement).sendKeys(btnWaiveOffVerificationPopupElement, Keys.ENTER).perform();
 
 //        JavascriptExecutor btnWaiveOffVerificationPopup = (JavascriptExecutor)_driver;
 //        btnWaiveOffVerificationPopup.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
@@ -273,11 +273,10 @@ public class FV_WaiveFieldPage {
                 .until(() -> btnMoveToNextStageElement.isEnabled());
 
 
-        wait.until(ExpectedConditions.elementToBeClickable(btnMoveToNextStageElement));
-        btnMoveToNextStageElement.click();
+//        wait.until(ExpectedConditions.elementToBeClickable(btnMoveToNextStageElement));
+//        btnMoveToNextStageElement.click();
 
-//        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
-//        btnMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        actions.moveToElement(btnMoveToNextStageElement).sendKeys(btnMoveToNextStageElement, Keys.ENTER).perform();
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));

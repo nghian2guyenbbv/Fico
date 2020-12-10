@@ -6,11 +6,9 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.Keyboard;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -5402,6 +5400,7 @@ public class AutomationHandlerService {
             //-------------------- END ---------------------------
 
             application.setAppId(leadAppID);
+//            application.setApplicationId(leadAppID);
             application.setLeadApp(leadApp);
 
             //UPDATE STATUS
@@ -5440,6 +5439,7 @@ public class AutomationHandlerService {
         } finally {
             if (application.getAppId() == null || application.getAppId().isEmpty() || application.getAppId().indexOf("LEAD") > 0 || application.getAppId().indexOf("APPL") < 0) {
                 application.setAppId("UNKNOW");
+//                application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 application.setDescription("Khong thanh cong");
             }
@@ -6044,11 +6044,8 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            (new WebDriverWait(driver, 30))
-                    .pollingEvery(Duration.ofSeconds(5)).withMessage("can't click on the Button MoveToNextStage")
-                    .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
-
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
 
 //            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
 //
@@ -6425,11 +6422,8 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            (new WebDriverWait(driver, 30))
-                    .pollingEvery(Duration.ofSeconds(5)).withMessage("can't click on the Button MoveToNextStage")
-                    .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
-
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6777,7 +6771,7 @@ public class AutomationHandlerService {
             stage = "MISC FRM APPDTL PAGE";
             CRM_MiscFrmAppDtlPage miscFrmAppDtlPage = new CRM_MiscFrmAppDtlPage(driver);
             miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
-            miscFrmAppDtlPage.setData(miscFrmAppDtlDTO);
+            miscFrmAppDtlPage.updateData(miscFrmAppDtlDTO);
             Utilities.captureScreenShot(driver);
             await("getBtnSaveElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
@@ -6793,11 +6787,8 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            (new WebDriverWait(driver, 30))
-                    .pollingEvery(Duration.ofSeconds(5)).withMessage("can't click on the Button MoveToNextStage")
-                    .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
-
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
 
             Utilities.captureScreenShot(driver);
 

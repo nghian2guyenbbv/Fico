@@ -236,26 +236,26 @@ public class CRM_LoanDetailsSourcingDetailsTab {
             e.printStackTrace();
         }
 
-        // default value is 6
-        //sua sang 60s , hay bi timeout cho nay
-        await("loanTermElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> StringUtils.isNotEmpty(loanTermElement.getAttribute("value")));
-
-        loanTermElement.clear();
-
-        loanTermElement.sendKeys(data.getRequestedTenure());
-
-        Utilities.captureScreenShot(_driver);
-
-        //sua sang 60s , hay bi timeout cho nay
-        await("rateElement loading timeout").atMost(60, TimeUnit.SECONDS)
-                .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
-
-        rateElement.clear();
-
-        rateElement.sendKeys(data.getInterestRate());
-
-        Utilities.captureScreenShot(_driver);
+//        // default value is 6
+//        //sua sang 60s , hay bi timeout cho nay
+//        await("loanTermElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> StringUtils.isNotEmpty(loanTermElement.getAttribute("value")));
+//
+//        loanTermElement.clear();
+//
+//        loanTermElement.sendKeys(data.getRequestedTenure());
+//
+//        Utilities.captureScreenShot(_driver);
+//
+//        //sua sang 60s , hay bi timeout cho nay
+//        await("rateElement loading timeout").atMost(60, TimeUnit.SECONDS)
+//                .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
+//
+//        rateElement.clear();
+//
+//        rateElement.sendKeys(data.getInterestRate());
+//
+//        Utilities.captureScreenShot(_driver);
 
         salesAgentCodeElement.click();
 
