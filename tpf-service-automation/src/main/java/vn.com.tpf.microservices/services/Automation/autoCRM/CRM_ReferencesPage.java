@@ -100,4 +100,59 @@ public class CRM_ReferencesPage {
         }
     }
 
+    public void updateData(List<CRM_ReferencesListDTO> datas) throws IOException {
+        await("Load deleteElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> deleteElement.size() > 0);
+
+        System.out.println("Size delete:" + deleteElement.size());
+
+        for (int i=0; i<deleteElement.size(); i++)
+        {
+            WebElement var = deleteElement.get(i);
+            var.click();
+        }
+
+        btnCreateNewRowElement.click();
+
+        int index = 0;
+        for (CRM_ReferencesListDTO data : datas) {
+            _driver.findElement(By.id("customer_references_name_"+ index)).clear();
+            _driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
+
+            WebElement relationship = _driver.findElement(By.id("customer_references_relationship_" + index + "_chzn"));
+            relationship.click();
+            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chzn_o_')]"));
+            await("relationships loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> relationships.size() > 0);
+            Utilities.chooseDropdownValue(data.getRelationShip(), relationships);
+
+            WebElement mobilePhone = _driver.findElement(By.id("mobilenumber_" + index + "_phoneNumber"));
+            mobilePhone.clear();
+            mobilePhone.sendKeys(data.getMobilePhoneNumber());
+
+            //update them nhap primary phone
+//            if(data.getPriNumber()!=null&&!StringUtils.isEmpty(data.getPriNumber()))
+//            {
+//                WebElement priNumber = _driver.findElement(By.id("phoneNumber_phoneNumber_" + index));
+//                priNumber.clear();
+//                priNumber.sendKeys(data.getPriNumber());
+//
+//                WebElement stdNumber = _driver.findElement(By.id("stdCode_phoneNumber_" + index));
+//                stdNumber.clear();
+//                stdNumber.sendKeys(data.getPriStd());
+//
+//                WebElement extNumber = _driver.findElement(By.id("extension_phoneNumber_" + index));
+//                extNumber.clear();
+//                extNumber.sendKeys(data.getPriExt());
+//            }
+
+            if (index < datas.size() - 1) {
+                await("Btn Add Reference not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> btnCreateNewRowElement.isEnabled());
+                btnCreateNewRowElement.click();
+            }
+            index++;
+        }
+    }
+
 }
