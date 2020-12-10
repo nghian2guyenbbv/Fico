@@ -27,11 +27,12 @@ public class AutoAllocationController {
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+				.header("x-pagination-total",
+						response.path("total").asText("0")).body(response.path("data"));
 	}
 
 	@PostMapping("/tpf-service-autoallocation/upload-user")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> uploadUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -41,11 +42,12 @@ public class AutoAllocationController {
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+				.header("x-pagination-total",
+						response.path("total").asText("0")).body(response.path("data"));
 	}
 
 	@PostMapping("/tpf-service-autoallocation/add-user")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> addUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -55,11 +57,12 @@ public class AutoAllocationController {
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+				.header("x-pagination-total",
+						response.path("total").asText("0")).body(response.path("data"));
 	}
 
 	@PostMapping("/tpf-service-autoallocation/get-all-user")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> getAllUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -69,7 +72,8 @@ public class AutoAllocationController {
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+				.header("x-pagination-total",
+						response.path("total").asText("0")).body(response.path("data"));
 	}
 
 	@PostMapping("/tpf-service-autoallocation/get-user")
@@ -83,7 +87,8 @@ public class AutoAllocationController {
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+				.header("x-pagination-total",
+						response.path("total").asText("0")).body(response.path("data"));
 	}
 
 	@GetMapping("/tpf-service-autoallocation/get-assign-config/")
@@ -100,7 +105,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/set-assign-config/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> setAssignConfig(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> setAssignConfig(@RequestHeader("Authorization") String token,
+											 @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "setAssignConfig");
 		request.put("token", token);
@@ -112,7 +118,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/get-user-login/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> getInfoUserLogin(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> getInfoUserLogin(@RequestHeader("Authorization") String token,
+											  @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getInfoUserLogin");
 		request.put("token", token);
@@ -123,8 +130,9 @@ public class AutoAllocationController {
 	}
 
 	@PostMapping("/tpf-service-autoallocation/remove-user/")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> removeUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
+	public ResponseEntity<?> removeUser(@RequestHeader("Authorization") String token,
+										@RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "removeUser");
 		request.put("token", token);
@@ -135,8 +143,9 @@ public class AutoAllocationController {
 	}
 
 	@PostMapping("/tpf-service-autoallocation/change-active-user/")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> changeActiveUser(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
+	public ResponseEntity<?> changeActiveUser(@RequestHeader("Authorization") String token,
+											  @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "changeActiveUser");
 		request.put("token", token);
@@ -148,7 +157,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/get-dashboard/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> getDashboard(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> getDashboard(@RequestHeader("Authorization") String token,
+										  @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getDashboard");
 		request.put("token", token);
@@ -160,7 +170,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/get-pending/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> getPending(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> getPending(@RequestHeader("Authorization") String token,
+										@RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getPending");
 		request.put("token", token);
@@ -171,8 +182,9 @@ public class AutoAllocationController {
 	}
 
 	@PostMapping("/tpf-service-autoallocation/update-pending/")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> updatePending(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
+	public ResponseEntity<?> updatePending(@RequestHeader("Authorization") String token,
+										   @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updatePending");
 		request.put("token", token);
@@ -185,7 +197,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/get-history/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> getHistory(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> getHistory(@RequestHeader("Authorization") String token,
+										@RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "historyAllocation");
 		request.put("token", token);
@@ -197,7 +210,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/update-status-app/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> updateStatusApp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> updateStatusApp(@RequestHeader("Authorization") String token,
+											 @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateStatusApp");
 		request.put("token", token);
@@ -209,7 +223,8 @@ public class AutoAllocationController {
 
 	@GetMapping("/tpf-service-autoallocation/get-config-robot/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> getConfigRobotProcedure(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> getConfigRobotProcedure(@RequestHeader("Authorization") String token,
+													 @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "getConfigRobotProcedure");
 		request.put("token", token);
@@ -221,7 +236,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/update-config-robot/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> updateConfigRobotProcedure(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> updateConfigRobotProcedure(@RequestHeader("Authorization") String token,
+														@RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateConfigRobotProcedure");
 		request.put("token", token);
@@ -242,21 +258,23 @@ public class AutoAllocationController {
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
 
-	@PostMapping("/tpf-service-autoallocation/update-pending-detail/")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> updatePendingDetail(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
-		Map<String, Object> request = new HashMap<>();
-		request.put("func", "updatePendingDetail");
-		request.put("token", token);
-		request.put("body", body);
-
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
-		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
-	}
+//	@PostMapping("/tpf-service-autoallocation/update-pending-detail/")
+//	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_user')")
+//	public ResponseEntity<?> updatePendingDetail(@RequestHeader("Authorization") String token,
+//												 @RequestBody JsonNode body) throws Exception {
+//		Map<String, Object> request = new HashMap<>();
+//		request.put("func", "updatePendingDetail");
+//		request.put("token", token);
+//		request.put("body", body);
+//
+//		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
+//		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+//	}
 
 	@PostMapping("/tpf-service-autoallocation/updateVendor/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> updateVendor(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> updateVendor(@RequestHeader("Authorization") String token,
+										  @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateVendor");
 		request.put("token", token);
@@ -268,7 +286,8 @@ public class AutoAllocationController {
 
 	@PostMapping("/tpf-service-autoallocation/updateRaiseQuery/")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> updateRaiseQuery(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	public ResponseEntity<?> updateRaiseQuery(@RequestHeader("Authorization") String token,
+											  @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateRaiseQuery");
 		request.put("token", token);
@@ -279,13 +298,25 @@ public class AutoAllocationController {
 	}
 
 	@PostMapping("/tpf-service-autoallocation/reassign/")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
-	public ResponseEntity<?> reassign(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
+	public ResponseEntity<?> reassign(@RequestHeader("Authorization") String token,
+									  @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "reassign");
 		request.put("token", token);
 		request.put("body", body);
 
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
+	@PostMapping("/tpf-service-autoallocation/holdApplication/")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_user')")
+	public ResponseEntity<?> holdApplication(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "holdApplication");
+		request.put("token", token);
+		request.put("body", body);
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-autoallocation", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
