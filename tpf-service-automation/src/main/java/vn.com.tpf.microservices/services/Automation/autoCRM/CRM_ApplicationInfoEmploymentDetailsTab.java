@@ -9,6 +9,8 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.AutoCRM.CRM_EmploymentDetailsDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -155,8 +157,11 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         if(checkListOccupationDelete && deleteIdDetailElement.size() > 2){
             for (String OccupationDeleteButton: listStringOccupationDelete){
-                String occupationTypeElement = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[3]/a[@id = 'view']")).getAttribute("innerHTML").trim();
-                if ("Salaried".equals(occupationTypeElement)){
+//                String occupationTypeElement = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[3]/a[@id = 'view']")).getAttribute("innerHTML").trim();
+//                if ("Salaried".equals(occupationTypeElement)){
+
+                    Thread.sleep(5000);
+
                     WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//*[contains(@id,'delete')]"));
 
                     actions.moveToElement(occupationDelete).click().build().perform();
@@ -172,19 +177,19 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
                         btnMajorChangeElement.get(0).click();
                     }
 
-                    break;
-                }
+//                    break;
+//                }
             }
         }
 
-        Thread.sleep(10000);
-
-        boolean occupationEditChange = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() != 0;
-
-        if(occupationEditChange) {
-            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
-            actions.moveToElement(occupationEdit).click().build().perform();
-        }
+//        Thread.sleep(10000);
+//
+//        boolean occupationEditChange = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() != 0;
+//
+//        if(occupationEditChange) {
+//            WebElement occupationEdit = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() + "')]//ancestor::tr//*[contains(@id,'edit')]"));
+//            actions.moveToElement(occupationEdit).click().build().perform();
+//        }
 
         with().pollInterval(Duration.FIVE_SECONDS).
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

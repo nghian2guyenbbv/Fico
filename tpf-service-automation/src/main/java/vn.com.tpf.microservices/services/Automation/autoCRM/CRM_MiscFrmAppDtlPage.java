@@ -261,15 +261,66 @@ public class CRM_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
-        //update them contractNumber
-//        companyNameElement.sendKeys(data.getCompanyName());
-//        contractNumberElement.sendKeys(data.getContractNumber());
-//        monthlyFeeElement.clear();
-//        monthlyFeeElement.sendKeys(data.getMonthlyFee());
-        //
+        newBankCardNumberElement.clear();
+        newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 
-//        remarkElement.clear();
-//        remarkElement.sendKeys(data.getRemark());
+        courierCodeElement.clear();
+        courierCodeElement.sendKeys(data.getCourierCode());
+
+
+        salesAgentCodeElement.clear();
+        salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
+
+        maxRequestRateElement.clear();
+        maxRequestRateElement.sendKeys(data.getMaximumInterestedRate());
+        Utilities.captureScreenShot(_driver);
+
+    }
+
+    public void updateData(CRM_DynamicFormDTO data) {
+        await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
+        loanPurposeElement.click();
+
+        //xoa loanpurpose
+        if(loanPurposeCloseElement.size()>0)
+        {
+            for (WebElement we:loanPurposeCloseElement)
+            {
+                we.click();
+            }
+        }
+
+        loanPurposeElement.click();
+        loanPurposeElement.click();
+        await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> loanPurposeOptionElement.size() > 0);
+        //Utilities.chooseDropdownValue(data.getLoanPurpose(), loanPurposeOptionElement);
+
+        String[] listPurpose= data.getLoanPurpose().split(";");
+
+        if(listPurpose.length>0)
+        {
+
+            for(String loanPurpose : listPurpose){
+                loanPurposeInputElement.sendKeys(loanPurpose);
+                loanPurposeInputElement.sendKeys(Keys.ENTER);
+                Utilities.captureScreenShot(_driver);
+            }
+
+        }
+
+
+        numberOfDependentsElement.clear();
+        numberOfDependentsElement.sendKeys(data.getNumberOfDependents());
+
+        houseOwnerShipElement.click();
+        await("houseOwnerShipOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> houseOwnerShipOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(data.getHouseOwnership(), houseOwnerShipOptionElement);
+        Utilities.captureScreenShot(_driver);
+        mortgagePaymentCostElement.clear();
+        mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
@@ -277,39 +328,13 @@ public class CRM_MiscFrmAppDtlPage {
         courierCodeElement.clear();
         courierCodeElement.sendKeys(data.getCourierCode());
 
-//        zaloElement.sendKeys(data.getZalo());
 
         salesAgentCodeElement.clear();
         salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
 
         maxRequestRateElement.clear();
         maxRequestRateElement.sendKeys(data.getMaximumInterestedRate());
-//        totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
         Utilities.captureScreenShot(_driver);
-
-        //update them oldContractNumber
-//        if (data.getOldContractLoanAmount() != null) {
-//            if (data.getOldContractLoanAmount().equals("1")) {
-//                oldContractLoanAmountLess20Elememt.click();
-//            }
-//            if (data.getOldContractLoanAmount().equals("2")) {
-//                oldContractLoanAmountMore20Elememt.click();
-//            }
-//            if (data.getOldContractLoanAmount().equals("3")) {
-//                oldContractLoanAmountOtherElememt.click();
-//            }
-//        }
-//
-//        if (data.getLoanOfWork() != null) {
-//            if (data.getLoanOfWork().equals("Yes")) {
-//                loanOfWorkYesElememt.click();
-//            }
-//
-//            if (data.getLoanOfWork().equals("No")) {
-//                loanOfWorkNoElememt.click();
-//            }
-//        }
-//        Utilities.captureScreenShot(_driver);
     }
 
     public void updateCommunicationValue(String communication) {
