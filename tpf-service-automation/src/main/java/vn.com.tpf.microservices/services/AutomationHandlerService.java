@@ -6760,7 +6760,7 @@ public class AutomationHandlerService {
             await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
             referencesPage.getTabReferencesElement().click();
-            referencesPage.setData(referenceDTO);
+            referencesPage.updateData(referenceDTO);
             referencesPage.getSaveBtnElement().click();
 
             System.out.println(stage + ": DONE");
