@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -626,7 +628,7 @@ public class AutoAllocationService {
             }
             responseModel.setData(dataArrayNode);
             responseModel.setResult_code(200);
-            responseModel.setMessage("Save success");
+            responseModel.setMessage("Success");
             logStr += "Response: " + responseModel.toString();
         } catch (Exception e) {
             log.error("getDashboard - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
@@ -907,53 +909,81 @@ public class AutoAllocationService {
         }
     }
 
+//    public Map<String, Object> updateStatusApp(JsonNode request) {
+//        ResponseModel responseModel = new ResponseModel();
+//        responseModel.setReference_id(UUID.randomUUID().toString());
+//        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//        log.info("updateStatusApp - Request: {} " + request);
+//        try {
+//            Assert.notNull(request.get("body"), "no body");
+//            BodyAssignRobot requestModel = mapper.readValue(request.get("body").toString(), new TypeReference<BodyAssignRobot>() {
+//            });
+//
+//            if (requestModel.getAutoAssign() == null) {
+//                responseModel.setResult_code(500);
+//                responseModel.setMessage("User ID is mandatory!");
+//                return Map.of("status", 200, "data", responseModel);
+//            }
+//            List<AutoAssignModel> autoAssignModels = requestModel.getAutoAssign();
+//            for (AutoAssignModel ad : autoAssignModels) {
+//                AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
+//                        ad.getAppId(), ad.getUserName(), "ASSIGNING");
+//                UserDetail userDetail = userDetailsDAO.findByUserName(ad.getUserName());
+//                if (assignmentDetail == null) {
+//                    responseModel.setResult_code(200);
+//                    responseModel.setMessage(ad.getAppId() + "is empty.");
+//                } else {
+//                    assignmentDetail.setBotName(ad.getUserAuto());
+//                    assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
+//                    if (ad.getAutomationResult().equals("AUTOASSIGN_FAILED")) {
+//                        //add log quota
+//                        insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateStatusApp : FAILED", "SUB", "QUOTA", userDetail.getQuotaApp());
+//
+//                        assignmentDetail.setStatusAssign("FAILED");
+//                        assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
+//                        assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
+//                        int quotaApp = userDetail.getQuotaApp() - 1;
+//                        userDetail.setQuotaApp(quotaApp);
+//                        userDetailsDAO.save(userDetail);
+//                    } else {
+//                        assignmentDetail.setStatusAssign("PROCESSING");
+//                        log.info("Update Status Assign Success" + assignmentDetail.getAppNumber());
+//                    }
+//                    assignmentDetailDAO.save(assignmentDetail);
+//                }
+//            }
+//
+//            responseModel.setResult_code(200);
+//            responseModel.setMessage("Update success");
+//
+//        } catch (Exception e) {
+//            log.error("updateStatusApp - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+//                    e.getStackTrace()[0].getLineNumber());
+//            responseModel.setResult_code(500);
+//            responseModel.setMessage("Others error");
+//        }
+//        return Map.of("status", 200, "data", responseModel);
+//    }
+
     public Map<String, Object> updateStatusApp(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("updateStatusApp - Request: {} " + request);
         try {
-            Assert.notNull(request.get("body"), "no body");
-            BodyAssignRobot requestModel = mapper.readValue(request.get("body").toString(), new TypeReference<BodyAssignRobot>() {
-            });
+            String result = getResult("ROBOT_ASSIGN",request.path("body").path("appId").textValue(),"","",0,request.path("body").path("automationResult").textValue(),request.path("body").path("automationResultMessage").textValue(),request.path("body").path("userAuto").textValue());
 
-            if (requestModel.getAutoAssign() == null) {
-                responseModel.setResult_code(500);
-                responseModel.setMessage("User ID is mandatory!");
-                return Map.of("status", 200, "data", responseModel);
+            if(result.equals("200")){
+                responseModel.setResult_code(200);
+                responseModel.setMessage("Success");
+            }else if(result.equals("205")){
+                responseModel.setResult_code(205);
+                responseModel.setMessage("Application not exist or status_assign difference assigning");
+            }else{
+                responseModel.setResult_code(203);
+                responseModel.setMessage("Fail");
+                log.error("Wrong DB: "+result);
             }
-            List<AutoAssignModel> autoAssignModels = requestModel.getAutoAssign();
-            for (AutoAssignModel ad : autoAssignModels) {
-                AssignmentDetail assignmentDetail = assignmentDetailDAO.findAssignmentDetailByAppNumberAndAssigneeAndStatusAssign(
-                        ad.getAppId(), ad.getUserName(), "ASSIGNING");
-                UserDetail userDetail = userDetailsDAO.findByUserName(ad.getUserName());
-                if (assignmentDetail == null) {
-                    responseModel.setResult_code(200);
-                    responseModel.setMessage(ad.getAppId() + "is empty.");
-                } else {
-                    assignmentDetail.setBotName(ad.getUserAuto());
-                    assignmentDetail.setAssignedTime(new Timestamp(new Date().getTime()));
-                    if (ad.getAutomationResult().equals("AUTOASSIGN_FAILED")) {
-                        //add log quota
-                        insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateStatusApp : FAILED", "SUB", "QUOTA", userDetail.getQuotaApp());
-
-                        assignmentDetail.setStatusAssign("FAILED");
-                        assignmentDetail.setErrorTime(new Timestamp(new Date().getTime()));
-                        assignmentDetail.setErrorMessage(ad.getAutomationResultMessage());
-                        int quotaApp = userDetail.getQuotaApp() - 1;
-                        userDetail.setQuotaApp(quotaApp);
-                        userDetailsDAO.save(userDetail);
-                    } else {
-                        assignmentDetail.setStatusAssign("PROCESSING");
-                        log.info("Update Status Assign Success" + assignmentDetail.getAppNumber());
-                    }
-                    assignmentDetailDAO.save(assignmentDetail);
-                }
-            }
-
-            responseModel.setResult_code(200);
-            responseModel.setMessage("Update success");
-
         } catch (Exception e) {
             log.error("updateStatusApp - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -1054,29 +1084,101 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    public Map<String, Object> updatePendingDetail(JsonNode request) {
+//    public Map<String, Object> holdApplication(JsonNode request) {
+//        ResponseModel responseModel = new ResponseModel();
+//        log.info("updatePendingDetail - Request: {}", request);
+//        responseModel.setReference_id(UUID.randomUUID().toString());
+//        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+//        try {
+//            String appNumber = request.path("body").path("appNumber").textValue();
+//            String stageName = request.path("body").path("stageName").textValue();
+//            Timestamp creation_appStage_time = Timestamp.valueOf(request.path("body").path("creation_appStage_time").textValue());
+//            List<AssignmentDetail> listAssignmentDetail = assignmentDetailDAO.findByAppNumberAndStageNameAndAndCreationApplStageTime(appNumber, stageName, creation_appStage_time);
+//            Iterator<AssignmentDetail> it = listAssignmentDetail.iterator();
+//            if (listAssignmentDetail.size() == 0) {
+//                responseModel.setResult_code(202);
+//                responseModel.setMessage("Application can't be hold. Please reload page.");
+//            } else {
+//                UserDetail userDetail = userDetailsDAO.findByUserName(request.path("body").path("pendingUser").textValue());
+//                if (userDetail.getPendingApp() < request.path("body").path("maxPending").intValue()) {
+//                    updateInfor(it, request, userDetail, responseModel);
+//                } else {
+//                    responseModel.setResult_code(203);
+//                    responseModel.setMessage("Number of pending app is limited. Please contact your supervisor for support.");
+//                }
+//            }
+//        } catch (Exception e) {
+//            log.error("getAllPendingCode - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+//                    e.getStackTrace()[0].getLineNumber());
+//            responseModel.setResult_code(500);
+//            responseModel.setMessage("Others error");
+//        }
+//        return Map.of("status", 200, "data", responseModel);
+//    }
+//
+//    private void updateInfor(Iterator<AssignmentDetail> it, JsonNode request, UserDetail userDetail, ResponseModel responseModel) {
+//        while (it.hasNext()) {
+//            try {
+//                AssignmentDetail assignmentDetail = it.next();
+//                AllocationPendingDetail allocationPendingDetail = new AllocationPendingDetail();
+//                allocationPendingDetail.setAppNumber(assignmentDetail.getAppNumber());
+//                allocationPendingDetail.setStageName(request.path("body").path("stageName").textValue());
+//                allocationPendingDetail.setCreationApplstageTime(assignmentDetail.getCreationApplStageTime());
+//                allocationPendingDetail.setPendingCode(request.path("body").path("pendingCode").textValue());
+//                allocationPendingDetail.setPendingComments(request.path("body").path("pendingComments").textValue());
+//                allocationPendingDetail.setPendingUser(request.path("body").path("pendingUser").textValue());
+//                allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
+//                allocationPendingDetail.setTeamUser(request.path("body").path("teamUser").textValue());
+//                allocationPendingDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
+//
+//                //update status assignment Detail
+//                assignmentDetail.setStatusAssign("PENDING");
+//                //add log quota
+//                insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateInfor", "ADD", "PENDING", userDetail.getPendingApp());
+//                insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateInfor", "SUB", "QUOTA", userDetail.getQuotaApp());
+//
+//                int pendingApp = userDetail.getPendingApp() + 1;
+//                userDetail.setPendingApp(pendingApp);
+//                int quotaApp = userDetail.getQuotaApp() - 1;
+//                userDetail.setQuotaApp(quotaApp);
+//                allocationPendingDetailDao.save(allocationPendingDetail);
+//                assignmentDetailDAO.save(assignmentDetail);
+//                userDetailsDAO.save(userDetail);
+//                responseModel.setResult_code(200);
+//                responseModel.setMessage("SUCCESS");
+//            } catch (Exception e) {
+//                log.error("updatePendingDetail - updateInfor - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+//                        e.getStackTrace()[0].getLineNumber());
+//                responseModel.setResult_code(201);
+//                responseModel.setMessage("Insert into Assignment Detail not success");
+//            }
+//        }
+//    }
+
+    public Map<String, Object> holdApplication(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         log.info("updatePendingDetail - Request: {}", request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
-            String appNumber = request.path("body").path("appNumber").textValue();
-            String stageName = request.path("body").path("stageName").textValue();
-            Timestamp creation_appStage_time = Timestamp.valueOf(request.path("body").path("creation_appStage_time").textValue());
-            List<AssignmentDetail> listAssignmentDetail = assignmentDetailDAO.findByAppNumberAndStageNameAndAndCreationApplStageTime(appNumber, stageName, creation_appStage_time);
-            Iterator<AssignmentDetail> it = listAssignmentDetail.iterator();
-            if (listAssignmentDetail.size() == 0) {
+
+            String result = getResult("HOLD",request.path("body").path("appNumber").textValue(),request.path("body").path("pendingCode").textValue(),request.path("body").path("pendingComments").textValue(),request.path("body").path("maxPending").intValue(),"","","");
+
+            if(result.equals("200")){
+                responseModel.setResult_code(200);
+                responseModel.setMessage("Success");
+            }else if(result.equals("201")){
+                responseModel.setResult_code(201);
+                responseModel.setMessage("Application can not be hold. Please reload page");
+            }else if(result.equals("202")){
                 responseModel.setResult_code(202);
-                responseModel.setMessage("Application can't be hold. Please reload page.");
-            } else {
-                UserDetail userDetail = userDetailsDAO.findByUserName(request.path("body").path("pendingUser").textValue());
-                if (userDetail.getPendingApp() < request.path("body").path("maxPending").intValue()) {
-                    updateInfor(it, request, userDetail, responseModel);
-                } else {
-                    responseModel.setResult_code(203);
-                    responseModel.setMessage("Number of pending app is limited. Please contact your supervisor for support.");
-                }
+                responseModel.setMessage("Number of pending app is limited. Please contact your supervisor for support");
+            }else{
+                responseModel.setResult_code(203);
+                responseModel.setMessage("Fail");
+                log.error("Wrong DB: "+result);
             }
+
         } catch (Exception e) {
             log.error("getAllPendingCode - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -1084,45 +1186,6 @@ public class AutoAllocationService {
             responseModel.setMessage("Others error");
         }
         return Map.of("status", 200, "data", responseModel);
-    }
-
-    private void updateInfor(Iterator<AssignmentDetail> it, JsonNode request, UserDetail userDetail, ResponseModel responseModel) {
-        while (it.hasNext()) {
-            try {
-                AssignmentDetail assignmentDetail = it.next();
-                AllocationPendingDetail allocationPendingDetail = new AllocationPendingDetail();
-                allocationPendingDetail.setAppNumber(assignmentDetail.getAppNumber());
-                allocationPendingDetail.setStageName(request.path("body").path("stageName").textValue());
-                allocationPendingDetail.setCreationApplstageTime(assignmentDetail.getCreationApplStageTime());
-                allocationPendingDetail.setPendingCode(request.path("body").path("pendingCode").textValue());
-                allocationPendingDetail.setPendingComments(request.path("body").path("pendingComments").textValue());
-                allocationPendingDetail.setPendingUser(request.path("body").path("pendingUser").textValue());
-                allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
-                allocationPendingDetail.setTeamUser(request.path("body").path("teamUser").textValue());
-                allocationPendingDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
-
-                //update status assignment Detail
-                assignmentDetail.setStatusAssign("PENDING");
-                //add log quota
-                insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateInfor", "ADD", "PENDING", userDetail.getPendingApp());
-                insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateInfor", "SUB", "QUOTA", userDetail.getQuotaApp());
-
-                int pendingApp = userDetail.getPendingApp() + 1;
-                userDetail.setPendingApp(pendingApp);
-                int quotaApp = userDetail.getQuotaApp() - 1;
-                userDetail.setQuotaApp(quotaApp);
-                allocationPendingDetailDao.save(allocationPendingDetail);
-                assignmentDetailDAO.save(assignmentDetail);
-                userDetailsDAO.save(userDetail);
-                responseModel.setResult_code(200);
-                responseModel.setMessage("SUCCESS");
-            } catch (Exception e) {
-                log.error("updatePendingDetail - updateInfor - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
-                        e.getStackTrace()[0].getLineNumber());
-                responseModel.setResult_code(201);
-                responseModel.setMessage("Insert into Assignment Detail not success");
-            }
-        }
     }
 
     public Map<String, Object> updateVendor(JsonNode request) {
@@ -1158,63 +1221,96 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
+//    public Object updateRaiseQuery(JsonNode request) {
+//        ResponseModel responseModel = new ResponseModel();
+//        log.info("updateRaiseQuery - Request: {}", request);
+//        try {
+//            if (request.path("body").path("queryStatus").textValue().equals("Raised")) {
+//                AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("applicationNo").textValue(), request.path("body").path("stage").textValue());
+//                if (assignmentDetail == null) {
+//                    log.info("updateRaiseQuery: Can not find " + request.path("body").path("applicationNo").textValue() + "in Assignment Detail");
+//                    responseModel.setResult_code(204);
+//                    responseModel.setMessage("Can not found appNo");
+//                } else if(assignmentDetail.getStatusAssign().equals("PENDING")){
+//                    log.info("updateRaiseQuery: AppNo " + request.path("body").path("applicationNo").textValue() + "is PENDING");
+//                    responseModel.setResult_code(206);
+//                    responseModel.setMessage("Status assign is PENDING");
+//                }else {
+//                    AllocationPendingDetail allocationPendingDetail = new AllocationPendingDetail();
+//                    allocationPendingDetail.setAppNumber(assignmentDetail.getAppNumber());
+//                    allocationPendingDetail.setCreationApplstageTime(assignmentDetail.getCreationApplStageTime());
+//                    allocationPendingDetail.setStageName(request.path("body").path("stage").textValue());
+//                    allocationPendingDetail.setPendingCode("PENRS");
+//                    allocationPendingDetail.setPendingComments(request.path("body").path("comment").textValue());
+//                    allocationPendingDetail.setPendingUser(assignmentDetail.getAssignee());
+//                    allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
+//                    allocationPendingDetail.setTeamUser(assignmentDetail.getTeamAssignee());
+//                    allocationPendingDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
+//                    UserDetail userDetail = userDetailsDAO.findByUserName(assignmentDetail.getAssignee());
+//                    if (userDetail == null) {
+//                        responseModel.setResult_code(205);
+//                        responseModel.setMessage("Can not found user");
+//                        log.info("updateRaiseQuery: Can not find " + assignmentDetail.getAssignee() + "in User Detail. For : " + request.path("body").path("applicationNo").textValue() + "," + request.path("body").path("stage").textValue());
+//                    } else {
+//                        allocationPendingDetailDao.save(allocationPendingDetail);
+//                        //Check condition <> FAILED to sub Quota
+//                        //add log quota
+//                        insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateRaiseQuery", "ADD", "PENDING", userDetail.getPendingApp());
+//
+//                        int pendingApp = userDetail.getPendingApp() + 1;
+//                        userDetail.setPendingApp(pendingApp);
+//
+//                        if(!assignmentDetail.getStatusAssign().equals("FAILED")){
+//                            insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateRaiseQuery : <> FAILED", "SUB", "QUOTA", userDetail.getQuotaApp());
+//                            int quotaApp = userDetail.getQuotaApp() - 1;
+//                            userDetail.setQuotaApp(quotaApp);
+//                        }
+//                        userDetailsDAO.save(userDetail);
+//                        //update status for assigment detail
+//                        assignmentDetail.setStatusAssign("PENDING");
+//                        assignmentDetailDAO.save(assignmentDetail);
+//                        responseModel.setResult_code(200);
+//                        responseModel.setMessage("Success");
+//                    }
+//                }
+//            } else {
+//                responseModel.setResult_code(207);
+//                responseModel.setMessage("Query status different raised");
+//                log.error("AppNum = " + request.path("body").path("applicationNo").textValue() + "with assign status = " + request.path("body").path("queryStatus").textValue() + "received raised query from raisedBy " + request.path("body").path("raiseBy").textValue() + "at stage" + request.path("body").path("stage").textValue());
+//            }
+//        } catch (Exception e) {
+//            log.error("updateRaiseQuery - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+//                    e.getStackTrace()[0].getLineNumber());
+//            responseModel.setResult_code(500);
+//            responseModel.setMessage("Others error");
+//        }
+//        return Map.of("status", 200, "data", responseModel);
+//    }
+
     public Object updateRaiseQuery(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
         log.info("updateRaiseQuery - Request: {}", request);
         try {
-            if (request.path("body").path("queryStatus").textValue().equals("Raised")) {
-                AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("applicationNo").textValue(), request.path("body").path("stage").textValue());
-                if (assignmentDetail == null) {
-                    log.info("updateRaiseQuery: Can not find " + request.path("body").path("applicationNo").textValue() + "in Assignment Detail");
+            if(request.path("body").path("queryStatus").textValue().equals("Raised")){
+
+                String result = getResult("RAISE_QUERY",request.path("body").path("applicationNo").textValue(),"PENRS",request.path("body").path("comment").textValue(),0,"","","");
+
+                if(result.equals("200")){
+                    responseModel.setResult_code(200);
+                    responseModel.setMessage("Success");
+                }else if(result.equals("204")){
                     responseModel.setResult_code(204);
-                    responseModel.setMessage("Can not found appNo");
-                } else if(assignmentDetail.getStatusAssign().equals("PENDING")){
-                    log.info("updateRaiseQuery: AppNo " + request.path("body").path("applicationNo").textValue() + "is PENDING");
-                    responseModel.setResult_code(206);
-                    responseModel.setMessage("Status assign is PENDING");
-                }else {
-                    AllocationPendingDetail allocationPendingDetail = new AllocationPendingDetail();
-                    allocationPendingDetail.setAppNumber(assignmentDetail.getAppNumber());
-                    allocationPendingDetail.setCreationApplstageTime(assignmentDetail.getCreationApplStageTime());
-                    allocationPendingDetail.setStageName(request.path("body").path("stage").textValue());
-                    allocationPendingDetail.setPendingCode("PENRS");
-                    allocationPendingDetail.setPendingComments(request.path("body").path("comment").textValue());
-                    allocationPendingDetail.setPendingUser(assignmentDetail.getAssignee());
-                    allocationPendingDetail.setPendingDate(new Timestamp(new Date().getTime()));
-                    allocationPendingDetail.setTeamUser(assignmentDetail.getTeamAssignee());
-                    allocationPendingDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
-                    UserDetail userDetail = userDetailsDAO.findByUserName(assignmentDetail.getAssignee());
-                    if (userDetail == null) {
-                        responseModel.setResult_code(205);
-                        responseModel.setMessage("Can not found user");
-                        log.info("updateRaiseQuery: Can not find " + assignmentDetail.getAssignee() + "in User Detail. For : " + request.path("body").path("applicationNo").textValue() + "," + request.path("body").path("stage").textValue());
-                    } else {
-                        allocationPendingDetailDao.save(allocationPendingDetail);
-                        //Check condition <> FAILED to sub Quota
-                        //add log quota
-                        insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateRaiseQuery", "ADD", "PENDING", userDetail.getPendingApp());
-
-                        int pendingApp = userDetail.getPendingApp() + 1;
-                        userDetail.setPendingApp(pendingApp);
-
-                        if(!assignmentDetail.getStatusAssign().equals("FAILED")){
-                            insertLogQuota(assignmentDetail, userDetail.getUserName(), "updateRaiseQuery : <> FAILED", "SUB", "QUOTA", userDetail.getQuotaApp());
-                            int quotaApp = userDetail.getQuotaApp() - 1;
-                            userDetail.setQuotaApp(quotaApp);
-                        }
-                        userDetailsDAO.save(userDetail);
-                        //update status for assigment detail
-                        assignmentDetail.setStatusAssign("PENDING");
-                        assignmentDetailDAO.save(assignmentDetail);
-                        responseModel.setResult_code(200);
-                        responseModel.setMessage("Success");
-                    }
+                    responseModel.setMessage("Application is pending status assign");
+                }else if(result.equals("203")){
+                    responseModel.setResult_code(203);
+                    responseModel.setMessage("Application not exist");
+                }else{
+                    responseModel.setResult_code(9999);
+                    responseModel.setMessage("Fail");
+                    log.error("Wrong DB: "+result);
                 }
-            } else {
-                responseModel.setResult_code(207);
-                responseModel.setMessage("Query status different raised");
-                log.error("AppNum = " + request.path("body").path("applicationNo").textValue() + "with assign status = " + request.path("body").path("queryStatus").textValue() + "received raised query from raisedBy " + request.path("body").path("raiseBy").textValue() + "at stage" + request.path("body").path("stage").textValue());
             }
+
         } catch (Exception e) {
             log.error("updateRaiseQuery - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -1258,72 +1354,104 @@ public class AutoAllocationService {
         }
     }
 
+//    public Object reassign(JsonNode request) {
+//        ResponseModel responseModel = new ResponseModel();
+//        log.info("reassign" + request);
+//        try{
+//            String userNameAssignee = request.path("body").path("assignee").textValue();
+//            String userNameReassignee = request.path("body").path("reassignTo").textValue();
+//            AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("appNumber").textValue(), request.path("body").path("stageName").textValue());
+//            UserDetail assignee = userDetailsDAO.findByUserNameAndTeamName(userNameAssignee, request.path("body").path("teamUser").textValue());
+//            UserDetail reassignee = userDetailsDAO.findByUserNameAndTeamName(userNameReassignee, request.path("body").path("teamUser").textValue());
+//
+//            //update quotaApp or Pending App follow status assign
+//             if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PROCESSING")){
+//                //For assignee
+//                //add log quota
+//                insertLogQuota(assignmentDetail, assignee.getUserName(), "assignee : PROCESSING", "SUB", "QUOTA", assignee.getQuotaApp());
+//                int quotaAssign = assignee.getQuotaApp()-1;
+//                assignee.setQuotaApp(quotaAssign);
+//                //For reassignee
+//                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PROCESSING", "ADD", "QUOTA", reassignee.getQuotaApp());
+//                int quotaReassign = reassignee.getQuotaApp()+1;
+//                reassignee.setQuotaApp(quotaReassign);
+//            }else if(assignmentDetail.getStatusAssign().equals("FAILED")){
+//                //For reassignee
+//                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : FAILED", "ADD", "QUOTA", reassignee.getQuotaApp());
+//                int quotaReassign = reassignee.getQuotaApp()+1;
+//                reassignee.setQuotaApp(quotaReassign);
+//
+//            }else if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PENDING")){
+//                //For assignee
+//                insertLogQuota(assignmentDetail, assignee.getUserName(), "Assignee : PENDING", "SUB", "PENDING", assignee.getPendingApp());
+//                int pendingApp = assignee.getPendingApp()-1;
+//                assignee.setPendingApp(pendingApp);
+//                //For reassignee
+//                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PENDING", "ADD", "QUOTA", reassignee.getQuotaApp());
+//                int quotaReassign = reassignee.getQuotaApp()+1;
+//                reassignee.setQuotaApp(quotaReassign);
+//            }else if(userNameAssignee.equals(userNameReassignee) && (assignmentDetail.getStatusAssign().equals("PROCESSING") || assignmentDetail.getStatusAssign().equals("PENDING"))){
+//                 responseModel.setResult_code(201);
+//                 responseModel.setMessage("Application is already assigned to " + userNameAssignee +". Do not allow to re-assign to "+userNameReassignee);
+//                 return Map.of("status", 200, "data", responseModel);
+//             }
+//            //insert into ALLOCATION_REASSIGNED_DETAIL
+//            AllocationReassignedDetail allocationReassignedDetail = new AllocationReassignedDetail();
+//            allocationReassignedDetail.setAppNumber(assignmentDetail.getAppNumber());
+//            allocationReassignedDetail.setCreationApplStageTime(assignmentDetail.getCreationApplStageTime());
+//            allocationReassignedDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
+//            allocationReassignedDetail.setStageName(assignmentDetail.getStageName());
+//            allocationReassignedDetail.setStatusApp(assignmentDetail.getStatusApp());
+//            allocationReassignedDetail.setCreationTimeStamp(new Timestamp(new Date().getTime()));
+//            allocationReassignedDetail.setAssignee(request.path("body").path("assignee").textValue());
+//            allocationReassignedDetail.setTeamAssignee(assignmentDetail.getTeamAssignee());
+//            allocationReassignedDetail.setAppType(assignmentDetail.getAppType());
+//            allocationReassignedDetail.setSourceChanel(assignmentDetail.getSourceChanel());
+//            allocationReassignedDetail.setReassignBy(request.path("body").path("reassignBy").textValue());
+//            allocationReassignedDetail.setReassignTo(request.path("body").path("reassignTo").textValue());
+//            allocationReassignedDetail.setComments(request.path("body").path("comments").textValue());
+//
+//            //update status assign in Assignment Detail
+//            assignmentDetail.setStatusAssign("WAITING");
+//            assignmentDetail.setAssignee(request.path("body").path("reassignTo").textValue());
+//            userDetailsDAO.save(assignee);
+//            userDetailsDAO.save(reassignee);
+//            reassignedDetailDao.save(allocationReassignedDetail);
+//            assignmentDetailDAO.save(assignmentDetail);
+//            responseModel.setResult_code(200);
+//            responseModel.setMessage("Success");
+//        }catch (Exception e) {
+//            log.error("Error: " + e);
+//            responseModel.setResult_code(500);
+//            responseModel.setMessage("Others error");
+//        }
+//        return Map.of("status", 200, "data", responseModel);
+//    }
+
     public Object reassign(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("reassign - Request: {}", request);
         try{
-            String userNameAssignee = request.path("body").path("assignee").textValue();
-            String userNameReassignee = request.path("body").path("reassignTo").textValue();
-            AssignmentDetail assignmentDetail = assignmentDetailDAO.findByAppNumberAndStageName(request.path("body").path("appNumber").textValue(), request.path("body").path("stageName").textValue());
-            UserDetail assignee = userDetailsDAO.findByUserNameAndTeamName(userNameAssignee, request.path("body").path("teamUser").textValue());
-            UserDetail reassignee = userDetailsDAO.findByUserNameAndTeamName(userNameReassignee, request.path("body").path("teamUser").textValue());
+            SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_REASSIGN_APP");
+            MapSqlParameterSource paramMap = new MapSqlParameterSource();
+            paramMap.addValue("P_APP_NUM",request.path("body").path("appNumber").textValue());
+            paramMap.addValue("P_STAGE_NAME",request.path("body").path("stageName").textValue());
+            paramMap.addValue("P_REASSIGN_BY",request.path("body").path("reassignBy").textValue());
+            paramMap.addValue("P_REASSIGN_TO",request.path("body").path("reassignTo").textValue());
+            paramMap.addValue("P_COMMENTS",request.path("body").path("comments").textValue());
 
-            //update quotaApp or Pending App follow status assign
-             if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PROCESSING")){
-                //For assignee
-                //add log quota
-                insertLogQuota(assignmentDetail, assignee.getUserName(), "assignee : PROCESSING", "SUB", "QUOTA", assignee.getQuotaApp());
-                int quotaAssign = assignee.getQuotaApp()-1;
-                assignee.setQuotaApp(quotaAssign);
-                //For reassignee
-                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PROCESSING", "ADD", "QUOTA", reassignee.getQuotaApp());
-                int quotaReassign = reassignee.getQuotaApp()+1;
-                reassignee.setQuotaApp(quotaReassign);
-            }else if(assignmentDetail.getStatusAssign().equals("FAILED")){
-                //For reassignee
-                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : FAILED", "ADD", "QUOTA", reassignee.getQuotaApp());
-                int quotaReassign = reassignee.getQuotaApp()+1;
-                reassignee.setQuotaApp(quotaReassign);
+            String result = call.executeFunction(String.class, paramMap);
 
-            }else if(!userNameAssignee.equals(userNameReassignee) && assignmentDetail.getStatusAssign().equals("PENDING")){
-                //For assignee
-                insertLogQuota(assignmentDetail, assignee.getUserName(), "Assignee : PENDING", "SUB", "PENDING", assignee.getPendingApp());
-                int pendingApp = assignee.getPendingApp()-1;
-                assignee.setPendingApp(pendingApp);
-                //For reassignee
-                insertLogQuota(assignmentDetail, reassignee.getUserName(), "Reassignee : PENDING", "ADD", "QUOTA", reassignee.getQuotaApp());
-                int quotaReassign = reassignee.getQuotaApp()+1;
-                reassignee.setQuotaApp(quotaReassign);
-            }else if(userNameAssignee.equals(userNameReassignee) && (assignmentDetail.getStatusAssign().equals("PROCESSING") || assignmentDetail.getStatusAssign().equals("PENDING"))){
-                 responseModel.setResult_code(201);
-                 responseModel.setMessage("Application is already assigned to " + userNameAssignee +". Do not allow to re-assign to "+userNameReassignee);
-                 return Map.of("status", 200, "data", responseModel);
-             }
-            //insert into ALLOCATION_REASSIGNED_DETAIL
-            AllocationReassignedDetail allocationReassignedDetail = new AllocationReassignedDetail();
-            allocationReassignedDetail.setAppNumber(assignmentDetail.getAppNumber());
-            allocationReassignedDetail.setCreationApplStageTime(assignmentDetail.getCreationApplStageTime());
-            allocationReassignedDetail.setCurrentCycle(assignmentDetail.getCurrentCycle());
-            allocationReassignedDetail.setStageName(assignmentDetail.getStageName());
-            allocationReassignedDetail.setStatusApp(assignmentDetail.getStatusApp());
-            allocationReassignedDetail.setCreationTimeStamp(new Timestamp(new Date().getTime()));
-            allocationReassignedDetail.setAssignee(request.path("body").path("assignee").textValue());
-            allocationReassignedDetail.setTeamAssignee(assignmentDetail.getTeamAssignee());
-            allocationReassignedDetail.setAppType(assignmentDetail.getAppType());
-            allocationReassignedDetail.setSourceChanel(assignmentDetail.getSourceChanel());
-            allocationReassignedDetail.setReassignBy(request.path("body").path("reassignBy").textValue());
-            allocationReassignedDetail.setReassignTo(request.path("body").path("reassignTo").textValue());
-            allocationReassignedDetail.setComments(request.path("body").path("comments").textValue());
-
-            //update status assign in Assignment Detail
-            assignmentDetail.setStatusAssign("WAITING");
-            assignmentDetail.setAssignee(request.path("body").path("reassignTo").textValue());
-            userDetailsDAO.save(assignee);
-            userDetailsDAO.save(reassignee);
-            reassignedDetailDao.save(allocationReassignedDetail);
-            assignmentDetailDAO.save(assignmentDetail);
-            responseModel.setResult_code(200);
-            responseModel.setMessage("Success");
+            if(result.equals("200")){
+                responseModel.setResult_code(200);
+                responseModel.setMessage("Success");
+            }else{
+                responseModel.setResult_code(201);
+                responseModel.setMessage("Fail");
+                log.error("Wrong DB: "+result);
+            }
         }catch (Exception e) {
             log.error("reassign - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());
@@ -1333,23 +1461,39 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    private void insertLogQuota(AssignmentDetail assignmentDetail, String userName, String comment, String method, String type, int oldValue){
-        AllocationLogQuota logReasssignQuota = new AllocationLogQuota();
-        logReasssignQuota.setAppNumber(assignmentDetail.getAppNumber());
-        logReasssignQuota.setCreationApplStageTime(assignmentDetail.getCreationApplStageTime());
-        logReasssignQuota.setCurrentCycle(assignmentDetail.getCurrentCycle());
-        logReasssignQuota.setStageName(assignmentDetail.getStageName());
-        logReasssignQuota.setCreationTimeStamp(new Timestamp(new Date().getTime()));
-        logReasssignQuota.setAssignee(userName);
-        logReasssignQuota.setTeamAssignee(assignmentDetail.getTeamAssignee());
-        logReasssignQuota.setAssignedBy(assignmentDetail.getAssignedBy());
-        logReasssignQuota.setAppType(assignmentDetail.getAppType());
-        logReasssignQuota.setSourceChanel(assignmentDetail.getSourceChanel());
-        logReasssignQuota.setComments(comment);
-        logReasssignQuota.setMethodSubAdd(method);
-        logReasssignQuota.setQuotaPending(type);
-        logReasssignQuota.setOldValues(oldValue);
-        allocationLogQuotaDao.save(logReasssignQuota);
+    private String getResult(String action, String appNumber, String pendingCode, String pendingDes, int maxPending, String resultRobot, String resultMess, String botName){
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_ACTION_APP");
+        MapSqlParameterSource paramMap = new MapSqlParameterSource();
+        paramMap.addValue("P_ACTION",action);
+        paramMap.addValue("P_APP_NUM",appNumber);
+        //HOLD APPLICATION
+        paramMap.addValue("P_PENDING_CODE",pendingCode);
+        paramMap.addValue("P_PENDING_DES",pendingDes);
+        paramMap.addValue("P_MAX_PENDING",maxPending);
+        // ROBOT ASSIGN
+        paramMap.addValue("P_RESULT_ROBOT",resultRobot);
+        paramMap.addValue("P_ERROR_MESSAGE",resultMess);
+        paramMap.addValue("P_BOT_NAME",botName);
 
+        return call.executeFunction(String.class, paramMap);
     }
+
+//    private void insertLogQuota(AssignmentDetail assignmentDetail, String userName, String comment, String method, String type, int oldValue){
+//        AllocationLogQuota logReasssignQuota = new AllocationLogQuota();
+//        logReasssignQuota.setAppNumber(assignmentDetail.getAppNumber());
+//        logReasssignQuota.setCreationApplStageTime(assignmentDetail.getCreationApplStageTime());
+//        logReasssignQuota.setCurrentCycle(assignmentDetail.getCurrentCycle());
+//        logReasssignQuota.setStageName(assignmentDetail.getStageName());
+//        logReasssignQuota.setCreationTimeStamp(new Timestamp(new Date().getTime()));
+//        logReasssignQuota.setAssignee(userName);
+//        logReasssignQuota.setTeamAssignee(assignmentDetail.getTeamAssignee());
+//        logReasssignQuota.setAssignedBy(assignmentDetail.getAssignedBy());
+//        logReasssignQuota.setAppType(assignmentDetail.getAppType());
+//        logReasssignQuota.setSourceChanel(assignmentDetail.getSourceChanel());
+//        logReasssignQuota.setComments(comment);
+//        logReasssignQuota.setMethodSubAdd(method);
+//        logReasssignQuota.setQuotaPending(type);
+//        logReasssignQuota.setOldValues(oldValue);
+//        allocationLogQuotaDao.save(logReasssignQuota);
+//    }
 }

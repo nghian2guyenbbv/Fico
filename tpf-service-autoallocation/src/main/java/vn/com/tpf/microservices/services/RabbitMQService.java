@@ -119,8 +119,8 @@ public class RabbitMQService {
 //					return response(message, payload, autoAllocationService.updateConfigRobotProcedure(request));
 				case "getAllPendingCode":
 					return response(message, payload, autoAllocationService.getAllPendingCode(request));
-				case "updatePendingDetail":
-					return response(message, payload, autoAllocationService.updatePendingDetail(request));
+				case "holdApplication":
+					return response(message, payload, autoAllocationService.holdApplication(request));
 				case "updateVendor":
 					return response(message, payload, autoAllocationService.updateVendor(request));
 				case "updateRaiseQuery":
