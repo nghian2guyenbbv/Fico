@@ -92,7 +92,7 @@ public class AutoAllocationService {
     /**
      * Get user team
      */
-    public Map<String, Object> getAllUser(JsonNode request) {
+    public Map<String, Object> getAllUser(JsonNode request, JsonNode token) {
         ResponseModel responseModel = new ResponseModel();
         log.info("getAllUser - request: {}", request);
         responseModel.setReference_id(UUID.randomUUID().toString());
@@ -109,12 +109,13 @@ public class AutoAllocationService {
                 Pageable pageable = PageRequest.of(requestModel.getPage(), requestModel.getItemPerPage(), typeSort);
 
                 Page<UserDetailView> listUserDetails;
-                String roleUser = checkRoleUser(requestModel.getUserLogin());
+                String userLogin = requestModel.getUserLogin();
+                String roleUser = checkRoleUser(userLogin);
                 log.info("getAllUser - roleUser: {} , userLogin: {}", roleUser, requestModel.getUserLogin());
 
-                if (roleUser.equals(ROLE_LEADER)) {
+                if (roleUser.equals(ROLE_LEADER) && checkUserNameFromToken(token, userLogin)) {
                     listUserDetails = userDetailsViewDAO.findAllUserForLeader(requestModel.getUserLogin(), pageable);
-                } else if (roleUser.equals(ROLE_SUB)) {
+                } else if (roleUser.equals(ROLE_SUB) && checkUserNameFromToken(token, userLogin)) {
                     if (requestModel.getTeamName().size() > 0) {
                         listUserDetails = userDetailsViewDAO.findAllUserForSub(requestModel.getTeamName(), pageable);
                     } else {
@@ -258,7 +259,9 @@ public class AutoAllocationService {
     /**
      * Upload user from excel file
      */
-    public Map<String, Object> uploadUser(JsonNode request) {
+    public Map<String, Object> uploadUser(JsonNode request, JsonNode token) {
+
+
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -271,7 +274,7 @@ public class AutoAllocationService {
                 responseModel = checkResultService.checkResult(ResultData.IS_REQUITED, responseModel);
             } else {
                 String userLogin = requestModel.getUserLogin();
-                if (checkRoleUser(userLogin).equals(ROLE_LEADER)) {
+                if (checkRoleUser(userLogin).equals(ROLE_LEADER) && checkUserNameFromToken(token, userLogin)) {
                     if (requestModel.getListUser() == null || requestModel.getListUser().size() <= 0
                             || requestModel.getListUser().isEmpty()) {
                         responseModel = checkResultService.checkResult(ResultData.DATA_EMPTY, responseModel);
@@ -320,7 +323,7 @@ public class AutoAllocationService {
     /**
      * Add user to team
      */
-    public Map<String, Object> addUser(JsonNode request) {
+    public Map<String, Object> addUser(JsonNode request, JsonNode token) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -328,6 +331,7 @@ public class AutoAllocationService {
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
+            String userLogin = requestModel.getUserLogin();
 
             if (requestModel == null) {
                 responseModel = checkResultService.checkResult(ResultData.DATA_EMPTY, responseModel);
@@ -339,7 +343,8 @@ public class AutoAllocationService {
                     return Map.of("status", 200, "data", responseModel);
                 }
                 String userRole = checkRoleUser(requestModel.getUserLogin());
-                if (userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) {
+                if ((userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) &&
+                        checkUserNameFromToken(token, userLogin)) {
                     requestModel.setCreateDate(new Timestamp(new Date().getTime()));
 
                     String query = String.format("SELECT  FN_ADD_USER ('%s','%s','%s','%s','%s','%s','%s') RESULT FROM DUAL",
@@ -614,15 +619,16 @@ public class AutoAllocationService {
     /**
      * Update config maxPending & Max App by team
      */
-    public Map<String, Object> updatePending(JsonNode request) {
+    public Map<String, Object> updatePending(JsonNode request, JsonNode token) {
         String logStr = "";
         logStr += "Request Data : " + request;
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         try {
-            String userRole = checkRoleUser(request.path("body").path("userLogin").asText());
-            if (userRole.equals(ROLE_SUB)) {
+            String userLogin = request.path("body").path("userLogin").asText();
+            String userRole = checkRoleUser(userLogin);
+            if (userRole.equals(ROLE_SUB) && checkUserNameFromToken(token, userLogin)) {
                 List<TeamConfig> listTeamName = teamConfigDAO.findByTeamName(request.path("body").path("userTeam").textValue());
                 Iterator<TeamConfig> it = listTeamName.iterator();
                 while (it.hasNext()) {
@@ -682,7 +688,7 @@ public class AutoAllocationService {
     /**
      * Remove user team
      */
-    public Map<String, Object> removeUser(JsonNode request) {
+    public Map<String, Object> removeUser(JsonNode request, JsonNode token) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -690,8 +696,9 @@ public class AutoAllocationService {
         try {
             Assert.notNull(request.get("body"), "no body");
             UserDetailView requestModel = mapper.treeToValue(request.get("body"), UserDetailView.class);
-            String userRole = checkRoleUser(request.path("body").path("userLogin").asText());
-            if (userRole.equals(ROLE_SUB)) {
+            String userLogin = request.path("body").path("userLogin").asText();
+            String userRole = checkRoleUser(userLogin);
+            if (userRole.equals(ROLE_SUB) && checkUserNameFromToken(token, userLogin)) {
                 if (requestModel.getUserId() == null) {
                     responseModel = checkResultService.checkResult(ResultData.IS_REQUITED, responseModel);
                 } else {
@@ -712,7 +719,7 @@ public class AutoAllocationService {
     /**
      * Update user team
      */
-    public Map<String, Object> changeActiveUser(JsonNode request) {
+    public Map<String, Object> changeActiveUser(JsonNode request, JsonNode token) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -726,7 +733,8 @@ public class AutoAllocationService {
             String activeFlag = request.path("body").path("activeFlag").asText();
             String userRole = checkRoleUser(userLogin);
             if (userId != null) {
-                if ((userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) && userId != null) {
+                if ((userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) &&
+                        checkUserNameFromToken(token, userLogin)) {
                     UserDetail userDetail = userDetailsDAO.findById(Long.valueOf(userId)).get();
                     log.info("changeActiveUser - userDetail: {}", userDetail);
                     Date date = new Date();
@@ -757,7 +765,7 @@ public class AutoAllocationService {
     }
 
     /**
-     * Robot reponse result to Allocation
+     * Robot response result to Allocation
      */
     public Map<String, Object> updateStatusApp(JsonNode request) {
         ResponseModel responseModel = new ResponseModel();
@@ -894,15 +902,16 @@ public class AutoAllocationService {
 //        }
 //    }
 
-    public Map<String, Object> holdApplication(JsonNode request) {
+    public Map<String, Object> holdApplication(JsonNode request, JsonNode token) {
         ResponseModel responseModel = new ResponseModel();
         log.info("updatePendingDetail - Request: {}", request);
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         ResultData resultData;
         try {
+            String userLogin = request.path("body").path("pendingUser").asText();
             String userRole = checkRoleUser(request.path("body").path("pendingUser").textValue());
-            if (userRole.equals(ROLE_USER)) {
+            if (userRole.equals(ROLE_USER) && checkUserNameFromToken(token, userLogin)) {
                 String result = getResult("HOLD", request.path("body").path("appNumber").textValue(),
                         request.path("body").path("pendingCode").textValue(),
                         request.path("body").path("pendingComments").textValue(),
@@ -1045,14 +1054,16 @@ public class AutoAllocationService {
         return Map.of("status", 200, "data", responseModel);
     }
 
-    public Object reassign(JsonNode request) {
+    public Object reassign(JsonNode request, JsonNode token) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
         log.info("reassign - Request: {}", request);
         try {
             String userRole = checkRoleUser(request.path("body").path("reassignBy").textValue());
-            if (userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) {
+            String userLogin = request.path("body").path("reassignBy").asText();
+            if ((userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) &&
+                    checkUserNameFromToken(token, userLogin)) {
                 SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_REASSIGN_APP");
                 MapSqlParameterSource paramMap = new MapSqlParameterSource();
                 paramMap.addValue("P_APP_NUM", request.path("body").path("appNumber").textValue());
@@ -1097,6 +1108,65 @@ public class AutoAllocationService {
 
         return call.executeFunction(String.class, paramMap);
 
+    }
+
+    public Object updateLoginStatus(JsonNode request) {
+        ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+        log.info("updateLoginStatus - Request: {}", request);
+        try {
+            String userName = request.path("body").path("userName").asText();
+            String activeFlag = request.path("body").path("activeFlag").asText();
+            List<UserDetail> userDetails = userDetailsDAO.findAllByUserName(userName);
+            for (UserDetail u : userDetails) {
+                u.setActiveFlag(activeFlag);
+            }
+            userDetailsDAO.saveAll(userDetails);
+            responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
+        } catch (Exception e) {
+            log.error("updateLoginStatus - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
+            responseModel = checkResultService.checkResult(ResultData.OTHER_ERROR, responseModel);
+        }
+        return Map.of("status", 200, "data", responseModel);
+
+    }
+
+    public Object updateLeader(JsonNode request, JsonNode token) {
+        ResponseModel responseModel = new ResponseModel();
+        responseModel.setReference_id(UUID.randomUUID().toString());
+        responseModel.setDate_time(new Timestamp(new Date().getTime()));
+        log.info("updateLeader - Request: {}", request);
+        try {
+            String userId = request.path("body").path("userId").asText();
+            String userLogin = request.path("body").path("userLogin").asText();
+            String userRole = checkRoleUser(userLogin);
+            String teamLeader = request.path("body").path("teamLeader").asText();
+            if ((userRole.equals(ROLE_SUB) && checkUserNameFromToken(token, userLogin))) {
+                Optional<UserDetail> userDetail = userDetailsDAO.findById(Long.valueOf(userId));
+                if ( userDetail != null) {
+                    UserDetail userUpdate = userDetailsDAO.findById(Long.valueOf(userId)).get();
+                    userUpdate.setTeamLeader(teamLeader);
+                    userDetailsDAO.save(userUpdate);
+                    responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
+                } else {
+                    responseModel = checkResultService.checkResult(ResultData.FAIL, responseModel);
+                }
+
+
+            } else {
+                responseModel = checkResultService.checkResult(ResultData.PERMISSION_FAILED, responseModel);
+            }
+        } catch (Exception e) {
+            log.error("updateLeader - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
+                    e.getStackTrace()[0].getLineNumber());
+        }
+        return Map.of("status", 200, "data", responseModel);
+    }
+
+    public boolean checkUserNameFromToken(JsonNode token, String userName) {
+        return token.path("user_name").asText("").equals(userName);
     }
 
     private String checkRoleUser(String userLogin) {
