@@ -5399,8 +5399,7 @@ public class AutomationHandlerService {
 
             //-------------------- END ---------------------------
 
-            application.setAppId(leadAppID);
-//            application.setApplicationId(leadAppID);
+            application.setApplicationId(leadAppID);
             application.setLeadApp(leadApp);
 
             //UPDATE STATUS
@@ -5437,11 +5436,12 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
-            if (application.getAppId() == null || application.getAppId().isEmpty() || application.getAppId().indexOf("LEAD") > 0 || application.getAppId().indexOf("APPL") < 0) {
-                application.setAppId("UNKNOW");
-//                application.setApplicationId("UNKNOW");
+            if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
+                application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
-                application.setDescription("Khong thanh cong");
+                if (!"File not enough!!!".equals(application.getDescription())) {
+                    application.setDescription("Khong thanh cong");
+                }
             }
 
             Instant finish = Instant.now();
@@ -5460,7 +5460,7 @@ public class AutomationHandlerService {
     private void CRM_updateStatusRabbit(CRM_ExistingCustomerDTO application, String func, String project) throws Exception {
 
         JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-esb",
-                Map.of("func", func, "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getAppId() != null ? application.getAppId() : "",
+                Map.of("func", func, "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getApplicationId() != null ? application.getApplicationId() : "",
                         "project", project,
                         "automation_result", application.getStatus(),
                         "description", application.getDescription() != null ? application.getDescription() : "",
@@ -5611,7 +5611,7 @@ public class AutomationHandlerService {
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
             System.out.println("APPID => " + applicationId);
 
-            existingCustomerDTO.setAppId(applicationId);
+            existingCustomerDTO.setApplicationId(applicationId);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -5661,7 +5661,7 @@ public class AutomationHandlerService {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
             CRM_ExistingCustomerDTO existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
-            applicationId = existingCustomerDTO.getAppId();
+            applicationId = existingCustomerDTO.getApplicationId();
             if (applicationId != null) {
                 if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
                     if (applicationId.contains("APPL")) {
@@ -5727,7 +5727,6 @@ public class AutomationHandlerService {
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             Utilities.captureScreenShot(driver);
             loginPage.clickLogin();
-
             Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6085,7 +6084,7 @@ public class AutomationHandlerService {
             queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
             Update update = new Update();
             update.set("automationAcc", accountDTO.getUserName());
-            update.set("appId", applicationId);
+            update.set("applicationId", applicationId);
             update.set("status", "QUICKLEAD PASS");
             update.set("description", "Success");
             mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
@@ -6124,7 +6123,7 @@ public class AutomationHandlerService {
             queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
             Update update = new Update();
             update.set("automationAcc", accountDTO.getUserName());
-            update.set("appId", applicationId);
+            update.set("applicationId", applicationId);
             update.set("status", "QUICKLEAD FAILED");
             update.set("description", "Error: " + existingCustomerDTO.getError());
             mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
@@ -6150,7 +6149,7 @@ public class AutomationHandlerService {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
             existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
-            applicationId = existingCustomerDTO.getAppId();
+            applicationId = existingCustomerDTO.getApplicationId();
             CRM_ApplicationInformationsListDTO applicationInfoDTO = (CRM_ApplicationInformationsListDTO) mapValue.get("ApplicationInfoDTO");
             CRM_LoanDetailsDTO loanDetailsDTO = (CRM_LoanDetailsDTO) mapValue.get("VapDetailsDTO");
             List<CRM_DocumentsDTO> documentDTOS = (List<CRM_DocumentsDTO>) mapValue.get("DocumentDTO");
@@ -6164,7 +6163,9 @@ public class AutomationHandlerService {
 
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
             loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6451,7 +6452,7 @@ public class AutomationHandlerService {
             queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
             Update update = new Update();
             update.set("automationAcc", accountDTO.getUserName());
-            update.set("appId", applicationId);
+            update.set("applicationId", applicationId);
             update.set("status", "QUICKLEAD PASS");
             update.set("description", "Success");
             mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
@@ -6489,7 +6490,7 @@ public class AutomationHandlerService {
             queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
             Update update = new Update();
             update.set("automationAcc", accountDTO.getUserName());
-            update.set("appId", applicationId);
+            update.set("applicationId", applicationId);
             update.set("status", "QUICKLEAD FAILED");
             update.set("description", "Error: " + existingCustomerDTO.getError());
             mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
@@ -6515,7 +6516,7 @@ public class AutomationHandlerService {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
             saleQueueDTO = (CRM_SaleQueueDTO) mapValue.get("SaleQueueList");
-            applicationId = saleQueueDTO.getAppId();
+            applicationId = saleQueueDTO.getApplicationId();
             CRM_ApplicationInformationsListDTO applicationInfoDTO = (CRM_ApplicationInformationsListDTO) mapValue.get("ApplicationInfoDTO");
             CRM_LoanDetailsDTO loanDetailsDTO = (CRM_LoanDetailsDTO) mapValue.get("VapDetailsDTO");
             List<CRM_DocumentsDTO> documentDTOS = (List<CRM_DocumentsDTO>) mapValue.get("DocumentDTO");
@@ -6530,7 +6531,9 @@ public class AutomationHandlerService {
 
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
             loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6817,7 +6820,7 @@ public class AutomationHandlerService {
             queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
             Update update = new Update();
             update.set("automationAcc", accountDTO.getUserName());
-            update.set("appId", applicationId);
+            update.set("applicationId", applicationId);
             update.set("status", "SALEQUEUE PASS");
             update.set("description", "Success");
             mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
@@ -6856,7 +6859,7 @@ public class AutomationHandlerService {
             queryUpdate.addCriteria(Criteria.where("appId").is(applicationId).and("reference_id").is(saleQueueDTO.getReference_id()));
             Update update = new Update();
             update.set("automationAcc", accountDTO.getUserName());
-            update.set("appId", applicationId);
+            update.set("applicationId", applicationId);
             update.set("status", "SALEQUEUE FAILED");
             update.set("description", "Error: " + saleQueueDTO.getError());
             mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);

@@ -26,7 +26,7 @@ public class CRM_ExistingCustomerDTO {
     private Date lastDate;
 
     private String quickLeadId;
-    private String appId;
+//    private String appId;
     private String applicationId;
     private String neoCustID;
     private String cifNumber;

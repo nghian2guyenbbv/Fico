@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -584,6 +585,10 @@ public class AutomationService {
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
 		CRM_ExistingCustomerDTO existingCustomerDTOList = mapper.treeToValue(request.path("body"), CRM_ExistingCustomerDTO.class);
+		String applicationId = request.path("body").path("appId").textValue();
+		if (applicationId != null && StringUtils.isEmpty(applicationId)) {
+			existingCustomerDTOList.setApplicationId(applicationId);
+		}
 
 		new Thread(() -> {
 			try {
@@ -615,6 +620,10 @@ public class AutomationService {
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
 		CRM_SaleQueueDTO saleQueueDTOList = mapper.treeToValue(request.path("body"), CRM_SaleQueueDTO.class);
+		String applicationId = request.path("body").path("appId").textValue();
+		if (applicationId != null && StringUtils.isEmpty(applicationId)) {
+			saleQueueDTOList.setApplicationId(applicationId);
+		}
 
 		new Thread(() -> {
 			try {
