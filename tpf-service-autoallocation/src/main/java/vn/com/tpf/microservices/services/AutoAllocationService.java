@@ -339,7 +339,7 @@ public class AutoAllocationService {
                     return Map.of("status", 200, "data", responseModel);
                 }
                 String userRole = checkRoleUser(requestModel.getUserLogin());
-                if (!userRole.equals(ROLE_USER)) {
+                if (userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) {
                     requestModel.setCreateDate(new Timestamp(new Date().getTime()));
 
                     String query = String.format("SELECT  FN_ADD_USER ('%s','%s','%s','%s','%s','%s','%s') RESULT FROM DUAL",
@@ -1045,7 +1045,7 @@ public class AutoAllocationService {
         log.info("reassign - Request: {}", request);
         try {
             String userRole = checkRoleUser(request.path("body").path("reassignBy").textValue());
-            if (!userRole.equals(ROLE_USER)) {
+            if (userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) {
                 SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_REASSIGN_APP");
                 MapSqlParameterSource paramMap = new MapSqlParameterSource();
                 paramMap.addValue("P_APP_NUM", request.path("body").path("appNumber").textValue());
@@ -1095,8 +1095,14 @@ public class AutoAllocationService {
     private String checkRoleUser(String userLogin) {
         if (StringUtils.isEmpty(userLogin)) {
             return null;
+        } else {
+            List<UserDetailView> userDetailViewList = userDetailsViewDAO.findAllByUserName(userLogin);
+            if (userDetailViewList.size() > 0) {
+                return userDetailViewList.get(0).getUserRole();
+            } else {
+                return null;
+            }
         }
-        return userDetailsViewDAO.findAllByUserName(userLogin).get(0).getUserRole();
     }
 
 //    private void insertLogQuota(AssignmentDetail assignmentDetail, String userName, String comment, String method, String type, int oldValue){

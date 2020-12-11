@@ -17,17 +17,7 @@ public interface UserDetailsViewDAO extends JpaRepository<UserDetailView, Long> 
     @Query("SELECT e FROM UserDetailView e WHERE e.teamName IN(:teamName) AND e.userRole IN('role_user','role_leader') ")
     Page<UserDetailView> findAllUserForSub(@Param("teamName") List<String> teamName , Pageable pageable);
 
-    UserDetailView findByUserNameAndTeamLeader(String userName, String teamLeader);
-
-    @Query("SELECT e FROM UserDetailView e WHERE e.teamName IN(:teamName) AND e.userRole IN('role_user','role_leader') AND e.userName = :userName ")
-    List<UserDetailView> findByUserNameAndTeamName(@Param("userName")String userName, @Param("teamName") List<String> teamName);
-
-    Page<UserDetailView> findAllByTeamLeader(String teamLeader, Pageable pageable);
-
     List<UserDetailView> findAllByUserName(String userName);
 
-    UserDetailView findByUserName(String userName);
-
-    UserDetailView findByUserRoleAndUserNameAndTeamName(String userRole, String userName, String teamName);
 
 }
