@@ -586,7 +586,7 @@ public class AutomationService {
 		Assert.notNull(request.get("body"), "no body");
 		CRM_ExistingCustomerDTO existingCustomerDTOList = mapper.treeToValue(request.path("body"), CRM_ExistingCustomerDTO.class);
 		String applicationId = request.path("body").path("appId").textValue();
-		if (applicationId != null && StringUtils.isEmpty(applicationId)) {
+		if (applicationId != null && !StringUtils.isEmpty(applicationId)) {
 			existingCustomerDTOList.setApplicationId(applicationId);
 		}
 
@@ -621,7 +621,7 @@ public class AutomationService {
 		Assert.notNull(request.get("body"), "no body");
 		CRM_SaleQueueDTO saleQueueDTOList = mapper.treeToValue(request.path("body"), CRM_SaleQueueDTO.class);
 		String applicationId = request.path("body").path("appId").textValue();
-		if (applicationId != null && StringUtils.isEmpty(applicationId)) {
+		if (applicationId != null && !StringUtils.isEmpty(applicationId)) {
 			saleQueueDTOList.setApplicationId(applicationId);
 		}
 
