@@ -1094,13 +1094,13 @@ public class AutoAllocationService {
 
     private String checkRoleUser(String userLogin) {
         if (StringUtils.isEmpty(userLogin)) {
-            return null;
+            return "";
         } else {
             List<UserDetailView> userDetailViewList = userDetailsViewDAO.findAllByUserName(userLogin);
             if (userDetailViewList.size() > 0) {
                 return userDetailViewList.get(0).getUserRole();
             } else {
-                return null;
+                return "";
             }
         }
     }
