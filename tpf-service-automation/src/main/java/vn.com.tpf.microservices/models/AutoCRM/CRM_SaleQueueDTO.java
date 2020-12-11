@@ -8,7 +8,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Builder
 @Document(collection="automation_crm")
 public class CRM_SaleQueueDTO {
-    private String appId;
+//    private String appId;
+    private String applicationId;
     private String userAuto;
     private String status;
     private String userCreatedSalesQueue;
