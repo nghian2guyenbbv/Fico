@@ -724,22 +724,28 @@ public class AutoAllocationService {
             String teamLeader = request.path("body").path("teamLeader").asText();
             String activeFlag = request.path("body").path("activeFlag").asText();
             String userRole = checkRoleUser(userLogin);
-
-            if ((userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) && userId != null) {
-                UserDetail userDetail = userDetailsDAO.findById(Long.valueOf(userId)).get();
-                log.info("changeActiveUser - userDetail: {}", userDetail);
-                Date date = new Date();
-                Timestamp now = new Timestamp(date.getTime());
-                userDetail.setTeamLeader(teamLeader);
-                userDetail.setActiveFlag(activeFlag);
-                userDetail.setUpdateTime(now);
-                userDetailsDAO.save(userDetail);
-                responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
+            if (userId != null) {
+                if ((userRole.equals(ROLE_SUB) || userRole.equals(ROLE_LEADER)) && userId != null) {
+                    UserDetail userDetail = userDetailsDAO.findById(Long.valueOf(userId)).get();
+                    log.info("changeActiveUser - userDetail: {}", userDetail);
+                    Date date = new Date();
+                    Timestamp now = new Timestamp(date.getTime());
+                    userDetail.setTeamLeader(teamLeader);
+                    userDetail.setActiveFlag(activeFlag);
+                    userDetail.setUpdateTime(now);
+                    userDetailsDAO.save(userDetail);
+                    responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
+                } else {
+                    //  permission user login
+                    log.info("changeActiveUser - fail_permission_userRole: {}", userRole);
+                    responseModel = checkResultService.checkResult(ResultData.PERMISSION_FAILED, responseModel);
+                }
             } else {
-                // userId is required or permission user login
-                log.error("changeActiveUser - userId: {}", userId);
+                //userId is required
+                log.error("changeActiveUser - userId is required:");
                 responseModel = checkResultService.checkResult(ResultData.FAIL, responseModel);
             }
+
 
         } catch (Exception e) {
             log.error("changeActiveUser - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
