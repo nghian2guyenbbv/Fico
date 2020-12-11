@@ -474,6 +474,7 @@ public class AutoAllocationService {
             }
             result.put("data", mapAssignConfig);
             result.put("lstTeamName", listTeamName);
+            responseModel.setData(result);
             responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
         } catch (Exception e) {
             log.error("getAssignConfig - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
