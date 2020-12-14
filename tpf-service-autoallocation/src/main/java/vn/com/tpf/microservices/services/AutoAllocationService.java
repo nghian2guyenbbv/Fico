@@ -780,14 +780,27 @@ public class AutoAllocationService {
         ResultData resultData;
         log.info("updateStatusApp - Request: {} ", request);
         try {
-            String result = getResult("ROBOT_ASSIGN", request.path("body").path("appId").textValue(), "",
-                    "", 0, request.path("body").path("automationResult").textValue(),
-                    request.path("body").path("automationResultMessage").textValue(),
-                    request.path("body").path("userAuto").textValue());
+            BodyAssignRobot requestModel = mapper.readValue(request.get("body").toString(), new TypeReference<BodyAssignRobot>() {
+            });
 
-            log.info("updateStatusApp - result_DB: {}", result);
-            resultData = ResultData.findResultData(result);
-            responseModel = checkResultService.checkResult(resultData, responseModel);
+            if (requestModel.getAutoAssign() == null) {
+                log.error("updateStatusApp - requestModel.getAutoAssign() is required:");
+                responseModel = checkResultService.checkResult(ResultData.FAIL, responseModel);
+            }else{
+                List<AutoAssignModel> autoAssignModels = requestModel.getAutoAssign();
+
+                for (AutoAssignModel ad : autoAssignModels) {
+                    log.info("updateStatusApp - AutoAssignModel: {}", ad.toString());
+                    String result = getResult("ROBOT_ASSIGN", ad.getAppId(), "",
+                            "", 0, ad.getAutomationResult(),
+                            ad.getAutomationResultMessage(),
+                            ad.getUserAuto());
+
+                    log.info("updateStatusApp - result_DB: {}", result);
+                    resultData = ResultData.findResultData(result);
+                    responseModel = checkResultService.checkResult(resultData, responseModel);
+                }
+            }
 
 //            if (result.equals(ResultData.SUCCESS.getResultCode())) {
 //                responseModel.setResult_code(Integer.valueOf(ResultData.SUCCESS.getResultCode()));
@@ -1101,6 +1114,10 @@ public class AutoAllocationService {
                              int maxPending, String resultRobot, String resultMess, String botName) {
         SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate).withFunctionName("FN_ALLOCATION_ACTION_APP");
         MapSqlParameterSource paramMap = new MapSqlParameterSource();
+        log.info("getResult : " + "P_ACTION: " + action + "," + "P_APP_NUM: " + appNumber + ","+
+                "P_PENDING_CODE: " + pendingCode + ","+ "P_PENDING_DES: " + pendingDes +
+                ","+ "P_MAX_PENDING: " + maxPending + ","+ "P_RESULT_ROBOT: " + resultRobot + ","+
+                "P_ERROR_MESSAGE: " + resultMess + ","+ "P_BOT_NAME: " + botName);
         paramMap.addValue("P_ACTION", action);
         paramMap.addValue("P_APP_NUM", appNumber);
         //HOLD APPLICATION
