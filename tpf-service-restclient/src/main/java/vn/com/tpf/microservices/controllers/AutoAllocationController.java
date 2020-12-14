@@ -309,7 +309,7 @@ public class AutoAllocationController {
 	}
 
 	@PostMapping("/tpf-service-autoallocation/update-leader/")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_user')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
 	public ResponseEntity<?> updateLeader(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateLeader");
@@ -321,7 +321,7 @@ public class AutoAllocationController {
 
 
 	@PostMapping("/tpf-service-autoallocation/update-login-status/")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root') and hasAnyAuthority('role_root','role_admin')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root')")
 	public ResponseEntity<?> updateLoginStatus(@RequestHeader("Authorization") String token, @RequestBody JsonNode body) throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "updateLoginStatus");
