@@ -364,8 +364,14 @@ public class AutoAllocationService {
 
                     log.info("addUser - result_from_DB: {}", row_string);
 
-                    if (row_string.equals(ResultData.SUCCESS.getResultCode())) {
+                    String codeResult = row_string.split("_")[0];
+                    String codeMessage = row_string.split("_")[1];
+
+                    if (codeResult.equals(ResultData.SUCCESS.getResultCode())) {
                         responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
+                    } else if (codeResult.equals(ResultData.ADD_ERROR.getResultCode())) {
+                        responseModel.setResult_code(Integer.valueOf(ResultData.ADD_ERROR.getResultCode()));
+                        responseModel.setMessage(ResultData.ADD_ERROR.getResultMessage() + codeMessage);
                     } else {
                         responseModel = checkResultService.checkResult(ResultData.FAIL, responseModel);
                     }

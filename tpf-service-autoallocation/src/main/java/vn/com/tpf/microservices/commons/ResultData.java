@@ -15,6 +15,7 @@ public enum ResultData {
     PENDING_LIMIT("202", "Number of pending app is limited"),
     APP_NOT_EXIST("203", "Application not exist"),
     STATUS_PENDING("204", "Application is pending status assign"),
+    ADD_ERROR("206", "User Exist in Team Name ")
             ;
     private String resultCode;
     private String resultMessage;
