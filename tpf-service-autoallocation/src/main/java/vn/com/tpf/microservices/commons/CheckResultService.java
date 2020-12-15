@@ -54,6 +54,10 @@ public class CheckResultService {
                 code = ResultData.STATUS_PENDING.getResultCode();
                 message = ResultData.STATUS_PENDING.getResultMessage();
                 break;
+            case ERROR_RE_ASSIGN:
+                code = ResultData.ERROR_RE_ASSIGN.getResultCode();
+                message = ResultData.ERROR_RE_ASSIGN.getResultMessage();
+                break;
             default:
                 code = ResultData.FAIL.getResultCode();
                 message = ResultData.FAIL.getResultMessage();
