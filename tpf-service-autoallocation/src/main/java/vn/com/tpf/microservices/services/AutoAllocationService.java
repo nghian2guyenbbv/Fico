@@ -796,7 +796,7 @@ public class AutoAllocationService {
                             ad.getAutomationResultMessage(),
                             ad.getUserAuto());
 
-                    log.info("updateStatusApp - result_DB: {}", result);
+                    log.info("updateStatusApp - result_DB: {} - appNum: {}", result, ad.getAppId());
                     resultData = ResultData.findResultData(result);
                     responseModel = checkResultService.checkResult(resultData, responseModel);
                 }
@@ -936,7 +936,8 @@ public class AutoAllocationService {
                         request.path("body").path("pendingComments").textValue(),
                         request.path("body").path("maxPending").intValue(), "", "", "");
 
-                log.info("holdApplication - result_DB: {}", result);
+                log.info("holdApplication - result_DB: {} - appNum: {}", result,
+                        request.path("body").path("appNumber").textValue());
                 resultData = ResultData.findResultData(result);
                 responseModel = checkResultService.checkResult(resultData, responseModel);
 
@@ -1060,7 +1061,8 @@ public class AutoAllocationService {
                         "PENRS", request.path("body").path("comment").textValue(),
                         0, "", "", "");
                 ResultData resultData;
-                log.info("updateRaiseQuery - result_DB: {}", result);
+                log.info("updateRaiseQuery - result_DB: {} - appNumb: {}", result,
+                        request.path("body").path("applicationNo").textValue());
                 resultData = ResultData.findResultData(result);
                 responseModel = checkResultService.checkResult(resultData, responseModel);
 
@@ -1094,7 +1096,8 @@ public class AutoAllocationService {
                 String result = call.executeFunction(String.class, paramMap);
 
                 ResultData resultData;
-                log.info("updateRaiseQuery - result_DB: {}", result);
+                log.info("reassign - result_DB: {} - appNumb: {}",
+                        result, request.path("body").path("appNumber").textValue());
                 resultData = ResultData.findResultData(result);
                 responseModel = checkResultService.checkResult(resultData, responseModel);
 
