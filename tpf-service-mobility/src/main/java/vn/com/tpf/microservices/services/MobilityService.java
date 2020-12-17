@@ -485,10 +485,15 @@ public class MobilityService {
 		JsonNode valueAutoApi = rabbitMQService.sendAndReceiveAutoRouting("tpf-service-autorouting", Map.of("func", "checkRouting", "body",
 				convertService.toAutorouting(partnerId)));
 		HashMap<String, Object> dataAutoApi = new HashMap<>();
-		dataAutoApi.put("idLog",valueAutoApi.get("data").get("data").get("idLog").asLong());
-		dataAutoApi.put("chanelId",valueAutoApi.get("data").get("data").get("chanelId").asText());
-		dataAutoApi.put("routingNumber",valueAutoApi.get("data").get("data").get("routingNumber").asLong());
-		dataAutoApi.put("createDate",valueAutoApi.get("data").get("data").get("createDate").asText());
+		if (valueAutoApi != null){
+			dataAutoApi.put("idLog",valueAutoApi.get("data").get("data").get("idLog").asLong());
+			dataAutoApi.put("chanelId",valueAutoApi.get("data").get("data").get("chanelId").asText());
+			dataAutoApi.put("routingNumber",valueAutoApi.get("data").get("data").get("routingNumber").asLong());
+			dataAutoApi.put("createDate",valueAutoApi.get("data").get("data").get("createDate").asText());
+		}else{
+			valueAutoApi = mapper.convertValue(Map.of("data", Map.of("data", Map.of("routingNumber", 0))), JsonNode.class);
+			dataAutoApi.put("routingNumber",valueAutoApi.get("data").get("data").get("routingNumber").asLong());
+		}
 
 		update.set("objectAutoApi",dataAutoApi);
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
