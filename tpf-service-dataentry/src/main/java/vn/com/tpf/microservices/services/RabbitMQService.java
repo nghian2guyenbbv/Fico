@@ -230,12 +230,20 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.commentAppNonWeb(request));
 				case "raiseQueryData":
 					return response(message, payload, raiseQueryService.addRaiseQuery(request));
+				case "convertToLeadF1":
+					return response(message, payload, dataEntryService.convertToLeadF1(request));
 				case "getListReason":
 					return response(message, payload, dataEntryService.getListReason(token));
 				case "getStageF1":
 					return response(message, payload, dataEntryService.getStageF1(request, token));
 				case "cancelF1":
 					return response(message, payload, dataEntryService.cancelF1(request, token));
+				case "updateAfterQuickLeadF1":
+					return response(message, payload, dataEntryService.updateAfterQuickLeadF1(request));
+				case "updateFullAppApiF1":
+					return response(message, payload, dataEntryService.updateFullAppApiF1(request));
+				case "updateAppErrorApiF1":
+					return response(message, payload, dataEntryService.updateAppErrorApiF1(request));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

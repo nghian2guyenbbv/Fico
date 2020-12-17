@@ -1,6 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -11,9 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.*;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -30,11 +31,10 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.com.tpf.microservices.models.*;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.util.*;
@@ -422,6 +422,7 @@ public class ApiService {
 
 				try{
 					HttpHeaders headers_DT = new HttpHeaders();
+
 					headers_DT.set("authkey", digitexToken);
 					headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 					HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
@@ -2324,11 +2325,49 @@ public class ApiService {
 		return isAuto;
 	}
 
-	public JsonNode uploadFileToPartner(List<QLDocument> documents, String partnerId, String urlPartner, String token){
-		ObjectNode logInfo = mapper.createObjectNode();
-		logInfo.put("func", new Throwable().getStackTrace()[0].getMethodName());
-		JsonNode jNode;
+	public int chooseAutoOrApiF1(String quickLeadId, String partnerId){
+//		ObjectNode logInfo = mapper.createObjectNode();
+		String slog = "func: " + new Throwable().getStackTrace()[0].getMethodName();
 		try {
+			RoutingF1 routingF1 = new RoutingF1();
+			routingF1.setChanelId("P4S");
+			routingF1.setCreateDate(new Date());
+			routingF1.setVendorId(partnerId);
+			JsonNode node = rabbitMQService.sendAndReceive("tpf-service-autorouting",
+					Map.of("func", "checkRouting", "body",
+							Map.of("data", mapper.convertValue(routingF1, JsonNode.class),
+									"request_id", UUID.randomUUID().toString(),
+									"date_time", new Date())));
+			slog += " - response: " + mapper.writeValueAsString(node);
+//			logInfo.set("response", node);
+			if (node.path("data").isMissingNode() || node.path("data").path("data").isMissingNode()){
+				throw new Exception("error call autorouting");
+			}
+
+			routingF1 = mapper.convertValue(node.path("data").path("data"), RoutingF1.class);
+
+			Query query = new Query();
+			query.addCriteria(Criteria.where("quickLeadId").is(quickLeadId));
+			Update update = new Update();
+			update.set("routingF1", routingF1);
+			mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+			return routingF1.getRoutingNumber();
+		} catch (Exception e){
+			slog += " - exception: " + String.format("%s - class: %s - line: %d", e.toString(), e.getStackTrace()[0].getClassName(), e.getStackTrace()[0].getLineNumber());
+//			logInfo.put("exception", String.format("%s - class: %s - line: %d", e.toString(), e.getStackTrace()[0].getClassName(), e.getStackTrace()[0].getLineNumber()));
+		} finally {
+			log.info("{}", slog);
+		}
+		return isAuto;
+	}
+
+	public JsonNode uploadFileToPartner(List<QLDocument> documents, String partnerId, String urlPartner, String token){
+		JsonNode jNode;
+		StringBuilder sb = new StringBuilder();
+		try {
+			sb.append("FUNC: ").append(new Throwable().getStackTrace()[0].getMethodName());
+			sb.append(" - DOCUMENTS: ").append(documents.toString());
+
 			MultiValueMap<String, Object> parts_02 = initBodyToSendPartner(documents);
 			HttpHeaders headers_DT = new HttpHeaders();
 			if(partnerId.equals("1")){
@@ -2336,12 +2375,15 @@ public class ApiService {
 				headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 				HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
-				logInfo.put("send-to-partner", entity_DT.toString());
-				logInfo.put("urlPartner", urlPartner);
-				log.info("{}", logInfo);
+				sb.append(" - URL: ").append(urlPartner);
+				sb.append(" - HEADERS: ").append(headers_DT.toString());
+				sb.append(" - REQUEST TO 3P: ").append(entity_DT.toString());
+				sb.append(" - REQUEST TIME: ").append(new Timestamp(new Date().getTime()));
+
 				ResponseEntity<?> res_DT = restTemplate3P.postForEntity(urlPartner, entity_DT, Object.class);
-				logInfo.put("response-from-partner", res_DT.toString());
-				log.info("{}", logInfo);
+
+				sb.append(" - RESPONSE: ").append(res_DT.toString());
+				sb.append(" - RESPONSE TIME: ").append(new Timestamp(new Date().getTime()));
 
 				Object map = mapper.valueToTree(res_DT.getBody());
 
@@ -2360,12 +2402,15 @@ public class ApiService {
 				headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 				HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
-				logInfo.put("send-to-partner", entity_DT.toString());
-				logInfo.put("urlPartner", urlPartner);
-				log.info("{}", logInfo);
+				sb.append(" - URL: ").append(urlPartner);
+				sb.append(" - HEADERS: ").append(headers_DT.toString());
+				sb.append(" - REQUEST TO 3P: ").append(entity_DT.toString());
+				sb.append(" - REQUEST TIME: ").append(new Timestamp(new Date().getTime()));
+
 				ResponseEntity<?> res_DT = restTemplate3P.postForEntity(urlPartner, entity_DT, Object.class);
-				logInfo.put("response-from-partner", res_DT.toString());
-				log.info("{}", logInfo);
+
+				sb.append(" - RESPONSE: ").append(res_DT.toString());
+				sb.append(" - RESPONSE TIME: ").append(new Timestamp(new Date().getTime()));
 
 				Object map = mapper.valueToTree(res_DT.getBody());
 
@@ -2375,13 +2420,14 @@ public class ApiService {
 				return jNode;
 			}
 		}catch (Exception e){
-			String error = StringUtils.hasLength(e.getMessage()) ? e.getMessage() : e.toString();
-			logInfo.put("exception", error);
+			sb.append(" - EXCEPTION: ").append(e.toString())
+					.append(" - CLASS: ").append(e.getStackTrace()[0].getClassName())
+					.append(" - LINE: ").append(e.getStackTrace()[0].getLineNumber());
 			ObjectNode objectNode = mapper.createObjectNode();
-			objectNode.put("error", "func: " + new Throwable().getStackTrace()[0].getMethodName() + ": " + error);
+			objectNode.put("error", "Other error");
 			return objectNode;
 		}finally {
-			log.info("{}", logInfo);
+			log.info("{}", sb);
 		}
 		return null;
 	}

@@ -11,7 +11,6 @@ public enum ThirdPartyType {
     SGBPO   ("SGBPO", 2),
     INHOUSE ("IN-HOUSE", 3);
 
-
     private String name;
     private int code;
 
