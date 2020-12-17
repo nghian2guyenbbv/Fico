@@ -5352,12 +5352,13 @@ public class DataEntryService {
 //	@Scheduled(cron = "${spring.cron.config}")
 //	public void jobUpdateStatusIH()
 //	{
+//		String slog = "func: jobUpdateStatusIH";
 //		try{
 //			//get all app IH with status "PROCESSING" để update status
 //			Query query = new Query();
-//			query.addCriteria(Criteria.where("partnerId").is("3").and("status").is("PROCESSING"));
+//			query.addCriteria(Criteria.where("partnerId").is("3").and("status").in("PROCESSING", "RETURNED"));
 //			List<Application> list = mongoTemplate.find(query, Application.class);
-//
+//			slog += " - list app update: ";
 //			//loop get status
 //			for (Application app: list) {
 //				JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", app.getApplicationId()), JsonNode.class);
@@ -5368,31 +5369,52 @@ public class DataEntryService {
 //				mongoTemplate.save(appStatusModel);
 //
 //				//check stage : POLICY_EXECUTION, LOGIN_ACCEPTANCE
-//				//tam thoi comment update stattus voi nhung app IH tao tu PORTAL
-////				if(appStatusModel.getResponseCode().equals("0"))
-////				{
-////					if(appStatusModel.getResponseData().getOtherInfo()!=null&&!StringUtils.isEmpty(appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage())){
-////						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
-////
-////						//update status app dataentry
-////						if (stage.indexOf("POLICY_EXECUTION") > 0 || stage.indexOf("LOGIN_ACCEPTANCE")>0)
-////						{
-////							Query queryUpdate = new Query();
-////							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
-////
-////							Update update = new Update();
-////							update.set("status", "COMPLETED");
-////							update.set("lastModifiedDate", new Date());
-////							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
-////						}
-////					}
-////				}
+//				if(appStatusModel.getResponseCode().equals("0"))
+//				{
+//					if(appStatusModel.getResponseData().getOtherInfo()!=null){
+//						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
+//
+//						//update status app dataentry
+//						if (stage.indexOf("LEAD_DETAILS") < 0)
+//						{
+//							Query queryUpdate = new Query();
+//							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
+//
+//							Update update = new Update();
+//							update.set("status", "COMPLETED");
+//							update.set("lastModifiedDate", new Date());
+//							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+//
+//							Report report = new Report();
+//							report.setQuickLeadId(resultUpdate.getQuickLeadId());
+//							report.setApplicationId(resultUpdate.getApplicationId());
+//							report.setFunction("UPDATESTATUS");
+//							report.setStatus(resultUpdate.getStatus().toUpperCase());
+//							report.setCreatedBy("system");
+//							report.setCreatedDate(new Date());
+//
+//							if(resultUpdate != null){
+//								report.setPartnerId(resultUpdate.getPartnerId());
+//								report.setPartnerName(resultUpdate.getPartnerName());
+//							}
+//							report.setDescription(resultUpdate.getDescription());
+//							mongoTemplate.save(report);
+//							rabbitMQService.send("tpf-service-app",
+//									Map.of("func", "updateApp","reference_id", UUID.randomUUID().toString(),
+//											"param", Map.of("project", "dataentry", "id", resultUpdate.getId()),"body", convertService.toAppDisplay(resultUpdate)));
+//							slog += app.getApplicationId() + ", ";
+//						}
+//					}
+//				}
 //
 //			}
 //
 //		}catch (Exception e)
 //		{
-//			log.info("jobUpdateStatusIH:" + e.toString());
+//			slog += " - exception: " + e.toString();
+//
+//		}finally {
+//			log.info("{}", slog);
 //		}
 //	}
 
