@@ -232,16 +232,16 @@ public class AutoRoutingService {
 					body.put("appNumber", logChoiceRouting.getAppNumber());
 					body.put("vendorId", logChoiceRouting.getVendorId());
 
-					if (!logChoiceRouting.getAppNumber().equals("UNKNOWN")) {
-						log.info("logRouting - URL: {}", url);
-						log.info("logRouting - body: {}", body);
-						log.info("logRouting - send ESB: appNumb: {}", logChoiceRouting.getAppNumber());
-						new Thread(() -> {
-							log.info("Start call ESB");
-							callESBService.callApiF1(url, body);
-							log.info("End call ESB");
-						}).start();
-					}
+//					if (!logChoiceRouting.getAppNumber().equals("UNKNOWN")) {
+//						log.info("logRouting - URL: {}", url);
+//						log.info("logRouting - body: {}", body);
+//						log.info("logRouting - send ESB: appNumb: {}", logChoiceRouting.getAppNumber());
+//						new Thread(() -> {
+//							log.info("Start call ESB");
+//							callESBService.callApiF1(url, body);
+//							log.info("End call ESB");
+//						}).start();
+//					}
 
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
