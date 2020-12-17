@@ -52,5 +52,6 @@ public class Application {
     private String reasonCancel;
     private String createFrom;
     private Long routingId;
+    private RoutingF1 routingF1;
     private String stageF1;
 }

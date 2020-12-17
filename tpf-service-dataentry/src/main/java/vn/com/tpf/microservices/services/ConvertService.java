@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ConvertService {
+
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
@@ -524,8 +525,9 @@ public class ConvertService {
 					if (StringUtils.hasLength(qlDocument.getOriginalname()) && qlDocument.getOriginalname().contains(".")) {
 						String type = qlDocument.getOriginalname().substring(0, qlDocument.getOriginalname().indexOf("."));
 						documents.setDocumentName(type);
-						if (StringUtils.hasLength(getDataF1Service.getDocumentReferenceId(application.getApplicationId(), type)))
-							documents.setDocumentReferenceId(Long.valueOf(getDataF1Service.getDocumentReferenceId(application.getApplicationId(), type)));
+						String getDocumentReferenceId = getDataF1Service.getDocumentReferenceId(application.getApplicationId(), type);
+						if (StringUtils.hasLength(getDocumentReferenceId))
+							documents.setDocumentReferenceId(Long.valueOf(getDocumentReferenceId));
 					}
 					documents.setReferenceType("Customer");
 					String entityType = "";

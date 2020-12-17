@@ -1,6 +1,5 @@
 package vn.com.tpf.microservices.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +26,6 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -761,7 +759,7 @@ public class DataEntryService {
 						report.setApplicationId(data.getApplicationId());
 						report.setFunction("SENDAPP");
 						report.setStatus("PROCESSING");
-						report.setCreatedBy(token.path("user_name").textValue());
+						report.setCreatedBy(token.path("user_name").asText(""));
 						report.setCreatedDate(new Date());
 						if(dataFullApp != null){
 							report.setPartnerId(dataFullApp.getPartnerId());
@@ -1099,7 +1097,7 @@ public class DataEntryService {
 									catch (Exception e) {}
 									try {
 										String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), item.getRequest(), commentDGTLD,
-												token.path("user_name").textValue(), null, new Date());
+												token.path("user_name").asText(""), null, new Date());
 										if (!resultInsertORA.equals("success")) {
 											log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
 										}
@@ -1145,7 +1143,7 @@ public class DataEntryService {
 										new Thread(() -> {
 											try {
 												String resultInsertORA = insertToOracle_Return(data.getApplicationId(), item.getCommentId(), item.getType(), null, item.getResponse().getComment(),
-														token.path("user_name").textValue(), item.getCreatedDate(), new Date());
+														token.path("user_name").asText(""), item.getCreatedDate(), new Date());
 												if (!resultInsertORA.equals("success")) {
 													log.info("ReferenceId : " + referenceId + "; Insert to Oracle Return: " + resultInsertORA);
 												}
@@ -1163,7 +1161,6 @@ public class DataEntryService {
 						}
 					}
 				}
-
 			}
 			if (requestCommnentFromDigiTex) {
 				Query queryUpdate = new Query();
@@ -1185,7 +1182,7 @@ public class DataEntryService {
 				report.setFunction("DIGITEXX_COMMENT");
 				report.setStatus("RETURNED");
 				report.setCommentDescription(commentDescription);
-				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedBy(token.path("user_name").asText(""));
 				report.setCreatedDate(new Date());
 				if (dataFullApp != null) {
 					report.setPartnerId(dataFullApp.getPartnerId());
@@ -1196,7 +1193,6 @@ public class DataEntryService {
 
 
 			if (responseCommnentToDigiTex) {
-
 //                if (responseCommnentToDigiTexDuplicate) { // bo check tra comment nhieu lan
 				ArrayNode documents = mapper.createArrayNode();
 				boolean checkIdCard = false;
@@ -1354,7 +1350,7 @@ public class DataEntryService {
 				report.setFunction("FICO_RETURN_COMMENT");
 				report.setStatus("PROCESSING");
 				report.setCommentDescription(comment);
-				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedBy(token.path("user_name").asText(""));
 				report.setCreatedDate(new Date());
 
 				report.setPartnerId(partnerId);
@@ -1378,7 +1374,7 @@ public class DataEntryService {
 				report.setApplicationId(data.getApplicationId());
 				report.setFunction("DIGITEXX_RETURN_COMMENT");
 				report.setStatus("FULL_APP_FAIL");
-				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedBy(token.path("user_name").asText(""));
 				report.setCreatedDate(new Date());
 
 				report.setPartnerId(partnerId);
@@ -1500,7 +1496,7 @@ public class DataEntryService {
 				update.set("description", data.getDescription());
 				update.set("lastModifiedDate", new Date());
 				if (data.getStatus().toUpperCase().equals("MANUALLY".toUpperCase())){
-					update.set("userName_DE", token.path("user_name").textValue());
+					update.set("userName_DE", token.path("user_name").asText(""));
 				}
 
                 if (data.getStatus().toUpperCase().equals("CANCEL".toUpperCase())){
@@ -1520,7 +1516,7 @@ public class DataEntryService {
 				report.setApplicationId(data.getApplicationId());
 				report.setFunction("UPDATESTATUS");
 				report.setStatus(data.getStatus().toUpperCase());
-				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedBy(token.path("user_name").asText(""));
 				report.setCreatedDate(new Date());
 
 				if(dataFullApp != null){
@@ -1594,7 +1590,8 @@ public class DataEntryService {
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", appDataFull.get(0).getId()), "body", convertService.toAppDisplay(appDataFull.get(0))));
 
-					if(apiService.chooseAutoOrApiF1() == 1) {
+					if((appDataFull.get(0).getRoutingF1() != null && appDataFull.get(0).getRoutingF1().getRoutingNumber() == 1)
+							|| (appDataFull.get(0).getRoutingF1() == null && apiService.chooseAutoOrApiF1() == 1)) {
 						{
 							new Thread(() -> {
 								try{
@@ -1668,7 +1665,7 @@ public class DataEntryService {
 					report.setApplicationId(request.path("body").path("applicationId").textValue());
 					report.setFunction("QUICKLEAD");
 					report.setStatus("NEW");
-					report.setCreatedBy(token.path("user_name").textValue());
+					report.setCreatedBy(token.path("user_name").asText(""));
 					report.setCreatedDate(new Date());
 
 					report.setPartnerId(resultUpdate.getPartnerId());
@@ -1684,7 +1681,7 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
-					if(apiService.chooseAutoOrApiF1() == 1) {
+					if(apiService.chooseAutoOrApiF1(appData.get(0).getQuickLeadId(), appData.get(0).getPartnerId()) == 1) {
 						new Thread(() -> {
 							try{
 								ObjectNode result = mapper.createObjectNode();
@@ -1756,7 +1753,7 @@ public class DataEntryService {
 				app.setQuickLeadId(quickLeadId.toString());
 				app.setQuickLead(quickLead);
 				app.setStatus("UPLOADFILE");
-				app.setUserName(token.path("user_name").textValue());
+				app.setUserName(token.path("user_name").asText(""));
 				app.setCreatedDate(new Date());
 
 				app.setPartnerId(request.get("partnerId").asText());
@@ -1795,7 +1792,7 @@ public class DataEntryService {
 				report.setFunction("UPLOADFILE");
 				report.setStatus("UPLOADFILE");
 				report.setDescription(description);
-				report.setCreatedBy(token.path("user_name").textValue());
+				report.setCreatedBy(token.path("user_name").asText(""));
 				report.setCreatedDate(new Date());
 
 				report.setPartnerId(request.get("partnerId").asText());
@@ -2025,6 +2022,7 @@ public class DataEntryService {
 			Query query = new Query();
 			query.addCriteria(Criteria.where("quickLeadId").is(request.path("body").path("quickLeadId").textValue()));
 			List<Application> checkExist = mongoTemplate.find(query, Application.class);
+			RoutingF1 routingF1;
 			if (checkExist.size() > 0){
 				try{
 					if (checkExist.get(0).getApplicationId() != null){
@@ -2067,6 +2065,17 @@ public class DataEntryService {
 					update.set("applicationId", appId);
 					update.set("status", "PROCESSING");
 					update.set("lastModifiedDate", new Date());
+
+					routingF1 = checkExist.get(0).getRoutingF1();
+					if (routingF1 != null){
+						routingF1.setAppNumber(appId);
+						update.set("routingF1", routingF1);
+					}
+					JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", appId), JsonNode.class);
+					JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
+					AppStatusModel appStatusModel=mapper.convertValue(getStage,AppStatusModel.class);
+					update.set("quickLead.customerId", appStatusModel.getResponseData().getCustomerInfoVO().getCustomerNumber());
+
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					if (resultUpdatetest != null && !resultUpdatetest.getPartnerId().equals("3")) {
@@ -2121,6 +2130,14 @@ public class DataEntryService {
 						rabbitMQService.send("tpf-service-app",
 								Map.of("func", "updateApp","reference_id", referenceId,
 										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+						routingF1 = dataFullApp.getRoutingF1();
+						if (routingF1 != null){
+							rabbitMQService.send("tpf-service-autorouting",
+									Map.of("func", "logRouting", "body",
+											Map.of("data", mapper.convertValue(routingF1, JsonNode.class),
+													"request_id", requestId,
+													"date_time", new Date())));
+						}
 					}
 
 					Report report = new Report();
@@ -2154,6 +2171,13 @@ public class DataEntryService {
 //					update.set("applicationId", "UNKNOWN");
 					update.set("status", "AUTO_QL_FAIL");
 					update.set("lastModifiedDate", new Date());
+
+					routingF1 = checkExist.get(0).getRoutingF1();
+					if (routingF1 != null){
+						routingF1.setAppNumber("UNKNOWN");
+						update.set("routingF1", routingF1);
+					}
+
 					Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -2170,6 +2194,14 @@ public class DataEntryService {
 						rabbitMQService.send("tpf-service-app",
 								Map.of("func", "updateApp","reference_id", referenceId,
 										"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+						routingF1 = dataFullApp.getRoutingF1();
+						if (routingF1 != null){
+							rabbitMQService.send("tpf-service-autorouting",
+									Map.of("func", "logRouting", "body",
+											Map.of("data", mapper.convertValue(routingF1, JsonNode.class),
+													"request_id", requestId,
+													"date_time", new Date())));
+						}
 					}
 				}
 
@@ -3897,14 +3929,16 @@ public class DataEntryService {
 		return null;
 	}
 
-	private Map<String, Object> updateAfterQuickLeadF1(JsonNode request){
+	public Map<String, Object> updateAfterQuickLeadF1(JsonNode request){
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("request_id").asText("");
 		if (StringUtils.isEmpty(requestId)){
 			requestId = UUID.randomUUID().toString();
 		}
 		String referenceId = UUID.randomUUID().toString();
+		String slog = new Throwable().getStackTrace()[0].getMethodName();
 		try{
+			slog += " - request: " + mapper.writeValueAsString(request);
 			Query query = new Query();
 			String quickLeadId = request.path("quickLeadId").asText("");
 			query.addCriteria(Criteria.where("quickLeadId").is(quickLeadId));
@@ -3951,6 +3985,13 @@ public class DataEntryService {
 				Update update = new Update();
 				update.set("status", "AUTO_QL_FAIL");
 				update.set("lastModifiedDate", new Date());
+
+				RoutingF1 routingF1 = checkExist.get(0).getRoutingF1();
+				if (routingF1 != null){
+					routingF1.setAppNumber("UNKNOWN");
+					update.set("routingF1", routingF1);
+				}
+
 				Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 				Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -3967,6 +4008,13 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+					if (dataFullApp.getRoutingF1() != null){
+						rabbitMQService.send("tpf-service-autorouting",
+								Map.of("func", "logRouting", "body",
+										Map.of("data", mapper.convertValue(dataFullApp.getRoutingF1(), JsonNode.class),
+												"request_id", requestId,
+												"date_time", new Date())));
+					}
 				}
 				responseModel.setRequest_id(requestId);
 				responseModel.setReference_id(UUID.randomUUID().toString());
@@ -3994,6 +4042,13 @@ public class DataEntryService {
 			update.set("applicationId", applicationNumber);
 			update.set("status", "PROCESSING");
 			update.set("lastModifiedDate", new Date());
+
+			RoutingF1 routingF1 = checkExist.get(0).getRoutingF1();
+			if (routingF1 != null){
+				routingF1.setAppNumber(applicationNumber);
+				update.set("routingF1", routingF1);
+			}
+
 			Application resultUpdatetest = mongoTemplate.findAndModify(query, update, Application.class);
 
 			if (!resultUpdatetest.getPartnerId().equals("3")){
@@ -4066,19 +4121,28 @@ public class DataEntryService {
 			responseModel.setReference_id(UUID.randomUUID().toString());
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("0");
+			if (dataFullApp.getRoutingF1() != null){
+				rabbitMQService.send("tpf-service-autorouting",
+						Map.of("func", "logRouting", "body",
+								Map.of("data", mapper.convertValue(dataFullApp.getRoutingF1(), JsonNode.class),
+										"request_id", requestId,
+										"date_time", new Date())));
+			}
 		}
 		catch (Exception e) {
-			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			slog += " - exception: " + e.toString() + " - line: " + e.getStackTrace()[0].getLineNumber();
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("1");
 			responseModel.setMessage(e.toString());
+		}finally {
+			log.info("{}", slog);
 		}
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	private Map<String, Object> updateFullAppApiF1(JsonNode request) {
+	public Map<String, Object> updateFullAppApiF1(JsonNode request) {
 		ResponseModel responseModel = new ResponseModel();
 		String requestId = request.path("request_id").asText("");
 
@@ -4116,7 +4180,7 @@ public class DataEntryService {
 				if (StringUtils.hasLength(stageResponse)) {
 					String stage = StringUtils.hasLength(stageResponse.split(",")[0]) ? stageResponse.split(",")[0].trim() : "";
 					if (StringUtils.hasLength(stage) && "LEAD_DETAILS".equals(stage)){
-						errMsg = StringUtils.collectionToCommaDelimitedString(getDataF1Service.getListError(applicationId.trim()));
+						errMsg = getDataF1Service.getListError(applicationId.trim());
 					}
 				}else{
 					errMsg = "FAIL";
@@ -4173,7 +4237,8 @@ public class DataEntryService {
 				}
 			}else{
 				String faultReason = request.findPath("faultReason").asText(request.findPath("failureMessage").asText(""));
-				String faultMessage =  StringUtils.hasLength(errMsg) ? errMsg : request.findPath("faultMessage").asText(request.findPath("failureMessage").asText(""));
+				String failMsg = request.findPath("faultMessage").asText(request.findPath("failureMessage").asText(""));
+				String faultMessage =  StringUtils.hasLength(failMsg) ? failMsg : errMsg;
 
 				Update update = new Update();
 				update.set("status", "FULL_APP_FAIL");
@@ -4301,7 +4366,7 @@ public class DataEntryService {
 					if (StringUtils.hasLength(stageResponse)) {
 						String stage = StringUtils.hasLength(stageResponse.split(",")[0]) ? stageResponse.split(",")[0].trim() : "";
 						if (StringUtils.hasLength(stage) && "LEAD_DETAILS".equals(stage)){
-							errMsg = StringUtils.collectionToCommaDelimitedString(getDataF1Service.getListError(applicationId.trim()));
+							errMsg = getDataF1Service.getListError(applicationId.trim());
 						}
 					}else{
 						errMsg = "FAIL";
@@ -4359,7 +4424,8 @@ public class DataEntryService {
 
 				}else{
 					String faultReason = request.findPath("faultReason").asText(request.findPath("failureMessage").asText(""));
-					String faultMessage =  StringUtils.hasLength(errMsg) ? errMsg : request.findPath("faultMessage").asText(request.findPath("failureMessage").asText(""));
+					String failMsg = request.findPath("faultMessage").asText(request.findPath("failureMessage").asText(""));
+					String faultMessage =  StringUtils.hasLength(failMsg) ? failMsg : errMsg;
 
 					Update update = new Update();
 					update.set("status", "FULL_APP_FAIL");
@@ -4469,21 +4535,34 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> callApiF1(JsonNode request){
-		String func = request.path("body").path("func").asText("");
-		JsonNode jsonNode = mapper.createObjectNode();
-		switch (func) {
-			case "getStatus":
-				String loanApplicationNumber = request.path("body").path("applicationId").asText("");
-				jsonNode = apiService.callApiF1(urlGetStatus, mapper.convertValue(Map.of("loanApplicationNumber", loanApplicationNumber), JsonNode.class));
-				break;
-//			case "update":
-//				jsonNode = apiService.callApiF1(urlUpdateApp, request);
-//				break;
-//			default:
-//				jsonNode = apiService.callApiF1(urlGetStatus, request);
-//				break;
+		StringBuilder sb = new StringBuilder();
+		try{
+			sb.append(new Throwable().getStackTrace()[0].getMethodName());
+			sb.append(mapper.writeValueAsString(request));
+			String func = request.path("body").path("func").asText("");
+			JsonNode jsonNode;
+			switch (func) {
+				case "getStage":
+					String loanApplicationNumber = request.path("body").path("applicationId").asText("");
+					jsonNode = apiService.callApiF1(urlGetStatus, mapper.convertValue(Map.of("loanApplicationNumber", loanApplicationNumber), JsonNode.class));
+					break;
+				case "update":
+					jsonNode = mapper.convertValue(updateFullAppApiF1(request).get("data"), JsonNode.class);
+					break;
+				case "updateError":
+					jsonNode = mapper.convertValue(updateAppErrorApiF1(request).get("data"), JsonNode.class);
+					break;
+				default:
+					jsonNode = mapper.convertValue("Function Not Found", JsonNode.class);
+					break;
+			}
+			return Map.of("status", 200, "data", jsonNode);
+		}catch (Exception e){
+			sb.append(" - EXCEPTION: ").append(e.toString());
+		}finally {
+			log.info("{}", sb);
 		}
-		return Map.of("status", 200, "data", jsonNode);
+		return Map.of("status", 200, "data", "");
 	}
 
 	/**

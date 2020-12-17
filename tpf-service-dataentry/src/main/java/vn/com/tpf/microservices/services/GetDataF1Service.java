@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,12 +29,26 @@ public class GetDataF1Service {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplateF1;
 
     @Autowired
+    private JdbcTemplate jdbcTemplateF1DE;
+
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplateF1DE;
+
+    @Autowired
     private ObjectMapper mapper;
 
+    @PostConstruct
+    public void init(){
+        jdbcTemplateF1.setQueryTimeout(30_000);
+        namedParameterJdbcTemplateF1 = new NamedParameterJdbcTemplate(jdbcTemplateF1);
+        jdbcTemplateF1DE.setQueryTimeout(30_000);
+        namedParameterJdbcTemplateF1DE = new NamedParameterJdbcTemplate(jdbcTemplateF1DE);
+    }
+
     public String getProductType(){
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='ProductCategory' AND NAME ='Personal Finance'";
+        String sql = "SELECT CODE FROM ODS.MV_F1_SUB_GENERIC_PARAMETER WHERE DTYPE='ProductCategory' AND NAME ='Personal Finance'";
         try {
-            return jdbcTemplateF1.queryForObject(sql, String.class);
+            return jdbcTemplateF1DE.queryForObject(sql, String.class);
         }catch (Exception e){
             log("getProductType", sql, e.toString());
             return "";
@@ -42,100 +57,103 @@ public class GetDataF1Service {
 
     public String getLoanProduct(String schemeCode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("schemeCode", schemeCode);
-        String sql = "SELECT  lp.PRODUCT_CODE FROM NEO_CAS_LMS_GA25_GIR_SD.loan_PRODUCT lp,NEO_CAS_LMS_GA25_GIR_SD.loan_scheme ls " +
-                "WHERE lp.ID = ls.LOAN_PRODUCT AND ls.SCHEME_NAME = :schemeCode and lp.approval_status=0 and ls.approval_status=0";
+        String sql = "SELECT  lp.PRODUCT_CODE FROM ODS.MV_F1_SUB_LOAN_PRODUCT lp,ODS.MV_F1_sub_loan_scheme ls " +
+                "WHERE lp.ID = ls.LOAN_PRODUCT AND LOWER(ls.SCHEME_NAME) = LOWER(:schemeCode) and lp.approval_status=0 and ls.approval_status=0";
         return executeQuery(sql, namedParameters);
     }
 
     public String getCity(String city){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("city", city);
-        String sql = "SELECT a.CITY_code FROM NEO_CM_GA25_GIR_SD.city a,NEO_CM_GA25_GIR_SD.state b,NEO_CM_GA25_GIR_SD.ZIP_CODE c where a.state=b.id and a.id=c.city " +
+        String sql = "SELECT a.CITY_code FROM ODS.MV_F1_sub_city a,ODS.MV_F1_sub_state b,ODS.MV_F1_sub_zip_code c " +
+                "where a.state=b.id and a.id=c.city " +
                 "and a.APPROVAL_STATUS=0 and b.APPROVAL_STATUS=0 and c.APPROVAL_STATUS=0 and LOWER(a.CITY_NAME) LIKE LOWER(:city)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getSourcingChannel(String sourcingChannel){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("sourcingChannel", sourcingChannel);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='SourcingChannel' AND LOWER(NAME) = LOWER(:sourcingChannel)";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE='SourcingChannel' AND LOWER(NAME) = LOWER(:sourcingChannel)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getAlternateChannelMode(String alternateChannelMode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("alternateChannelMode", alternateChannelMode);
-        String sql = "SELECT CODE from NEO_CAS_LMS_GA25_GIR_SD.generic_parameter WHERE LOWER(DTYPE)=LOWER('AlternateChannelMode') AND LOWER(NAME) = LOWER(:alternateChannelMode)";
+        String sql = "SELECT CODE from ODS.mv_f1_sub_generic_parameter WHERE LOWER(DTYPE) = LOWER('AlternateChannelMode') AND LOWER(NAME) = LOWER(:alternateChannelMode)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getBranchCode(String sourcingBranch){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("sourcingBranch", sourcingBranch);
-        String sql = "SELECT BRANCH_CODE FROM NEO_CAS_LMS_GA25_GIR_SD.Organization WHERE DTYPE='OrganizationBranch' AND LOWER(NAME) =LOWER(:sourcingBranch) and APPROVAL_STATUS=0";
+        String sql = "SELECT BRANCH_CODE FROM ODS.mv_f1_sub_organization WHERE DTYPE='OrganizationBranch' AND LOWER(NAME) =LOWER(:sourcingBranch) and APPROVAL_STATUS=0";
         return executeQuery(sql, namedParameters);
     }
 
     public String getOccupationType(String natureOfOccupation){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("natureOfOccupation", natureOfOccupation);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='OccupationType' AND LOWER(NAME) =LOWER(:natureOfOccupation)";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE='OccupationType' AND LOWER(NAME) =LOWER(:natureOfOccupation)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getScheme(String schemeCode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("schemeCode", schemeCode);
-        String sql = "SELECT SCHEME_CODE FROM NEO_CAS_LMS_GA25_GIR_SD.loan_scheme WHERE SCHEME_NAME=:schemeCode and APPROVAL_STATUS=0";
+        String sql = "SELECT SCHEME_CODE FROM ODS.mv_f1_sub_loan_scheme WHERE LOWER(SCHEME_NAME)=LOWER(:schemeCode) and APPROVAL_STATUS=0";
         return executeQuery(sql, namedParameters);
     }
 
     public String getLeadStatus(String leadStatus){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("leadStatus", leadStatus);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE LOWER(DTYPE) =LOWER('communicationstatus') AND LOWER(NAME) =LOWER(:leadStatus)";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE LOWER(DTYPE) =LOWER('communicationstatus') AND LOWER(NAME) =LOWER(:leadStatus)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getGender(String gender){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("gender", gender);
-        String sql = "SELECT code FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER  WHERE DTYPE = 'GenderType' AND name=:gender";
+        String sql = "SELECT code FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE = 'GenderType' AND LOWER(name)= LOWER(:gender)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getMaritalStatus(String maritalStatus){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("maritalStatus", maritalStatus);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='MaritalStatusType' " +
-                "AND name = :maritalStatus";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE='MaritalStatusType' " +
+                "AND LOWER(name) = LOWER(:maritalStatus)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getCustomerCategoryCode(String customerCategoryCode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("customerCategoryCode", customerCategoryCode);
-        String sql = "SELECT CUSTOMER_CATEGORY_CODE FROM NEO_CAS_LMS_GA25_GIR_SD.CUSTOMER_CATEGORY WHERE CUSTOMER_CATEGORY_DESCRIPTION = :customerCategoryCode and  APPROVAL_STATUS=0";
+        String sql = "SELECT CUSTOMER_CATEGORY_CODE FROM ODS.mv_f1_sub_customer_category WHERE LOWER(CUSTOMER_CATEGORY_DESCRIPTION) = LOWER(:customerCategoryCode) and  APPROVAL_STATUS=0";
         return executeQuery(sql, namedParameters);
     }
 
     public String getIdentificationType(String identificationType){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("identificationType", identificationType);
-        String sql = "SELECT code FROM NEO_CM_GA25_GIR_SD.IDENTIFICATION_TYPE WHERE LOWER(IDENTIFICATION_TYPE_NAME)=LOWER(:identificationType)";
+        String sql = "SELECT code FROM ODS.mv_f1_sub_identification_type WHERE LOWER(IDENTIFICATION_TYPE_NAME)=LOWER(:identificationType)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getAddressType(String addressType){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("addressType", addressType);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER  WHERE dtype = 'AddressType' AND NAME = :addressType";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE dtype = 'AddressType' AND LOWER(NAME) = LOWER(:addressType)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getCountry(String country){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("country", country);
-        String sql = "SELECT COUNTRYISOCODE FROM NEO_CAS_LMS_GA25_GIR_SD.COUNTRY WHERE COUNTRY_NAME = :country and APPROVAL_STATUS=0";
+        String sql = "SELECT COUNTRYISOCODE FROM ODS.mv_f1_sub_country WHERE  APPROVAL_STATUS=0 and LOWER(COUNTRY_NAME) = LOWER(:country)";
         return executeQuery(sql, namedParameters);
     }
 
     public Map<String, Object> getState_City_Zip(String city){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("city", city);
-        String sql = "SELECT a.CITY_code as city, b.STATE_code as state, c.ZIP_CODE as zip FROM NEO_CM_GA25_GIR_SD.city a, NEO_CM_GA25_GIR_SD.state b, NEO_CM_GA25_GIR_SD.ZIP_CODE c where a.state=b.id and a.id=c.city " +
-                "and a.APPROVAL_STATUS=0 and b.APPROVAL_STATUS=0 and c.APPROVAL_STATUS=0 and TRIM(LOWER(a.CITY_NAME))=TRIM(LOWER(:city))";
+        String sql = "SELECT a.CITY_code as city, b.STATE_code as state, c.ZIP_CODE as zip \n" +
+                "FROM ODS.mv_f1_sub_city a, ODS.mv_f1_sub_state b, ODS.mv_f1_sub_ZIP_CODE c \n" +
+                "where a.state=b.id and a.id=c.city and a.APPROVAL_STATUS=0 and b.APPROVAL_STATUS=0 " +
+                "and c.APPROVAL_STATUS=0 and TRIM(LOWER(a.CITY_NAME))=TRIM(LOWER(:city))";
         try {
             boolean hasNull = checkNull(namedParameters);
             if (hasNull)
                 return Map.of("CITY", "", "STATE", "", "ZIP", "");
-            Map<String, Object> result = namedParameterJdbcTemplateF1.queryForMap(sql, namedParameters);
+            Map<String, Object> result = namedParameterJdbcTemplateF1DE.queryForMap(sql, namedParameters);
             if (result == null)
                 return Map.of("CITY", "", "STATE", "", "ZIP", "");
             return result;
@@ -156,75 +174,77 @@ public class GetDataF1Service {
 
     public String getNatureOfBusiness(String natureOfBusiness){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("natureOfBusiness", natureOfBusiness);
-        String sql = "SELECT code FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER  where dtype='NatureOfBusiness' AND NAME=:natureOfBusiness";
+        String sql = "SELECT code FROM mv_f1_sub_generic_parameter where dtype='NatureOfBusiness' AND LOWER(NAME)= LOWER(:natureOfBusiness)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getNatureOfOccupation(String natureOfOccupation){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("natureOfOccupation", natureOfOccupation);
-        String sql = "SELECT code FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER  where dtype='NatureOfOccupation' AND NAME=:natureOfOccupation";
+        String sql = "SELECT code FROM ODS.mv_f1_sub_generic_parameter where dtype='NatureOfOccupation' AND LOWER(NAME) = LOWER(:natureOfOccupation)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getIndustry(String industry){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("industry", industry);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.INDUSTRY WHERE NAME=:industry and  APPROVAL_STATUS=0";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_industry WHERE LOWER(NAME) = LOWER(:industry) and  APPROVAL_STATUS=0";
         return executeQuery(sql, namedParameters);
     }
 
     public String getEmploymentStatus(String employmentStatus){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("employmentStatus", employmentStatus);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='EmploymentStatus' AND NAME =:employmentStatus";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE='EmploymentStatus' AND LOWER(NAME) = LOWER(:employmentStatus)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getEmploymentType(String employmentType){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("employmentType", employmentType);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='EmploymentType' AND NAME =:employmentType";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE='EmploymentType' AND LOWER(NAME) = LOWER(:employmentType)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getIncomeExpense(String incomeExpense){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("incomeExpense", incomeExpense);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.INCOME_EXPENSE WHERE DESCRIPTION=:incomeExpense and APPROVAL_STATUS=0";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_income_expense WHERE LOWER(DESCRIPTION) = LOWER(:incomeExpense) and APPROVAL_STATUS=0";
         return executeQuery(sql, namedParameters);
     }
 
     public String getPaymentMode(String paymentMode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("paymentMode", paymentMode);
-        String sql = "SELECT CODE FROM NEO_CM_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE ='PaymentModeType' AND NAME =:paymentMode";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE ='PaymentModeType' AND LOWER(NAME) = LOWER(:paymentMode)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getLoanApplicationType(String loanApplicationType){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("loanApplicationType", loanApplicationType);
-        String sql = "SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER WHERE DTYPE='LoanApplicationType' AND NAME =:loanApplicationType";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_generic_parameter WHERE DTYPE='LoanApplicationType' AND LOWER(NAME) = LOWER(:loanApplicationType)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getVapProduct(String vapProduct){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("vapProduct", vapProduct);
-        String sql = "SELECT CODE FROM NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY vp where vp.name=:vapProduct and vp.approval_status=0";
+        String sql = "SELECT CODE FROM ODS.mv_f1_sub_vap_para_policy vp where LOWER(vp.name) = LOWER(:vapProduct) and vp.approval_status=0";
         return executeQuery(sql, namedParameters);
     }
 
     public String getVapTreatment(String vapProduct, String productCode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("vapProduct", vapProduct, "productCode", productCode));
         String sql = "select gp.code from\n" +
-                "NEO_CM_GA25_GIR_SD.GENERIC_PARAMETER gp \n" +
-                "join NEO_CM_GA25_GIR_SD.AMOUNT_COMPUTATION_MAPPING acm on gp.id = acm.treatment_type\n" +
-                "join NEO_CM_GA25_GIR_SD.VAP_POLICY_MAPPING vpm on acm.vap_amt_comp_fk = vpm.amt_comp_policy\n" +
-                "join NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY vpp on vpm.vap_parameter_policy = vpp.id\n" +
-                "join NEO_CM_GA25_GIR_SD.PRODUCT_POLICY pp on pp.loan_policy = vpm.fk_vap_policy\n" +
-                "join NEO_CM_GA25_GIR_SD.LOAN_PRODUCT lp on lp.id = pp.product_fk\n" +
-                "and vpp.name=:vapProduct and vpm.approval_status=0\n" +
+                "ODS.mv_f1_sub_generic_parameter gp \n" +
+                "join ODS.mv_f1_sub_amt_compt_mpp acm on gp.id = acm.treatment_type\n" +
+                "join ODS.mv_f1_sub_vap_policy_mapping vpm on acm.vap_amt_comp_fk = vpm.amt_comp_policy\n" +
+                "join ODS.mv_f1_sub_vap_para_policy vpp on vpm.vap_parameter_policy = vpp.id\n" +
+                "join ODS.mv_f1_sub_product_policy pp on pp.loan_policy = vpm.fk_vap_policy\n" +
+                "join ODS.mv_f1_sub_loan_product lp on lp.id = pp.product_fk\n" +
+                "and vpm.approval_status=0\n" +
                 "and vpp.approval_status=0\n" +
-                "and pp.policy_type = (select id from NEO_CM_GA25_GIR_SD.generic_parameter where code='VapPolicy')\n" +
-                "and lp.product_code=:productCode and lp.approval_status=0";
+                "and pp.policy_type = (select id from ODS.mv_f1_sub_generic_parameter where code='VapPolicy')\n" +
+                "and lp.approval_status=0\n" +
+                "and LOWER(vpp.name) = LOWER(:vapProduct) \n" +
+                "and LOWER(lp.product_code) = LOWER(:productCode)";
         try {
             boolean hasNull = checkNull(namedParameters);
             if (hasNull) return "";
-            List<String> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, String.class);
+            List<String> result = namedParameterJdbcTemplateF1DE.queryForList(sql, namedParameters, String.class);
             if (result.size() <= 0) return "";
             return result.get(0);
         }catch (Exception e){
@@ -233,47 +253,47 @@ public class GetDataF1Service {
         }
     }
 
-    public String getInsuranceCompany(String vapProduct, String productCode){
+    public String getInsuranceCompany(String vapProduct, String productCode) {
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("vapProduct", vapProduct, "productCode", productCode));
         String sql = "select bp.code from\n" +
-                "NEO_CM_GA25_GIR_SD.VAP_COMPUT_POLICY_SET_MAPPING vpsm\n" +
-                "join NEO_CM_GA25_GIR_SD.VAP_POLICY_MAPPING vpm on vpsm.loan_policy_fk = vpm.pay_out_comp_policy\n" +
-                "join NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY vpp on vpm.vap_parameter_policy = vpp.id\n" +
-                "join NEO_CM_GA25_GIR_SD.BUSINESS_PARTNER_TYPE bpt on bpt.id = vpsm.business_partner_type\n" +
-                "join NEO_CM_GA25_GIR_SD.BUSINESS_PARTNER bp on bp.id = vpsm.bp_id\n" +
-                "join NEO_CM_GA25_GIR_SD.PRODUCT_POLICY pp on pp.loan_policy = vpm.fk_vap_policy\n" +
-                "join NEO_CM_GA25_GIR_SD.LOAN_PRODUCT lp on lp.id = pp.product_fk\n" +
-                "and vpp.name=:vapProduct and bpt.code='Insurance_Company'\n" +
+                "ODS.mv_f1_sub_vap_comput_plcy_mpp vpsm\n" +
+                "join ODS.mv_f1_sub_vap_policy_mapping vpm on vpsm.loan_policy_fk = vpm.pay_out_comp_policy\n" +
+                "join ODS.mv_f1_sub_vap_para_policy vpp on vpm.vap_parameter_policy = vpp.id\n" +
+                "join ODS.mv_f1_sub_bz_partner_type bpt on bpt.id = vpsm.business_partner_type\n" +
+                "join ODS.mv_f1_sub_bz_partner bp on bp.id = vpsm.bp_id\n" +
+                "join ODS.mv_f1_sub_product_policy pp on pp.loan_policy = vpm.fk_vap_policy\n" +
+                "join ODS.mv_f1_sub_loan_product lp on lp.id = pp.product_fk\n" +
+                "and bpt.code='Insurance_Company'\n" +
                 "and vpm.approval_status=0\n" +
                 "and vpp.approval_status=0\n" +
-                "and pp.policy_type = (select id from NEO_CM_GA25_GIR_SD.generic_parameter where code='VapPolicy')\n" +
-                "and lp.product_code=:productCode and lp.approval_status=0";
+                "and pp.policy_type = (select id from ODS.mv_f1_sub_generic_parameter where code='VapPolicy')\n" +
+                "and lp.approval_status=0\n" +
+                "and LOWER(vpp.name) = LOWER(:vapProduct) \n" +
+                "and LOWER(lp.product_code) = LOWER(:productCode)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getHouseOwnership(String houseOwnership){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("houseOwnership", houseOwnership);
-        String sql = "SELECT FCO.CUSTOME_ITEM_VALUE FROM NEO_CM_GA25_GIR_SD.UIMETA_DATA UD \n" +
-                "INNER JOIN NEO_CM_GA25_GIR_SD.PANEL_DEFINITION PD ON UD.ID = PD.UI_PANEL_DEF_FK \n" +
-                "JOIN NEO_CM_GA25_GIR_SD.FIELD_DEFINITION FD ON PD.ID = FD.PANEL_FIELD_DEF_FK \n" +
-                "JOIN NEO_CM_GA25_GIR_SD.FIELD_CUSTOM_OPTIONS FCO ON FD.ID = FCO.FK_FIELD_CUSTOM_OPTION \n" +
-                "AND UD.APPROVAL_STATUS = 0 \n" +
+        String sql = "SELECT CUSTOME_ITEM_VALUE \n" +
+                "FROM ODS.MV_F1_SUB_UIMETA UD \n" +
+                "where UD.APPROVAL_STATUS = 0 \n" +
                 "AND UD.MODEL_NAME LIKE '%frmAppDtl%'\n" +
-                "AND PD.PANEL_KEY = 'familyinformation'\n" +
-                "AND FD.FIELD_KEY = 'house_ownership'\n" +
-                "AND FCO.CUSTOME_ITEM_LABEL =   :houseOwnership";
+                "AND UD.PANEL_KEY = 'familyinformation'\n" +
+                "AND UD.FIELD_KEY = 'house_ownership'" +
+                "AND LOWER(CUSTOME_ITEM_LABEL) = LOWER(:houseOwnership)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getOfficer(String saleAgentCode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("saleAgentCode", saleAgentCode);
-        String sql = "SELECT USERNAME FROM NEO_CM_GA25_GIR_SD.USERS WHERE ID IN (SELECT PARENT_USER FROM NEO_CM_GA25_GIR_SD.OFFICER WHERE APPROVAL_STATUS=0 AND FULL_NAME =:saleAgentCode)";
+        String sql = "SELECT USERNAME FROM ODS.MV_F1_SUB_USERS WHERE ID IN (SELECT parent_user FROM ODS.MV_F1_SUB_OFFICER WHERE FULL_NAME =:saleAgentCode)";
         return executeQuery(sql, namedParameters);
     }
 
     public String getIncomeSource(String dayOfSalaryPayment){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("dayOfSalaryPayment", dayOfSalaryPayment);
-        String sql = "select code from NEO_CAS_LMS_GA25_GIR_SD.GENERIC_PARAMETER where name = :dayOfSalaryPayment and dtype='IncomeSource' and persistence_status=0";
+        String sql = "select code from ODS.mv_f1_sub_generic_parameter where LOWER(name) = LOWER(:dayOfSalaryPayment) and dtype='IncomeSource'";
         try {
             List<String> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, String.class);
             if (result.size() <= 0) return "";
@@ -284,46 +304,86 @@ public class GetDataF1Service {
         }
     }
 
-    public String getDocumentReferenceId(String applicationNumber, String documentName){
-        SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("applicationNumber", applicationNumber, "documentName", documentName));
-        String sql = "SELECT ID FROM NEO_CM_GA25_GIR_SD.LENDING_DOCUMENT WHERE ID IN (\n" +
-                "SELECT PARTY_DOCUMENTS FROM NEO_CM_GA25_GIR_SD.PARTY_DOCUMENTS WHERE PARTY=(SELECT ID FROM NEO_CM_GA25_GIR_SD.PARTY WHERE LOAN_APPLICATION_FK=(SELECT ID \n" +
-                "FROM NEO_CM_GA25_GIR_SD.LOAN_APPLICATION WHERE APPLICATION_NUMBER=:applicationNumber))) AND PRIMARY_DOCUMENT_DEFINITION IN (SELECT ID\n" +
-                "FROM NEO_CM_GA25_GIR_SD.DOCUMENT_DEFINITION WHERE NAME = :documentName AND APPROVAL_STATUS=0)";
-        return executeQuery(sql, namedParameters);
+//    public String getDocumentReferenceId(String applicationNumber, String documentName){
+//        SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("applicationNumber", applicationNumber, "documentName", documentName));
+//        String sql = "SELECT ID FROM NEO_CM_GA25_GIR_SD.LENDING_DOCUMENT WHERE ID IN (\n" +
+//                "SELECT PARTY_DOCUMENTS FROM NEO_CM_GA25_GIR_SD.PARTY_DOCUMENTS WHERE PARTY=(SELECT ID FROM NEO_CM_GA25_GIR_SD.PARTY WHERE LOAN_APPLICATION_FK=(SELECT ID \n" +
+//                "FROM NEO_CM_GA25_GIR_SD.LOAN_APPLICATION WHERE LOWER(APPLICATION_NUMBER) = LOWER(:applicationNumber)))) AND PRIMARY_DOCUMENT_DEFINITION IN (SELECT ID\n" +
+//                "FROM NEO_CM_GA25_GIR_SD.DOCUMENT_DEFINITION WHERE NAME = :documentName AND APPROVAL_STATUS=0)";
+//        return executeQuery(sql, namedParameters);
+//    }
+
+    public String getDocumentReferenceId(String applicationId, String type) {
+        String query = String.format("SELECT TPF_F1.fn_get_lending_doc_id ('%s','%s') RESULT FROM DUAL",
+                applicationId,
+                type);
+
+        return jdbcTemplateF1DE.queryForObject(query, new Object[]{},
+                (rs, rowNum) ->
+                        rs.getString(("RESULT")
+                        ));
     }
 
     public String getResidentType(){
-        String sql = "SELECT code FROM NEO_CM_GA25_GIR_SD.generic_parameter where dtype='ResidentType'";
+        String sql = "SELECT code FROM ODS.mv_f1_sub_generic_parameter where dtype='ResidentType'";
         return queryForList(sql);
     }
 
     public String getSalutation(){
-        String sql = "SELECT code FROM NEO_CM_GA25_GIR_SD.generic_parameter where dtype='SalutationType'";
+        String sql = "SELECT code FROM ODS.mv_f1_sub_generic_parameter where dtype='SalutationType'";
         return queryForList(sql);
     }
 
     public String getConstitutionCode(){
-        String sql = "SELECT constitution_code FROM NEO_CM_GA25_GIR_SD.customer_constitution cc where approval_status=0";
+        String sql = "SELECT constitution_code FROM ODS.mv_f1_sub_cus_constitution cc where approval_status=0";
         return queryForList(sql);
     }
 
     public Map<String, Object> getAmtCompPolicy(String vapProduct, String productCode){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("vapProduct", vapProduct, "productCode", productCode));
         String sql = "SELECT vpm.AMT_COMP_POLICY,\n" +
-                "(SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.Loan_policy where APPROVAL_STATUS=0 AND ID=VPM.AMT_COMP_POLICY) CODE_AMT_COMP,\n" +
-                "vpm.PAY_OUT_COMP_POLICY,\n" +
-                "(SELECT CODE FROM NEO_CAS_LMS_GA25_GIR_SD.Loan_policy WHERE APPROVAL_STATUS=0 AND ID=VPM.PAY_OUT_COMP_POLICY) CODE_PAY_OUT\n" +
-                "FROM NEO_CAS_LMS_GA25_GIR_SD.vap_policy_mapping vpm \n" +
-                "WHERE vpm.VAP_PARAMETER_POLICY IN (SELECT ID FROM NEO_CM_GA25_GIR_SD.VAP_PARAMETER_POLICY \n" +
-                "WHERE NAME=:vapProduct AND APPROVAL_STATUS=0) AND\n" +
-                "vpm.fk_vap_policy = \n" +
-                "(select loan_policy from NEO_CM_GA25_GIR_SD.PRODUCT_POLICY where product_fk=(select id from NEO_CM_GA25_GIR_SD.LOAN_PRODUCT where product_code=:productCode  and approval_status=0) and \n" +
-                "policy_type=(select id from NEO_CM_GA25_GIR_SD.generic_parameter where code='VapPolicy')) AND APPROVAL_STATUS =0";
+                "    (\n" +
+                "        SELECT CODE \n" +
+                "        FROM ODS.MV_F1_SUB_Loan_policy\n" +
+                "        WHERE APPROVAL_STATUS = 0 \n" +
+                "        AND ID = VPM.AMT_COMP_POLICY\n" +
+                "    ) CODE_AMT_COMP,\n" +
+                "    vpm.PAY_OUT_COMP_POLICY,\n" +
+                "    (\n" +
+                "        SELECT CODE \n" +
+                "        FROM ODS.MV_F1_SUB_Loan_policy\n" +
+                "        WHERE APPROVAL_STATUS = 0 \n" +
+                "        AND ID = VPM.PAY_OUT_COMP_POLICY\n" +
+                "    ) CODE_PAY_OUT\n" +
+                "FROM ODS.MV_F1_SUB_vap_policy_mapping vpm\n" +
+                "WHERE\n" +
+                "    vpm.VAP_PARAMETER_POLICY IN (\n" +
+                "        SELECT ID\n" +
+                "        FROM ODS.MV_F1_SUB_VAP_PARAMETER_POLICY\n" +
+                "        WHERE LOWER(NAME) = LOWER(:vapProduct) \n" +
+                "        AND APPROVAL_STATUS = 0\n" +
+                "    )\n" +
+                "    AND vpm.fk_vap_policy = (\n" +
+                "        select loan_policy\n" +
+                "        from ODS.MV_F1_SUB_PRODUCT_POLICY\n" +
+                "        where\n" +
+                "            product_fk =(\n" +
+                "                select id\n" +
+                "                from ODS.MV_F1_SUB_LOAN_PRODUCT\n" +
+                "                where LOWER(product_code) = LOWER(:productCode)\n" +
+                "                and approval_status = 0\n" +
+                "            )\n" +
+                "            and policy_type =(\n" +
+                "                select id\n" +
+                "                from ODS.MV_F1_SUB_generic_parameter\n" +
+                "                where code = 'VapPolicy'\n" +
+                "            )\n" +
+                "    )\n" +
+                "    AND APPROVAL_STATUS = 0";
         try {
             boolean hasNull = checkNull(namedParameters);
             if(hasNull) return Map.of("CODE_AMT_COMP", "", "CODE_PAY_OUT", "");
-            Map<String, Object> result = namedParameterJdbcTemplateF1.queryForMap(sql, namedParameters);
+            Map<String, Object> result = namedParameterJdbcTemplateF1DE.queryForMap(sql, namedParameters);
             if (result == null) return Map.of("CODE_AMT_COMP", "", "CODE_PAY_OUT", "");
             return result;
         }catch(Exception e){
@@ -334,20 +394,17 @@ public class GetDataF1Service {
 
     public List<Integer> getLoanPurpose(List<String> loanPurpose){
         SqlParameterSource namedParameters = new MapSqlParameterSource("loanPurpose", loanPurpose);
-        String sql = "SELECT FCO.CUSTOME_ITEM_VALUE FROM\n" +
-                "NEO_CM_GA25_GIR_SD.UIMETA_DATA UD INNER JOIN\n" +
-                "NEO_CM_GA25_GIR_SD.PANEL_DEFINITION PD ON UD.ID = PD.UI_PANEL_DEF_FK \n" +
-                "JOIN NEO_CM_GA25_GIR_SD.FIELD_DEFINITION FD ON PD.ID = FD.PANEL_FIELD_DEF_FK\n" +
-                "JOIN NEO_CM_GA25_GIR_SD.FIELD_CUSTOM_OPTIONS FCO ON FD.ID = FCO.FK_FIELD_CUSTOM_OPTION\n" +
-                "AND UD.APPROVAL_STATUS=0\n" +
-                "AND UD.MODEL_NAME LIKE '%frmAppDtl%'\n" +
-                "AND PD.PANEL_KEY='Loan_details_1'\n" +
-                "AND FD.FIELD_KEY='Loan_purpose_1'\n" +
+        String sql = "SELECT CUSTOME_ITEM_VALUE \n" +
+                "FROM ODS.MV_F1_SUB_UIMETA UD \n" +
+                "AND APPROVAL_STATUS=0\n" +
+                "AND MODEL_NAME LIKE '%frmAppDtl%'\n" +
+                "AND PANEL_KEY='Loan_details_1'\n" +
+                "AND FIELD_KEY='Loan_purpose_1'\n" +
                 "AND FCO.CUSTOME_ITEM_LABEL IN (:loanPurpose)";
         try{
             boolean hasNull = checkNull(namedParameters);
             if(hasNull) return new ArrayList<>();
-            List<Integer> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, Integer.class);
+            List<Integer> result = namedParameterJdbcTemplateF1DE.queryForList(sql, namedParameters, Integer.class);
             return result;
         }catch(Exception e){
             log("getLoanPurpose", sql, e.toString());
@@ -355,41 +412,48 @@ public class GetDataF1Service {
         }
     }
 
-    public List<Object> getListError(String appNum){
-        String sql = "SELECT ERROR_MESSAGE\n" +
-                "FROM NEO_CAS_LMS_GA25_GIR_SD.re_rule \n" +
-                "    where id in (\n" +
-                "    select RULE_ID \n" +
-                "    from NEO_CAS_LMS_GA25_GIR_SD.RULES_AUDIT_LOG\n" +
-                "    where RULE_INVOCATIONUUID=\n" +
-                "    (   \n" +
-                "        SELECT c.RULES_AUDITUUID \n" +
-                "        FROM NEO_CAS_LMS_GA25_GIR_SD.RULE_EXECUTION_ENTITY_MAPPING c \n" +
-                "        where id=(SELECT max(b.id)\n" +
-                "        FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_APPLICATION a,NEO_CAS_LMS_GA25_GIR_SD.RULE_EXECUTION_ENTITY_MAPPING b \n" +
-                "        where a.id=b.LOAN_APPLICATION_ID\n" +
-                "        and a.APPLICATION_NUMBER = :appNum )\n" +
-                "    ) \n" +
-                "    and RULE_RESULT='false'" +
-                ")";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("appNum", appNum);
-        try{
-            boolean hasNull = checkNull(namedParameters);
-            if (hasNull) return new ArrayList<>();
-            List<Object> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, Object.class);
-            if(result == null) return new ArrayList<>();
-            return result;
-        }catch (Exception e){
-            log("getListError", sql, e.toString());
-            return new ArrayList<>();
-        }
+//    public List<Object> getListError(String appNum){
+//        String sql = "SELECT ERROR_MESSAGE\n" +
+//                "FROM NEO_CAS_LMS_GA25_GIR_SD.re_rule \n" +
+//                "    where id in (\n" +
+//                "    select RULE_ID \n" +
+//                "    from NEO_CAS_LMS_GA25_GIR_SD.RULES_AUDIT_LOG\n" +
+//                "    where RULE_INVOCATIONUUID=\n" +
+//                "    (   \n" +
+//                "        SELECT c.RULES_AUDITUUID \n" +
+//                "        FROM NEO_CAS_LMS_GA25_GIR_SD.RULE_EXECUTION_ENTITY_MAPPING c \n" +
+//                "        where id=(SELECT max(b.id)\n" +
+//                "        FROM NEO_CAS_LMS_GA25_GIR_SD.LOAN_APPLICATION a,NEO_CAS_LMS_GA25_GIR_SD.RULE_EXECUTION_ENTITY_MAPPING b \n" +
+//                "        where a.id=b.LOAN_APPLICATION_ID\n" +
+//                "        and a.APPLICATION_NUMBER = :appNum )\n" +
+//                "    ) \n" +
+//                "    and RULE_RESULT='false'" +
+//                ")";
+//        SqlParameterSource namedParameters = new MapSqlParameterSource("appNum", appNum);
+//        try{
+//            boolean hasNull = checkNull(namedParameters);
+//            if (hasNull) return new ArrayList<>();
+//            List<Object> result = namedParameterJdbcTemplateF1.queryForList(sql, namedParameters, Object.class);
+//            if(result == null) return new ArrayList<>();
+//            return result;
+//        }catch (Exception e){
+//            log("getListError", sql, e.toString());
+//            return new ArrayList<>();
+//        }
+//    }
+
+    public String getListError(String applicationId){
+        String query = String.format("select TPF_F1.fn_get_f1_err_msg ('%s') RESULT FROM DUAL", applicationId);
+        return jdbcTemplateF1.queryForObject(query, new Object[]{},
+                (rs, rowNum) -> rs.getString(("RESULT"))
+        );
     }
 
     private String executeQuery(String sql, SqlParameterSource namedParameters){
         try {
             boolean hasNull = checkNull(namedParameters);
             if (hasNull) return "";
-            String result = namedParameterJdbcTemplateF1.queryForObject(sql, namedParameters, String.class);
+            String result = namedParameterJdbcTemplateF1DE.queryForObject(sql, namedParameters, String.class);
             if(result == null) return "";
             return result;
         }catch (Exception e){
@@ -429,8 +493,8 @@ public class GetDataF1Service {
     }
 
     public List<Map<String, Object>> getListReasonToCancel() {
-        String sql = "SELECT a.name,a.DESCRIPTION from NEO_CM_GA25_GIR_SD.decision_reason a, NEO_CM_GA25_GIR_SD.DECISION_REASON_MAPPING b\n" +
-                "where a.action='Cancel' and a.REASON_FK=b.id and b.stage='cancel_application' and b.approval_status=0 ORDER BY a.NAME";
+        String sql = "SELECT a.name as \"name\",a.DESCRIPTION as \"description\" from NEO_CM_GA25_GIR_SD.decision_reason a, NEO_CM_GA25_GIR_SD.DECISION_REASON_MAPPING b\n" +
+                "where a.action='cancel_lead' and a.REASON_FK=b.id and b.stage='cancel_application' and b.approval_status=0 ORDER BY a.NAME";
         try {
             List<Map<String, Object>> result = jdbcTemplateF1.queryForList(sql);
             return result;

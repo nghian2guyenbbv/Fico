@@ -73,4 +73,22 @@ public class Application {
 	public NamedParameterJdbcTemplate namedParameterJdbcTemplateF1(@Qualifier("dbF1") DataSource ds){
 		return new NamedParameterJdbcTemplate(ds);
 	}
+
+	@Bean(name = "dbF1DE")
+	@ConfigurationProperties(prefix="spring.f1-datasource-de")
+	public DataSource f1DataSourceDE() {
+		return DataSourceBuilder.create().build();
+	}
+
+	@Bean(name = "jdbcTemplateF1DE")
+	public JdbcTemplate jdbcTemplateF1DE(@Qualifier("dbF1DE") DataSource ds) {
+		return new JdbcTemplate(ds);
+	}
+
+	@Bean(name = "namedParameterJdbcTemplateF1DE")
+	public NamedParameterJdbcTemplate namedParameterJdbcTemplateF1DE(@Qualifier("dbF1DE") DataSource ds){
+		return new NamedParameterJdbcTemplate(ds);
+	}
+
+
 }

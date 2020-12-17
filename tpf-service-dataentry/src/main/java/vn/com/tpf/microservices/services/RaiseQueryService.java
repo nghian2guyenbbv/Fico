@@ -157,8 +157,7 @@ public class RaiseQueryService {
             responseModel.setResult_code("0");
             responseModel.setData(response);
         } catch (Exception e) {
-            slog +=", Exception: " + e.toString();
-
+            slog += " - exception: " + e.toString() + "; class: " + e.getStackTrace()[0].getClassName() + "; line: " + e.getStackTrace()[0].getLineNumber();
             responseModel.setRequest_id(referenceId);
             responseModel.setReference_id(referenceId);
             responseModel.setDate_time(new Timestamp(new Date().getTime()));
