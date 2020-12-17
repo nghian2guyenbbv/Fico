@@ -107,8 +107,8 @@ public class ApiService {
 		restTemplate.setInterceptors(Arrays.asList(new HttpLogService()));
 
 		SimpleClientHttpRequestFactory upFile3P = new SimpleClientHttpRequestFactory();
-		upFile3P.setConnectTimeout(600_000);
-		upFile3P.setReadTimeout(600_000);
+		upFile3P.setConnectTimeout(300_000);
+		upFile3P.setReadTimeout(300_000);
 		ClientHttpRequestFactory factoryUpFile3P = new BufferingClientHttpRequestFactory(upFile3P);
 		restTemplate3P = new RestTemplate(factoryUpFile3P);
 
@@ -120,8 +120,8 @@ public class ApiService {
 		restTemplateFirstCheck.setInterceptors(Arrays.asList(new HttpLogService()));
 
 		SimpleClientHttpRequestFactory callESB = new SimpleClientHttpRequestFactory();
-		scrfCall3P.setConnectTimeout(600_000);
-		scrfCall3P.setReadTimeout(600_000);
+		callESB.setConnectTimeout(600_000);
+		callESB.setReadTimeout(600_000);
 		restTemplateESB = new RestTemplate(callESB);
 	}
 
@@ -2333,15 +2333,16 @@ public class ApiService {
 			routingF1.setChanelId("P4S");
 			routingF1.setCreateDate(new Date());
 			routingF1.setVendorId(partnerId);
-			JsonNode node = rabbitMQService.sendAndReceive("tpf-service-autorouting",
+			JsonNode node = rabbitMQService.sendAndReceiveRouting("tpf-service-autorouting",
 					Map.of("func", "checkRouting", "body",
 							Map.of("data", mapper.convertValue(routingF1, JsonNode.class),
 									"request_id", UUID.randomUUID().toString(),
 									"date_time", new Date())));
 			slog += " - response: " + mapper.writeValueAsString(node);
 //			logInfo.set("response", node);
-			if (node.path("data").isMissingNode() || node.path("data").path("data").isMissingNode()){
+			if (node == null || node.path("data").isMissingNode() || node.path("data").path("data").isMissingNode()){
 				throw new Exception("error call autorouting");
+
 			}
 
 			routingF1 = mapper.convertValue(node.path("data").path("data"), RoutingF1.class);
@@ -2355,10 +2356,10 @@ public class ApiService {
 		} catch (Exception e){
 			slog += " - exception: " + String.format("%s - class: %s - line: %d", e.toString(), e.getStackTrace()[0].getClassName(), e.getStackTrace()[0].getLineNumber());
 //			logInfo.put("exception", String.format("%s - class: %s - line: %d", e.toString(), e.getStackTrace()[0].getClassName(), e.getStackTrace()[0].getLineNumber()));
+            return isAuto;
 		} finally {
 			log.info("{}", slog);
 		}
-		return isAuto;
 	}
 
 	public JsonNode uploadFileToPartner(List<QLDocument> documents, String partnerId, String urlPartner, String token){
