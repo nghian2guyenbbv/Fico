@@ -482,7 +482,7 @@ public class MobilityService {
 		update.set("partnerId", partnerId);
 		update.set("partnerName", partnerName);
 
-		JsonNode valueAutoApi = rabbitMQService.sendAndReceive("tpf-service-autorouting", Map.of("func", "checkRouting", "body",
+		JsonNode valueAutoApi = rabbitMQService.sendAndReceiveAutoRouting("tpf-service-autorouting", Map.of("func", "checkRouting", "body",
 				convertService.toAutorouting(partnerId)));
 		HashMap<String, Object> dataAutoApi = new HashMap<>();
 		dataAutoApi.put("idLog",valueAutoApi.get("data").get("data").get("idLog").asLong());

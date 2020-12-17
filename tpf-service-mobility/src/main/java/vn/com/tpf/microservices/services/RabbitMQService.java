@@ -36,6 +36,9 @@ public class RabbitMQService {
 	@Autowired
 	private Utils utils;
 
+	@Autowired
+	private RabbitTemplate rabbitTemplateAutoRouting;
+
 	@PostConstruct
 	private void init() {
 		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
@@ -117,6 +120,17 @@ public class RabbitMQService {
 									mapper.createObjectNode().put("message", e.toString()))));
 		}
 
+	}
+
+	public JsonNode sendAndReceiveAutoRouting(String appId, Object object) throws Exception {
+		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
+		Message response = rabbitTemplateAutoRouting.sendAndReceive(appId, request);
+
+		if (response != null) {
+			return mapper.readTree(new String(response.getBody(), "UTF-8"));
+		}
+
+		return mapper.createObjectNode();
 	}
 
 }
