@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services;
 
 import java.io.Console;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -12,6 +13,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.http.*;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +34,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import vn.com.tpf.microservices.models.Mobility;
-import vn.com.tpf.microservices.models.MobilityField;
-import vn.com.tpf.microservices.models.MobilityFieldKH;
-import vn.com.tpf.microservices.models.MobilityFinnOneFiled;
-import vn.com.tpf.microservices.models.MobilityWaiveField;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.utils.Utils;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 
 @Service
 public class MobilityService {
@@ -119,6 +124,18 @@ public class MobilityService {
 	@Autowired
 	private ConvertService convertService;
 
+	@Value("${spring.url.mobility-ApiF1-leadCreation}")
+	private String urlMobilityApiF1leadCreation;
+
+	@Autowired
+	private RestTemplate restTemplate;
+
+	@Value("${spring.url.uploadfile}")
+	private String urlUploadfile;
+
+	@Value("${spring.url.urlResponseQuery}")
+	private String urlResponseQuery;
+
 	public JsonNode getPreCheck1(JsonNode request) throws Exception {
 
 		JsonNode body = request.path("body");
@@ -183,7 +200,7 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
 		}
 		System.out.println(preCheckResult.path("data"));
-		
+
 
 		mobility.setPreChecks(Map.of("preCheck1",
 				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
@@ -288,7 +305,7 @@ public class MobilityService {
 		Update update = new Update().set("updatedAt", new Date());
 		final boolean updateStageAndStatus = (mobility.getViewLastUpdated() == null
 				|| !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()
-						.equals(mobility.getViewLastUpdated().trim().toUpperCase()));
+				.equals(mobility.getViewLastUpdated().trim().toUpperCase()));
 		if (updateStageAndStatus)
 			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase())
 					.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
@@ -424,7 +441,7 @@ public class MobilityService {
 						mapper.createObjectNode().put("message",
 								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
 										uploadResult.path("md5").asText().toLowerCase())));
-			
+
 			HashMap<String, String> docUpload = new HashMap<>();
 			docUpload.put("documentCode", document.path("documentCode").asText());
 			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
@@ -465,14 +482,28 @@ public class MobilityService {
 		update.set("partnerId", partnerId);
 		update.set("partnerName", partnerName);
 
+		JsonNode valueAutoApi = rabbitMQService.sendAndReceive("tpf-service-autorouting", Map.of("func", "checkRouting", "body",
+				convertService.toAutorouting(partnerId)));
+		HashMap<String, Object> dataAutoApi = new HashMap<>();
+		dataAutoApi.put("idLog",valueAutoApi.get("data").get("data").get("idLog").asLong());
+		dataAutoApi.put("chanelId",valueAutoApi.get("data").get("data").get("chanelId").asText());
+		dataAutoApi.put("routingNumber",valueAutoApi.get("data").get("data").get("routingNumber").asLong());
+		dataAutoApi.put("createDate",valueAutoApi.get("data").get("data").get("createDate").asText());
+
+		update.set("objectAutoApi",dataAutoApi);
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
-		if(3 != mobility.getPartnerId()){
-			rabbitMQService.send("tpf-service-automation-mobility", Map.of("func", "quickLeadMobilityVendor", "body",
-					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+		if(1 == valueAutoApi.get("data").get("data").get("routingNumber").asLong()){
+			rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "convertToLeadF1", "body",
+					convertService.toSendAppNonWebFinnone(mobility, partnerId ,body.path("reference_id").asText()).put("reference_id", body.path("reference_id").asText())));
 		} else {
-			rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
-					convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			if(3 != mobility.getPartnerId()){
+				rabbitMQService.send("tpf-service-automation-mobility", Map.of("func", "quickLeadMobilityVendor", "body",
+						convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			} else {
+				rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadApp", "body",
+						convertService.toAppFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			}
 		}
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
@@ -490,12 +521,12 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "body.transaction_id not null"));
 		switch (body.path("transaction_id").asText()) {
-		case "transaction_waive_field":
-			return updateAutomationWaveField(request);
-		case "transaction_submit_field":
-			return updateAutomationSubmitField(request);
-		default:
-			return updateAutomationMobility(request);
+			case "transaction_waive_field":
+				return updateAutomationWaveField(request);
+			case "transaction_submit_field":
+				return updateAutomationSubmitField(request);
+			default:
+				return updateAutomationMobility(request);
 		}
 	}
 
@@ -656,6 +687,14 @@ public class MobilityService {
 							mapper.createObjectNode().put("message", e.getMessage())));
 				}
 			}).start();
+			//if(3 == mobility.getPartnerId()) {
+			ObjectNode dataAutoApi = mapper.convertValue(mobility.getObjectAutoApi(), ObjectNode.class);
+			dataAutoApi.put("appNumber", mobility.getAppId());
+			dataAutoApi.put("vendorId", mobility.getPartnerId());
+			rabbitMQService.send("tpf-service-autorouting", Map.of("func", "logRouting", "body", Map.of("data", dataAutoApi,
+					"request_id", mobility.getId(),
+					"date_time", new Date())));
+			//}
 
 			if(1 == mobility.getPartnerId() || 2 == mobility.getPartnerId()) {
 				if(1 == mobility.getPartnerId()){
@@ -671,6 +710,14 @@ public class MobilityService {
 		}
 		if (automationResult.contains(AUTOMATION_QUICKLEAD_FAILED)) {
 			update.set("stage", STAGE_QUICKLEAD_FAILED_AUTOMATION);
+//			if(3 == mobility.getPartnerId()) {
+			ObjectNode dataAutoApi = mapper.convertValue(mobility.getObjectAutoApi(), ObjectNode.class);
+			dataAutoApi.put("appNumber", "UNKNOWN");
+			dataAutoApi.put("vendorId", mobility.getPartnerId());
+			rabbitMQService.send("tpf-service-autorouting", Map.of("func", "logRouting", "body", Map.of("data", dataAutoApi,
+					"request_id", mobility.getId(),
+					"date_time", new Date())));
+//			}
 		}
 
 		if (automationResult.contains(AUTOMATION_RETURNQUERY_PASS)) {
@@ -678,7 +725,7 @@ public class MobilityService {
 
 			if (returns.hasNonNull("returnQueries")
 					&& (mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
-							.asBoolean())
+					.asBoolean())
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 						String.format("data.appId %s returnQuery is complete", mobility.getAppId())));
 
@@ -702,7 +749,7 @@ public class MobilityService {
 
 			if (returns.hasNonNull("returnQueues")
 					&& (mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)).get(0).path("isComplete")
-							.asBoolean())
+					.asBoolean())
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 						String.format("data.appId %s returnQueue is complete", mobility.getAppId())));
 
@@ -860,8 +907,9 @@ public class MobilityService {
 						convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 			}
 		} else {
-			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
-					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+//			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
+//					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			responseQuery(mobility);
 		}
 		update.set("status", STATUS_RESUBMITING);
 
@@ -1637,4 +1685,169 @@ public class MobilityService {
 		response.put("status", status).put("total", total).set("data", data);
 		return response;
 	}
+
+	public JsonNode convertAndCallAPIF1(JsonNode request) throws Exception {
+		JsonNode body = request.path("body").path("data");
+		if (request.path("body").path("result_code").asText().equals("1")){
+			return utils.getJsonNodeResponse(1, request.path("body"), null);
+		}
+
+		Query query = Query.query(Criteria.where("_id").is(request.path("transaction_id").asText()));
+		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
+
+		LeadCreationRequest leadCreationRequest = mapper.treeToValue(body, LeadCreationRequest.class);
+
+		mobility.getFilesUpload().forEach(qlDocument -> {
+			JsonNode mobilityDoc = mapper.convertValue(qlDocument, JsonNode.class);
+			Documents documents = new Documents();
+			documents.setReferenceType("Customer");
+			documents.setEntityType(mobility.getFirstName().toUpperCase().trim() + " " + mobility.getLastName().toUpperCase().trim());
+			documents.setDocumentName(mobilityDoc.path("type").asText());
+			GregorianCalendar cal = new GregorianCalendar();
+			cal.setTime(new Date());
+			try {
+				documents.setRecievingDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(cal));
+			} catch (DatatypeConfigurationException e) {
+				log.info("{}", e.toString());
+			}
+			documents.setRemarks("Document received");
+			AttachmentDetails attachmentDetails = new AttachmentDetails();
+			attachmentDetails.setAttachedDocName(mobilityDoc.path("originalname").asText());
+			HttpHeaders headers = new HttpHeaders();
+			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+			HttpEntity<String> entity = new HttpEntity<>(headers);
+			ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + "/" + mobilityDoc.path("filename").asText(), HttpMethod.GET, entity, byte[].class);
+			attachmentDetails.setAttachedDocument(response.getBody());
+			documents.setAttachmentDetails(attachmentDetails);
+			leadCreationRequest.getDocuments().add(documents);
+		});
+
+
+		JsonNode jsonCallF1Request = mapper.convertValue(leadCreationRequest, JsonNode.class);
+		new Thread(() -> {
+			try {
+				int sendCount = 0;
+				do {
+					JsonNode result = apiService.callApiF1(urlMobilityApiF1leadCreation,
+							jsonCallF1Request);
+
+					String applicationNumber = result.findPath("applicationNumber").asText("");
+					if (StringUtils.isEmpty(applicationNumber)){
+						HashMap<String, Object> dataAutomation = new HashMap<>();
+						HashMap<String, Object> objecDataAutomation = new HashMap<>();
+						dataAutomation.put("transaction_id",request.get("transaction_id"));
+						dataAutomation.put("automation_result","QUICKLEAD_FAILED");
+						dataAutomation.put("app_id","UNKNOWN");
+
+						objecDataAutomation.put("body", dataAutomation);
+						JsonNode jsonDataAutomation = mapper.convertValue(objecDataAutomation, JsonNode.class);
+						updateAutomation(jsonDataAutomation);
+
+					} else {
+						HashMap<String, Object> dataAutomation = new HashMap<>();
+						HashMap<String, Object> objecDataAutomation = new HashMap<>();
+						dataAutomation.put("transaction_id",request.get("transaction_id"));
+						dataAutomation.put("automation_result","QUICKLEAD_PASS");
+						dataAutomation.put("app_id",applicationNumber);
+
+						objecDataAutomation.put("body", dataAutomation);
+						JsonNode jsonDataAutomation = mapper.convertValue(objecDataAutomation, JsonNode.class);
+						updateAutomation(jsonDataAutomation);
+
+					}
+					sendCount++;
+					Thread.sleep(5 * 60 * 1000);
+				} while (sendCount >= 2);
+			} catch (Exception e) {
+				log.info("{}", utils.getJsonNodeResponse(0, body,
+						mapper.createObjectNode().put("message", e.getMessage())));
+			}
+		}).start();
+
+		return utils.getJsonNodeResponse(0, request.path("body"), null);
+	}
+
+	public Map<String, Object> responseQuery(Mobility mobility) throws JsonProcessingException {
+		String slog="responseQuery:" + mapper.writeValueAsString(mobility);
+		ResponseModel responseModel = new ResponseModel();
+		String referenceId=UUID.randomUUID().toString();
+		try {
+			String applicationId = mobility.getAppId();
+
+			//check xem có raisequery ko , get info
+			Query query = new Query();
+			query.addCriteria(Criteria.where("applicationNo").is(applicationId).and("queryStatus").is("Raised"));
+			List<RaiseQueryModel> raiseQueryModelList = mobilityTemplate.find(query, RaiseQueryModel.class);
+			if (raiseQueryModelList.size() <= 0){
+				throw new Exception("raiseQueryModel not exist");
+			}
+
+			//get raise query moi nhat
+			RaiseQueryModel raiseQueryModel = raiseQueryModelList.stream().max(Comparator.comparing(RaiseQueryModel::getCreatedDate)).get();
+
+			//parse json call api
+			//String comment = application.getComment().get(0).getResponse().getComment();
+
+			JsonNode lastReturnQuery = mapper.convertValue(mobility.getReturns().get("returnQueries"), ArrayNode.class)
+					.get(0);
+
+			//check co document hay ko
+			QueryModuleDocumentDetailsVO queryModuleDocumentDetailsVO = null;
+			if (lastReturnQuery.path("data") != null && lastReturnQuery.path("data").size() > 0) {
+				//Document document = application.getComment().get(0).getResponse().getDocuments().get(0);
+				HttpHeaders headers = new HttpHeaders();
+				headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+				HttpEntity<String> entity = new HttpEntity<>(headers);
+
+				log.info("urlUploadfile -------------> {}", urlUploadfile + "/" + lastReturnQuery.path("data").path("filename").asText());
+				ResponseEntity<byte[]> response = restTemplate.exchange(urlUploadfile + "/" + lastReturnQuery.path("data").path("filename").asText(), HttpMethod.GET, entity, byte[].class);
+
+				log.info("response status -----------> {}", response.getStatusCodeValue());
+				queryModuleDocumentDetailsVO = QueryModuleDocumentDetailsVO.builder()
+						.document(response.getBody())
+						.documentName(lastReturnQuery.path("data").path("originalname").asText()).build();
+			}
+
+			QmrServiceRequestParamsVoList qmrServiceRequestParamsVoList = QmrServiceRequestParamsVoList.builder()
+					.queryModuleDocumentDetailsVO(queryModuleDocumentDetailsVO)
+					.applicationNumber(applicationId)
+					.queryCode(raiseQueryModel.getQueryCode())
+					.responseBy(raiseQueryModel.getRaiseTo())
+					.response(lastReturnQuery.path("data").asText())
+					.queryId(raiseQueryModel.getQueryId()).build();
+
+			List<QmrServiceRequestParamsVoList> lists = new ArrayList<QmrServiceRequestParamsVoList>();
+			lists.add(qmrServiceRequestParamsVoList);
+
+			ResponseQueryModel responseQueryModel = ResponseQueryModel.builder()
+					.productProcessor("EXTERNAL")
+					.qmrServiceRequestParamsVoList(lists).build();
+
+			JsonNode response = apiService.callApiF1(urlResponseQuery, mapper.convertValue(responseQueryModel, JsonNode.class));
+
+			slog+=", response: " + response.asText();
+
+			String status = response.path("responseData").path("status").asText("Failure");
+			if (response.hasNonNull("errMsg") || status.trim().equals("Failure")){
+				throw new Exception("Fail");
+			}
+
+			responseModel.setReference_id(UUID.randomUUID().toString());
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("0");
+			responseModel.setData(response);
+		} catch (Exception e) {
+			slog += " - exception: " + e.toString() + "; class: " + e.getStackTrace()[0].getClassName() + "; line: " + e.getStackTrace()[0].getLineNumber();
+			responseModel.setRequest_id(referenceId);
+			responseModel.setReference_id(referenceId);
+			responseModel.setDate_time(new Timestamp(new Date().getTime()));
+			responseModel.setResult_code("1");
+			responseModel.setMessage(e.getMessage());
+		}
+		finally {
+			log.info("{}",slog);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
 }
