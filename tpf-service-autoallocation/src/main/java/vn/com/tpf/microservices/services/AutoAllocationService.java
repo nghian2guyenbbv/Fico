@@ -1136,7 +1136,7 @@ public class AutoAllocationService {
 
     }
 
-    public Object updateLoginStatus(JsonNode request) {
+    public Object updateLoginStatus(JsonNode request, JsonNode token) {
         ResponseModel responseModel = new ResponseModel();
         responseModel.setReference_id(UUID.randomUUID().toString());
         responseModel.setDate_time(new Timestamp(new Date().getTime()));
@@ -1144,12 +1144,17 @@ public class AutoAllocationService {
         try {
             String userName = request.path("body").path("userName").asText();
             String activeFlag = request.path("body").path("activeFlag").asText();
-            List<UserDetail> userDetails = userDetailsDAO.findAllByUserName(userName);
-            for (UserDetail u : userDetails) {
-                u.setActiveFlag(activeFlag);
+            if (checkUserNameFromToken(token, userName)) {
+                List<UserDetail> userDetails = userDetailsDAO.findAllByUserName(userName);
+                for (UserDetail u : userDetails) {
+                    u.setActiveFlag(activeFlag);
+                }
+                userDetailsDAO.saveAll(userDetails);
+                responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
+            } else {
+                responseModel = checkResultService.checkResult(ResultData.PERMISSION_FAILED, responseModel);
             }
-            userDetailsDAO.saveAll(userDetails);
-            responseModel = checkResultService.checkResult(ResultData.SUCCESS, responseModel);
+
         } catch (Exception e) {
             log.error("updateLoginStatus - Error: {}, class: {}, line: {}", e, e.getStackTrace()[0].getClassName(),
                     e.getStackTrace()[0].getLineNumber());

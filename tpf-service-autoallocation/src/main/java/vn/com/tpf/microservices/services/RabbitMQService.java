@@ -140,7 +140,7 @@ public class RabbitMQService {
 				case "reassign":
 					return response(message, payload, autoAllocationService.reassign(request, token));
 				case "updateLoginStatus":
-					return response(message, payload, autoAllocationService.updateLoginStatus(request));
+					return response(message, payload, autoAllocationService.updateLoginStatus(request, token));
 				case "updateLeader":
 					return response(message, payload, autoAllocationService.updateLeader(request, token));
 				default:
