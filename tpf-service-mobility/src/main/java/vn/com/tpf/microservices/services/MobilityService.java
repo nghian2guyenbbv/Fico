@@ -911,15 +911,16 @@ public class MobilityService {
 				rabbitMQService.send("tpf-service-dataentry-sgb", Map.of("func", "commentAppNonWeb", "body",
 						convertService.toReturnQueryNonWebFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 			}
+			update.set("status", STATUS_RESUBMITING);
+
+			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+					Mobility.class);
 		} else {
 //			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
 //					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 			responseQuery(mobility);
 		}
-		update.set("status", STATUS_RESUBMITING);
 
-		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-				Mobility.class);
 
 		rabbitMQService.send("tpf-service-app",
 				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
@@ -1842,6 +1843,32 @@ public class MobilityService {
 			String status = response.path("responseData").path("status").asText("Failure");
 			if (response.hasNonNull("errMsg") || status.trim().equals("Failure")){
 				throw new Exception("Fail");
+			}
+
+			if("Success".equals(status.trim())){
+				Query queryAppId = Query.query(Criteria.where("appId").is(mobility.getAppId()));
+				JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
+				Update update = new Update().set("updatedAt", new Date());
+				boolean updateStatus = false;
+				if (returns.hasNonNull("returnQueries")
+						&& (mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
+						.asBoolean())
+					return Map.of("status", 499, "message", "data.appId returnQuery is complete");
+
+				LinkedList<Map> returnQueriesNew = mapper.convertValue(
+						mapper.convertValue(returns.path("returnQueries"), ArrayNode.class), LinkedList.class);
+				if (returnQueriesNew == null)
+					returnQueriesNew = new LinkedList<Map>();
+				returnQueriesNew.get(0).put("isComplete", true);
+				returnQueriesNew.get(0).put("updatedAt", new Date());
+				update.set("updatedAt", new Date());
+				update.set("returns.returnQueries", returnQueriesNew);
+				update.set("status", STATUS_RETURNED);
+				update.set("stage", STAGE_LEAD_DETAILS);
+				updateStatus = true;
+
+				mobility = mobilityTemplate.findAndModify(queryAppId, update, new FindAndModifyOptions().returnNew(true),
+						Mobility.class);
 			}
 
 			responseModel.setReference_id(UUID.randomUUID().toString());
