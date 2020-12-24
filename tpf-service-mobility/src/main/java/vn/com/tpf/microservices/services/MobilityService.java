@@ -1391,18 +1391,22 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.decisionFic not null"));
 
-		if (!data.hasNonNull("files") || mapper.convertValue(data.path("files"), ArrayNode.class).size() == 0)
-			return utils.getJsonNodeResponse(499, request.path("body"),
-					mapper.createObjectNode().put("message", "data.files array required"));
-		ArrayNode documents = mapper.convertValue(data.path("files"), ArrayNode.class);
-		for (int index = 0; index < documents.size(); index++) {
-			if (documents.get(index).path("documentMd5").asText().isBlank()
-					|| documents.get(index).path("documentFilename").asText().isBlank()
-					|| documents.get(index).path("documentFileExtension").asText().isBlank()
-					|| documents.get(index).path("documentUrlDownload").asText().isBlank())
-				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+//		if (!data.hasNonNull("files") || mapper.convertValue(data.path("files"), ArrayNode.class).size() == 0)
+//			return utils.getJsonNodeResponse(499, request.path("body"),
+//					mapper.createObjectNode().put("message", "data.files array required"));
+		ArrayNode documents = JsonNodeFactory.instance.arrayNode();
+		if (data.hasNonNull("files") || mapper.convertValue(data.path("files"), ArrayNode.class).size() > 0) {
+			documents = mapper.convertValue(data.path("files"), ArrayNode.class);
+			for (int index = 0; index < documents.size(); index++) {
+				if (documents.get(index).path("documentMd5").asText().isBlank()
+						|| documents.get(index).path("documentFilename").asText().isBlank()
+						|| documents.get(index).path("documentFileExtension").asText().isBlank()
+						|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+			}
 		}
+
 
 		ArrayList<JsonNode> mobilityFields = new ArrayList<JsonNode>();
 
@@ -1549,40 +1553,43 @@ public class MobilityService {
 
 		List<HashMap> filesUpload = new ArrayList<HashMap>();
 		ArrayNode filesUploadSender = JsonNodeFactory.instance.arrayNode();
-		for (JsonNode document : documents) {
-			if (!document.path("documentUrlDownload").asText().matches(
-					"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
-				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message",
-								String.format("data.documents [%s].documentUrlDownload not valid",
-										document.path("documentUrlDownload").asText())));
+		if (data.hasNonNull("files") || mapper.convertValue(data.path("files"), ArrayNode.class).size() > 0) {
+			for (JsonNode document : documents) {
+				if (!document.path("documentUrlDownload").asText().matches(
+						"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message",
+									String.format("data.documents [%s].documentUrlDownload not valid",
+											document.path("documentUrlDownload").asText())));
 
-			JsonNode filesDbInfo = mapper.convertValue(getListFinnOneFileds.path("data").path("filesUpload"),
-					JsonNode.class);
-			JsonNode uploadResult = apiService.uploadDocumentInternal(document, filesDbInfo);
-			if (uploadResult.path("resultCode").asInt() != 200)
-				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
-			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
-					.equals(document.path("documentMd5").asText().toLowerCase()))
-				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message",
-								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
-										uploadResult.path("md5").asText().toLowerCase())));
-			HashMap<String, String> docUpload = new HashMap<>();
-			docUpload.put("documentFilename", document.path("documentFilename").asText());
-			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
-			docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
-			docUpload.put("documentMd5", document.path("documentMd5").asText());
+				JsonNode filesDbInfo = mapper.convertValue(getListFinnOneFileds.path("data").path("filesUpload"),
+						JsonNode.class);
+				JsonNode uploadResult = apiService.uploadDocumentInternal(document, filesDbInfo);
+				if (uploadResult.path("resultCode").asInt() != 200)
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+				if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+						.equals(document.path("documentMd5").asText().toLowerCase()))
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message",
+									String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+											uploadResult.path("md5").asText().toLowerCase())));
+				HashMap<String, String> docUpload = new HashMap<>();
+				docUpload.put("documentFilename", document.path("documentFilename").asText());
+				docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+				docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+				docUpload.put("documentMd5", document.path("documentMd5").asText());
 
-			docUpload.put("originalname", document.path("documentFilename").asText().concat(".")
-					.concat(document.path("documentFileExtension").asText()));
-			docUpload.put("filename", uploadResult.path("data").path("filename").asText());
-			filesUpload.add(docUpload);
-			ObjectNode item = mapper.createObjectNode();
-			item.put("fileName", uploadResult.path("data").path("filename").asText());
-			filesUploadSender.add(item);
+				docUpload.put("originalname", document.path("documentFilename").asText().concat(".")
+						.concat(document.path("documentFileExtension").asText()));
+				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+				filesUpload.add(docUpload);
+				ObjectNode item = mapper.createObjectNode();
+				item.put("fileName", uploadResult.path("data").path("filename").asText());
+				filesUploadSender.add(item);
+			}
 		}
+
 
 		update = update.set("updatedAt", new Date()).set("filesUpload", filesUpload)
 				.set("timeOfVisit", data.path("timeOfVisit").asText())
