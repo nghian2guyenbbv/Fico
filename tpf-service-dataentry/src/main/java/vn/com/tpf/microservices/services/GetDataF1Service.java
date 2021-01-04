@@ -64,7 +64,8 @@ public class GetDataF1Service {
 
     public String getCity(String city){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("city", city);
-        String sql = "SELECT a.CITY_code FROM ODS.MV_F1_sub_city a,ODS.MV_F1_sub_state b,ODS.MV_F1_sub_zip_code c " +
+        String sql = "SELECT a.CITY_code " +
+                "FROM ODS.MV_F1_sub_city a,ODS.MV_F1_sub_state b,ODS.MV_F1_sub_zip_code c " +
                 "where a.state=b.id and a.id=c.city " +
                 "and a.APPROVAL_STATUS=0 and b.APPROVAL_STATUS=0 and c.APPROVAL_STATUS=0 and LOWER(a.CITY_NAME) LIKE LOWER(:city)";
         return executeQuery(sql, namedParameters);
@@ -359,7 +360,7 @@ public class GetDataF1Service {
                 "WHERE\n" +
                 "    vpm.VAP_PARAMETER_POLICY IN (\n" +
                 "        SELECT ID\n" +
-                "        FROM ODS.MV_F1_SUB_VAP_PARAMETER_POLICY\n" +
+                "        FROM ODS.MV_F1_SUB_VAP_PARA_POLICY\n" +
                 "        WHERE LOWER(NAME) = LOWER(:vapProduct) \n" +
                 "        AND APPROVAL_STATUS = 0\n" +
                 "    )\n" +
@@ -464,7 +465,7 @@ public class GetDataF1Service {
 
     private String queryForList(String sql){
         try {
-            List<String> result = jdbcTemplateF1.queryForList(sql, String.class);
+            List<String> result = jdbcTemplateF1DE.queryForList(sql, String.class);
             if(result.size() <= 0) return "";
             return result.get(0);
         }catch (Exception e){
@@ -493,10 +494,9 @@ public class GetDataF1Service {
     }
 
     public List<Map<String, Object>> getListReasonToCancel() {
-        String sql = "SELECT a.name as \"name\",a.DESCRIPTION as \"description\" from NEO_CM_GA25_GIR_SD.decision_reason a, NEO_CM_GA25_GIR_SD.DECISION_REASON_MAPPING b\n" +
-                "where a.action='cancel_lead' and a.REASON_FK=b.id and b.stage='cancel_application' and b.approval_status=0 ORDER BY a.NAME";
+        String sql = "SELECT name as \"name\",DESCRIPTION as \"description\" from ODS.MV_F1_SUB_CANCEL_DECISION order by name desc";
         try {
-            List<Map<String, Object>> result = jdbcTemplateF1.queryForList(sql);
+            List<Map<String, Object>> result = jdbcTemplateF1DE.queryForList(sql);
             return result;
         }catch (Exception e){
             log("getListReasonToCancel", sql, e.toString());

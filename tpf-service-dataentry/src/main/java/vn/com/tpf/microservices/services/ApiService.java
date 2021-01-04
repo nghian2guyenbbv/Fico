@@ -1461,13 +1461,22 @@ public class ApiService {
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 					String partnerId = (String) mapper.convertValue(partner.get("data"), Map.class).get("partnerId");
 					if(partnerId.equals("1")){
-						headers_DT.set("authkey", (String) (mapper.convertValue(partner.get("data"), Map.class).get("token")));
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+						if (version == 1){
+							headers_DT.set("authkey", (String) (mapper.convertValue(partner.get("data"), Map.class).get("token")));
+						} else {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							String tokenPartner = this.getTokenDGT(urlGetToken, account);
+							if(StringUtils.isEmpty(tokenPartner)){
+								throw new Exception("Not get token digitexx");
+							}
+							headers_DT.setBearerAuth(tokenPartner);
+						}
+
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 						String documentApi = (String) mapper.convertValue(url, Map.class).get("documentApi");
-						System.out.println("documentApi line 812: " + documentApi);
-
 						ResponseEntity<?> res_DT = restTemplateDownload.postForEntity(documentApi, entity_DT, Object.class);
 
 						Object map = mapper.valueToTree(res_DT.getBody());
@@ -1479,9 +1488,7 @@ public class ApiService {
 
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-
 						String tokenPartner = this.getTokenSaigonBpo(urlGetToken, account);
-
 						if(StringUtils.isEmpty(tokenPartner)){
 							throw new Exception("Not get token saigon-bpo");
 						}
@@ -2058,7 +2065,18 @@ public class ApiService {
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 					String partnerId = (String) mapper.convertValue(partner.get("data"), Map.class).get("partnerId");
 					if(partnerId.equals("1")){
-						headers_DT.set("authkey", (String) (mapper.convertValue(partner.get("data"), Map.class).get("token")));
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+						if (version == 1){
+							headers_DT.set("authkey", (String) (mapper.convertValue(partner.get("data"), Map.class).get("token")));
+						} else {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							String tokenPartner = this.getTokenDGT(urlGetToken, account);
+							if(StringUtils.isEmpty(tokenPartner)){
+								throw new Exception("Not get token digitexx");
+							}
+							headers_DT.setBearerAuth(tokenPartner);
+						}
+
 						headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 						HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
@@ -2120,7 +2138,7 @@ public class ApiService {
 		return jNode;
 	}
 
-	public JsonNode callApiPartner(String url, JsonNode data, String token, String partnerId) {
+	public JsonNode callApiPartner(String url, JsonNode data, String token, String partnerId, int version) {
 		String referenceId = UUID.randomUUID().toString();
 		JsonNode result = null;
 		try {
@@ -2133,20 +2151,19 @@ public class ApiService {
 			dataLogReq.set("request_data", data);
 			log.info("{}", dataLogReq);
 			if(partnerId.equals("1")){
-				String dataString = mapper.writeValueAsString(data);
-
 				JsonNode encrypt = rabbitMQService.sendAndReceive("tpf-service-assets",
-						Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
-
+					Map.of("func", "pgpEncrypt", "body", Map.of("project", "digitex", "data", data)));
+				HttpHeaders headers = new HttpHeaders();
+				if (version == 1){
+					headers.set("authkey", token);
+				}else {
+					headers.setBearerAuth(token);
+				}
 				ObjectNode dataLogReq2 = mapper.createObjectNode();
 				dataLogReq2.put("type", "[==DATAENTRY-DIGITEX-REQUEST-ENCRYPTED-PGP==]");
 				dataLogReq2.put("referenceId", referenceId);
 				dataLogReq2.put("request_encrypt", encrypt);
 				log.info("{}", dataLogReq2);
-
-				HttpHeaders headers = new HttpHeaders();
-
-				headers.set("authkey", token);
 
 				headers.set("Accept", "application/pgp-encrypted");
 				headers.set("Content-Type", "application/pgp-encrypted");
@@ -2272,6 +2289,7 @@ public class ApiService {
 			HttpEntity<?> payload = new HttpEntity<>(application, headers);
 
 			ObjectNode log = mapper.createObjectNode();
+			log.put("func", new Throwable().getStackTrace()[0].getMethodName());
 			log.put("type", "[==REQUEST-ESB==]");
 			log.put("url", url);
 			log.put("headers", headers.toString());
@@ -2362,7 +2380,7 @@ public class ApiService {
 		}
 	}
 
-	public JsonNode uploadFileToPartner(List<QLDocument> documents, String partnerId, String urlPartner, String token){
+	public JsonNode uploadFileToPartner(List<QLDocument> documents, String partnerId, String urlPartner, String token, int version){
 		JsonNode jNode;
 		StringBuilder sb = new StringBuilder();
 		try {
@@ -2372,7 +2390,12 @@ public class ApiService {
 			MultiValueMap<String, Object> parts_02 = initBodyToSendPartner(documents);
 			HttpHeaders headers_DT = new HttpHeaders();
 			if(partnerId.equals("1")){
-				headers_DT.set("authkey", token);
+				if (version == 1){
+					headers_DT.set("authkey", token);
+				} else {
+					headers_DT.setBearerAuth(token);
+				}
+
 				headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 				HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 

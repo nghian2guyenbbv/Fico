@@ -1372,6 +1372,7 @@ public class DataEntryController {
 		try {
 			Map<String, Object> partnerMap = new HashMap<>();
 			partnerMap.put("partnerId", partnerIdToGetPartner);
+			partnerMap.put("status", "0");
 			JsonNode partnerResponse = rabbitMQService.sendAndReceive(queueDESGB,
 					Map.of("func", "getPartner","body", partnerMap));
 
@@ -1536,26 +1537,42 @@ public class DataEntryController {
 
 							HttpHeaders headers_DT = new HttpHeaders();
 							if(partner.get("partnerId").equals("1")){
-								headers_DT.set("authkey", digitexToken);
-
+								int version = (int) partner.get("version");
+								if (version == 1){
+									headers_DT.set("authkey", digitexToken);
+								} else {
+									Map<String, Object> tokenMap = new HashMap<>();
+									Map<String, Object> tokenBodyMap = new HashMap<>();
+									tokenBodyMap.put("partnerId", partner.get("partnerId"));
+									tokenMap.put("body", tokenBodyMap);
+									tokenMap.put("func", "getTokenDGT");
+									JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
+									String tokenPartner = tokenResponse.path("data").asText();
+									if(StringUtils.isEmpty(tokenPartner)){
+										return ResponseEntity.status(200)
+												.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+														"result_code", 3, "message", "Not get token digitexx"));
+									}
+									headers_DT.setBearerAuth(tokenPartner);
+								}
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 								ObjectNode dataLogReq = mapper.createObjectNode();
 								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
 								dataLogReq.put("method", "POST");
-								dataLogReq.put("url", urlDigitexDocumentApi);
+								dataLogReq.put("url", documentApi);
 								dataLogReq.put("data", entity_DT.toString());
 								log.info("{}", dataLogReq);
 
-								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexDocumentApi, entity_DT, Object.class);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(documentApi, entity_DT, Object.class);
 
 								Object map = mapper.valueToTree(res_DT.getBody());
 								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
 								ObjectNode dataLog = mapper.createObjectNode();
 								dataLog.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-								dataLog.put("url", urlDigitexDocumentApi);
+								dataLog.put("url", documentApi);
 								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 								log.info("{}", dataLog);
 							} else if(partner.get("partnerId").equals("2")){
@@ -1758,7 +1775,24 @@ public class DataEntryController {
 							HttpHeaders headers_DT = new HttpHeaders();
 
 							if(partner.get("partnerId").equals("1")){
-								headers_DT.set("authkey", digitexToken);
+								int version = (int) partner.get("version");
+								if (version == 1){
+									headers_DT.set("authkey", digitexToken);
+								} else {
+									Map<String, Object> tokenMap = new HashMap<>();
+									Map<String, Object> tokenBodyMap = new HashMap<>();
+									tokenBodyMap.put("partnerId", partner.get("partnerId"));
+									tokenMap.put("body", tokenBodyMap);
+									tokenMap.put("func", "getTokenDGT");
+									JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
+									String tokenPartner = tokenResponse.path("data").asText();
+									if(StringUtils.isEmpty(tokenPartner)){
+										return ResponseEntity.status(200)
+												.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+														"result_code", 3, "message", "Not get token digitexx"));
+									}
+									headers_DT.setBearerAuth(tokenPartner);
+								}
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
@@ -1766,15 +1800,15 @@ public class DataEntryController {
 								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
 								dataLogReq.put("method", "POST");
 								dataLogReq.put("appId", appId);
-								dataLogReq.put("url", urlDigitexResumitDocumentApi);
+								dataLogReq.put("url", resumitDocumentApi);
 								dataLogReq.put("data", entity_DT.toString());
 								log.info("{}", dataLogReq);
 
-								ResponseEntity<?> res_DT = restTemplate.postForEntity(urlDigitexResumitDocumentApi, entity_DT, Object.class);
+								ResponseEntity<?> res_DT = restTemplate.postForEntity(resumitDocumentApi, entity_DT, Object.class);
 
 								ObjectNode dataLog = mapper.createObjectNode();
 								dataLog.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
-								dataLog.put("url", urlDigitexResumitDocumentApi);
+								dataLog.put("url", resumitDocumentApi);
 								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 								log.info("{}", dataLog);
 

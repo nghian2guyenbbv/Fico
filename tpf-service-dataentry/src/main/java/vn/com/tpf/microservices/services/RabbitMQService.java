@@ -218,7 +218,7 @@ public class RabbitMQService {
 				case "getListStatus":
 					return response(message, payload, dataEntryService.getListStatus(request));
 				case "getSearchReport":
-					return response(message, payload, dataEntryService.getSearchReport(request,token));
+					return response(message, payload, dataEntryService.getSearchReport(request,token), false);
 				case "getPartner":
 					return response(message, payload, dataEntryService.getPartner(request,token), false);
 				case "quickLead":
@@ -259,6 +259,8 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.updateFullAppApiF1(request));
 				case "updateAppErrorApiF1":
 					return response(message, payload, dataEntryService.updateAppErrorApiF1(request));
+				case "getTokenDGT":
+					return response(message, payload, dataEntryService.getTokenDGT(request, token));
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

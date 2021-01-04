@@ -1302,9 +1302,20 @@ public class DataEntryService {
 
 						JsonNode responseDG = mapper.createObjectNode();
 
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 						if (partnerId.equals("1")) {
-							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+							String tokenPartner;
+							if (version == 1){
+								tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							} else {
+								String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+								Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+								tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+								if (StringUtils.isEmpty(tokenPartner)) {
+									return Map.of("result_code", 3, "message", "Not get token digitexx");
+								}
+							}
+							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId, version);
 	//						responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
 						} else if (partnerId.equals("2")) {
 							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
@@ -1313,7 +1324,7 @@ public class DataEntryService {
 							if (StringUtils.isEmpty(tokenPartner)) {
 								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
 							}
-							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+							responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId, version);
 						}
 
 						if (!responseDG.path("error-code").textValue().equals("")) {
@@ -1387,6 +1398,8 @@ public class DataEntryService {
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
 			responseModel.setResult_code("0");
 		} catch (Exception e) {
+			sbLog.append(" - exception: ").append(e.toString()).append(" - class: ").append(e.getStackTrace()[0].getClassName()).append(" - line: ").append(e.getStackTrace()[0].getLineNumber());
+			log.info("{}", sbLog.toString());
 			log.info("ReferenceId : " + referenceId + "Error: " + e);
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(referenceId);
@@ -1681,7 +1694,8 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
-					if(apiService.chooseAutoOrApiF1(appData.get(0).getQuickLeadId(), appData.get(0).getPartnerId()) == 1) {
+//					if(apiService.chooseAutoOrApiF1(appData.get(0).getQuickLeadId(), appData.get(0).getPartnerId()) == 1) {
+					if(apiService.chooseAutoOrApiF1() == 1) {
 						new Thread(() -> {
 							try{
 								ObjectNode result = mapper.createObjectNode();
@@ -2102,10 +2116,21 @@ public class DataEntryService {
 						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 						String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
 
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 						if (partnerId.equals("1")) {
-							String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-							apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
-//							apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
+							String tokenPartner;
+							if (version == 1){
+								tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							} else {
+								String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+								Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+								tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+								if (StringUtils.isEmpty(tokenPartner)) {
+									return Map.of("result_code", 3, "message", "Not get token digitexx");
+								}
+							}
+							apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId, version);
+							//							apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
 						} else if (partnerId.equals("2")) {
 							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -2113,7 +2138,7 @@ public class DataEntryService {
 							if (StringUtils.isEmpty(tokenPartner)) {
 								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
 							}
-							apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+							apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId, version);
 						}
 					}
 					Application dataFullApp = mongoTemplate.findOne(query, Application.class);
@@ -2275,28 +2300,39 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+					if (!"3".equals(partnerId)) {
+						JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
-
-					Map partner = this.getPartner(partnerId);
-					if(StringUtils.isEmpty(partner.get("data"))){
-						return Map.of("result_code", 3, "message","Not found partner");
-					}
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
-
-					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
-					} else if(partnerId.equals("2")){
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						if(StringUtils.isEmpty(tokenPartner)){
-							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						Map partner = this.getPartner(partnerId);
+						if (StringUtils.isEmpty(partner.get("data"))) {
+							return Map.of("result_code", 3, "message", "Not found partner");
 						}
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+						String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+						if (partnerId.equals("1")) {
+							String tokenPartner;
+							if (version == 1){
+								tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							} else {
+								String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+								Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+								tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+								if (StringUtils.isEmpty(tokenPartner)) {
+									return Map.of("result_code", 3, "message", "Not get token digitexx");
+								}
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+						} else if (partnerId.equals("2")) {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+						}
 					}
 				}else{
 					errors = request.path("body").path("stage").textValue();
@@ -2405,29 +2441,41 @@ public class DataEntryService {
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
 					//fico gui comment
+					if (!"3".equals(partnerId)) {
+						JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
+								"commend-id", commentId, "errors", errors)), JsonNode.class);
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
-							"commend-id", commentId, "errors", errors)), JsonNode.class);
-
-					Map partner = this.getPartner(partnerId);
-					if(StringUtils.isEmpty(partner.get("data"))){
-						return Map.of("result_code", 3, "message","Not found partner");
-					}
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
-
-					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
-					} else if(partnerId.equals("2")){
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						if(StringUtils.isEmpty(tokenPartner)){
-							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						Map partner = this.getPartner(partnerId);
+						if (StringUtils.isEmpty(partner.get("data"))) {
+							return Map.of("result_code", 3, "message", "Not found partner");
 						}
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+						String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+						if (partnerId.equals("1")) {
+							String tokenPartner;
+
+							if (version == 1){
+								tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							} else {
+								String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+								Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+								tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+								if (StringUtils.isEmpty(tokenPartner)) {
+									return Map.of("result_code", 3, "message", "Not get token digitexx");
+								}
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+						} else if (partnerId.equals("2")) {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+						}
 					}
 					try{
 						appId = applicationId;
@@ -2515,30 +2563,40 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "updateApp","reference_id", referenceId,
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
+					if (!"3".equals(partnerId)) {
+						JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "success")), JsonNode.class);
-
-					Map partner = this.getPartner(partnerId);
-					if(StringUtils.isEmpty(partner.get("data"))){
-						return Map.of("result_code", 3, "message","Not found partner");
-					}
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
-
-					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
-					} else if(partnerId.equals("2")){
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						if(StringUtils.isEmpty(tokenPartner)){
-							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						Map partner = this.getPartner(partnerId);
+						if (StringUtils.isEmpty(partner.get("data"))) {
+							return Map.of("result_code", 3, "message", "Not found partner");
 						}
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+						String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+						if (partnerId.equals("1")) {
+							String tokenPartner;
+							if (version == 1){
+								tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							} else {
+								String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+								Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+								tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+								if (StringUtils.isEmpty(tokenPartner)) {
+									return Map.of("result_code", 3, "message", "Not get token digitexx");
+								}
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+						} else if (partnerId.equals("2")) {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+						}
 					}
-
 				}else{
 					errors = request.path("body").path("stage").textValue();
 
@@ -2692,31 +2750,42 @@ public class DataEntryService {
 									"param", Map.of("project", "dataentry", "id", dataFullApp.getId()),"body", convertService.toAppDisplay(dataFullApp)));
 
 					//fico gui comment
+					if (!"3".equals(partnerId)) {
+						JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
+								"commend-id", commentId, "errors", errors)), JsonNode.class);
 
-					JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "failed",
-							"commend-id", commentId, "errors", errors)), JsonNode.class);
-
-					Map partner = this.getPartner(partnerId);
-					if(StringUtils.isEmpty(partner.get("data"))){
-						return Map.of("result_code", 3, "message","Not found partner");
-					}
-					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
-					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
-
-					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
-					} else if(partnerId.equals("2")){
-						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
-						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
-						String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
-						if(StringUtils.isEmpty(tokenPartner)){
-							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
+						Map partner = this.getPartner(partnerId);
+						if (StringUtils.isEmpty(partner.get("data"))) {
+							return Map.of("result_code", 3, "message", "Not found partner");
 						}
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-					}
+						Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
+						String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
+						int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+						if (partnerId.equals("1")) {
+							String tokenPartner;
 
+							if (version == 1){
+								tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+							} else {
+								String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+								Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+								tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+								if (StringUtils.isEmpty(tokenPartner)) {
+									return Map.of("result_code", 3, "message", "Not get token digitexx");
+								}
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+						} else if (partnerId.equals("2")) {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
+							}
+							apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+						}
+					}
 					try{
 						appId = applicationId;
 						requestDes = errors;
@@ -3508,8 +3577,10 @@ public class DataEntryService {
 	}
 
 	public Map<String, Object> getPartner(JsonNode request, JsonNode token) throws Exception{
+		ObjectNode objectNode = mapper.convertValue(request.path("body"), ObjectNode.class);
+		objectNode.put("status", "0");
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-assets",
-				Map.of("func", "getPartner","body", request.path("body")));
+				Map.of("func", "getPartner","body", objectNode));
 		if(response.path("data").isNull()){
 			return Map.of("status", 200, "data", "");
 		}
@@ -3519,6 +3590,7 @@ public class DataEntryService {
 	private Map<String, Object> getPartner(String id) throws Exception{
 		Map partnerMap = new HashMap();
 		partnerMap.put("partnerId", id);
+		partnerMap.put("status", "0");
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-assets",
 				Map.of("func", "getPartner","body", partnerMap));
 		if(response.path("data").isNull()){
@@ -4074,10 +4146,21 @@ public class DataEntryService {
 				}
 				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 				String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
-
+				int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 				if(partnerId.equals("1")){
-					String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+					String tokenPartner;
+
+					if (version == 1){
+						tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+					} else {
+						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+						tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+						if (StringUtils.isEmpty(tokenPartner)) {
+							return Map.of("result_code", 3, "message", "Not get token digitexx");
+						}
+					}
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId, version);
 				} else if(partnerId.equals("2")){
 					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -4085,7 +4168,7 @@ public class DataEntryService {
 					if(StringUtils.isEmpty(tokenPartner)){
 						return Map.of("result_code", 3, "message","Not get token saigon-bpo");
 					}
-					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId);
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, partnerId, version);
 				}
 
 			}
@@ -4222,10 +4305,21 @@ public class DataEntryService {
 				}
 				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 				String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
-
+				int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 				if(partnerId.equals("1")){
-					String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+					String tokenPartner;
+
+					if (version == 1){
+						tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+					} else {
+						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+						tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+						if (StringUtils.isEmpty(tokenPartner)) {
+							return Map.of("result_code", 3, "message", "Not get token digitexx");
+						}
+					}
+					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
 				} else if(partnerId.equals("2")){
 					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -4233,7 +4327,7 @@ public class DataEntryService {
 					if(StringUtils.isEmpty(tokenPartner)){
 						return Map.of("result_code", 3, "message","Not get token saigon-bpo");
 					}
-					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
 				}
 			}else{
 				String faultReason = request.findPath("faultReason").asText(request.findPath("failureMessage").asText(""));
@@ -4289,10 +4383,21 @@ public class DataEntryService {
 				}
 				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 				String feedbackApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
-
+				int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 				if(partnerId.equals("1")){
-					String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+					String tokenPartner;
+
+					if (version == 1){
+						tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+					} else {
+						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+						tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+						if (StringUtils.isEmpty(tokenPartner)) {
+							return Map.of("result_code", 3, "message", "Not get token digitexx");
+						}
+					}
+					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
 //						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 				} else if(partnerId.equals("2")){
 					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
@@ -4301,7 +4406,7 @@ public class DataEntryService {
 					if(StringUtils.isEmpty(tokenPartner)){
 						return Map.of("result_code", 3, "message","Not get token saigon-bpo");
 					}
-					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+					apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
 				}
 				try{
 					appId = applicationId;
@@ -4408,10 +4513,21 @@ public class DataEntryService {
 					}
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
-
+					int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						String tokenPartner;
+
+						if (version == 1){
+							tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+						} else {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token digitexx");
+							}
+						}
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -4419,7 +4535,7 @@ public class DataEntryService {
 						if(StringUtils.isEmpty(tokenPartner)){
 							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
 						}
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
 					}
 
 				}else{
@@ -4480,11 +4596,22 @@ public class DataEntryService {
 					}
 					Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 					String feedbackApi = (String) mapper.convertValue(url, Map.class).get("feedbackApi");
-
+					int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 					if(partnerId.equals("1")){
-						String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-//						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
-						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
+						String tokenPartner;
+
+						if (version == 1){
+							tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+						} else {
+							String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+							Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+							tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+							if (StringUtils.isEmpty(tokenPartner)) {
+								return Map.of("result_code", 3, "message", "Not get token digitexx");
+							}
+						}
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
+//						apiService.callApiDigitexx(urlDigitexFeedbackApi, dataSend);
 					} else if(partnerId.equals("2")){
 						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
@@ -4492,7 +4619,7 @@ public class DataEntryService {
 						if(StringUtils.isEmpty(tokenPartner)){
 							return Map.of("result_code", 3, "message","Not get token saigon-bpo");
 						}
-						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId);
+						apiService.callApiPartner(feedbackApi, dataSend, tokenPartner, partnerId, version);
 					}
 
 					try{
@@ -4651,19 +4778,28 @@ public class DataEntryService {
 				}
 				Object url = mapper.convertValue(partner.get("data"), Map.class).get("url");
 				String cmInfoApi = (String) mapper.convertValue(url, Map.class).get("cmInfoApi");
-
-				if (appData.get(0).getPartnerId().equals("1")) {
-					String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, appData.get(0).getPartnerId());
-//							apiService.callApiDigitexx(urlDigitexCmInfoApi, dataSend);
-				} else if (appData.get(0).getPartnerId().equals("2")) {
+				int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+				if (data.getPartnerId().equals("1")) {
+					String tokenPartner;
+					if (version == 1){
+						tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+					} else {
+						String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+						Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+						tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+						if (StringUtils.isEmpty(tokenPartner)) {
+							return Map.of("result_code", 3, "message", "Not get token digitexx");
+						}
+					}
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, data.getPartnerId(), version);
+				} else if (data.getPartnerId().equals("2")) {
 					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 					String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
 					if (StringUtils.isEmpty(tokenPartner)) {
 						return Map.of("result_code", 3, "message", "Not get token saigon-bpo");
 					}
-					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, appData.get(0).getPartnerId());
+					apiService.callApiPartner(cmInfoApi, dataSend, tokenPartner, data.getPartnerId(), version);
 				}
 			}
 
@@ -5017,6 +5153,14 @@ public class DataEntryService {
 			String urlDoc = (String) mapper.convertValue(url, Map.class).get("documentApi");
 			Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 			String token = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+			int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
+			if (partnerId.equals("1") && version == 1){
+				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+				token = apiService.getTokenDGT(urlGetToken, account);
+				if(StringUtils.isEmpty(token)){
+					throw new Exception("Not get token digitexx");
+				}
+			}
 			if (partnerId.equals("2")){
 				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 				token = apiService.getTokenSaigonBpo(urlGetToken, account);
@@ -5027,7 +5171,7 @@ public class DataEntryService {
 
 			JsonNode resultUpload;
 			if (isNew){
-				resultUpload = apiService.uploadFileToPartner(documents, partnerId, urlDoc, token);
+				resultUpload = apiService.uploadFileToPartner(documents, partnerId, urlDoc, token, version);
 				if (resultUpload.hasNonNull("error")){
 					throw new Exception(resultUpload.path("error").asText(""));
 				}
@@ -5044,7 +5188,7 @@ public class DataEntryService {
 				}
 				return "";
 			}
-			resultUpload = apiService.uploadFileToPartner(documents, partnerId, urlResubmitDoc, token);
+			resultUpload = apiService.uploadFileToPartner(documents, partnerId, urlResubmitDoc, token, version);
 			if (resultUpload.hasNonNull("error")){
 				throw new Exception(resultUpload.path("error").asText(""));
 			}
@@ -5113,10 +5257,21 @@ public class DataEntryService {
 			String resubmitCommentApi = (String) mapper.convertValue(url, Map.class).get("resubmitCommentApi");
 
 			JsonNode responseDG = mapper.createObjectNode();
-
+			int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 			if (partnerId.equals("1")) {
-				String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-				responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+				String tokenPartner;
+
+				if (version == 1){
+					tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+				} else {
+					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+					tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+					if (StringUtils.isEmpty(tokenPartner)) {
+						throw new Exception("Not get token digitexx");
+					}
+				}
+				responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId, version);
 //				responseDG = apiService.callApiDigitexx(urlDigitexResubmitCommentApi, dataSend);
 			} else if (partnerId.equals("2")) {
 				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
@@ -5125,7 +5280,7 @@ public class DataEntryService {
 				if (StringUtils.isEmpty(tokenPartner)) {
 					throw new Exception("Not get token saigon-bpo");
 				}
-				responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId);
+				responseDG = apiService.callApiPartner(resubmitCommentApi, dataSend, tokenPartner, partnerId, version);
 			}
 
 			if (!responseDG.path("error-code").textValue().equals("")) {
@@ -5623,9 +5778,9 @@ public class DataEntryService {
 	}
 
 	private String callCancelApiPartner(String applicationId, String reasonCancel, String partnerId) {
+		String slog = "";
 		try {
-			JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "errors", reasonCancel, "status", "CANCEL",
-					"comment-id", UUID.randomUUID().toString().substring(0, 10))), JsonNode.class);
+			slog += new Throwable().getStackTrace()[0].getMethodName();
 
 			Map partner = getPartner(partnerId);
 			if (StringUtils.isEmpty(partner.get("data"))) {
@@ -5636,28 +5791,46 @@ public class DataEntryService {
 			String cancelApi = (String) (mapper.convertValue(url, Map.class).get("feedbackApi"));
 
 			JsonNode responseDG = mapper.createObjectNode();
-
+			int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
 			if (partnerId.equals("1")) {
-				String tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
-				responseDG = apiService.callApiPartner(cancelApi, dataSend, tokenPartner, partnerId);
+				cancelApi = (String) (mapper.convertValue(url, Map.class).get("cancel"));
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "status", "CANCEL", "description", reasonCancel)), JsonNode.class);
+				String tokenPartner;
+				if (version == 1){
+					tokenPartner = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
+				} else {
+					String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
+					Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
+					tokenPartner = apiService.getTokenDGT(urlGetToken, account);
+					if (StringUtils.isEmpty(tokenPartner)) {
+						throw new Exception("Not get token digitexx");
+					}
+				}
+				responseDG = apiService.callApiPartner(cancelApi, dataSend, tokenPartner, partnerId, version);
 			} else if (partnerId.equals("2")) {
+				JsonNode dataSend = mapper.convertValue(mapper.writeValueAsString(Map.of("application-id", applicationId, "errors", reasonCancel, "status", "CANCEL",
+						"commend-id", UUID.randomUUID().toString().substring(0, 10))), JsonNode.class);
 				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 				Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 				String tokenPartner = apiService.getTokenSaigonBpo(urlGetToken, account);
 				if (StringUtils.isEmpty(tokenPartner)) {
 					throw new Exception("Not get token saigon-bpo");
 				}
-				responseDG = apiService.callApiPartner(cancelApi, dataSend, tokenPartner, partnerId);
+				responseDG = apiService.callApiPartner(cancelApi, dataSend, tokenPartner, partnerId, version);
 			}
 
 			if (!responseDG.path("error-code").textValue().equals("")) {
 				if (!responseDG.path("error-code").textValue().equals("null")) {
-					throw new Exception(responseDG.path("error-code").textValue() + responseDG.path("error-description").textValue());
+					slog += " - exception: " + responseDG.path("error-code").asText() + responseDG.path("error-description").asText();
+					return "Call api partner fail";
 				}
 			}
 			return "";
 		}catch (Exception e){
+			slog += " - exception: " + e.toString() + " - class: " + e.getStackTrace()[0].getClassName() + " - line: " + e.getStackTrace()[0].getLineNumber();
 			return e.getMessage();
+		}finally {
+			log.info("{}", slog);
 		}
 	}
 

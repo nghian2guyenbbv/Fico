@@ -265,15 +265,16 @@ public class ConvertService {
 
 			/*---------------------------------------------------sourcingDetails---------------------------------------------------- */
 			SourcingDetails sourcingDetails = new SourcingDetails();
-			if (StringUtils.hasLength(application.getCreateFrom())){
-				if (StringUtils.hasLength(application.getQuickLead().getSourcingChannel())){
-					sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
-				}
-			}else if (application.getPartnerId().equals("3")){
-				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
-			}else{
-				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
-			}
+//			if (StringUtils.hasLength(application.getCreateFrom())){
+//				if (StringUtils.hasLength(application.getQuickLead().getSourcingChannel())){
+//					sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
+//				}
+//			}else if (application.getPartnerId().equals("3")){
+//				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
+//			}else{
+//				sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
+//			}
+			sourcingDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
 
 			/*-------------------------dummy-------------------------*/
 			sourcingDetails.setAlternateChannelMode("");
@@ -597,10 +598,14 @@ public class ConvertService {
 			applicationDetails.setOfficer(getDataF1Service.getOfficer(application.getLoanDetails().getSourcingDetails().getSaleAgentCode()));
 //		if (StringUtils.hasLength(application.getQuickLead().getSourcingChannel()))
 //			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
-			if (application.getPartnerId().equals("3")){
-				applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
-			}else{
-				applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
+//			if (application.getPartnerId().equals("3")){
+//				applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT"));
+//			}else{
+//				applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel("DIRECT_3P"));
+//			}
+			applicationDetails.setSourcingChannel(getDataF1Service.getSourcingChannel(application.getQuickLead().getSourcingChannel()));
+			if (StringUtils.hasLength(application.getQuickLead().getAlternateChannelMode())){
+				applicationDetails.setAlternateChannelMode(getDataF1Service.getAlternateChannelMode(application.getQuickLead().getAlternateChannelMode()));
 			}
 			sourcingDetail.setApplicationDetails(applicationDetails);
 
