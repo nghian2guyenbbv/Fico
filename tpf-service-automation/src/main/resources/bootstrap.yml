@@ -1,6 +1,6 @@
 spring:
   application:
-    name: tpf-service-automation-crm
+    name: tpf-service-automation-mobility
   cloud:
     config:
       #uri: http://localhost:8888

@@ -11,6 +11,7 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDocumentDTO;
 import vn.com.tpf.microservices.models.Document;
@@ -20,10 +21,7 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -118,27 +116,28 @@ public class DE_ReturnRaiseQueryPage {
         textResponseElement.clear();
         textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
 
-        String fromFile = downLoadFileURL;
-        System.out.println("URLdownload: " + fromFile);
+        if(!Objects.isNull(deResponseQueryDTO.getDataDocument())&& !StringUtils.isEmpty(deResponseQueryDTO.getDataDocument().getFileName())) {
+            String fromFile = downLoadFileURL;
+            System.out.println("URLdownload: " + fromFile);
 
-        String docName = deResponseQueryDTO.getDataDocument().getFileName();
-        String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-        toFile += UUID.randomUUID().toString() + "_" + docName;
+            String docName = deResponseQueryDTO.getDataDocument().getFileName();
+            String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+            toFile += UUID.randomUUID().toString() + "_" + docName;
 
-        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-        File file = new File(toFile);
-        if (file.exists()) {
-            String docUrl = file.getAbsolutePath();
-            System.out.println("Path;" + docUrl);
-            Thread.sleep(2000);
+            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+            File file = new File(toFile);
+            if (file.exists()) {
+                String docUrl = file.getAbsolutePath();
+                System.out.println("Path;" + docUrl);
+                Thread.sleep(2000);
 
-            btnUploadFileElement.sendKeys(docUrl);
+                btnUploadFileElement.sendKeys(docUrl);
+
+                Utilities.captureScreenShot(_driver);
+            }
 
             Utilities.captureScreenShot(_driver);
         }
-
-        Utilities.captureScreenShot(_driver);
-
         btnSubmitResponseElement.click();
 
     }

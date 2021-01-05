@@ -18,9 +18,9 @@
 		<springProfile name="uat"><host>tpf-opensource-rabbitmq</host></springProfile>
 		<springProfile name="pro"><host>10.1.64.41</host></springProfile>
 		<port>5672</port>
-		<username>tpf-service-automation-crm</username>
-		<password>tpf-service-automation-crm</password>
-		<routingKeyPattern>tpf-service-logstash-automation-crm</routingKeyPattern>
+		<username>tpf-service-automation-mobility</username>
+		<password>tpf-service-automation-mobility</password>
+		<routingKeyPattern>tpf-service-logstash-automation-mobility</routingKeyPattern>
 	</appender>
 	<root level="INFO">
 		<appender-ref ref="CONSOLE" />
