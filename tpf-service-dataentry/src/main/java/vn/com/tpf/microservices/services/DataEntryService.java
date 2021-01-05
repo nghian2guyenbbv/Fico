@@ -5154,7 +5154,7 @@ public class DataEntryService {
 			Map<String, Object> account = mapper.convertValue(mapper.convertValue(partner.get("data"), Map.class).get("account"), Map.class);
 			String token = (String) (mapper.convertValue(partner.get("data"), Map.class).get("token"));
 			int version = (int) (mapper.convertValue(partner.get("data"), Map.class).get("version"));
-			if (partnerId.equals("1") && version == 1){
+			if (partnerId.equals("1") && version == 2){
 				String urlGetToken = (String) (mapper.convertValue(url, Map.class).get("getToken"));
 				token = apiService.getTokenDGT(urlGetToken, account);
 				if(StringUtils.isEmpty(token)){
