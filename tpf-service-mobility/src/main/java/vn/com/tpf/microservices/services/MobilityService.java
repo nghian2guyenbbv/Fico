@@ -806,19 +806,23 @@ public class MobilityService {
 		if (data.path("comment").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.comment not null"));
-		if (!data.hasNonNull("document") && (data.path("document").path("documentCode").asText().isBlank()
-				|| data.path("document").path("documentFileExtension").asText().isBlank()
-				|| data.path("document").path("documentMd5").asText().isBlank()))
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.document not valid"));
-		if (!data.path("document").path("documentUrlDownload").asText().matches(
-				"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
-			return utils.getJsonNodeResponse(499, body,
-					mapper.createObjectNode().put("message", "data.document.documentUrlDownload not valid"));
-		if (!data.path("document").path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
-				.equals(DOCUMENT_CODE_ACCA))
-			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
-					String.format("data.document.documentCode required %s", DOCUMENT_CODE_ACCA)));
+		final boolean hasDocuments = data.hasNonNull("document");
+		if(hasDocuments) {
+			if (!data.hasNonNull("document") && (data.path("document").path("documentCode").asText().isBlank()
+					|| data.path("document").path("documentFileExtension").asText().isBlank()
+					|| data.path("document").path("documentMd5").asText().isBlank()))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.document not valid"));
+			if (!data.path("document").path("documentUrlDownload").asText().matches(
+					"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.document.documentUrlDownload not valid"));
+			if (!data.path("document").path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
+					.equals(DOCUMENT_CODE_ACCA))
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+						String.format("data.document.documentCode required %s", DOCUMENT_CODE_ACCA)));
+		}
+
 
 		Query query = Query.query(Criteria.where("appId").is(appId));
 		Mobility mobility = mobilityTemplate.findOne(query, Mobility.class);
@@ -852,37 +856,38 @@ public class MobilityService {
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 						String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
 		}
-		JsonNode document = data.path("document");
-		if (document != null) {
-			ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"),
-					ObjectNode.class);
-			if (!documentsDb.hasNonNull(document.path("documentCode").asText()))
-				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
-						String.format("%s not found", document.path("documentCode").asText())));
-			JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
-			JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
-			if (uploadResult.path("resultCode").asInt() != 200)
-				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
-			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
-					.equals(document.path("documentMd5").asText().toLowerCase()))
-				return utils.getJsonNodeResponse(499, body,
-						mapper.createObjectNode().put("message",
-								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
-										uploadResult.path("md5").asText().toLowerCase())));
-			HashMap<String, String> docUpload = new HashMap<>();
-			docUpload.put("documentCode", document.path("documentCode").asText());
-			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
-			docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
-			docUpload.put("documentMd5", document.path("documentMd5").asText());
-			docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
-			docUpload.put("originalname", document.path("documentCode").asText().concat(".")
-					.concat(document.path("documentFileExtension").asText()));
-			docUpload.put("filename", uploadResult.path("data").path("filename").asText());
-			data.set("document", mapper.convertValue(docUpload, JsonNode.class));
-			returnQuery.put("data", mapper.convertValue(docUpload, Map.class));
+		if(hasDocuments) {
+			JsonNode document = data.path("document");
+			if (document != null) {
+				ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"),
+						ObjectNode.class);
+				if (!documentsDb.hasNonNull(document.path("documentCode").asText()))
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("%s not found", document.path("documentCode").asText())));
+				JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+				JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+				if (uploadResult.path("resultCode").asInt() != 200)
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+				if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+						.equals(document.path("documentMd5").asText().toLowerCase()))
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message",
+									String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+											uploadResult.path("md5").asText().toLowerCase())));
+				HashMap<String, String> docUpload = new HashMap<>();
+				docUpload.put("documentCode", document.path("documentCode").asText());
+				docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+				docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+				docUpload.put("documentMd5", document.path("documentMd5").asText());
+				docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+				docUpload.put("originalname", document.path("documentCode").asText().concat(".")
+						.concat(document.path("documentFileExtension").asText()));
+				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+				data.set("document", mapper.convertValue(docUpload, JsonNode.class));
+				returnQuery.put("data", mapper.convertValue(docUpload, Map.class));
+			}
 		}
-
 		returnQuery.put("createdAt", new Date());
 		returnQuery.put("updatedAt", new Date());
 		returnQuery.put("comment", data.path("comment").asText());
