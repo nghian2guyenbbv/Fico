@@ -184,7 +184,7 @@ public class ConvertService {
 		quickLead.put("firstName", mobility.getFirstName());
 		quickLead.put("lastName", mobility.getLastName());
 		quickLead.put("city", mobility.getCityFinnOne());
-		quickLead.put("sourcingChannel", AlternateChannel);
+		quickLead.put("sourcingChannel", mobility.getChanel());
 		quickLead.put("dateOfBirth", mobility.getDateOfBirth());
 		quickLead.put("sourcingBranch", mobility.getBranch());
 		quickLead.put("natureOfOccupation", NatureOfOccupation);

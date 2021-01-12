@@ -482,7 +482,7 @@ public class MobilityService {
 		update.set("partnerId", partnerId);
 		update.set("partnerName", partnerName);
 
-		JsonNode valueAutoApi = rabbitMQService.sendAndReceiveAutoRouting("tpf-service-autorouting", Map.of("func", "checkRouting", "body",
+		JsonNode valueAutoApi = rabbitMQService.sendAndReceive("tpf-service-autorouting", Map.of("func", "checkRouting", "body",
 				convertService.toAutorouting(partnerId)));
 		HashMap<String, Object> dataAutoApi = new HashMap<>();
 		if (valueAutoApi != null){
@@ -1831,7 +1831,7 @@ public class MobilityService {
 					.applicationNumber(applicationId)
 					.queryCode(raiseQueryModel.getQueryCode())
 					.responseBy(raiseQueryModel.getRaiseTo())
-					.response(lastReturnQuery.path("data").asText())
+					.response(lastReturnQuery.path("comment").asText())
 					.queryId(raiseQueryModel.getQueryId()).build();
 
 			List<QmrServiceRequestParamsVoList> lists = new ArrayList<QmrServiceRequestParamsVoList>();
