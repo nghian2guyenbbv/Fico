@@ -38,26 +38,11 @@ public class ApiService {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	@Value("${spring.url.mobility-user-login}")
-	private String urlMobilityUserLogin;
-
 	@Value("${spring.url.mobility-push-app-id}")
 	private String urlMobilityPushAppId;
 
 	@Value("${spring.url.mobility-push-data-field}")
 	private String urlMobilityPushDataField;
-
-	@Value("${spring.mobility-username}")
-	private String mobilityUsername;
-
-	@Value("${spring.mobility-password}")
-	private String mobilityPassword;
-
-	@Value("${spring.url.webview-mobility}")
-	private String urlWebViewMobility;
-
-	@Value("${spring.url.webview-mobility-replace}")
-	private String urlWebViewMobilityReplace;
 
 	@Value("${spring.url.uploadfile}")
 	private String urlUploadfile;
@@ -81,7 +66,7 @@ public class ApiService {
 	private JsonNode uploadDocument(String url, ObjectNode data, JsonNode documentDbInfo) {
 		try {
 			data.put("documentUrlDownload",
-					data.path("documentUrlDownload").asText().replace(urlWebViewMobility, urlWebViewMobilityReplace));
+					data.path("documentUrlDownload").asText());
 			ObjectNode dataLogReq = mapper.createObjectNode();
 			dataLogReq.put("type", "[==HTTP-LOG-REQUEST==]");
 			dataLogReq.put("method", "POST");
