@@ -185,39 +185,38 @@ public class RaiseQueryService {
             query = new Query();
             query.addCriteria(criteria);
             List<Application> applications = mongoTemplate.find(query, Application.class);
-            if (applications.size() <= 0){
-                throw new Exception("app not exist");
+            if (applications.size() > 0){
+//                throw new Exception("app not exist");
+                slog += " - applications commented: " + applications.stream().map(Application::getApplicationId).collect(Collectors.joining(";"));
+                applications.stream().map(application -> {
+                    raiseQueryModel
+                            .stream()
+                            .filter(raiseQueryModel1 -> raiseQueryModel1.getApplicationNo().equals(application.getApplicationId()))
+                            .findAny().ifPresent(raiseQueryModel1 -> {
+                        CommentModel commentModel = new CommentModel();
+                        commentModel.setCommentId("ih-" + UUID.randomUUID().toString().substring(0, 10));
+                        commentModel.setStage("");
+                        commentModel.setCode("IN-HOUSE");
+                        commentModel.setType("IN-HOUSE");
+                        commentModel.setRequest(raiseQueryModel1.getComment());
+                        commentModel.setCreatedDate(raiseQueryModel1.getCreatedDate());
+
+                        Application application1 = new Application();
+                        application1.setApplicationId(application.getApplicationId());
+                        application1.setComment(Arrays.asList(commentModel));
+
+                        RequestModel requestModel = new RequestModel();
+                        requestModel.setDate_time(new Timestamp(new Date().getTime()));
+                        requestModel.setRequest_id(UUID.randomUUID().toString());
+                        requestModel.setData(application1);
+                        JsonNode request = mapper.convertValue(Map.of("body", requestModel), JsonNode.class);
+                        JsonNode token = mapper.createObjectNode();
+                        log.info("request -----------------> {}", request.toString());
+                        dataEntryService.commentApp(request, token);
+                    });
+                    return application;
+                }).collect(Collectors.toList());
             }
-
-            slog += " - applications commented: " + applications.stream().map(Application::getApplicationId).collect(Collectors.joining(";"));
-            applications.stream().map(application -> {
-                raiseQueryModel
-                        .stream()
-                        .filter(raiseQueryModel1 -> raiseQueryModel1.getApplicationNo().equals(application.getApplicationId()))
-                        .findAny().ifPresent(raiseQueryModel1 -> {
-                    CommentModel commentModel = new CommentModel();
-                    commentModel.setCommentId("ih-" + UUID.randomUUID().toString().substring(0, 10));
-                    commentModel.setStage("");
-                    commentModel.setCode("IN-HOUSE");
-                    commentModel.setType("IN-HOUSE");
-                    commentModel.setRequest(raiseQueryModel1.getComment());
-                    commentModel.setCreatedDate(raiseQueryModel1.getCreatedDate());
-
-                    Application application1 = new Application();
-                    application1.setApplicationId(application.getApplicationId());
-                    application1.setComment(Arrays.asList(commentModel));
-
-                    RequestModel requestModel = new RequestModel();
-                    requestModel.setDate_time(new Timestamp(new Date().getTime()));
-                    requestModel.setRequest_id(UUID.randomUUID().toString());
-                    requestModel.setData(application1);
-                    JsonNode request = mapper.convertValue(Map.of("body", requestModel), JsonNode.class);
-                    JsonNode token = mapper.createObjectNode();
-                    log.info("request -----------------> {}", request.toString());
-                    dataEntryService.commentApp(request, token);
-                });
-                return application;
-            }).collect(Collectors.toList());
             return "";
         }catch (Exception e){
             slog += " - exception: " + e.toString() + "; class: " + e.getStackTrace()[0].getClassName() + "; line: " + e.getStackTrace()[0].getLineNumber();
