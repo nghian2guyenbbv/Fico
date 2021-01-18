@@ -166,7 +166,7 @@ public class GetDataF1Service {
 
     public String getArea(String area, String city){
         SqlParameterSource namedParameters = new MapSqlParameterSource().addValues(Map.of("area", area, "city", city));
-        String sql = "SELECT AREA_CODE FROM NEO_CAS_LMS_GA25_GIR_SD.AREA a, NEO_CAS_LMS_GA25_GIR_SD.city c WHERE a.CITY = c.ID  " +
+        String sql = "SELECT AREA_CODE FROM ODS.mv_f1_sub_area a, ODS.mv_f1_sub_city c WHERE a.CITY = c.ID  " +
                 "AND TRIM(AREA_NAME)  = TRIM(:area) " +
                 "AND c.CITY_CODE = :city " +
                 "AND  c.APPROVAL_STATUS=0 AND a.APPROVAL_STATUS =0";
@@ -319,7 +319,7 @@ public class GetDataF1Service {
                 applicationId,
                 type);
 
-        return jdbcTemplateF1DE.queryForObject(query, new Object[]{},
+        return jdbcTemplateF1.queryForObject(query, new Object[]{},
                 (rs, rowNum) ->
                         rs.getString(("RESULT")
                         ));

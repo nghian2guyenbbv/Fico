@@ -1694,8 +1694,7 @@ public class DataEntryService {
 					rabbitMQService.send("tpf-service-app",
 							Map.of("func", "createApp", "reference_id", referenceId,"body", convertService.toAppDisplay(appData.get(0))));
 
-//					if(apiService.chooseAutoOrApiF1(appData.get(0).getQuickLeadId(), appData.get(0).getPartnerId()) == 1) {
-					if(apiService.chooseAutoOrApiF1() == 1) {
+					if(apiService.chooseAutoOrApiF1(appData.get(0).getQuickLeadId(), appData.get(0).getPartnerId()) == 1) {
 						new Thread(() -> {
 							try{
 								ObjectNode result = mapper.createObjectNode();
@@ -2243,7 +2242,7 @@ public class DataEntryService {
 			}
 		}
 		catch (Exception e) {
-			log.info("ReferenceId : "+ referenceId + "Error: " + e);
+			log.info("ReferenceId : "+ referenceId + " - Error: " + e + " - func: " + e.getStackTrace()[0].getMethodName() + " - line: " + e.getStackTrace()[0].getLineNumber());
 			responseModel.setRequest_id(requestId);
 			responseModel.setReference_id(referenceId);
 			responseModel.setDate_time(new Timestamp(new Date().getTime()));
