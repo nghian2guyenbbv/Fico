@@ -10,5 +10,5 @@ public class ApplicationInformation {
     public PersonalInfomation personalInformation;
     public EmploymentDetails employmentDetails;
     public List<FinancialDetail> financialDetails = null;
-
+    public List<BankCreditCardDetails> bankingDetails = null;
 }
