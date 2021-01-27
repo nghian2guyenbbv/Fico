@@ -4,18 +4,22 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Action;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -79,7 +83,7 @@ public class AutoAssignAllocationPage {
     @FindBy(how = How.XPATH, using = "//li[@class = 'buttonList']//input[@class = 'swFB']")
     private List<WebElement> listButtonSelectUserElement;
 
-    @FindBy(how = How.XPATH, using = "//input[@id = 'paginate'][@value = '>']")
+    @FindBy(how = How.XPATH, using = "//input[@id = 'paginate'][@class= 'swFB']")
     private WebElement nextButtonElement;
 
     @FindBy(how = How.XPATH, using = "//input[@class = 'swFB'][@value = '>>']")
@@ -98,6 +102,9 @@ public class AutoAssignAllocationPage {
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
 
+        System.out.println("Search Application ID" + ": DONE");
+
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Application Id not found !!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 2);
 
@@ -116,6 +123,8 @@ public class AutoAssignAllocationPage {
         Utilities.captureScreenShot(_driver);
         editElement.click();
 
+        System.out.println("Edit Application ID" + ": DONE");
+
         await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserElement.isEnabled());
 
@@ -129,48 +138,38 @@ public class AutoAssignAllocationPage {
         await("No User Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> listUserAssigned > 0);
 
-        boolean checkButtonPopup = _driver.findElements(By.xpath("//input[@class = 'swFB'][@value = '>>']")).size() != 0;
+        System.out.println("Search User Assign" + ": DONE");
 
-        if (checkButtonPopup){
-            selectUserOption(user);
-        }else{
-            for (WebElement e : textSelectUserOptionElement) {
-                if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                    e.click();
-                    break;
-                }
-            }
-        }
+//        for (WebElement e : textSelectUserOptionElement) {
+//            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
+//                e.click();
+//                break;
+//            }
+//        }
+
+        selectUserOption(user);
+
+        System.out.println("Assign User Auto" + ": DONE");
 
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
     }
 
-    public void selectUserOption(String userSelect) throws InterruptedException {
-        Actions actions = new Actions(_driver);
-
-        int sizeUserSelectPage = Integer.parseInt(nextEndButtonElement.getAttribute("id"));
-
-        for (int i = 1; i <= sizeUserSelectPage; i++){
-            String pageActive = _driver.findElement(By.xpath("//input[@class = 'swFB'][@value = '" + i + "'][@type = 'button']")).getAttribute("id");
-            if ("active".equals(pageActive)){
-                for (WebElement e : textSelectUserOptionElement) {
-                    if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(userSelect)) {
-                        e.click();
-                        return;
-                    }
+    public void selectUserOption(String userSelect) {
+        boolean findUserInListElement = _driver.findElements(By.xpath("//li[contains(@id, 'listitem_selected_user00')][@username = '" + userSelect + "']")).size() != 0;
+        if (findUserInListElement){
+            List<WebElement> textSelectUserOptionElements = _driver.findElements(By.xpath("//a[contains(@id, 'listitem_selected_user')]"));
+            for (WebElement e : textSelectUserOptionElements) {
+                if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(userSelect)) {
+                    e.click();
+                    return;
                 }
-
-                int pageNum = i + 1;
-
-                WebElement nextButtonElements =  _driver.findElement(By.xpath("//input[@class = 'swFB'][@value = '" + pageNum + "'][@type = 'button']"));
-
-                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
-                btnMoveToNextStage.executeScript("arguments[0].click();", nextButtonElements);
-
-//                actions.moveToElement(nextButtonElements).click().build().perform();
-
             }
+        }else{
+            WebElement nextButtonElements =  _driver.findElement(By.xpath("//input[@id = 'paginate'][@class= 'swFB']"));
+            JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
+            btnMoveToNextStage.executeScript("arguments[0].click();", nextButtonElements);
+            selectUserOption(userSelect);
         }
     }
 }
