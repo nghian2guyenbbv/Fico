@@ -104,6 +104,7 @@ public class AutoAssignAllocationPage {
 
         System.out.println("Search Application ID" + ": DONE");
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Application Id not found !!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 2);
 
@@ -139,14 +140,14 @@ public class AutoAssignAllocationPage {
 
         System.out.println("Search User Assign" + ": DONE");
 
-        for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
-        }
+//        for (WebElement e : textSelectUserOptionElement) {
+//            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
+//                e.click();
+//                break;
+//            }
+//        }
 
-//        selectUserOption(user);
+        selectUserOption(user);
 
         System.out.println("Assign User Auto" + ": DONE");
 
