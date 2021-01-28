@@ -1,7 +1,5 @@
 package vn.com.tpf.microservices.commons;
 
-import vn.com.tpf.microservices.models.ResponseModel;
-
 public enum ResultData {
     SUCCESS("200", "Success"),
     FAIL("888", "Fail"),
