@@ -45,6 +45,7 @@
 		<module>tpf-service-mobility</module>
         <module>tpf-service-autoassign</module>
 		<module>tpf-service-autorouting</module>
+		<module>tpf-service-autoallocation</module>
 	</modules>
 
 
