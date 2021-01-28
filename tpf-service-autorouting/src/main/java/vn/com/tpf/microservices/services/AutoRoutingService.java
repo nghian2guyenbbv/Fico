@@ -13,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
 import vn.com.tpf.microservices.dao.HistoryConfigDAO;
 import vn.com.tpf.microservices.dao.LogChoiceRoutingDAO;
 import vn.com.tpf.microservices.dao.ScheduleRoutingDAO;
