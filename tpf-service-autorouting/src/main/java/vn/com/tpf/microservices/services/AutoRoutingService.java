@@ -13,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
 import vn.com.tpf.microservices.dao.HistoryConfigDAO;
 import vn.com.tpf.microservices.dao.LogChoiceRoutingDAO;
 import vn.com.tpf.microservices.dao.ScheduleRoutingDAO;
@@ -136,7 +135,8 @@ public class AutoRoutingService {
 				scheduleRoutingDAO.saveAll(scheduleRouteIterable);
 				log.info("setRouting - save list schedule to DB: {}", scheduleRouteListNew);
 				// Update Cache
-				List<Map<String, Object>> configRoutingListCache = (List<Map<String, Object>>) redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
+				List<Map<String, Object>> configRoutingListCache = (List<Map<String, Object>>)
+						redisService.getObjectValueFromCache("routingConfigInfo", "CONFIG_ROUTING_KEY");
 				for (Map<String, Object> stringObjectMap : configRoutingListCache) {
 					if (stringObjectMap.get("idConfig").equals(configRoutingUpdated.getIdConfig())) {
 						List<ScheduleRoute> scheduleRoutes = configRoutingUpdated.getScheduleRoutes();
@@ -232,16 +232,16 @@ public class AutoRoutingService {
 					body.put("appNumber", logChoiceRouting.getAppNumber());
 					body.put("vendorId", logChoiceRouting.getVendorId());
 
-//					if (!logChoiceRouting.getAppNumber().equals("UNKNOWN")) {
-//						log.info("logRouting - URL: {}", url);
-//						log.info("logRouting - body: {}", body);
-//						log.info("logRouting - send ESB: appNumb: {}", logChoiceRouting.getAppNumber());
-//						new Thread(() -> {
-//							log.info("Start call ESB");
-//							callESBService.callApiF1(url, body);
-//							log.info("End call ESB");
-//						}).start();
-//					}
+					if (!logChoiceRouting.getAppNumber().equals("UNKNOWN")) {
+						log.info("logRouting - URL: {}", url);
+						log.info("logRouting - body: {}", body);
+						log.info("logRouting - send ESB: appNumb: {}", logChoiceRouting.getAppNumber());
+						new Thread(() -> {
+							log.info("Start call ESB");
+							callESBService.callApiF1(url, body);
+							log.info("End call ESB");
+						}).start();
+					}
 
 					responseModel.setReference_id(UUID.randomUUID().toString());
 					responseModel.setDate_time(new Timestamp(new Date().getTime()));
