@@ -292,10 +292,10 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
 
-		if (LIST_STATUS_COMPLETE.contains(mobility.getStatus().toUpperCase().trim()))
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s",
-							appId, mobility.getStatus().toUpperCase().trim())));
+//		if (LIST_STATUS_COMPLETE.contains(mobility.getStatus().toUpperCase().trim()))
+//			return utils.getJsonNodeResponse(1, body,
+//					mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s",
+//							appId, mobility.getStatus().toUpperCase().trim())));
 		JsonNode item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
 
 		if (item.path("status").asInt() != 200)
@@ -893,11 +893,11 @@ public class MobilityService {
 		returnQuery.put("comment", data.path("comment").asText());
 		returnQuery.put("isComplete", false);
 
-		LinkedList<Map> returnQueriesNew = mapper
-				.convertValue(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class), LinkedList.class);
+		ArrayList<Map> returnQueriesNew = mapper
+				.convertValue(returns.path("returnQueries"), ArrayList.class);
 		if (returnQueriesNew == null)
-			returnQueriesNew = new LinkedList<Map>();
-		returnQueriesNew.push(returnQuery);
+			returnQueriesNew = new ArrayList<Map>();
+		returnQueriesNew.add( 0,returnQuery);
 		Update update = new Update().set("updatedAt", new Date());
 		if (returns.hasNonNull("returnQueues"))
 			update.set("returns",
@@ -1055,11 +1055,11 @@ public class MobilityService {
 		returnQueue.put("comment", data.path("comment").asText());
 		returnQueue.put("isComplete", false);
 
-		LinkedList<Map> returnQueuesNew = mapper
-				.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
+		ArrayList<Map> returnQueuesNew = mapper
+				.convertValue(returns.path("returnQueues"), ArrayList.class);
 		if (returnQueuesNew == null)
-			returnQueuesNew = new LinkedList<Map>();
-		returnQueuesNew.push(returnQueue);
+			returnQueuesNew = new ArrayList<Map>();
+		returnQueuesNew.add(0,returnQueue);
 
 		Update update = new Update().set("updatedAt", new Date());
 		update.set("returns.returnQueues", returnQueuesNew);
