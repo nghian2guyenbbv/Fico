@@ -64,10 +64,6 @@ public class DE_MiscFrmAppDtlPage {
 
 //------------------------- END UAT --------------------------------
 
-
-
-//------------------------- END UAT --------------------------------
-
 //    //PRO
 //    //production khac id
 //    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
