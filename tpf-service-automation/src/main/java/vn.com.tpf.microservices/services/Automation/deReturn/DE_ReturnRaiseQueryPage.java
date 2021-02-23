@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.deReturn;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.LocalFileDetector;
@@ -25,6 +26,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class DE_ReturnRaiseQueryPage {
@@ -108,10 +110,18 @@ public class DE_ReturnRaiseQueryPage {
 
 
         textSeachResponseQueryElement.clear();
-        textSeachResponseQueryElement.sendKeys("T_RETURN");
-        idRowCalculationElement.click();
-        await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+
+        if (Objects.isNull(deResponseQueryDTO.getQueryName())){
+            textSeachResponseQueryElement.sendKeys("T_RETURN");
+        }else{
+            textSeachResponseQueryElement.sendKeys(deResponseQueryDTO.getQueryName());
+        }
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("Raise Query Code Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbDivResponseQueryElement.size() > 2);
+
+        idRowCalculationElement.click();
 
         textResponseElement.clear();
         textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
