@@ -11,39 +11,49 @@ import org.openqa.selenium.support.PageFactory;
 @Getter
 public class DE_ApplicationInfoPage {
 
-	private DE_ApplicationInfoPersonalTab applicationInfoPersonalTab;
-	private DE_ApplicationInfoEmploymentDetailsTab applicationInfoEmploymentDetailsTab;
-	private DE_ApplicationInfoFinancialDetailsTab applicationInfoFinancialDetailsTab;
+    private DE_ApplicationInfoPersonalTab applicationInfoPersonalTab;
+    private DE_ApplicationInfoEmploymentDetailsTab applicationInfoEmploymentDetailsTab;
+    private DE_ApplicationInfoFinancialDetailsTab applicationInfoFinancialDetailsTab;
+    private DE_ApplicationInfoBankCreditCardDetailsTab applicationInfoBankCreditCardDetailsTab;
 
-	@FindBy(how = How.ID, using = "customerMainChildTabs_personal_tab")
-	@CacheLookup
-	private WebElement personalInfoTabElement;
+    @FindBy(how = How.ID, using = "customerMainChildTabs_personal_tab")
+    @CacheLookup
+    private WebElement personalInfoTabElement;
 
-	@FindBy(how = How.ID, using = "customerMainChildTabs_employment_tab")
-	@CacheLookup
-	private WebElement employmentDetailsTabElement;
+    @FindBy(how = How.ID, using = "customerMainChildTabs_employment_tab")
+    @CacheLookup
+    private WebElement employmentDetailsTabElement;
 
-	@FindBy(how = How.ID, using = "customerMainChildTabs_income_tab")
-	@CacheLookup
-	private WebElement financialDetailsTabElement;
+    @FindBy(how = How.ID, using = "customerMainChildTabs_income_tab")
+    @CacheLookup
+    private WebElement financialDetailsTabElement;
 
-	public DE_ApplicationInfoPage(WebDriver driver) {
-		PageFactory.initElements(driver, this);
-		applicationInfoPersonalTab = new DE_ApplicationInfoPersonalTab(driver);
-		applicationInfoEmploymentDetailsTab = new DE_ApplicationInfoEmploymentDetailsTab(driver);
-		applicationInfoFinancialDetailsTab = new DE_ApplicationInfoFinancialDetailsTab(driver);
-	}
+    @FindBy(how = How.ID, using = "customerMainChildTabs_bankDetails_tab")
+    @CacheLookup
+    private WebElement bankCreditCardDetailsDetailsTabElement;
 
-	public DE_ApplicationInfoPersonalTab getApplicationInfoPersonalTab() {
-		return applicationInfoPersonalTab;
-	}
+    public DE_ApplicationInfoPage(WebDriver driver) {
+        PageFactory.initElements(driver, this);
+        applicationInfoPersonalTab = new DE_ApplicationInfoPersonalTab(driver);
+        applicationInfoEmploymentDetailsTab = new DE_ApplicationInfoEmploymentDetailsTab(driver);
+        applicationInfoFinancialDetailsTab = new DE_ApplicationInfoFinancialDetailsTab(driver);
+        applicationInfoBankCreditCardDetailsTab = new DE_ApplicationInfoBankCreditCardDetailsTab(driver);
+    }
 
-	public DE_ApplicationInfoEmploymentDetailsTab getApplicationInfoEmploymentDetailsTab() {
-		return applicationInfoEmploymentDetailsTab;
-	}
+    public DE_ApplicationInfoPersonalTab getApplicationInfoPersonalTab() {
+        return applicationInfoPersonalTab;
+    }
 
-	public DE_ApplicationInfoFinancialDetailsTab getApplicationInfoFinancialDetailsTab() {
-		return applicationInfoFinancialDetailsTab;
-	}
+    public DE_ApplicationInfoEmploymentDetailsTab getApplicationInfoEmploymentDetailsTab() {
+        return applicationInfoEmploymentDetailsTab;
+    }
+
+    public DE_ApplicationInfoFinancialDetailsTab getApplicationInfoFinancialDetailsTab() {
+        return applicationInfoFinancialDetailsTab;
+    }
+
+    public DE_ApplicationInfoBankCreditCardDetailsTab getApplicationInfoBankCreditCardDetailsTab() {
+        return applicationInfoBankCreditCardDetailsTab;
+    }
 
 }

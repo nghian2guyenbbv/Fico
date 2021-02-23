@@ -127,7 +127,7 @@ public class DataInitial {
         {
             BankCreditCardDetailsDTO bankingDetailDTO = BankCreditCardDetailsDTO.builder()
                     .bankName(bankCreditCardDetails.getBankName())
-                    .branchName(bankCreditCardDetails.getBankName())
+                    .branchName(bankCreditCardDetails.getBranchName())
                     .accountNumber(bankCreditCardDetails.getAccountNumber())
                     .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
                     .build();
@@ -808,6 +808,7 @@ public class DataInitial {
                 .gender(existingCustomerDTOList.getFullInfoApp().getGender())
                 .dateOfBirth(existingCustomerDTOList.getFullInfoApp().getDateOfBirth())
                 .nationality("Vietnamese")
+                .customerCategoryCode(existingCustomerDTOList.getFullInfoApp().getCustomerCategoryCode())
                 .maritalStatus(existingCustomerDTOList.getFullInfoApp().getMaritalStatus())
                 .build();
 
