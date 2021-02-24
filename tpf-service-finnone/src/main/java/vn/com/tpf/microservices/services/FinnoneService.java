@@ -30,6 +30,9 @@ public class FinnoneService {
 	@Autowired
 	public JdbcTemplate jdbcTemplateFicocen;
 
+	@Autowired
+	public JdbcTemplate jdbcTemplateFicoih;
+
 	private JsonNode response(int status, JsonNode data) {
 		ObjectNode response = mapper.createObjectNode();
 		response.put("status", status).set("data", data);
@@ -278,5 +281,27 @@ public class FinnoneService {
 			return response(500, data);
 		}
 	}
+
+	public JsonNode getEducationField(JsonNode request) {
+		ObjectNode data = mapper.createObjectNode();
+		try {
+			String query = String.format("SELECT serviceapp.fn  ('%s') RESULT FROM DUAL",
+					request.path("body").path("custid").asText());
+			String result = jdbcTemplateFicoih.queryForObject(query, String.class);
+
+			if(StringUtils.isEmpty(result))
+			{
+				result="Others";
+			}
+
+			data.put("description", result);
+			return response(200, data);
+
+		} catch (Exception e) {
+			data.put("description", "Others");
+			return response(200, data);
+		}
+	}
+
 
 }
