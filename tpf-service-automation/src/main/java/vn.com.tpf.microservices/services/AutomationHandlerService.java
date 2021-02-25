@@ -6100,12 +6100,12 @@ public class AutomationHandlerService {
 
             Thread.sleep(5000);
 
-            WebElement buttonMoveNextStage = driver.findElement(By.id("move_to_next_stage"));
-            WebDriverWait waitMoveNextStage = new WebDriverWait(driver, 40);
-            waitMoveNextStage.pollingEvery(Duration.ofSeconds(5)).withMessage("Button Move To Next Stage Element can't click!!!").until(ExpectedConditions.elementToBeClickable(buttonMoveNextStage));
-            buttonMoveNextStage.click();
+//            WebElement buttonMoveNextStage = driver.findElement(By.id("move_to_next_stage"));
+//            WebDriverWait waitMoveNextStage = new WebDriverWait(driver, 40);
+//            waitMoveNextStage.pollingEvery(Duration.ofSeconds(5)).withMessage("Button Move To Next Stage Element can't click!!!").until(ExpectedConditions.elementToBeClickable(buttonMoveNextStage));
+//            buttonMoveNextStage.click();
 
-//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 //            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
 
             Utilities.captureScreenShot(driver);

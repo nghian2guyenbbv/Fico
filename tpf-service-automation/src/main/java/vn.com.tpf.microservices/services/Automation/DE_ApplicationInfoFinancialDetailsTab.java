@@ -122,11 +122,8 @@ public class DE_ApplicationInfoFinancialDetailsTab {
 
             //_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
 
-//            WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
-//            Utilities.checkValueSendkeyAmount(data.getAmount(),we);
-
-            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).clear();
-            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
+            WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
+            Utilities.checkValueSendkeyAmount(data.getAmount(),we);
 
             Utilities.captureScreenShot(_driver);
 
