@@ -264,7 +264,7 @@ public class ConvertService {
 		fullApp.put("saleAgentCodeDynamicForm", crm.getSaleAgentCodeDynamicForm());
 		fullApp.put("courierCode", crm.getCourierCode());
 		fullApp.put("maximumInterestedRate", crm.getMaximumInterestedRate());
-		
+		fullApp.put("customerCategoryCode", crm.getCustomerCategoryCode());
 
 		ArrayNode documents = mapper.createArrayNode();
 		ArrayNode addresses = mapper.createArrayNode();

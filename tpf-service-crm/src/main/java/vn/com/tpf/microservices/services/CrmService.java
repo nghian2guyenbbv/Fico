@@ -702,6 +702,12 @@ public class CrmService {
 			}
 		}
 
+		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
+				Map.of("func", "getEducationField", "custid", body.path("custId")));
+		if (customerCategoryCode.path("status").asInt(0) != 200) {
+			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
+		}
+
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
@@ -746,6 +752,7 @@ public class CrmService {
 				.set("maximumInterestedRate", data.path("fullInfoApp").path("maximumInterestedRate").asText())
 				.set("addresses", addressesUpload)
 				.set("references", referencesUpload)
+				.set("customerCategoryCode", customerCategoryCode.path("data").path("description").asText())
 				;
 		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Crm.class);
@@ -1293,6 +1300,7 @@ public class CrmService {
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
+
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JsonNode returnQueue(JsonNode request) throws Exception {
