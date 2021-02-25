@@ -261,6 +261,9 @@ public class CRM_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
+//        monthlyFeeElement.clear();
+//        monthlyFeeElement.sendKeys(data.getMonthlyFee());
+
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 
@@ -321,6 +324,9 @@ public class CRM_MiscFrmAppDtlPage {
         Utilities.captureScreenShot(_driver);
         mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
+
+//        monthlyFeeElement.clear();
+//        monthlyFeeElement.sendKeys(data.getMonthlyFee());
 
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
