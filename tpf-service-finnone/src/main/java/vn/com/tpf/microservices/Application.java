@@ -43,8 +43,7 @@ public class Application {
 	 public JdbcTemplate jdbcTemplateFicodb(@Qualifier("dsFicodb") DataSource dsMaster) {
 	       return new JdbcTemplate(dsMaster);
 	 }
-	
-	 
+
 	 @Bean(name = "dsFicocen")
 	 @ConfigurationProperties(prefix="spring.ficocen-datasource")
 	 public DataSource ficocenDataSource() {
@@ -55,6 +54,16 @@ public class Application {
 	 public JdbcTemplate jdbcTemplateFicocen(@Qualifier("dsFicocen") DataSource dsMaster) {
 	       return new JdbcTemplate(dsMaster);
 	 }
-	
+
+	@Bean(name = "dsFicoih")
+	@ConfigurationProperties(prefix="spring.ficoih-datasource")
+	public DataSource ficoihDataSource() {
+		return DataSourceBuilder.create().build();
+	}
+
+	@Bean(name = "jdbcTemplateFicoih")
+	public JdbcTemplate jdbcTemplateFicoih(@Qualifier("dsFicoih") DataSource dsMaster) {
+		return new JdbcTemplate(dsMaster);
+	}
 
 }
