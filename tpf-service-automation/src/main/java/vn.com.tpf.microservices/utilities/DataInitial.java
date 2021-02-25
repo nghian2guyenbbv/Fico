@@ -121,6 +121,19 @@ public class DataInitial {
             incomeDetailDTOList.add(incomeDetailDTO);
         }
 
+        //Bank Credit Card Detail [19/01/2021]
+        List<BankCreditCardDetailsDTO> bankCreditCardDetailsDTOList=new ArrayList<>();
+        for(BankCreditCardDetails bankCreditCardDetails : application.getApplicationInformation().getBankingDetails())
+        {
+            BankCreditCardDetailsDTO bankingDetailDTO = BankCreditCardDetailsDTO.builder()
+                    .bankName(bankCreditCardDetails.getBankName())
+                    .branchName(bankCreditCardDetails.getBranchName())
+                    .accountNumber(bankCreditCardDetails.getAccountNumber())
+                    .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
+                    .build();
+            bankCreditCardDetailsDTOList.add(bankingDetailDTO);
+        }
+
         ApplicationInfoDTO applicationInfoDTO = ApplicationInfoDTO.builder()
                 .gender(personalInfo.getGender())
                 .firstName(personalInfo.getFirstName())
@@ -138,6 +151,7 @@ public class DataInitial {
                 .family(familyDTOs)
                 .employmentDetails(employmentDTO)
                 .incomeDetails(incomeDetailDTOList)
+                .bankCreditCardDetails(bankCreditCardDetailsDTOList)
                 .build();
         map.put("ApplicationInfoDTO", applicationInfoDTO);
         ////********************************END APPLICATIONINFO DTO************************************////
@@ -794,6 +808,7 @@ public class DataInitial {
                 .gender(existingCustomerDTOList.getFullInfoApp().getGender())
                 .dateOfBirth(existingCustomerDTOList.getFullInfoApp().getDateOfBirth())
                 .nationality("Vietnamese")
+                .customerCategoryCode(existingCustomerDTOList.getFullInfoApp().getCustomerCategoryCode())
                 .maritalStatus(existingCustomerDTOList.getFullInfoApp().getMaritalStatus())
                 .build();
 

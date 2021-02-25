@@ -764,6 +764,20 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            stage = "BANK/CREDIT CARD DETAILS";
+            // ==========BANK/CREDIT CARD DETAILS=================
+            if (applicationInfoDTO.getBankCreditCardDetails() != null && applicationInfoDTO.getBankCreditCardDetails().size() > 0) {
+                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
+
+                DE_ApplicationInfoBankCreditCardDetailsTab bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTab();
+                bankCreditCardDetailsTab.setBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
+                bankCreditCardDetailsTab.saveAndNext();
+            }
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
             DE_LoanDetailsPage loanDetailsPage = new DE_LoanDetailsPage(driver);
@@ -1777,6 +1791,20 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            stage = "BANK/CREDIT CARD DETAILS";
+            // ==========BANK/CREDIT CARD DETAILS=================
+            if (applicationInfoDTO.getBankCreditCardDetails() != null && applicationInfoDTO.getBankCreditCardDetails().size() > 0) {
+                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
+
+                DE_ApplicationInfoBankCreditCardDetailsTab bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTab();
+                bankCreditCardDetailsTab.setBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
+                bankCreditCardDetailsTab.saveAndNext();
+            }
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
             DE_LoanDetailsPage loanDetailsPage = new DE_LoanDetailsPage(driver);
@@ -2068,6 +2096,19 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
+            stage = "BANK/CREDIT CARD DETAILS";
+            // ==========BANK/CREDIT CARD DETAILS=================
+            if (applicationInfoDTO.getBankCreditCardDetails() != null && applicationInfoDTO.getBankCreditCardDetails().size() > 0) {
+                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
+
+                DE_ApplicationInfoBankCreditCardDetailsTab bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTab();
+                bankCreditCardDetailsTab.updateBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
+                bankCreditCardDetailsTab.saveAndNext();
+            }
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
 
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL - SOURCING DETAIL TAB";
@@ -2368,6 +2409,20 @@ public class AutomationHandlerService {
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
                 financialDetailsTab.updateIncomeDetailsData(applicationInfoDTO.getIncomeDetails());
                 financialDetailsTab.saveAndNext();
+            }
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "BANK/CREDIT CARD DETAILS";
+            // ==========BANK/CREDIT CARD DETAILS=================
+            if (applicationInfoDTO.getBankCreditCardDetails() != null && applicationInfoDTO.getBankCreditCardDetails().size() > 0) {
+                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
+
+                DE_ApplicationInfoBankCreditCardDetailsTab bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTab();
+                bankCreditCardDetailsTab.updateBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
+                bankCreditCardDetailsTab.saveAndNext();
             }
 
             System.out.println(stage + ": DONE");
