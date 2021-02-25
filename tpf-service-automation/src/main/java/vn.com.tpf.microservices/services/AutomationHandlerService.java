@@ -6475,8 +6475,8 @@ public class AutomationHandlerService {
 
             Thread.sleep(5000);
 
-//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6844,8 +6844,8 @@ public class AutomationHandlerService {
 
             Thread.sleep(5000);
 
-//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
 
             Utilities.captureScreenShot(driver);
 
