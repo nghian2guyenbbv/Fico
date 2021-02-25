@@ -6098,20 +6098,15 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
+            Thread.sleep(5000);
 
-//            boolean waitPopupNotify = driver.findElements(By.xpath("//div[@class = 'ui-pnotify '][contains(@style, 'block')]")).size() != 0;
-//
-//            if (waitPopupNotify){
-//                JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)driver;
-//                btnMoveToNextStage.executeScript("arguments[0].click();", miscFrmAppDtlPage.getBtnMoveToNextStageElement());
-//            }else{
-//                (new WebDriverWait(driver, 15)).withMessage("can't click on the Button MoveToNextStage")
-//                        .until(ExpectedConditions.elementToBeClickable(miscFrmAppDtlPage.getBtnMoveToNextStageElement()));
-//
-//                actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-//            }
+            WebElement buttonMoveNextStage = driver.findElement(By.id("move_to_next_stage"));
+            WebDriverWait waitMoveNextStage = new WebDriverWait(driver, 40);
+            waitMoveNextStage.pollingEvery(Duration.ofSeconds(5)).withMessage("Button Move To Next Stage Element can't click!!!").until(ExpectedConditions.elementToBeClickable(buttonMoveNextStage));
+            buttonMoveNextStage.click();
+
+//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6477,6 +6472,8 @@ public class AutomationHandlerService {
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
+
+            Thread.sleep(5000);
 
 //            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
             actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
@@ -6844,6 +6841,8 @@ public class AutomationHandlerService {
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
             Utilities.captureScreenShot(driver);
+
+            Thread.sleep(5000);
 
 //            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
             actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();

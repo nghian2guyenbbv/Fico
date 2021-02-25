@@ -122,8 +122,11 @@ public class DE_ApplicationInfoFinancialDetailsTab {
 
             //_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
 
-            WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
-            Utilities.checkValueSendkeyAmount(data.getAmount(),we);
+//            WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
+//            Utilities.checkValueSendkeyAmount(data.getAmount(),we);
+
+            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).clear();
+            _driver.findElement(By.id("amount_incomeDetailForm_amount_" + index)).sendKeys(data.getAmount());
 
             Utilities.captureScreenShot(_driver);
 
@@ -142,6 +145,7 @@ public class DE_ApplicationInfoFinancialDetailsTab {
                 actions.moveToElement(incomeDetailForm_incomeSourceElement).click().build().perform();
                 await("incomeDetailForm_incomeSourceOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> incomeDetailForm_incomeSourceOptionElement.size() > 1);
+
                 incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
                 incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
 
@@ -149,8 +153,8 @@ public class DE_ApplicationInfoFinancialDetailsTab {
                 incomeDetailForm_paymentModeElement.click();
 
                 await("incomeDetailForm_paymentModeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-
                         .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
+
                 incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
                 incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
 
@@ -159,6 +163,8 @@ public class DE_ApplicationInfoFinancialDetailsTab {
                 childModalWindowDoneButtonIncomeDetailInlineGridElement.click();
                 Thread.sleep(3000);
             }
+
+            Thread.sleep(5000);
 
             if (index < datas.size() - 1) {
                 await("Btn Add IncomeDetail not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
