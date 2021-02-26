@@ -7,6 +7,8 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Service
 public class FinnoneService {
+
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -285,9 +289,10 @@ public class FinnoneService {
 	public JsonNode getEducationField(JsonNode request) {
 		ObjectNode data = mapper.createObjectNode();
 		try {
-			String query = String.format("SELECT serviceapp.fn  ('%s') RESULT FROM DUAL",
-					request.path("body").path("custid").asText());
+			String query = String.format("SELECT serviceapp.fn_get_cus_edu('%s') RESULT FROM DUAL", request.path("custid").asText());
 			String result = jdbcTemplateFicoih.queryForObject(query, String.class);
+
+			log.info("getEducationField: " + result);
 
 			if(StringUtils.isEmpty(result))
 			{
@@ -299,6 +304,7 @@ public class FinnoneService {
 
 		} catch (Exception e) {
 			data.put("description", "Others");
+			log.info("getEducationField: " + e.toString());
 			return response(200, data);
 		}
 	}
