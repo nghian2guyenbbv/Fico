@@ -703,7 +703,7 @@ public class CrmService {
 		}
 
 		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
-				Map.of("func", "getEducationField", "custid", body.path("custId")));
+				Map.of("func", "getEducationField", "custid", data.path("custId").asText()));
 		if (customerCategoryCode.path("status").asInt(0) != 200) {
 			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
 		}
