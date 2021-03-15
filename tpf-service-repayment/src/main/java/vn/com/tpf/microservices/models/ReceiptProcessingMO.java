@@ -142,4 +142,6 @@ public class ReceiptProcessingMO  {
     @JsonProperty("bounceCancelDate")
     private String bounceCancelDate;
 
+    @JsonProperty("requestAt")
+    private String requestAt;
 }

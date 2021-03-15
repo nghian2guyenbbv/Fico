@@ -353,6 +353,7 @@ public class RepaymentService {
 							ficoReceiptPayment.setReceiptTransactionStatus("C");
 							ficoReceiptPayment.setProcessTillMaker(false);
 							ficoReceiptPayment.setRequestChannel("RECEIPT");
+							ficoReceiptPayment.setRequestAt(date_time.toString());
 							ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
 
 
@@ -872,6 +873,7 @@ public class RepaymentService {
 							ficoReceiptPayment.setReceiptTransactionStatus("C");
 							ficoReceiptPayment.setProcessTillMaker(false);
 							ficoReceiptPayment.setRequestChannel("RECEIPT");
+                            ficoReceiptPayment.setRequestAt(date_time.toString());
 							ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
 
 
@@ -1469,6 +1471,7 @@ public class RepaymentService {
 			ficoReceiptPayment.setReceiptTransactionStatus("C");
 			ficoReceiptPayment.setProcessTillMaker(false);
 			ficoReceiptPayment.setRequestChannel("RECEIPT");
+            ficoReceiptPayment.setRequestAt(fico.getCreateDate().toString());
 			ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
 
 
