@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class LeadDetailPage {
@@ -171,6 +173,9 @@ public class LeadDetailPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'c_docStatus')]")
     private List<WebElement> checkBoxFileElement;
 
+    @FindBy(how = How.XPATH, using = "//div[@id = 'docu_jsp_include']//input[contains(@id, 'photoimg')]")
+    private List<WebElement> listBtnUploadDocument;
+
     public LeadDetailPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -260,8 +265,15 @@ public class LeadDetailPage {
             getDocBtnElement.click();
             Utilities.captureScreenShot(_driver);
 
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentContainerElement.isDisplayed());
+
+            int listButtonDoc = listBtnUploadDocument.size();
+
+            with().pollInterval(Duration.FIVE_SECONDS).
+            await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listButtonDoc > 0);
 
             //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
             //String toFile = SCREENSHOT_PRE_PATH_DOC;
