@@ -4540,6 +4540,7 @@ public class AutomationHandlerService {
         String appId = "";
         String stage = "";
         Application application = Application.builder().build();
+        SessionId session = ((RemoteWebDriver) driver).getSessionId();
         log.info("{}", application);
         try {
             stage = "INIT DATA";
@@ -4715,7 +4716,7 @@ public class AutomationHandlerService {
 
             //UPDATE STATUS
             application.setStatus("QUICKLEAD PASS");
-            application.setDescription("Thanh cong");
+            application.setDescription("Thanh cong" + " - " + session);
 
 
             Utilities.captureScreenShot(driver);
@@ -4725,33 +4726,33 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("QUICKLEAD FAIL");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + " - " + session);
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
 
-            if (e.getMessage().contains("Work flow failed!!!")) {
-                stage = "END OF LEAD DETAIL";
-
-                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
-
-                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-                    String error = "Error: ";
-                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += " - " + we.getText();
-                    }
-                    System.out.println(stage + "=>" + error);
-                }
-            }
+//            if (e.getMessage().contains("Work flow failed!!!")) {
+//                stage = "END OF LEAD DETAIL";
+//
+//                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+//
+//                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+//                    String error = "Error: ";
+//                    for (WebElement we : driver.findElements(By.id("error-message"))) {
+//                        error += " - " + we.getText();
+//                    }
+//                    System.out.println(stage + "=>" + error);
+//                }
+//            }
         } finally {
             if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
                 application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 if (!"File not enough!!!".equals(application.getDescription())) {
-                    application.setDescription("Khong thanh cong");
+                    application.setDescription("Khong thanh cong" + " - " + session);
                 }
             }
 
