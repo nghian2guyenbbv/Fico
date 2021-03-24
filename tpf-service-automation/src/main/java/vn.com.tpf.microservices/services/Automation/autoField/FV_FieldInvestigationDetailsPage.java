@@ -195,6 +195,13 @@ public class FV_FieldInvestigationDetailsPage {
 
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
+        try {
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
