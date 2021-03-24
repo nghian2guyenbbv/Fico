@@ -152,6 +152,9 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.XPATH, using = "//table[@id = 'LoanApplication_Assigned']//tbody//tr//td")
     private List<WebElement> tableApplicationsElement;
 
+    @FindBy(how = How.XPATH, using = "//option[@class = 'veri_option']")
+    private List<WebElement> optionVerificationTypeElement;
+
 
     public FV_FieldVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -258,10 +261,20 @@ public class FV_FieldVerificationPage {
 //
 //        }
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbVerificationTypeElement.isDisplayed());
 
-        selectVerificationTypeElement.sendKeys("Residence Verification");
+        await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> selectVerificationTypeElement.isDisplayed());
+
+        await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> optionVerificationTypeElement.size() > 0);
+
+        Utilities.chooseDropdownValue("Residence Verification", optionVerificationTypeElement);
+
+//        selectVerificationTypeElement.sendKeys("Residence Verification");
+
 
         await("inputAgencyElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> inputAgencyElement.isDisplayed());

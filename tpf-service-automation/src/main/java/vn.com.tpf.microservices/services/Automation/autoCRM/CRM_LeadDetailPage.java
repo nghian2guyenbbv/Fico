@@ -281,7 +281,8 @@ public class CRM_LeadDetailPage {
                     "TPF_Confirm_student_Infomation","TPF_Confirm_student_information","TPF_Confirm_student_Information",
                     "TPF_Offer_Letter","TPF_Diploma","TPF_Transcript","TPF_Representatives","TPF_Representatives ",
                     "TPF_Student_Portal_Login_Photo","TPF_Insurance Bill","TPF_Insurance_Bill","TPF_Insurance Contract",
-                    "TPF_Insurance_Contract","TPF_student_Card","TPF_School_Confirmation","TPF_student_ID_Card"
+                    "TPF_Insurance_Contract","TPF_student_Card","TPF_School_Confirmation","TPF_student_ID_Card",
+                    "TPF_Screenshot_Customer_Info_TPBank_Mobile_App"
             );
             Utilities.captureScreenShot(_driver);
 

@@ -4540,6 +4540,7 @@ public class AutomationHandlerService {
         String appId = "";
         String stage = "";
         Application application = Application.builder().build();
+        SessionId session = ((RemoteWebDriver) driver).getSessionId();
         log.info("{}", application);
         try {
             stage = "INIT DATA";
@@ -4557,8 +4558,14 @@ public class AutomationHandlerService {
             HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+
+            Thread.sleep(5000);
+
             loginPage.clickLogin();
-            //actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
+            Utilities.captureScreenShot(driver);
+
+            Thread.sleep(5000);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -4710,7 +4717,7 @@ public class AutomationHandlerService {
 
             //UPDATE STATUS
             application.setStatus("QUICKLEAD PASS");
-            application.setDescription("Thanh cong");
+            application.setDescription("Thanh cong" + " - " + session);
 
 
             Utilities.captureScreenShot(driver);
@@ -4720,33 +4727,19 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("QUICKLEAD FAIL");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + " - " + session);
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
 
-            if (e.getMessage().contains("Work flow failed!!!")) {
-                stage = "END OF LEAD DETAIL";
-
-                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
-
-                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-                    String error = "Error: ";
-                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += " - " + we.getText();
-                    }
-                    System.out.println(stage + "=>" + error);
-                }
-            }
         } finally {
             if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
                 application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 if (!"File not enough!!!".equals(application.getDescription())) {
-                    application.setDescription("Khong thanh cong");
+                    application.setDescription("Khong thanh cong" + " - " + session);
                 }
             }
 
@@ -5181,6 +5174,7 @@ public class AutomationHandlerService {
         String referenceId = "";
         String projectId = "";
         String applicationId = "UNKNOWN";
+        String idMongoDb = "";
         System.out.println("START - Auto: " + accountDTO.getUserName() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
         SubmitFieldDTO submitFieldDTO = SubmitFieldDTO.builder().build();
         SessionId session = ((RemoteWebDriver)driver).getSessionId();
@@ -5188,7 +5182,10 @@ public class AutomationHandlerService {
             stage = "INIT DATA";
             //*************************** INSERT DATA *********************//
             SubmitFieldDTO submitFieldDTOList = (SubmitFieldDTO) mapValue.get("submitFieldList");
-            mongoTemplate.insert(submitFieldDTOList);
+//            mongoTemplate.insert(submitFieldDTOList);
+            SubmitFieldDTO submitFieldIdMongoDB = mongoTemplate.insert(submitFieldDTOList);
+            idMongoDb = submitFieldIdMongoDB.getId();
+            System.out.println("Id_MongoDB => " + idMongoDb);
             applicationId = submitFieldDTOList.getAppId();
             referenceId = submitFieldDTOList.getReferenceId();
             projectId = submitFieldDTOList.getProject();
@@ -5199,13 +5196,12 @@ public class AutomationHandlerService {
             //*************************** GET DATA *********************//
             System.out.println("Auto: " + accountDTO.getUserName() + " - BEGIN " + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Query query = new Query();
-            query.addCriteria(Criteria.where("status").is(0).and("appId").is(applicationId).and("project").is(projectId).and("projectAuto").is("SUBMITFIELD"));
+            query.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(0).and("appId").is(applicationId).and("project").is(projectId).and("projectAuto").is("SUBMITFIELD"));
             submitFieldDTO = mongoTemplate.findOne(query, SubmitFieldDTO.class);
             log.info("{}", submitFieldDTO);
 
             Update update = new Update();
             update.set("userAuto", accountDTO.getUserName());
-//            update.set("referenceId", referenceId);
             update.set("status", 2);
             mongoTemplate.findAndModify(query, update, SubmitFieldDTO.class);
 
@@ -5217,7 +5213,12 @@ public class AutomationHandlerService {
 
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
             loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
+
+            Thread.sleep(5000);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -5275,7 +5276,7 @@ public class AutomationHandlerService {
 
             // ========= UPDATE DB ============================
             Query queryUpdate1 = new Query();
-            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("projectAuto").is("SUBMITFIELD"));
+            queryUpdate1.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("projectAuto").is("SUBMITFIELD"));
             Update update1 = new Update();
             update1.set("userAuto", accountDTO.getUserName());
             update1.set("status", 1);
@@ -5287,7 +5288,7 @@ public class AutomationHandlerService {
 
         } catch (Exception e) {
             Query queryUpdate = new Query();
-            queryUpdate.addCriteria(Criteria.where("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("projectAuto").is("SUBMITFIELD"));
+            queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(2).and("appId").is(applicationId).and("project").is(submitFieldDTO.getProject()).and("projectAuto").is("SUBMITFIELD"));
             Update update = new Update();
             update.set("userAuto", accountDTO.getUserName());
             update.set("status", 3);
@@ -5304,7 +5305,7 @@ public class AutomationHandlerService {
             logout(driver,accountDTO.getUserName());
             if(!StringUtils.isEmpty(referenceId)){
                 Query queryUpdateFailed = new Query();
-                queryUpdateFailed.addCriteria(Criteria.where("referenceId").is(referenceId));
+                queryUpdateFailed.addCriteria(Criteria.where("referenceId").is(referenceId).and("_id").is(new ObjectId(idMongoDb)));
                 List<MobilityFieldReponeDTO> resultRespone = mongoTemplate.find(queryUpdateFailed, MobilityFieldReponeDTO.class);
                 responseModel.setReference_id(referenceId);
                 responseModel.setProject(projectId);
@@ -5781,8 +5782,10 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
             loginPage.clickLogin();
             Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6155,15 +6158,21 @@ public class AutomationHandlerService {
                 existingCustomerDTO.setStage(stage);
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
-
-                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-                    String error = "Error: ";
-                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += we.getText();
+                int errorMessage = driver.findElements(By.xpath("//div[@id = 'rule-error-block-application-completion'][contains(@class, 'block-no')]")).size();
+                if(errorMessage == 0) {
+                    if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                        String error = "Error: ";
+                        for (WebElement we : driver.findElements(By.id("error-message"))) {
+                            error += we.getText();
+                        }
+                        existingCustomerDTO.setError(error);
+                        responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
+                        System.out.println(stage + "=>" + error);
                     }
-                    existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session  + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
-                    System.out.println(stage + "=>" + error);
+                }else{
+                    existingCustomerDTO.setError("Cannot click Move next stage");
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
+                    System.out.println(stage + "=>" + existingCustomerDTO.getError());
                 }
             }
 
@@ -6214,8 +6223,10 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
             loginPage.clickLogin();
             Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6525,17 +6536,24 @@ public class AutomationHandlerService {
                 existingCustomerDTO.setStage(stage);
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
-
-                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-                    String error = "Error: ";
-                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += we.getText();
+                int errorMessage = driver.findElements(By.xpath("//div[@id = 'rule-error-block-application-completion'][contains(@class, 'block-no')]")).size();
+                if(errorMessage == 0) {
+                    if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                        String error = "Error: ";
+                        for (WebElement we : driver.findElements(By.id("error-message"))) {
+                            error += we.getText();
+                        }
+                        existingCustomerDTO.setError(error);
+                        responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
+                        System.out.println(stage + "=>" + error);
                     }
-                    existingCustomerDTO.setError(error);
-                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName()  + " - Error: " + existingCustomerDTO.getError());
-                    System.out.println(stage + "=>" + error);
+                }else{
+                    existingCustomerDTO.setError("Cannot click Move next stage");
+                    responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
+                    System.out.println(stage + "=>" + existingCustomerDTO.getError());
                 }
             }
+
             Utilities.captureScreenShot(driver);
 
             Query queryUpdate = new Query();
@@ -6584,8 +6602,10 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
             loginPage.clickLogin();
             Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6896,14 +6916,21 @@ public class AutomationHandlerService {
                 await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> driver.findElements(By.id("error-message")).size() > 0);
 
-                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-                    String error = "Error: ";
-                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += we.getText();
+                int errorMessage = driver.findElements(By.xpath("//div[@id = 'rule-error-block-application-completion'][contains(@class, 'block-no')]")).size();
+                if(errorMessage == 0) {
+                    if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                        String error = "Error: ";
+                        for (WebElement we : driver.findElements(By.id("error-message"))) {
+                            error += we.getText();
+                        }
+                        saleQueueDTO.setError(error);
+                        responseModel.setAutomation_result("SALEQUEUE FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + saleQueueDTO.getError());
+                        System.out.println(stage + "=>" + error);
                     }
-                    saleQueueDTO.setError(error);
-                    responseModel.setAutomation_result("SALEQUEUE FAILED" + " - Session ID: " + session  + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + saleQueueDTO.getError());
-                    System.out.println(stage + "=>" + error);
+                }else{
+                    saleQueueDTO.setError("Cannot click Move next stage");
+                    responseModel.setAutomation_result("SALEQUEUE FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + saleQueueDTO.getError());
+                    System.out.println(stage + "=>" + saleQueueDTO.getError());
                 }
             }
 

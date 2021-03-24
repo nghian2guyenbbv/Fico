@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -21,6 +22,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class CRM_ApplicationManagerPage {
@@ -50,7 +52,8 @@ public class CRM_ApplicationManagerPage {
     @FindBy(how = How.ID, using = "Text_selected_user0")
     private WebElement textSelectUserElement;
 
-    @FindBy(how = How.ID, using = "holder")
+//    @FindBy(how = How.ID, using = "holder")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'content_selected_user0']//ul[@id = 'holder']")
     private WebElement textSelectUserContainerElement;
 
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
@@ -86,6 +89,21 @@ public class CRM_ApplicationManagerPage {
     @CacheLookup
     private List<WebElement> tdAssignElement;
 
+    //Team
+
+    @FindBy(how = How.ID, using = "Text_team_Branch0")
+    private WebElement textSelectTeamNameElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'content_team_Branch0']//ul[@id = 'holder']")
+    private WebElement textSelectTeamNameContainerElement;
+
+    @FindBy(how = How.XPATH, using = "//li[contains(@id, 'listitem_team_Branch')]")
+    private List<WebElement> liSelectTeamNameOptionElement;
+
+    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_team_Branch')]")
+    private List<WebElement> textSelectTeamNameOptionElement;
+
+
     public CRM_ApplicationManagerPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -93,12 +111,15 @@ public class CRM_ApplicationManagerPage {
 
     @SneakyThrows
     public void setData(String appId, String user) {
+        String strTeamName = "TPF DE TOPUP_XSELL";
+
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationManagerFormElement.isDisplayed());
 
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 0);
 
@@ -115,11 +136,37 @@ public class CRM_ApplicationManagerPage {
 
         editElement.click();
 
+        await("Textbox select Team enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectTeamNameElement.isEnabled());
+
+        textSelectTeamNameElement.clear();
+        textSelectTeamNameElement.sendKeys(strTeamName);
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Select Team Name Container displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectTeamNameContainerElement.isDisplayed());
+
+        int listTeamNameOption = liSelectTeamNameOptionElement.size();
+
+        await("No Team Name Found timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> listTeamNameOption > 0);
+
+        for (WebElement eTeamName : liSelectTeamNameOptionElement) {
+            if (!Objects.isNull(eTeamName.getAttribute("username")) && StringEscapeUtils.unescapeJava(eTeamName.getAttribute("username")).equals(strTeamName)) {
+                eTeamName.click();
+                break;
+            }
+        }
+
+        Utilities.captureScreenShot(_driver);
+
         await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserElement.isEnabled());
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
+
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
@@ -128,9 +175,9 @@ public class CRM_ApplicationManagerPage {
         await("No User Auto Found timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> listUserOption > 0);
 
-        for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
+        for (WebElement eUserName : textSelectUserOptionElement) {
+            if (!Objects.isNull(eUserName.getAttribute("title")) && StringEscapeUtils.unescapeJava(eUserName.getAttribute("title")).equals(user)) {
+                eUserName.click();
                 break;
             }
         }

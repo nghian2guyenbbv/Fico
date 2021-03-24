@@ -137,7 +137,6 @@ public class CRM_MiscFrmAppDtlPage {
     private List<WebElement> btnSaveElement;
 
     @FindBy(how = How.ID, using = "move_to_next_stage")
-    @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
     @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_51")
@@ -261,7 +260,7 @@ public class CRM_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
-//        monthlyFeeElement.clear();
+        monthlyFeeElement.clear();
 //        monthlyFeeElement.sendKeys(data.getMonthlyFee());
 
         newBankCardNumberElement.clear();
@@ -325,7 +324,7 @@ public class CRM_MiscFrmAppDtlPage {
         mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMonthlyRental());
 
-//        monthlyFeeElement.clear();
+        monthlyFeeElement.clear();
 //        monthlyFeeElement.sendKeys(data.getMonthlyFee());
 
         newBankCardNumberElement.clear();
