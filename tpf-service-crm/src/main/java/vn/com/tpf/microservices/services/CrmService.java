@@ -1282,7 +1282,7 @@ public class CrmService {
 		Update update = new Update().set("updatedAt", new Date());
 		if (returns.hasNonNull("returnQueues"))
 			update.set("returns",
-					Map.of("returnQueries", returnQueriesNew, "returnQueues", returns.path("returnQueues")));
+					Map.of("returnQueries", returnQueriesNew, "returnQueues", mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)));
 		else
 			update.set("returns", Map.of("returnQueries", returnQueriesNew));
 		update.set("status", STATUS_RESUBMITING);
