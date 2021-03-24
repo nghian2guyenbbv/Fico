@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -30,6 +31,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class CRM_LeadDetailPage {
@@ -172,6 +174,9 @@ public class CRM_LeadDetailPage {
     @CacheLookup
     private WebElement modalBtnConfirmElement;
 
+    @FindBy(how = How.XPATH, using = "//div[@id = 'docu_jsp_include']//input[contains(@id, 'photoimg')]")
+    private List<WebElement> listBtnUploadDocument;
+
     public CRM_LeadDetailPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -258,10 +263,19 @@ public class CRM_LeadDetailPage {
                     .until(() -> leadDocElement.isDisplayed());
 
             getDocBtnElement.click();
+
+            Thread.sleep(5000);
+
             Utilities.captureScreenShot(_driver);
 
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentContainerElement.isDisplayed());
+
+            int listButtonDoc = listBtnUploadDocument.size();
+
+            await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listButtonDoc > 0);
 
             String fromFile = downLoadFileURL;
             System.out.println("URLdownload: " + fromFile);
