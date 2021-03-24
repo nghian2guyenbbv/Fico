@@ -78,6 +78,12 @@ public class LeadsPage {
         await("tdLeadElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdLeadElement.size() > 2);
 
+        try {
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         WebElement webElement=_driver.findElement(new By.ByXPath("//table[@id='lead']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + leadId +"')]"));
 
         with().pollInterval(Duration.FIVE_SECONDS).
