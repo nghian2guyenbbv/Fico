@@ -79,7 +79,7 @@ public class LeadsPage {
                 .until(() -> tdLeadElement.size() > 2);
 
         try {
-            Thread.sleep(15000);
+            Thread.sleep(60000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
