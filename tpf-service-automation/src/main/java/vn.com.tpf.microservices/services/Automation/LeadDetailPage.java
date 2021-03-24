@@ -263,6 +263,9 @@ public class LeadDetailPage {
                     .until(() -> leadDocElement.isDisplayed());
 
             getDocBtnElement.click();
+
+            Thread.sleep(5000);
+
             Utilities.captureScreenShot(_driver);
 
             with().pollInterval(Duration.FIVE_SECONDS).
@@ -271,7 +274,6 @@ public class LeadDetailPage {
 
             int listButtonDoc = listBtnUploadDocument.size();
 
-            with().pollInterval(Duration.FIVE_SECONDS).
             await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> listButtonDoc > 0);
 
