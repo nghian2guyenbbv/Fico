@@ -265,6 +265,8 @@ public class FV_FieldInvestigationVerificationPage {
         appIdSearchInput.clear();
         appIdSearchInput.sendKeys(submitFieldDTO.getAppId());
 
+        Thread.sleep(60000);
+
         if(fieldInvestigationEntryTable.size()!=0) {
             List<WebElement> residenceVerificationTds =_driver.findElements(new By.ByXPath("//table[@id='fieldInvestigationEntryTable']//tbody//tr//td[3][contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
             await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

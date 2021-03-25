@@ -213,6 +213,12 @@ public class FV_FieldVerificationPage {
 
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
+        try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
