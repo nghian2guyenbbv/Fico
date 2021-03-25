@@ -4869,7 +4869,11 @@ public class AutomationHandlerService {
             stage = "LOGIN FINONE";
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
             loginPage.clickLogin();
+            Thread.sleep(5000);
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -5221,9 +5225,9 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             Thread.sleep(5000);
             loginPage.clickLogin();
+            Thread.sleep(5000);
             Utilities.captureScreenShot(driver);
 
-            Thread.sleep(5000);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -5793,8 +5797,8 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             Thread.sleep(5000);
             loginPage.clickLogin();
-            Utilities.captureScreenShot(driver);
             Thread.sleep(5000);
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6234,8 +6238,8 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             Thread.sleep(5000);
             loginPage.clickLogin();
-            Utilities.captureScreenShot(driver);
             Thread.sleep(5000);
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -6613,8 +6617,8 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             Thread.sleep(5000);
             loginPage.clickLogin();
-            Utilities.captureScreenShot(driver);
             Thread.sleep(5000);
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
@@ -7473,8 +7477,11 @@ public class AutomationHandlerService {
             HashMap<String, String> dataControl = new HashMap<>();
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
             loginPage.clickLogin();
-            //actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
+            Thread.sleep(5000);
+            Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
