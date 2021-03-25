@@ -265,7 +265,7 @@ public class FV_FieldInvestigationVerificationPage {
         appIdSearchInput.clear();
         appIdSearchInput.sendKeys(submitFieldDTO.getAppId());
 
-        Thread.sleep(60000);
+        Thread.sleep(30000);
 
         if(fieldInvestigationEntryTable.size()!=0) {
             List<WebElement> residenceVerificationTds =_driver.findElements(new By.ByXPath("//table[@id='fieldInvestigationEntryTable']//tbody//tr//td[3][contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
