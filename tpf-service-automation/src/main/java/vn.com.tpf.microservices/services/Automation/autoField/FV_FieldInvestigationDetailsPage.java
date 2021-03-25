@@ -196,7 +196,7 @@ public class FV_FieldInvestigationDetailsPage {
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
         try {
-            Thread.sleep(15000);
+            Thread.sleep(30000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
