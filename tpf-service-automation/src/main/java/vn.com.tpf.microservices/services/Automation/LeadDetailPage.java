@@ -264,7 +264,7 @@ public class LeadDetailPage {
 
             getDocBtnElement.click();
 
-            Thread.sleep(5000);
+            Thread.sleep(30000);
 
             Utilities.captureScreenShot(_driver);
 

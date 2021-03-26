@@ -4547,6 +4547,7 @@ public class AutomationHandlerService {
         Instant start = Instant.now();
         String appId = "";
         String stage = "";
+        String strCurrentDate = "";
         Application application = Application.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
         log.info("{}", application);
@@ -4578,6 +4579,10 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
+
+            Date currentDate = new Date();
+
+            strCurrentDate = currentDate.toString();
 
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
@@ -4722,7 +4727,7 @@ public class AutomationHandlerService {
 
             //UPDATE STATUS
             application.setStatus("QUICKLEAD PASS");
-            application.setDescription("Thanh cong" + " - " + session);
+            application.setDescription("Thanh cong" + " - " + session + " - " + "Current Date = " + strCurrentDate);
 
 
             Utilities.captureScreenShot(driver);
@@ -4732,7 +4737,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("QUICKLEAD FAIL");
             application.setStage(stage);
-            application.setDescription(e.getMessage() + " - " + session);
+            application.setDescription(e.getMessage() + " - " + session + " - " + "Current Date = " + strCurrentDate);
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -4744,7 +4749,7 @@ public class AutomationHandlerService {
                 application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 if (!"File not enough!!!".equals(application.getDescription())) {
-                    application.setDescription("Khong thanh cong" + " - " + session);
+                    application.setDescription("Khong thanh cong" + " - " + session + " - " + "Current Date = " + strCurrentDate);
                 }
             }
 
@@ -5363,16 +5368,21 @@ public class AutomationHandlerService {
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            Utilities.captureScreenShot(driver);
-            Thread.sleep(5000);
-            loginPage.clickLogin();
-            Thread.sleep(5000);
-            Utilities.captureScreenShot(driver);
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            Utilities.captureScreenShot(driver);
+//            Thread.sleep(15000);
+//            loginPage.clickLogin();
+//            Thread.sleep(15000);
+//            Utilities.captureScreenShot(driver);
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+
+            LoginV2Page loginPage = new LoginV2Page(driver);
+
+            loginPage.loginValue(accountDTO);
 
 
             System.out.println(stage + ": DONE");
@@ -5461,7 +5471,7 @@ public class AutomationHandlerService {
 
             //get appID moi o day
             leadAppID = de_applicationManagerPage.getAppID(leadApp);
-            System.out.println(" APP: =>" + leadAppID);
+            System.out.println("APP: =>" + leadAppID);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -5489,21 +5499,6 @@ public class AutomationHandlerService {
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
-
-            if (e.getMessage().contains("Work flow failed!!!")) {
-                stage = "END OF LEAD DETAIL";
-
-                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
-
-                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-                    String error = "Error: ";
-                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += " - " + we.getText();
-                    }
-                    System.out.println(stage + "=>" + error);
-                }
-            }
         } finally {
             if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
                 application.setApplicationId("UNKNOW");
@@ -5792,16 +5787,20 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
 
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            Utilities.captureScreenShot(driver);
-            Thread.sleep(5000);
-            loginPage.clickLogin();
-            Thread.sleep(5000);
-            Utilities.captureScreenShot(driver);
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            Utilities.captureScreenShot(driver);
+//            Thread.sleep(5000);
+//            loginPage.clickLogin();
+//            Thread.sleep(5000);
+//            Utilities.captureScreenShot(driver);
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+            LoginV2Page loginPage = new LoginV2Page(driver);
+
+            loginPage.loginValue(accountDTO);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -6233,16 +6232,20 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
 
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            Utilities.captureScreenShot(driver);
-            Thread.sleep(5000);
-            loginPage.clickLogin();
-            Thread.sleep(5000);
-            Utilities.captureScreenShot(driver);
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            Utilities.captureScreenShot(driver);
+//            Thread.sleep(5000);
+//            loginPage.clickLogin();
+//            Thread.sleep(5000);
+//            Utilities.captureScreenShot(driver);
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+            LoginV2Page loginPage = new LoginV2Page(driver);
+
+            loginPage.loginValue(accountDTO);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -6612,16 +6615,20 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
 
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            Utilities.captureScreenShot(driver);
-            Thread.sleep(5000);
-            loginPage.clickLogin();
-            Thread.sleep(5000);
-            Utilities.captureScreenShot(driver);
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            Utilities.captureScreenShot(driver);
+//            Thread.sleep(5000);
+//            loginPage.clickLogin();
+//            Thread.sleep(5000);
+//            Utilities.captureScreenShot(driver);
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+            LoginV2Page loginPage = new LoginV2Page(driver);
+
+            loginPage.loginValue(accountDTO);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -7460,6 +7467,7 @@ public class AutomationHandlerService {
         String appId = "";
         String stage = "";
         Application application = Application.builder().build();
+        SessionId session = ((RemoteWebDriver) driver).getSessionId();
         log.info("{}", application);
         try {
             stage = "INIT DATA";
@@ -7603,7 +7611,7 @@ public class AutomationHandlerService {
 
             //UPDATE STATUS
             application.setStatus("QUICKLEAD PASS");
-            application.setDescription("Thanh cong");
+            application.setDescription("Thanh cong" + " - " + session);
 
 
             Utilities.captureScreenShot(driver);
@@ -7613,7 +7621,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("QUICKLEAD FAIL");
             application.setStage(stage);
-            application.setDescription(e.getMessage());
+            application.setDescription(e.getMessage() + " - " + session);
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -7639,7 +7647,7 @@ public class AutomationHandlerService {
                 application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 if (!"File not enough!!!".equals(application.getDescription())) {
-                    application.setDescription("Khong thanh cong");
+                    application.setDescription("Khong thanh cong" + " - " + session);
                 }
             }
 
