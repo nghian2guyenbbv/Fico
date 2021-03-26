@@ -6122,7 +6122,7 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            Thread.sleep(5000);
+            Thread.sleep(15000);
 
 //            WebElement buttonMoveNextStage = driver.findElement(By.id("move_to_next_stage"));
 //            WebDriverWait waitMoveNextStage = new WebDriverWait(driver, 40);
@@ -6509,7 +6509,7 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            Thread.sleep(5000);
+            Thread.sleep(15000);
 
             actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 //            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
@@ -6891,7 +6891,7 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            Thread.sleep(5000);
+            Thread.sleep(15000);
 
             actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
 //            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
