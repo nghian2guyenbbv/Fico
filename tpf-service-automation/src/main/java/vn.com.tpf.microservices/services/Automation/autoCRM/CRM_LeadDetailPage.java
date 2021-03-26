@@ -264,7 +264,7 @@ public class CRM_LeadDetailPage {
 
             getDocBtnElement.click();
 
-            Thread.sleep(5000);
+            Thread.sleep(15000);
 
             Utilities.captureScreenShot(_driver);
 
