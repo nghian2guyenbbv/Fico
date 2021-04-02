@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.*;
 import static org.hamcrest.Matchers.is;
 
 @Getter
@@ -247,11 +247,15 @@ public class DE_ReturnSaleQueuePage {
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
+
+        with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
+        int textSelectUserList = textSelectUserOptionElement.size();
+
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserOptionElement.size() > 0);
+                .until(() -> textSelectUserList > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
@@ -296,15 +300,20 @@ public class DE_ReturnSaleQueuePage {
         await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentElement.isDisplayed());
 
-        if(documentTableElement.size() == 0){
-            await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> btnGetDocumentElement.isDisplayed());
+//        if(documentTableElement.size() == 0){
+        await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnGetDocumentElement.isDisplayed());
 
-            btnGetDocumentElement.click();
-        }
+        btnGetDocumentElement.click();
+
+//        }
+
+        Thread.sleep(30000);
+
+        int listDocTableElemnet = documentTableElement.size();
 
         await("documentTableElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> documentTableElement.size() > 2);
+                .until(() -> listDocTableElemnet > 2);
 
         System.out.println("LOAD TABLE DOCUMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
 
@@ -383,6 +392,7 @@ public class DE_ReturnSaleQueuePage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
+        Thread.sleep(15000);
 
         // ==== Open headless ==== //
 //        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;

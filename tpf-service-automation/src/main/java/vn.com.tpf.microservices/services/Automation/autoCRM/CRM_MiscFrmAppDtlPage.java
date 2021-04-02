@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -41,59 +42,59 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement tabMiscFrmAppDtlContainerElement;
 
-//    //UAT
-//    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
-//    @CacheLookup
-//    private WebElement loanPurposeElement;
-//
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
-//    @CacheLookup
-//    private List<WebElement> loanPurposeOptionElement;
-//
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
-//    @CacheLookup
-//    private WebElement loanPurposeInputElement;
-//    //Update
-//
-//    //update loanpurpose
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
-//    @CacheLookup
-//    private List<WebElement> loanPurposeCloseElement;
-//
-//    @FindBy(how = How.ID, using = "insurance_company_contract_frmAppDtl_2")
-//    private WebElement contractNumberElement;
-//
-//    @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
-//    private WebElement companyNameElement;
-
-    //------------- END UAT----------------//
-
-    //PRO
-    //production khac id
-    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+    //UAT
+    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
     @CacheLookup
     private WebElement loanPurposeElement;
 
-    //production khac
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
 
-    //update loanpurpose PRO
-    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
+    @CacheLookup
+    private WebElement loanPurposeInputElement;
+    //Update
+
+    //update loanpurpose
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
     @CacheLookup
     private List<WebElement> loanPurposeCloseElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
-    @CacheLookup
-    private WebElement loanPurposeInputElement;
-
-    @FindBy(how = How.ID, using = "tpf_insurance_company_contract_frmAppDtl_2")
+    @FindBy(how = How.ID, using = "insurance_company_contract_frmAppDtl_2")
     private WebElement contractNumberElement;
 
-    @FindBy(how = How.ID, using = "tpf_insurance_company_frmAppDtl_2")
+    @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
     private WebElement companyNameElement;
 
+    //------------- END UAT----------------//
+
+//    //PRO
+//    //production khac id
+//    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+//    @CacheLookup
+//    private WebElement loanPurposeElement;
+//
+//    //production khac
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeOptionElement;
+//
+//    //update loanpurpose PRO
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+//    @CacheLookup
+//    private List<WebElement> loanPurposeCloseElement;
+//
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
+//    @CacheLookup
+//    private WebElement loanPurposeInputElement;
+//
+//    @FindBy(how = How.ID, using = "tpf_insurance_company_contract_frmAppDtl_2")
+//    private WebElement contractNumberElement;
+//
+//    @FindBy(how = How.ID, using = "tpf_insurance_company_frmAppDtl_2")
+//    private WebElement companyNameElement;
+//
 //    //------------- END PRO----------------//
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
@@ -386,5 +387,16 @@ public class CRM_MiscFrmAppDtlPage {
         Utilities.captureScreenShot(_driver);
         System.out.println(stage + ": DONE");
     }
+
+    public void keyActionMoveNextStage(){
+        WebElement checkEligibilityElement = _driver.findElement(By.xpath("//div[@id = 'sticky-customer-info']//button[@id = 'executePolicyOnProduct']"));
+
+        Actions actionKey = new Actions(_driver);
+        actionKey.moveToElement(checkEligibilityElement);
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.ENTER).build().perform();
+    }
+
 
 }
