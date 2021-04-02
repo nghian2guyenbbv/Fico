@@ -4574,8 +4574,6 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
-            Date currentDate = new Date();
-
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
 

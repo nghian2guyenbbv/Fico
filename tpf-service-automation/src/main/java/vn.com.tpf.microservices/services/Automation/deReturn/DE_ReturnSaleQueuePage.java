@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.*;
@@ -392,13 +393,21 @@ public class DE_ReturnSaleQueuePage {
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        Thread.sleep(15000);
-
         // ==== Open headless ==== //
 //        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
 //        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
 
-        btnMoveToNextStageElement.click();
+//        WebElement pnotifyElement = _driver.findElement(By.xpath("//span[@class='ui-pnotify-history-pulldown icon-chevron-down']"));
+//
+//        pnotifyElement.click();
+//
+//        WebElement btnPnotifyElement = _driver.findElement(By.xpath("//button[@class='ui-pnotify-history-all btn']"));
+//
+//        btnPnotifyElement.click();
+
+//        btnMoveToNextStageElement.click();
+
+        keyActionMoveNextStage();
 
         Utilities.captureScreenShot(_driver);
 
@@ -406,6 +415,16 @@ public class DE_ReturnSaleQueuePage {
                 .until(_driver::getTitle, is("Application Grid"));
 
         System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+    }
+
+    public void keyActionMoveNextStage(){
+        Actions actionKey = new Actions(_driver);
+        WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
+
+        actionKey.moveToElement(divTimeRemaining).click();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.ENTER).build().perform();
     }
 
 }
