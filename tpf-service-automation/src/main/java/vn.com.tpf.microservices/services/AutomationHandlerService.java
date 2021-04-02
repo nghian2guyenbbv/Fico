@@ -4018,20 +4018,14 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
 
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            Thread.sleep(5000);
-//            loginPage.clickLogin();
-//            Thread.sleep(5000);
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -4121,20 +4115,14 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
 
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            Thread.sleep(5000);
-//            loginPage.clickLogin();
-//            Thread.sleep(5000);
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -4556,7 +4544,6 @@ public class AutomationHandlerService {
         Instant start = Instant.now();
         String appId = "";
         String stage = "";
-        String strCurrentDate = "";
         Application application = Application.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
         log.info("{}", application);
@@ -4575,28 +4562,19 @@ public class AutomationHandlerService {
             stage = "LOGIN FINONE";
 
             HashMap<String, String> dataControl = new HashMap<>();
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            Thread.sleep(5000);
-//            loginPage.clickLogin();
-//            Thread.sleep(5000);
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
-
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
             Date currentDate = new Date();
-
-            strCurrentDate = currentDate.toString();
 
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
@@ -4741,7 +4719,7 @@ public class AutomationHandlerService {
 
             //UPDATE STATUS
             application.setStatus("QUICKLEAD PASS");
-            application.setDescription("Thanh cong" + " - " + session + " - " + "Current Date = " + strCurrentDate);
+            application.setDescription("Thanh cong" + " - " + session);
 
 
             Utilities.captureScreenShot(driver);
@@ -4751,7 +4729,7 @@ public class AutomationHandlerService {
             //UPDATE STATUS
             application.setStatus("QUICKLEAD FAIL");
             application.setStage(stage);
-            application.setDescription(e.getMessage() + " - " + session + " - " + "Current Date = " + strCurrentDate);
+            application.setDescription(e.getMessage() + " - " + session);
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -4763,7 +4741,7 @@ public class AutomationHandlerService {
                 application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 if (!"File not enough!!!".equals(application.getDescription())) {
-                    application.setDescription("Khong thanh cong" + " - " + session + " - " + "Current Date = " + strCurrentDate);
+                    application.setDescription("Khong thanh cong" + " - " + session);
                 }
             }
 
@@ -4887,20 +4865,14 @@ public class AutomationHandlerService {
             //get account run
             stage = "LOGIN FINONE";
 
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            Thread.sleep(5000);
-//            loginPage.clickLogin();
-//            Thread.sleep(5000);
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
@@ -5245,21 +5217,15 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
 
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            Thread.sleep(5000);
-//            loginPage.clickLogin();
-//            Thread.sleep(5000);
-//            Utilities.captureScreenShot(driver);
-//
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            Utilities.captureScreenShot(driver);
+            loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
 
-            loginPage.loginValue(accountDTO);
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             System.out.println(stage + ": DONE");
 
@@ -6139,13 +6105,10 @@ public class AutomationHandlerService {
 
             Thread.sleep(15000);
 
-//            WebElement buttonMoveNextStage = driver.findElement(By.id("move_to_next_stage"));
-//            WebDriverWait waitMoveNextStage = new WebDriverWait(driver, 40);
-//            waitMoveNextStage.pollingEvery(Duration.ofSeconds(5)).withMessage("Button Move To Next Stage Element can't click!!!").until(ExpectedConditions.elementToBeClickable(buttonMoveNextStage));
-//            buttonMoveNextStage.click();
+            miscFrmAppDtlPage.keyActionMoveNextStage();
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
+//            actions.moveToElement(keyActionMoveNextStage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.click(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6526,8 +6489,10 @@ public class AutomationHandlerService {
 
             Thread.sleep(15000);
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
+            miscFrmAppDtlPage.keyActionMoveNextStage();
+
+//            actions.moveToElement(keyActionMoveNextStage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.click(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -6908,8 +6873,10 @@ public class AutomationHandlerService {
 
             Thread.sleep(15000);
 
-            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().perform();
-//            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).sendKeys(miscFrmAppDtlPage.getBtnMoveToNextStageElement(), Keys.ENTER).perform();
+            miscFrmAppDtlPage.keyActionMoveNextStage();
+
+//            actions.moveToElement(keyActionMoveNextStage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.click(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).perform();
 
             Utilities.captureScreenShot(driver);
 
@@ -7510,9 +7477,7 @@ public class AutomationHandlerService {
             LoginPage loginPage = new LoginPage(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
             Utilities.captureScreenShot(driver);
-            Thread.sleep(5000);
             loginPage.clickLogin();
-            Thread.sleep(5000);
             Utilities.captureScreenShot(driver);
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

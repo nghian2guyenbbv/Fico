@@ -2,10 +2,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 import net.bytebuddy.asm.Advice;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.interactions.Keyboard;
 import org.openqa.selenium.remote.server.handler.FindElements;
@@ -57,24 +54,26 @@ public class LoginV2Page {
         with().pollInterval(Duration.FIVE_SECONDS).
         await("Button login cannot click Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> loginbuttonElement.isDisplayed());
 
-        loginbuttonElement.sendKeys(Keys.ENTER);
+        String onclickValue = _driver.findElement(By.xpath("//button[@id = 'loginbutton']")).getAttribute("onclick");
+
+        JavascriptExecutor js= (JavascriptExecutor)_driver;
+        js.executeScript(onclickValue);
 
         Utilities.captureScreenShot(_driver);
 
         try{
 
-            with().pollInterval(Duration.TEN_SECONDS).
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("Login timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(_driver::getTitle, is("DashBoard"));
 
-        }catch (Exception e){
+        }catch(Exception e){
 
-            WebElement buttonLoginAgain = _driver.findElement(By.id("loginbutton"));
+            WebElement buttonLoginElement = _driver.findElement(By.xpath("//button[@id = 'loginbutton']"));
+
+            actions.moveToElement(buttonLoginElement).click().build().perform();
 
             with().pollInterval(Duration.FIVE_SECONDS).
-            await("Button login cannot click Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> buttonLoginAgain.isDisplayed());
-
-            actions.moveToElement(buttonLoginAgain).click().build().perform();
-
+            await("Login timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(_driver::getTitle, is("DashBoard"));
 
         }
 
