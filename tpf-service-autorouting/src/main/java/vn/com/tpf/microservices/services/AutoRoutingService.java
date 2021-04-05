@@ -75,12 +75,12 @@ public class AutoRoutingService {
 					responseModel.setResult_code(500);
 					responseModel.setMessage("Chanel Name is mandatory");
 				} else {
-					String chanelConfig = checkRule(requestModel.getData());
-					log.info("checkRouting - chanelConfig: {}", chanelConfig);
+					String channelConfig = checkRule(requestModel.getData());
+					log.info("checkRouting - chanelConfig: {}", channelConfig);
 					LogChoiceRouting logChoiceRouting = new LogChoiceRouting();
 					logChoiceRouting.setChanelId(requestModel.getData().getChanelId());
 					logChoiceRouting.setCreateDate(new Timestamp(new Date().getTime()));
-					logChoiceRouting.setRoutingNumber(chanelConfig);
+					logChoiceRouting.setRoutingNumber(channelConfig);
 					logChoiceRouting.setVendorId(requestModel.getData().getVendorId());
 
 					logChoiceRoutingDAO.save(logChoiceRouting);
@@ -275,36 +275,40 @@ public class AutoRoutingService {
 	public String checkRule (LogChoiceRouting request) {
 		log.info("checkRule - request: {}", request);
 		boolean checkRule = false;
-		String chanelNumber = "0" ;
-		String chanelConfig  = redisService.getValueFromCache("chanelConfig",request.getChanelId()+"Config" );
-		String timeStart  = redisService.getValueFromCache("chanelTimeStart",request.getChanelId()+"TimeStart" );
-		String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
-		long timeLocal = 	System.currentTimeMillis();
-		if (timeLocal > Long.parseLong(timeStart) && timeLocal < Long.parseLong(timeEnd)) {
-			log.info("checkRule - Time Local in range config");
-			int quota  = Integer.parseInt(redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota"));
-			log.info("checkRule - Quota before: {}", quota);
-			if (quota > 0) {
-				checkRule = true;
-				quota = quota - 1;
-				redisService.updateCache("chanelQuota",
-						request.getChanelId() + "Quota", quota);
-				log.info("checkRule - Quota after: {}", quota);
+		String channelNumber = "0" ;
+		// INHOUSE check quota call API
+		if (request.getVendorId().equals("3")) {
+			String channelConfig  = redisService.getValueFromCache("chanelConfig",request.getChanelId()+"Config" );
+			String timeStart  = redisService.getValueFromCache("chanelTimeStart",request.getChanelId()+"TimeStart" );
+			String timeEnd  = redisService.getValueFromCache("chanelTimeEnd",request.getChanelId()+"TimeEnd" );
+			long timeLocal = 	System.currentTimeMillis();
+			if (timeLocal > Long.parseLong(timeStart) && timeLocal < Long.parseLong(timeEnd)) {
+				log.info("checkRule - Time Local in range config");
+				int quota  = Integer.parseInt(redisService.getValueFromCache("chanelQuota",request.getChanelId()+"Quota"));
+				log.info("checkRule - Quota before: {}", quota);
+				if (quota > 0) {
+					checkRule = true;
+					quota = quota - 1;
+					redisService.updateCache("chanelQuota",
+							request.getChanelId() + "Quota", quota);
+					log.info("checkRule - Quota after: {}", quota);
+				}
 			}
-		}
 
-		if (checkRule) {
-			log.info("checkRule is true - chanelNumber: {}", chanelConfig);
-			chanelNumber = chanelConfig;
-		} else {
-			if (chanelConfig.equals("1")) {
-				chanelNumber = "0";
+			if (checkRule) {
+				log.info("checkRule is true - chanelNumber: {}", channelConfig);
+				channelNumber = channelConfig;
 			} else {
-				chanelNumber = "1";
+				if (channelConfig.equals("1")) {
+					channelNumber = "0";
+				} else {
+					channelNumber = "1";
+				}
 			}
+		} else {
+			channelNumber = "0";
 		}
-
-		return chanelNumber;
+		return channelNumber;
 	}
 
 	public Map<String, Object> getHistoryConfig(JsonNode request) {
