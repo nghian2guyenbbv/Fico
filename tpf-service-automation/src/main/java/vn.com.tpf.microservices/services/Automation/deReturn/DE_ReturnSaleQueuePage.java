@@ -18,13 +18,14 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
-import java.time.Duration;
+import org.awaitility.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.*;
+import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 import static org.hamcrest.Matchers.is;
 
 @Getter
@@ -249,7 +250,7 @@ public class DE_ReturnSaleQueuePage {
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
 
-        with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
@@ -266,7 +267,7 @@ public class DE_ReturnSaleQueuePage {
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
-        System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println(stage + " => DONE");
 
 
         // ========== APPLICATION - SALE QUEUE =================
@@ -290,7 +291,7 @@ public class DE_ReturnSaleQueuePage {
 
         applicationIdAssignedNumberElement.click();
 
-        System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println(stage + " => DONE");
 
         stage = "SALE QUEUE";
         await("appChildTabsElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -302,6 +303,8 @@ public class DE_ReturnSaleQueuePage {
                 .until(() -> documentElement.isDisplayed());
 
 //        if(documentTableElement.size() == 0){
+
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnGetDocumentElement.isDisplayed());
 
@@ -309,14 +312,14 @@ public class DE_ReturnSaleQueuePage {
 
 //        }
 
-        Thread.sleep(30000);
+        Thread.sleep(60000);
 
         int listDocTableElemnet = documentTableElement.size();
 
         await("documentTableElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> listDocTableElemnet > 2);
 
-        System.out.println("LOAD TABLE DOCUMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println("LOAD TABLE DOCUMENT" + " => DONE");
 
         for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
 
@@ -350,7 +353,7 @@ public class DE_ReturnSaleQueuePage {
         }
 
         Utilities.captureScreenShot(_driver);
-        System.out.println("UPLOAD FILE" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println("UPLOAD FILE" + " => DONE");
 
         Utilities.captureScreenShot(_driver);
 
@@ -364,7 +367,7 @@ public class DE_ReturnSaleQueuePage {
 //        await("document_table_body visibale Timeout!").atMost(Constant.ACCOUNT_AVAILABLE_TIMEOUT, TimeUnit.SECONDS)
 //                .until(() -> documentTableElement.size() > 2);
 
-        System.out.println("SAVE DOCUMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println("SAVE DOCUMENT" + " => DONE");
 
         Utilities.captureScreenShot(_driver);
 
@@ -388,7 +391,7 @@ public class DE_ReturnSaleQueuePage {
 
         Utilities.captureScreenShot(_driver);
 
-        System.out.println("ADD COMMENT" + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println("ADD COMMENT" + " => DONE");
 
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
@@ -404,6 +407,10 @@ public class DE_ReturnSaleQueuePage {
 //        WebElement btnPnotifyElement = _driver.findElement(By.xpath("//button[@class='ui-pnotify-history-all btn']"));
 //
 //        btnPnotifyElement.click();
+//
+//        WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
+//
+//        divTimeRemaining.click();
 
 //        btnMoveToNextStageElement.click();
 
@@ -411,10 +418,7 @@ public class DE_ReturnSaleQueuePage {
 
         Utilities.captureScreenShot(_driver);
 
-        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Grid"));
-
-        System.out.println(stage + " => DONE" + " - TIME" + Duration.between(start, Instant.now()).toSeconds());
+        System.out.println(stage + " => DONE");
     }
 
     public void keyActionMoveNextStage(){
