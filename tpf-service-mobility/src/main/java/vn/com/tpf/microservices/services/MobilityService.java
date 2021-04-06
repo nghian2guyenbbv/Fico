@@ -466,9 +466,9 @@ public class MobilityService {
 				.set("partnerId", partnerId)
 				.set("partnerName",partnerName);
 
-		if ("STUDENT LOAN".equals(productCodeFinnOne.path("data").path("valueProductFinnOne").asText())){
-			update.set("branch","STUDENT");
-		}
+//		if ("STUDENT LOAN".equals(productCodeFinnOne.path("data").path("valueProductFinnOne").asText())){
+//			update.set("branch","STUDENT");
+//		}
 		mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Mobility.class);
 
