@@ -3,10 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoField;
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
@@ -155,6 +152,9 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.XPATH, using = "//option[@class = 'veri_option']")
     private List<WebElement> optionVerificationTypeElement;
 
+    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
+    private List<WebElement> checkMoveToNextStageElement;
+
 
     public FV_FieldVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -213,12 +213,7 @@ public class FV_FieldVerificationPage {
 
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
-        try {
-            Thread.sleep(30000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
@@ -309,23 +304,20 @@ public class FV_FieldVerificationPage {
         await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnMoveToNextStageElement.isEnabled());
+//        btnMoveToNextStageElement.click();
 
-        btnMoveToNextStageElement.click();
-
-//        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
-//        jseMoveToNextStage.executeScript("arguments[0].click();", btnMoveToNextStageElement);
-
-//        await("INITIATE VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                .until(_driver::getTitle, is("Application Grid"));
-
-        boolean checkMoveNextStage = tableApplicationsElement.size() != 0;
-
-        await("INITIATE VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> checkMoveNextStage);
+        keyActionMoveNextStage();
 
         Utilities.captureScreenShot(_driver);
+    }
+
+    public void keyActionMoveNextStage(){
+        Actions actionKey = new Actions(_driver);
+        WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
+
+        actionKey.moveToElement(divTimeRemaining).click();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.ENTER).build().perform();
     }
 }

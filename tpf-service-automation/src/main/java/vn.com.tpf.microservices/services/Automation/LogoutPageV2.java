@@ -35,8 +35,6 @@ public class LogoutPageV2 {
     }
 
     public void logout() {
-        Actions actions = new Actions(_driver);
-
         Utilities.captureScreenShot(_driver);
 
         with().pollInterval(Duration.FIVE_SECONDS).
@@ -46,7 +44,7 @@ public class LogoutPageV2 {
         await("userPhotoElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> userPhotoElement.isEnabled());
 
-        actions.moveToElement(userPhotoElement).click().build().perform();
+        userPhotoElement.click();
 
         with().pollInterval(Duration.FIVE_SECONDS).
         await("logoutLinkElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -55,7 +53,7 @@ public class LogoutPageV2 {
         await("logoutLinkElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> logoutLinkElement.isEnabled());
 
-        actions.moveToElement(logoutLinkElement).click().build().perform();
+        logoutLinkElement.click();
 
         with().pollInterval(Duration.FIVE_SECONDS).
         await("Logging out failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

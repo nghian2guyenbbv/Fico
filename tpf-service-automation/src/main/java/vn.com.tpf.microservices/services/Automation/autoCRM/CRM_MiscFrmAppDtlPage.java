@@ -389,10 +389,10 @@ public class CRM_MiscFrmAppDtlPage {
     }
 
     public void keyActionMoveNextStage(){
-        WebElement checkEligibilityElement = _driver.findElement(By.xpath("//div[@id = 'sticky-customer-info']//button[@id = 'executePolicyOnProduct']"));
-
         Actions actionKey = new Actions(_driver);
-        actionKey.moveToElement(checkEligibilityElement);
+        WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
+
+        actionKey.moveToElement(divTimeRemaining).click();
         actionKey.sendKeys(Keys.TAB).build().perform();
         actionKey.sendKeys(Keys.TAB).build().perform();
         actionKey.sendKeys(Keys.ENTER).build().perform();

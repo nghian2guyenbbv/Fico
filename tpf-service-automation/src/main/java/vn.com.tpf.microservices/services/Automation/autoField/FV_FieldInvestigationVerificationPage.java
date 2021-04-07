@@ -205,7 +205,6 @@ public class FV_FieldInvestigationVerificationPage {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         Actions actions = new Actions(_driver);
 
-        stage = "FI ALLOCATION GRID";
         menuApplicationElement.click();
 
         fiAllocationGridElement.click();
@@ -433,11 +432,6 @@ public class FV_FieldInvestigationVerificationPage {
 //        jseMoveToNextStage.executeScript("arguments[0].click();", buttonSaveAndProceed);
 
         actions.moveToElement(buttonSaveAndProceed).sendKeys(buttonSaveAndProceed, Keys.ENTER).perform();
-
-        await("FI Entries Grid timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("FI Entries Grid"));
-
-        System.out.println("FI Entries Grid" + ": DONE");
 
         Utilities.captureScreenShot(_driver);
     }

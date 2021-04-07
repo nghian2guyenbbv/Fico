@@ -116,6 +116,9 @@ public class FV_FieldInvestigationDetailsPage {
     @FindBy(how = How.XPATH, using = "//table[@id = 'LoanApplication_Assigned']//tbody//tr//td")
     private List<WebElement> tableApplicationsElement;
 
+    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
+    private List<WebElement> checkMoveToNextStageElement;
+
 
 
     public FV_FieldInvestigationDetailsPage(WebDriver driver) {
@@ -195,12 +198,6 @@ public class FV_FieldInvestigationDetailsPage {
 
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
-        try {
-            Thread.sleep(30000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         with().pollInterval(Duration.FIVE_SECONDS).
         await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
@@ -254,21 +251,22 @@ public class FV_FieldInvestigationDetailsPage {
         await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnMoveToNextStageElement.isEnabled());
-
 //        btnMoveToNextStageElement.click();
-        actions.moveToElement(btnMoveToNextStageElement).sendKeys(btnMoveToNextStageElement, Keys.ENTER).perform();
+//        actions.moveToElement(btnMoveToNextStageElement).sendKeys(btnMoveToNextStageElement, Keys.ENTER).perform();
 
-        System.out.println("Button Move To Next Stage" + ": DONE");
-
-        boolean checkMoveNextStage = tableApplicationsElement.size() != 0;
-
-        await("FIELD INITIATION COMPLETION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> checkMoveNextStage);
+        keyActionMoveNextStage();
 
         Utilities.captureScreenShot(_driver);
 
+    }
+
+    public void keyActionMoveNextStage(){
+        Actions actionKey = new Actions(_driver);
+        WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
+
+        actionKey.moveToElement(divTimeRemaining).click();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.ENTER).build().perform();
     }
 }
