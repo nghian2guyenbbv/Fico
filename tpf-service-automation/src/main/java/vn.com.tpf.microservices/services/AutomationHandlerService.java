@@ -29,6 +29,8 @@ import vn.com.tpf.microservices.models.AutoAllocation.AutoAssignAllocationDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.*;
+import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -43,6 +45,9 @@ import vn.com.tpf.microservices.services.Automation.deReturn.AssignManagerSaleQu
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
+import vn.com.tpf.microservices.services.Automation.returnQuery.ApplicationManagerPage;
+import vn.com.tpf.microservices.services.Automation.returnQuery.ResponseQueryPage;
+import vn.com.tpf.microservices.services.Automation.returnQuery.SaleQueuePage;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -7705,6 +7710,327 @@ public class AutomationHandlerService {
 
         }
     }
+
+    //endregion
+
+    //region FUNCTION RETURN_QUERY
+    //******region RESPONSE_QUERY
+    private LoginDTO pollAccountFromReturnQuery(Queue<LoginDTO> accounts, String project, Map<String, Object> mapValue) throws Exception {
+        LoginDTO accountDTO = null;
+        while (Objects.isNull(accountDTO)) {
+            System.out.println("Wait to get account...");
+            ResponseQueryDTO responseQueryDTO = (ResponseQueryDTO) mapValue.get("ResponseQueryList");
+            Query query = new Query();
+            query.addCriteria(Criteria.where("applicationId").is(responseQueryDTO.getAppId()));
+            Application applicationDTO = mongoTemplate.findOne(query, Application.class);
+            AccountFinOneDTO accountFinOneDTO = null;
+            if (!Objects.isNull(applicationDTO)) {
+                query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getAutomationAcc()));
+                accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+            }
+            if (!Objects.isNull(accountFinOneDTO)) {
+                accountDTO = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                Update update = new Update();
+                update.set("active", 1);
+                AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                if (resultUpdate == null) {
+                    Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                    accountDTO = null;
+                } else {
+                    System.out.println("Get it:" + accountDTO.getUserName());
+                    System.out.println("Exist:" + accounts.size());
+                }
+            } else
+                Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
+        }
+
+        return accountDTO;
+    }
+
+    public void runAutomation_ResponseQuery(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant start = Instant.now();
+        String stage = "";
+        String idMongoDb = "";
+        SessionId session = ((RemoteWebDriver)driver).getSessionId();
+        ResponseQueryDTO responseQueryDTO = ResponseQueryDTO.builder().build();
+        log.info("{}", responseQueryDTO);
+        try {
+            stage = "INIT DATA";
+            //*************************** INSERT DATA *********************//
+            responseQueryDTO = (ResponseQueryDTO) mapValue.get("ResponseQueryList");
+            System.out.println(stage + ": DONE");
+            ResponseQueryDTO idMongoDB = mongoTemplate.insert(responseQueryDTO);
+            idMongoDb = idMongoDB.getId();
+            //*************************** INSERT DATA - DONE *********************//
+
+            stage = "LOGIN FINONE";
+            //***************************//LOGIN PAGE//***************************//
+            LoginV2Page loginPage = new LoginV2Page(driver);
+            loginPage.loginValue(accountDTO);
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + responseQueryDTO.getAppId());
+            //***************************//END LOGIN//***************************//
+
+            //*************************** UPDATE STATUS DATA *********************//
+            Query query = new Query();
+            query.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(0).and("appId").is(responseQueryDTO.getAppId()).and("project").is(responseQueryDTO.getProject()));
+            Update update = new Update();
+            update.set("userAuto", accountDTO.getUserName());
+            update.set("status", 2);
+            mongoTemplate.findAndModify(query, update, ResponseQueryDTO.class);
+            //*************************** END UPDATE STATUS DATA *********************//
+
+            stage = "RESPONSE QUERY";
+            HomePage homePage = new HomePage(driver);
+            homePage.getMenuApplicationElement().click();
+
+            ResponseQueryPage returnRaiseQueryPage = new ResponseQueryPage(driver);
+            returnRaiseQueryPage.getMenuApplicationElement().click();
+            returnRaiseQueryPage.getResponseQueryElement().click();
+
+            await("Response Query Page loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Response Query"));
+
+            returnRaiseQueryPage.setData(responseQueryDTO, downdloadFileURL);
+
+            System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + "DONE" + " - AppId: " + responseQueryDTO.getAppId());
+
+            //***************************//UPDATE DB//***************************//
+            stage = "UPDATE MONGODB";
+            Query queryPass = new Query();
+            queryPass.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(2).and("appId").is(responseQueryDTO.getAppId()));
+            Update updatePass = new Update();
+            updatePass.set("userAuto", accountDTO.getUserName());
+            updatePass.set("status", 1);
+            mongoTemplate.findAndModify(queryPass, updatePass, ResponseQueryDTO.class);
+            System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + "DONE" + " - AppId: " + responseQueryDTO.getAppId());
+            //***************************//END UPDATE DB//***************************//
+
+            responseModel.setProject(responseQueryDTO.getProject());
+            responseModel.setReference_id(responseQueryDTO.getReference_id());
+            responseModel.setTransaction_id(responseQueryDTO.getTransaction_id());
+            responseModel.setApp_id(responseQueryDTO.getAppId());
+            responseModel.setAutomation_result("RESPONSEQUERY PASS");
+
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+            //***************************//UPDATE DB//***************************//
+            stage = "UPDATE MONGODB";
+            Query queryFaild = new Query();
+            queryFaild.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").in(0,2).and("appId").is(responseQueryDTO.getAppId()));
+            Update updateFaild = new Update();
+            updateFaild.set("userAuto", accountDTO.getUserName());
+            updateFaild.set("status", 3);
+            mongoTemplate.findAndModify(queryFaild, updateFaild, ResponseQueryDTO.class);
+            System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + "DONE" + " - AppId: " + responseQueryDTO.getAppId());
+            //***************************//END UPDATE DB//***************************//
+
+            responseModel.setProject(responseQueryDTO.getProject());
+            responseModel.setReference_id(responseQueryDTO.getReference_id());
+            responseModel.setTransaction_id(responseQueryDTO.getTransaction_id());
+            responseModel.setApp_id(responseQueryDTO.getAppId());
+            responseModel.setAutomation_result("RESPONSEQUERY FAILED" + " - " + e.getMessage() + " - Session: " + session);
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            logout(driver, accountDTO.getUserName());
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            System.out.println("Func: responseQuery" + " - AppId: " + responseModel.getApp_id() + " - DONE: " + responseModel.getAutomation_result() + "- Project " + responseModel.getProject());
+        }
+    }
+    //******endregion
+
+    //******region SALE_QUEUE
+    public void runAutomation_SaleQueue(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant start = Instant.now();
+        String stage = "";
+        String idMongoDb = "";
+        SessionId session = ((RemoteWebDriver)driver).getSessionId();
+        SaleQueueDTO saleQueueDTO = SaleQueueDTO.builder().build();
+        try {
+            stage = "INIT DATA";
+            //*************************** INSERT DATA *********************//
+            saleQueueDTO = (SaleQueueDTO) mapValue.get("SaleQueueList");
+            System.out.println(stage + ": DONE");
+            SaleQueueDTO idMongoDB = mongoTemplate.insert(saleQueueDTO);
+            idMongoDb = idMongoDB.getId();
+            //*************************** INSERT DATA - DONE *********************//
+
+            stage = "LOGIN FINONE";
+
+            //***************************//LOGIN PAGE//***************************//
+            LoginV2Page loginPage = new LoginV2Page(driver);
+            loginPage.loginValue(accountDTO);
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getAppId());
+            //***************************//END LOGIN//***************************//
+
+            //*************************** UPDATE STATUS DATA *********************//
+            Query query = new Query();
+            query.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(0).and("appId").is(saleQueueDTO.getAppId()).and("project").is(saleQueueDTO.getProject()));
+            Update update = new Update();
+            update.set("userAuto", accountDTO.getUserName());
+            update.set("status", 2);
+            mongoTemplate.findAndModify(query, update, SaleQueueDTO.class);
+            //*************************** END UPDATE STATUS DATA *********************//
+            // ========== SALE QUEUE =================
+            stage = "APPLICATION MANAGER";
+            ApplicationManagerPage applicationManagerPage = new ApplicationManagerPage(driver);
+            applicationManagerPage.getMenuApplicationElement().click();
+            applicationManagerPage.getApplicationManagerElement().click();
+
+            await("Application Manager Page loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            applicationManagerPage.setData(saleQueueDTO.getAppId(), accountDTO.getUserName());
+
+            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getAppId());
+
+            stage = "SALE QUEUE";
+            SaleQueuePage saleQueuePage = new SaleQueuePage(driver);
+            saleQueuePage.getMenuApplicationElement().click();
+            saleQueuePage.getApplicationElement().click();
+
+            await("Application Grid Page loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+
+            saleQueuePage.setData(saleQueueDTO, downdloadFileURL);
+
+            int checkMoveNextStage = saleQueuePage.getCheckButtonMoveNextStageElement().size();
+
+            await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> checkMoveNextStage > 0);
+
+            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getAppId());
+
+            // ========== Last Update User ACCA =================
+            if (!Objects.isNull(saleQueueDTO.getUserCreatedSalesQueue())) {
+                AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
+                //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
+                if (!deSaleQueueDTO.getDataDocuments().stream().filter(c -> c.getDocumentName().contains("(ACCA)")).findAny().isPresent()) {
+                    de_applicationManagerPage.getMenuApplicationElement().click();
+
+                    de_applicationManagerPage.getApplicationManagerElement().click();
+
+                    // ========== APPLICATION MANAGER =================
+                    stage = "APPLICATION MANAGER";
+
+                    await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
+
+                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName());
+
+                    de_applicationManagerPage.getMenuApplicationElement().click();
+
+                    de_applicationManagerPage.getApplicationElement().click();
+
+                    await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Grid"));
+
+                    de_applicationManagerPage.getApplicationAssignedNumberElement().clear();
+
+                    de_applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(deSaleQueueDTO.getAppId());
+
+                    await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getTbApplicationAssignedElement().size() > 2);
+
+                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
+
+                    await("webAssignElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> applicationIdAssignedNumberElement.isDisplayed());
+
+                    applicationIdAssignedNumberElement.click();
+
+                    de_applicationManagerPage.getBtnMoveToNextStageElement().click();
+
+                    de_applicationManagerPage.getMenuApplicationElement().click();
+
+                    de_applicationManagerPage.getApplicationManagerElement().click();
+
+                    // ========== APPLICATION MANAGER =================
+                    stage = "APPLICATION MANAGER";
+
+                    await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Manager"));
+
+                    await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+                    de_applicationManagerPage.getApplicationNumberElement().sendKeys(deSaleQueueDTO.getAppId());
+                    de_applicationManagerPage.getSearchApplicationElement().click();
+
+                    await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getTdApplicationElement().size() > 0);
+
+                    await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> de_applicationManagerPage.getShowTaskElement().isDisplayed());
+
+                    if ("LOGIN_ACCEPTANCE".equals(de_applicationManagerPage.getTdCheckStageApplicationElement().getText())) {
+                        de_applicationManagerPage.setDataACCA(deSaleQueueDTO.getUserCreatedSalesQueue());
+                    }
+
+                }
+            } else {
+                AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
+                de_applicationManagerPage.getMenuApplicationElement().click();
+
+                de_applicationManagerPage.getApplicationManagerElement().click();
+
+                // ========== APPLICATION MANAGER =================
+                stage = "APPLICATION MANAGER";
+
+                await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Manager"));
+                //Service Acc đang lấy cho team DE tại ngày 04/09/2020
+                de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
+            }
+
+            deSaleQueueDTO.setStatus("OK");
+            deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
+
+            responseModel.setProject(deSaleQueueDTO.getProject());
+            responseModel.setReference_id(deSaleQueueDTO.getReference_id());
+            responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
+            responseModel.setApp_id(deSaleQueueDTO.getAppId());
+            responseModel.setAutomation_result("SALEQUEUE PASS");
+
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+            deSaleQueueDTO.setStatus("ERROR");
+            deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
+
+            responseModel.setProject(deSaleQueueDTO.getProject());
+            responseModel.setReference_id(deSaleQueueDTO.getReference_id());
+            responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
+            responseModel.setApp_id(deSaleQueueDTO.getAppId());
+            responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + e.getMessage());
+
+            System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " + responseModel.getApp_id());
+            mongoTemplate.save(deSaleQueueDTO);
+            logout(driver, accountDTO.getUserName());
+            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+        }
+    }
+    //******endregion
 
     //endregion
 }
