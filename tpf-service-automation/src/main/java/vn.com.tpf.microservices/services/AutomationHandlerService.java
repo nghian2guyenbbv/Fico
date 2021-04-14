@@ -7918,7 +7918,7 @@ public class AutomationHandlerService {
             if (!Objects.isNull(saleQueueDTO.getUserCreatedSalesQueue())) {
                 AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
                 //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
-                if (!deSaleQueueDTO.getDataDocuments().stream().filter(c -> c.getDocumentName().contains("(ACCA)")).findAny().isPresent()) {
+                if (!saleQueueDTO.getDataDocuments().stream().filter(c -> c.getDocumentName().contains("(ACCA)")).findAny().isPresent()) {
                     de_applicationManagerPage.getMenuApplicationElement().click();
 
                     de_applicationManagerPage.getApplicationManagerElement().click();
@@ -7929,7 +7929,7 @@ public class AutomationHandlerService {
                     await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Manager"));
 
-                    de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName());
+                    de_applicationManagerPage.setData(saleQueueDTO.getAppId(), accountDTO.getUserName());
 
                     de_applicationManagerPage.getMenuApplicationElement().click();
 
@@ -7940,12 +7940,12 @@ public class AutomationHandlerService {
 
                     de_applicationManagerPage.getApplicationAssignedNumberElement().clear();
 
-                    de_applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(deSaleQueueDTO.getAppId());
+                    de_applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(saleQueueDTO.getAppId());
 
                     await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> de_applicationManagerPage.getTbApplicationAssignedElement().size() > 2);
 
-                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
+                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + saleQueueDTO.getAppId() + "')]"));
 
                     await("webAssignElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> applicationIdAssignedNumberElement.isDisplayed());
@@ -7967,7 +7967,7 @@ public class AutomationHandlerService {
                     await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
 
-                    de_applicationManagerPage.getApplicationNumberElement().sendKeys(deSaleQueueDTO.getAppId());
+                    de_applicationManagerPage.getApplicationNumberElement().sendKeys(saleQueueDTO.getAppId());
                     de_applicationManagerPage.getSearchApplicationElement().click();
 
                     await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -7977,7 +7977,7 @@ public class AutomationHandlerService {
                             .until(() -> de_applicationManagerPage.getShowTaskElement().isDisplayed());
 
                     if ("LOGIN_ACCEPTANCE".equals(de_applicationManagerPage.getTdCheckStageApplicationElement().getText())) {
-                        de_applicationManagerPage.setDataACCA(deSaleQueueDTO.getUserCreatedSalesQueue());
+                        de_applicationManagerPage.setDataACCA(saleQueueDTO.getUserCreatedSalesQueue());
                     }
 
                 }
@@ -7993,28 +7993,28 @@ public class AutomationHandlerService {
                 await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Manager"));
                 //Service Acc đang lấy cho team DE tại ngày 04/09/2020
-                de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
+                de_applicationManagerPage.setData(saleQueueDTO.getAppId(), "serviceacc_ldl");
             }
 
-            deSaleQueueDTO.setStatus("OK");
-            deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
+            saleQueueDTO.setStatus("OK");
+            saleQueueDTO.setUserAuto(accountDTO.getUserName());
 
-            responseModel.setProject(deSaleQueueDTO.getProject());
-            responseModel.setReference_id(deSaleQueueDTO.getReference_id());
-            responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
-            responseModel.setApp_id(deSaleQueueDTO.getAppId());
+            responseModel.setProject(saleQueueDTO.getProject());
+            responseModel.setReference_id(saleQueueDTO.getReference_id());
+            responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
+            responseModel.setApp_id(saleQueueDTO.getAppId());
             responseModel.setAutomation_result("SALEQUEUE PASS");
 
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
-            deSaleQueueDTO.setStatus("ERROR");
-            deSaleQueueDTO.setUserAuto(accountDTO.getUserName());
+            saleQueueDTO.setStatus("ERROR");
+            saleQueueDTO.setUserAuto(accountDTO.getUserName());
 
-            responseModel.setProject(deSaleQueueDTO.getProject());
-            responseModel.setReference_id(deSaleQueueDTO.getReference_id());
-            responseModel.setTransaction_id(deSaleQueueDTO.getTransaction_id());
-            responseModel.setApp_id(deSaleQueueDTO.getAppId());
+            responseModel.setProject(saleQueueDTO.getProject());
+            responseModel.setReference_id(saleQueueDTO.getReference_id());
+            responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
+            responseModel.setApp_id(saleQueueDTO.getAppId());
             responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + e.getMessage());
 
             System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
@@ -8025,7 +8025,7 @@ public class AutomationHandlerService {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " + responseModel.getApp_id());
-            mongoTemplate.save(deSaleQueueDTO);
+            mongoTemplate.save(saleQueueDTO);
             logout(driver, accountDTO.getUserName());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
