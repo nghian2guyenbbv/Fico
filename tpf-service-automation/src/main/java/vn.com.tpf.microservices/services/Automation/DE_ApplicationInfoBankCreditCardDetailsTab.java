@@ -14,6 +14,8 @@ import vn.com.tpf.microservices.models.Automation.BankCreditCardDetailsDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +60,23 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
     @CacheLookup
     private WebElement btnSaveAndNextElement;
 
+    @FindBy(how = How.ID, using = "addviewManualBankDetails")
+    private WebElement popupAddViewBankDetails;
+
+    @FindBy(how = How.ID, using = "bank_eval_period_manual_chzn")
+    private WebElement bankingEvaluationPeriodElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'bank_eval_period_manual_chzn_o_')]")
+    private List<WebElement> bankingEvaluationPeriodOptionElement;
+
+    @FindBy(how = How.XPATH, using = "//input[@id = 'amount_avgBalanceManual']")
+    private WebElement averageBalanceElement;
+
+    @FindBy(how = How.XPATH, using = "//a[@id = 'okFetch']")
+    private WebElement buttonOkAddViewBankDetails;
+
+
+
     public DE_ApplicationInfoBankCreditCardDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -76,18 +95,9 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
         with().pollInterval(Duration.FIVE_SECONDS).await("Table create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> sizeTableBanks > 2);
 
-        with().pollInterval(Duration.FIVE_SECONDS).await("Button Fetch Bank visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> fetchBankButton.isDisplayed());
-
-        fetchBankButton.click();
-
         Utilities.captureScreenShot(_driver);
 
         for (BankCreditCardDetailsDTO data : bankCreditCardDetailsDTO) {
-
-            WebElement currentAccountNumber = _driver.findElement(By.id("bank_Detail_accountNumber_" + index));
-
-            currentAccountNumber.clear();
 
             System.out.println("BANK NAME: " + data.getBankName());
 
@@ -163,11 +173,58 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
 
             System.out.println("CURRENT ACCOUNT NUMBER IN TP BANK: " + data.getAccountNumber());
 
+            WebElement currentAccountNumber = _driver.findElement(By.id("bank_Detail_accountNumber_" + index));
+
             currentAccountNumber.clear();
 
             currentAccountNumber.sendKeys(data.getAccountNumber());
 
             Utilities.captureScreenShot(_driver);
+
+            WebElement accountOpeningYearElement = _driver.findElement(By.id("bank_detail_accountOpeningYear_" + index));
+
+            Calendar now = Calendar.getInstance();
+
+            String currentYear = String.valueOf(now.get(Calendar.YEAR));
+
+            System.out.println("YEAR TEST = " + currentYear);
+
+            accountOpeningYearElement.clear();
+
+            accountOpeningYearElement.sendKeys(currentYear);
+
+            WebElement natureOfBankAccount = _driver.findElement(By.id("selectedAccountType_" + index));
+
+            natureOfBankAccount.click();
+
+            WebElement bankDetailsUpload = _driver.findElement(By.id("manualBankDetailsUpload_" + index));
+
+            bankDetailsUpload.click();
+
+            with().pollInterval(Duration.FIVE_SECONDS).await("Popup Add/View Bank Details displayed timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> popupAddViewBankDetails.isDisplayed());
+
+            await("Banking Evaluation Period loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankingEvaluationPeriodElement.isDisplayed());
+
+            bankingEvaluationPeriodElement.click();
+
+            await("Banking Evaluation Period List loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankingEvaluationPeriodOptionElement.size() > 0);
+
+            Utilities.chooseDropdownValue("3", bankingEvaluationPeriodOptionElement);
+
+            await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> averageBalanceElement.isDisplayed());
+
+            averageBalanceElement.clear();
+            averageBalanceElement.sendKeys("123");
+
+            await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> buttonOkAddViewBankDetails.isDisplayed());
+
+            buttonOkAddViewBankDetails.click();
+
 
             if (index < bankCreditCardDetailsDTO.size() - 1) {
                 await("Button create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -178,6 +235,7 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
             index++;
 
         }
+
     }
 
     public void updateBankDetailsData(List<BankCreditCardDetailsDTO> bankCreditCardDetailsDTO) {
@@ -205,18 +263,9 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
         with().pollInterval(Duration.FIVE_SECONDS).await("Table create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> sizeTableBanks > 2);
 
-        with().pollInterval(Duration.FIVE_SECONDS).await("Button Fetch Bank visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> fetchBankButton.isDisplayed());
-
-        fetchBankButton.click();
-
         Utilities.captureScreenShot(_driver);
 
         for (BankCreditCardDetailsDTO data : bankCreditCardDetailsDTO) {
-
-            WebElement currentAccountNumber = _driver.findElement(By.id("bank_Detail_accountNumber_" + index));
-
-            currentAccountNumber.clear();
 
             System.out.println("BANK NAME: " + data.getBankName());
 
@@ -292,11 +341,58 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
 
             System.out.println("CURRENT ACCOUNT NUMBER IN TP BANK: " + data.getAccountNumber());
 
+            WebElement currentAccountNumber = _driver.findElement(By.id("bank_Detail_accountNumber_" + index));
+
             currentAccountNumber.clear();
 
             currentAccountNumber.sendKeys(data.getAccountNumber());
 
             Utilities.captureScreenShot(_driver);
+
+            WebElement accountOpeningYearElement = _driver.findElement(By.id("bank_detail_accountOpeningYear_" + index));
+
+            Calendar now = Calendar.getInstance();
+
+            String currentYear = String.valueOf(now.get(Calendar.YEAR));
+
+            System.out.println("YEAR TEST = " + currentYear);
+
+            accountOpeningYearElement.clear();
+
+            accountOpeningYearElement.sendKeys(currentYear);
+
+            WebElement natureOfBankAccount = _driver.findElement(By.id("selectedAccountType_" + index));
+
+            natureOfBankAccount.click();
+
+            WebElement bankDetailsUpload = _driver.findElement(By.id("manualBankDetailsUpload_" + index));
+
+            bankDetailsUpload.click();
+
+            with().pollInterval(Duration.FIVE_SECONDS).await("Popup Add/View Bank Details displayed timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> popupAddViewBankDetails.isDisplayed());
+
+            await("Banking Evaluation Period loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankingEvaluationPeriodElement.isDisplayed());
+
+            bankingEvaluationPeriodElement.click();
+
+            await("Banking Evaluation Period loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankingEvaluationPeriodOptionElement.size() > 0);
+
+            Utilities.chooseDropdownValue("3", bankingEvaluationPeriodOptionElement);
+
+            await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> averageBalanceElement.isDisplayed());
+
+            averageBalanceElement.clear();
+            averageBalanceElement.sendKeys("123");
+
+            await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> buttonOkAddViewBankDetails.isDisplayed());
+
+            buttonOkAddViewBankDetails.click();
+
 
             if (index < bankCreditCardDetailsDTO.size() - 1) {
                 await("Button create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -307,6 +403,7 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
             index++;
 
         }
+
     }
 
     public void saveAndNext() {

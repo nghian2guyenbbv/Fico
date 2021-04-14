@@ -129,7 +129,8 @@ public class DataInitial {
                     .bankName(bankCreditCardDetails.getBankName())
                     .branchName(bankCreditCardDetails.getBranchName())
                     .accountNumber(bankCreditCardDetails.getAccountNumber())
-                    .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
+//                    .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
+                    .typeOfAccount("Current Account")
                     .build();
             bankCreditCardDetailsDTOList.add(bankingDetailDTO);
         }
