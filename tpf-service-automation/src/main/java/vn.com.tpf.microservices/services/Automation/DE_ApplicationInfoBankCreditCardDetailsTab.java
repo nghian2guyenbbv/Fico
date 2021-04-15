@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.awaitility.Duration;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -214,17 +215,27 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
 
             Utilities.chooseDropdownValue("3", bankingEvaluationPeriodOptionElement);
 
+            Utilities.captureScreenShot(_driver);
+
             await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> averageBalanceElement.isDisplayed());
 
             averageBalanceElement.clear();
             averageBalanceElement.sendKeys("123");
 
+            Utilities.captureScreenShot(_driver);
+
             await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> buttonOkAddViewBankDetails.isDisplayed());
 
-            buttonOkAddViewBankDetails.click();
+//            buttonOkAddViewBankDetails.click();
 
+            String onclickValue = _driver.findElement(By.xpath("//a[@id = 'okFetch']")).getAttribute("onclick");
+            JavascriptExecutor js= (JavascriptExecutor)_driver;
+            js.executeScript(onclickValue);
+
+
+            Utilities.captureScreenShot(_driver);
 
             if (index < bankCreditCardDetailsDTO.size() - 1) {
                 await("Button create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -377,10 +388,12 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
 
             bankingEvaluationPeriodElement.click();
 
-            await("Banking Evaluation Period loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Banking Evaluation Period List loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> bankingEvaluationPeriodOptionElement.size() > 0);
 
             Utilities.chooseDropdownValue("3", bankingEvaluationPeriodOptionElement);
+
+            Utilities.captureScreenShot(_driver);
 
             await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> averageBalanceElement.isDisplayed());
@@ -388,11 +401,19 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
             averageBalanceElement.clear();
             averageBalanceElement.sendKeys("123");
 
+            Utilities.captureScreenShot(_driver);
+
             await("Average BalanceElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> buttonOkAddViewBankDetails.isDisplayed());
 
-            buttonOkAddViewBankDetails.click();
+//            buttonOkAddViewBankDetails.click();
 
+            String onclickValue = _driver.findElement(By.xpath("//a[@id = 'okFetch']")).getAttribute("onclick");
+            JavascriptExecutor js= (JavascriptExecutor)_driver;
+            js.executeScript(onclickValue);
+
+
+            Utilities.captureScreenShot(_driver);
 
             if (index < bankCreditCardDetailsDTO.size() - 1) {
                 await("Button create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
