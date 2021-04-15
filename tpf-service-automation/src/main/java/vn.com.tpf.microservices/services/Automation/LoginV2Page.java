@@ -70,10 +70,6 @@ public class LoginV2Page {
             e.printStackTrace();
         }
 
-        LogoutPageV2 logoutPage = new LogoutPageV2(_driver);
-        logoutPage.logout();
-
-
         String checkTitlePage = _driver.getTitle();
 
         System.out.println("Tilte OF Page Finone : " + checkTitlePage);

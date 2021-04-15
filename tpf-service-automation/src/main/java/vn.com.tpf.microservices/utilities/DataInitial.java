@@ -11,6 +11,7 @@ import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -1229,4 +1230,25 @@ public class DataInitial {
         map.put("AutoAssignAllocation", autoAssignAllocationDTOs);
         return map;
     }
+
+    //region QUICKLEAD
+    public static Map<String, Object> getDataFromQuickLead(Application application) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.isEmpty(application.getQuickLead().getCommunicationTranscript())){
+            application.getQuickLead().setCommunicationTranscript("dummy");
+        }
+        map.put("ApplicationDTO", application);
+        return map;
+    }
+    //endregion
+
+    //region SALE_QUEUE
+    public static Map<String, Object> getData_SaleQueue(SaleQueueDTO SaleQueueDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("SaleQueueList", SaleQueueDTOList);
+        return map;
+    }
+    //endregion
+
+
 }

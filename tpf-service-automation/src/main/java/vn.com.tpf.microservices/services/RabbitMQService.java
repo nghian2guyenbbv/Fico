@@ -189,6 +189,10 @@ public class RabbitMQService {
 					return response(message, payload, automationService.AutoAssign_Allocation(request));
 			case "quickLeadMobilityVendor":
 					return response(message, payload, automationService.MOBILITY_quickLeadApp_Vendor(request));
+			case "quickLeadLeadGateway":
+					return response(message, payload, automationService.LEADGATEWAY_quickLeadApp(request));
+			case "saleQueue":
+					return response(message, payload, automationService.SaleQueue(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

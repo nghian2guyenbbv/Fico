@@ -18,6 +18,7 @@ import vn.com.tpf.microservices.models.AutoCRM.CRM_SaleQueueDTO;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -744,4 +745,72 @@ public class AutomationService {
 		//awaitTerminationAfterShutdown(workerThreadPool);
 	}
 	//------------------------ END - QUICKLEAD  -------------------------------------
+
+	//region FUNCTION QUICKLEAD
+	//region PROJECT LEADGATEWAY
+	public Map<String, Object> LEADGATEWAY_quickLeadApp(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				LEADGATEWAY_runAutomation_QuickLead(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application.getQuickLead());
+	}
+
+	private void LEADGATEWAY_runAutomation_QuickLead(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromQuickLead(application);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"LEADGATEWAY_quickLead", "LEADGATEWAY");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//endregion
+	//endregion
+
+	//region FUNCTION RETURN QUERY
+	//region FUNCTION SALEQUEUE
+	public Map<String, Object> SaleQueue(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		SaleQueueDTO saleQueueDTOList = mapper.treeToValue(request.path("body"), SaleQueueDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_SaleQueue(saleQueueDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, saleQueueDTOList);
+	}
+
+	private void runAutomation_SaleQueue(SaleQueueDTO saleQueueDTOList) throws Exception {
+		String browser = "chrome";
+		String projectJson = saleQueueDTOList.getProject();
+		Map<String, Object> mapValue = DataInitial.getData_SaleQueue(saleQueueDTOList);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_SaleQueue", projectJson.toUpperCase());
+
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//endregion
+	//endregion
+
+
+
+
+
+
+
+
 }
