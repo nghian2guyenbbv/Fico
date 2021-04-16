@@ -208,7 +208,8 @@ public class ConvertService {
 		app.put("neoCustID", crm.getNeoCustID());
 		app.put("cifNumber", crm.getCifNumber());
 		app.put("idNumber", crm.getIdNumber());
-		
+		app.put("leadId", crm.getLeadId());
+
 		ObjectNode quickLead = mapper.createObjectNode();
 		quickLead.put("identificationNumber", crm.getNationalId());
 		quickLead.put("productTypeCode", ProductTypeCode);
@@ -364,7 +365,7 @@ public class ConvertService {
 		app.put("project", "crm");
 		app.put("transaction_id", crm.getId());
 		app.put("appId", crm.getAppId());
-
+		app.put("leadId", crm.getLeadId());
 		JsonNode lastReturnQueue = mapper.convertValue(crm.getReturns().get("returnQueues"), ArrayNode.class)
 				.get(0);
 		app.put("commentText", lastReturnQueue.path("comment").asText());
@@ -433,6 +434,7 @@ public class ConvertService {
 		fullApp.put("saleAgentCodeDynamicForm", lastReturnQueue.path("saleAgentCodeDynamicForm").asText());
 		fullApp.put("courierCode", lastReturnQueue.path("courierCode").asText());
 		fullApp.put("maximumInterestedRate", lastReturnQueue.path("maximumInterestedRate").asText());
+		fullApp.put("customerCategoryCode", crm.getCustomerCategoryCode());
 
 
 
@@ -512,6 +514,7 @@ public class ConvertService {
 		app.put("cifNumber", crm.getCifNumber());
 		app.put("idNumber", crm.getIdNumber());
 		app.put("appId", crm.getAppId());
+		app.put("leadId", crm.getLeadId());
 
 		ObjectNode quickLead = mapper.createObjectNode();
 		quickLead.put("identificationNumber", crm.getNationalId());
@@ -569,7 +572,7 @@ public class ConvertService {
 		fullApp.put("saleAgentCodeDynamicForm", crm.getSaleAgentCodeDynamicForm());
 		fullApp.put("courierCode", crm.getCourierCode());
 		fullApp.put("maximumInterestedRate", crm.getMaximumInterestedRate());
-
+		fullApp.put("customerCategoryCode", crm.getCustomerCategoryCode());
 
 		ArrayNode documents = mapper.createArrayNode();
 		ArrayNode addresses = mapper.createArrayNode();

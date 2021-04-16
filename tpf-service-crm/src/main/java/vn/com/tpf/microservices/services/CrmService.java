@@ -2296,11 +2296,19 @@ public class CrmService {
 				}
 			}
 		}
+
+		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
+				Map.of("func", "getEducationField", "custid", data.path("custId").asText()));
+		if (customerCategoryCode.path("status").asInt(0) != 200) {
+			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
+		}
+
+
 		returnQueue.put("addresses", addressesUpload);
 		returnQueue.put("references", referencesUpload);
 		returnQueue.put("family", familyesUpload);
 		returnQueue.put("identifications", identificationsUpload);
-
+		returnQueue.put("customerCategoryCode", customerCategoryCode.path("data").path("description").asText());
 		LinkedList<Map> returnQueuesNew = mapper
 				.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
 		if (returnQueuesNew == null)
@@ -2588,6 +2596,12 @@ public class CrmService {
 			}
 		}
 
+		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
+				Map.of("func", "getEducationField", "custid", data.path("custId").asText()));
+		if (customerCategoryCode.path("status").asInt(0) != 200) {
+			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
+		}
+
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
@@ -2633,6 +2647,7 @@ public class CrmService {
 				.set("appId", data.path("appId").asText())
 				.set("addresses", addressesUpload)
 				.set("references", referencesUpload)
+				.set("customerCategoryCode", customerCategoryCode.path("data").path("description").asText())
 				;
 		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Crm.class);
