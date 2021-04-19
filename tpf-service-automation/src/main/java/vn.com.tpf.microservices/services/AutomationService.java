@@ -810,7 +810,6 @@ public class AutomationService {
 		Map<String, Object> mapValue = DataInitial.getDataFromQuickLeadVendor(quickLeadDTOList);
 
 		QuickLeadDTO monitorQuickLeadVendorDTO = (QuickLeadDTO) mapValue.get("QuickLeadDTOList");
-		System.out.println("PROJECT = " + monitorQuickLeadVendorDTO.getProject());
 		AutomationMonitorDTO autoMonitor = AutomationMonitorDTO.builder().build();
 		autoMonitor.setIdentificationNumber(monitorQuickLeadVendorDTO.getQuickLead().getIdentificationNumber());
 		autoMonitor.setReferentId(monitorQuickLeadVendorDTO.getReference_id());
