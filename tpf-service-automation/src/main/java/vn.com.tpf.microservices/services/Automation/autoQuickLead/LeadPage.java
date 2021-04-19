@@ -319,18 +319,14 @@ public class LeadPage {
 
                         toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
-                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+//                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile));
                         File file = new File(toFile);
                         if(file.exists()) {
-                            //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
                             String photoUrl = file.getAbsolutePath();
                             System.out.println("PATH: " + photoUrl);
-                            // Added sleep to make you see the difference.
                             Thread.sleep(3000);
-
                             photoElement.get(_tempIndex).sendKeys(photoUrl);
-
-                            //add object
                             listIndexDoc.add(FileUploadDoc.builder().index(_tempIndex).urlPhoto(photoUrl).build());
 
                         }

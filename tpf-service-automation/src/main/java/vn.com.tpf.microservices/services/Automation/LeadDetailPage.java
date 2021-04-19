@@ -329,7 +329,8 @@ public class LeadDetailPage {
 
                         toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
-                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+//                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile));
                         File file = new File(toFile);
                         if(file.exists()) {
                             //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
