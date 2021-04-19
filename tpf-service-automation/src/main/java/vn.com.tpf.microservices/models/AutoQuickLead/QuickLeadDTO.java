@@ -1,4 +1,4 @@
-package vn.com.tpf.microservices.models.AutomationMonitor;
+package vn.com.tpf.microservices.models.AutoQuickLead;
 
 import lombok.Builder;
 import lombok.Data;
@@ -6,34 +6,29 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 
 @Data
 @Builder
-@Document(collection="automation_monitor")
-public class AutomationMonitorDTO {
+@Document(collection="automation_application")
+public class QuickLeadDTO {
     @Id
     private String id;
     @CreatedDate
-    private Date createDate;
+    private Date createdDate;
     @LastModifiedDate
     private Date lastModifiedDate;
 
-
-    private String project;
-    private String funcAutomation;
-    private String quickLeadId;
     private String applicationId;
-    private String identificationNumber;
-    private String customerId;
-    private String referentId;
-    private String transactionId;
-    private String accountAuto;
+    private String quickLeadId;
+    private String leadApp;
+    private String project;
+    private QuickLeadDetails quickLead;
+    private String reference_id;
+    private String automationAcc;
     private String status;
+    private String description;
     private String stage;
     private String error;
-    private String description;
-    private int flagStatus = 0;
-    private int flagRetry = 0;
+
 }

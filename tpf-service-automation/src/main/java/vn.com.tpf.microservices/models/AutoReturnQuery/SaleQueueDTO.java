@@ -17,22 +17,19 @@ public class SaleQueueDTO {
 
     @Id
     private String id;
-    private String appId;
+    private String applicationId;
+    private String referenceId;
+    private String transactionId;
     private String userAuto;
     private String status;
     private String userCreatedSalesQueue;
+    private String comments;
+    private String project;
+    private List<SaleQueueDocumentDTO> documents;
 
     @CreatedDate
     private Date createDate;
     @LastModifiedDate
     private Date lastDate;
     private String lastUpdate;
-    private int checkACCA = 0;
-
-    private List<SaleQueueDocumentDTO> dataDocuments;
-
-    private String commentText;
-    private String reference_id;
-    private String project;
-    private String transaction_id;
 }

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -29,9 +30,12 @@ import vn.com.tpf.microservices.models.AutoAllocation.AutoAssignAllocationDTO;
 import vn.com.tpf.microservices.models.AutoAssign.AutoAssignDTO;
 import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.*;
+import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDTO;
+import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDetails;
 import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDTO;
 import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
 import vn.com.tpf.microservices.models.Automation.*;
+import vn.com.tpf.microservices.models.AutomationMonitor.AutomationMonitorDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
@@ -41,6 +45,9 @@ import vn.com.tpf.microservices.services.Automation.*;
 import vn.com.tpf.microservices.services.Automation.autoAllocation.AutoAssignAllocationPage;
 import vn.com.tpf.microservices.services.Automation.autoCRM.*;
 import vn.com.tpf.microservices.services.Automation.autoField.*;
+import vn.com.tpf.microservices.services.Automation.autoQuickLead.LeadGridPage;
+import vn.com.tpf.microservices.services.Automation.autoQuickLead.LeadPage;
+import vn.com.tpf.microservices.services.Automation.autoQuickLead.QuickLeadEntryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.AssignManagerSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
@@ -322,18 +329,6 @@ public class AutomationHandlerService {
                     driver = setupTestDriver.getDriver();
                     CRM_runAutomation_QuickLead(driver, mapValue, accountDTO, project);
                     break;
-                case "runAutomation_ResponseQuery":
-                    accountDTO = return_pollAccountFromQueue(accounts, project, mapValue);
-                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-                    driver = setupTestDriver.getDriver();
-                    runAutomationDE_responseQuery(driver, mapValue, accountDTO);
-                    break;
-                case "runAutomation_SaleQueue":
-                    accountDTO = getAccountFromMongoDB(accounts, project, "saleQueue");
-                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
-                    driver = setupTestDriver.getDriver();
-                    runAutomation_SaleQueue(driver, mapValue, accountDTO);
-                    break;
                 case "quickLead_Assign_Pool":
                     accountDTO = pollAccountFromQueue(accounts, project);
                     setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
@@ -355,11 +350,29 @@ public class AutomationHandlerService {
                     driver = setupTestDriver.getDriver();
                     MOBILITY_runAutomation_QuickLead_Vendor(driver, mapValue, accountDTO);
                     break;
-                case "LEADGATEWAY_quickLead":
-                    accountDTO = getAccountFromMongoDB(accounts, project, "quickLeadLeadGateway");
+                case "runAutomation_quickLeadApplication":
+                    accountDTO = getAccountFromMongoDB(accounts, project, "quickLeadApplication");
                     setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
                     driver = setupTestDriver.getDriver();
-                    LEADGATEWAY_runAutomation_QuickLead(driver, mapValue, accountDTO);
+                    runAutomation_QuickLeadApplication(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_quickLeadApplicationVendor":
+                    accountDTO = getAccountFromMongoDB(accounts, project, "quickLeadApplicationVendor");
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
+                    runAutomation_QuickLeadApplication_Vendor(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_ResponseQuery":
+                    accountDTO = return_pollAccountFromQueue(accounts, project, mapValue);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
+                    runAutomationDE_responseQuery(driver, mapValue, accountDTO);
+                    break;
+                case "runAutomation_SaleQueue":
+                    accountDTO = getAccountFromMongoDB(accounts, project, "saleQueue");
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
+                    runAutomation_SaleQueue(driver, mapValue, accountDTO);
                     break;
             }
 
@@ -7710,6 +7723,7 @@ public class AutomationHandlerService {
     //endregion
 
 
+
     //region FUNCTION ACCOUNT FINONE
     //region LOGOUT
     public void logoutFinOne(WebDriver driver, LoginDTO accountAuto) {
@@ -7780,22 +7794,51 @@ public class AutomationHandlerService {
 
     //endregion
 
+    //region Response UpdateAutomation
+
+    private void responseUpdateAutomation(ResponseAutomationModel responseAutomationModel, String func) throws Exception {
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+                Map.of("func", func,
+                        "body", Map.of("project", responseAutomationModel.getProject(),
+                                "transaction_id", responseAutomationModel.getTransaction_id(),
+                                "app_id", responseAutomationModel.getApp_id(),
+                                "automation_result", responseAutomationModel.getAutomation_result(),
+                                "reference_id", responseAutomationModel.getReference_id()
+                        )));
+        System.out.println("rabit:=>" + jsonNode.toString());
+    }
+
+    private void responseUpdateAutomation(QuickLeadDTO quickLeadDTO, String func) throws Exception {
+
+        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
+                Map.of("func", func, "reference_id", quickLeadDTO.getReference_id(), "body", Map.of("app_id", quickLeadDTO.getApplicationId() != null ? quickLeadDTO.getApplicationId() : "",
+                        "project", quickLeadDTO.getProject(),
+                        "automation_result", quickLeadDTO.getStatus(),
+                        "description", quickLeadDTO.getDescription() != null ? quickLeadDTO.getDescription() : "",
+                        "transaction_id", quickLeadDTO.getQuickLeadId(),
+                        "automation_account", quickLeadDTO.getAutomationAcc())));
+        System.out.println("rabit:=>" + jsonNode.toString());
+
+    }
+
+    //endregion
+
     //region FUNCTION QUICKLEAD
-    //region PROJECT LEADGATEWAY
-    public void LEADGATEWAY_runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+
+    //region //******ASSIGN POOL******//
+    public void runAutomation_QuickLeadApplication(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
         String stage = "";
         String leadAppID = "";
-        Application application = Application.builder().build();
+        QuickLeadDTO quickLeadDTO = QuickLeadDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
-        log.info("{}", application);
+        log.info("{}", quickLeadDTO);
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
-            application = (Application) mapValue.get("ApplicationDTO");
-            application.setAutomationAcc(accountDTO.getUserName());
-            QuickLead quickLead = application.getQuickLead();
-            //mongoTemplate.save(application);
+            quickLeadDTO = (QuickLeadDTO) mapValue.get("QuickLeadDTOList");
+            quickLeadDTO.setAutomationAcc(accountDTO.getUserName());
+            QuickLeadDetails quickLead = quickLeadDTO.getQuickLead();
 
 
             //*************************** END GET DATA *********************//
@@ -7827,44 +7870,45 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
-            quickLeadPage.setData(quickLead);
+            QuickLeadEntryPage quickLeadEntryPage = new QuickLeadEntryPage(driver);
+            quickLeadEntryPage.setData(quickLead);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEADS GRID";
             // ========== LEAD PAGE =================
-            LeadsPage leadsPage = new LeadsPage(driver);
+            LeadGridPage leadGridPage = new LeadGridPage(driver);
             await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
             await("notifyTextElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
+                    .until(() -> leadGridPage.getNotifyTextElement().isEnabled() && leadGridPage.getNotifyTextElement().isDisplayed());
 
-            String notify = leadsPage.getNotifyTextElement().getText();
+            String notify = leadGridPage.getNotifyTextElement().getText();
             String leadApp = "";
+
             if (notify.contains("LEAD")) {
                 leadApp = notify.substring(notify.indexOf("LEAD"), notify.length());
             }
 
-            System.out.println("LEAD APP: =>" + leadApp);
-            leadsPage.setData(leadApp);
+            System.out.println("LEAD APP: => " + leadApp);
+            leadGridPage.setData(leadApp);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEAD STAGE";
             // ========== LEAD STAGE =================
-            LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
+            LeadPage leadPage = new LeadPage(driver);
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadDetailPage.getContentElement().isDisplayed());
+                    .until(() -> leadPage.getContentElement().isDisplayed());
 
-            boolean flagResult = leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
+            boolean flagResult = leadPage.setData(quickLead, leadApp, downdloadFileURL);
 
             if (flagResult == false) {
-                application.setApplicationId("UNKNOW");
-                application.setStatus("ERROR");
-                application.setStage(stage);
-                application.setDescription("File not enough!!!");
+                quickLeadDTO.setApplicationId("UNKNOW");
+                quickLeadDTO.setStatus("ERROR");
+                quickLeadDTO.setStage(stage);
+                quickLeadDTO.setDescription("File not enough!!!");
                 return;
             }
 
@@ -7873,20 +7917,18 @@ public class AutomationHandlerService {
             await("Lead Page timeout").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
-            leadsPage.getSpanAllNotifyElement().click();
+            leadGridPage.getSpanAllNotifyElement().click();
             await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
+                    .until(() -> leadGridPage.getDivAllNotifyElement().isEnabled() && leadGridPage.getDivAllNotifyElement().isDisplayed());
 
             await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
-            leadsPage.getBtnAllNotifyElement().click();
+                    .until(() -> leadGridPage.getBtnAllNotifyElement().isEnabled() && leadGridPage.getBtnAllNotifyElement().isDisplayed());
+            leadGridPage.getBtnAllNotifyElement().click();
 
             Utilities.captureScreenShot(driver);
             await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
+                    .until(() -> leadGridPage.getNotifyTextSuccessElement().size() > 0);
 
-//            String leadAppID = "";
-            //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
             homePage.getMenuApplicationElement().click();
@@ -7908,22 +7950,42 @@ public class AutomationHandlerService {
 
             //-------------------- END ---------------------------
 
-            application.setApplicationId(leadAppID);
-            application.setLeadApp(leadApp);
+            quickLeadDTO.setApplicationId(leadAppID);
+            quickLeadDTO.setLeadApp(leadApp);
 
             //UPDATE STATUS
-            application.setStatus("QUICKLEAD PASS");
-            application.setDescription("Thanh cong" + " - Session: " + session);
+            quickLeadDTO.setStatus("QUICKLEAD PASS");
+            quickLeadDTO.setDescription("Thanh cong" + " - Session: " + session);
 
+            //region //*****Update Automation Monitor*****//
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplication"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("description", "QUICKLEAD_PASS");
+            updateAutoMonitor.set("flagStatus", 2);
+            updateAutoMonitor.set("status", "COMPLETED");
+            mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            //endregion
 
             Utilities.captureScreenShot(driver);
-            //logout(driver);
 
         } catch (Exception e) {
             //UPDATE STATUS
-            application.setStatus("QUICKLEAD FAIL");
-            application.setStage(stage);
-            application.setDescription(e.getMessage());
+            quickLeadDTO.setStatus("QUICKLEAD_FAILED");
+            quickLeadDTO.setStage(stage);
+            quickLeadDTO.setDescription(e.getMessage());
+
+            //region //*****Update Automation Monitor*****//
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplication"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("description", "QUICKLEAD_FAIL - Error: " + e.getMessage() + " - Session: " + session);
+            updateAutoMonitor.set("flagStatus", 3);
+            updateAutoMonitor.set("status", "AUTO_QUICKLEAD_FAIL");
+            mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            //endregion
 
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -7931,46 +7993,233 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
         } finally {
-            if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
-                application.setApplicationId("UNKNOW");
-                application.setStatus("QUICKLEAD_FAILED");
-                if (!"File not enough!!!".equals(application.getDescription())) {
-                    application.setDescription("Khong thanh cong" + " - Session: " + session + " - LEADID" + leadAppID);
+            if (quickLeadDTO.getApplicationId() == null || quickLeadDTO.getApplicationId().isEmpty() || quickLeadDTO.getApplicationId().indexOf("LEAD") > 0 || quickLeadDTO.getApplicationId().indexOf("APPL") < 0) {
+                quickLeadDTO.setApplicationId("UNKNOWN");
+                quickLeadDTO.setStatus("QUICKLEAD_FAILED");
+                if (!"File not enough!!!".equals(quickLeadDTO.getDescription())) {
+                    quickLeadDTO.setDescription("Khong thanh cong" + " - Session: " + session + " - LEADID" + leadAppID);
                 }else{
-                    application.setDescription(application.getDescription() + " - Session: " + session);
+                    quickLeadDTO.setDescription(quickLeadDTO.getDescription() + " - Session: " + session);
                 }
             }
 
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             try {
-                LEADGATEWAY_updateStatusRabbit(application, "updateAutomation", "leadgateaway");
+                responseUpdateAutomation(quickLeadDTO, "updateAutomation");
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
-            LEADGATEWAY_updateDB(application);
+            updateSaveDB(quickLeadDTO);
             logoutFinOne(driver, accountDTO);
-            updateAccountFromMongoDB(accountDTO, "LEADGATEAWAY");
+            updateAccountFromMongoDB(accountDTO, quickLeadDTO.getProject().toUpperCase());
         }
     }
+    //endregion
+    //region //******ASSIGN VENDOR******//
+    public void runAutomation_QuickLeadApplication_Vendor(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        Instant start = Instant.now();
+        String stage = "";
+        String leadAppID = "";
+        QuickLeadDTO quickLeadDTO = QuickLeadDTO.builder().build();
+        SessionId session = ((RemoteWebDriver) driver).getSessionId();
+        log.info("{}", quickLeadDTO);
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            quickLeadDTO = (QuickLeadDTO) mapValue.get("QuickLeadDTOList");
+            quickLeadDTO.setAutomationAcc(accountDTO.getUserName());
+            QuickLeadDetails quickLead = quickLeadDTO.getQuickLead();
+            //*************************** END GET DATA *********************//
+            System.out.println(stage + ": DONE");
+            stage = "LOGIN FINONE";
 
-    private void LEADGATEWAY_updateStatusRabbit(Application application, String func, String project) throws Exception {
+            LoginV2Page loginPage = new LoginV2Page(driver);
+            loginPage.loginValue(accountDTO);
 
-        JsonNode jsonNode = rabbitMQService.sendAndReceive(rabbitIdRes,
-                Map.of("func", "updateAutomation", "reference_id", application.getReference_id(), "body", Map.of("app_id", application.getApplicationId() != null ? application.getApplicationId() : "",
-                        "project", project,
-                        "automation_result", application.getStatus(),
-                        "description", application.getDescription() != null ? application.getDescription() : "",
-                        "transaction_id", application.getQuickLeadId(),
-                        "automation_account", application.getAutomationAcc())));
-        System.out.println("rabit:=>" + jsonNode.toString());
+            //***************************//END LOGIN//***************************//
 
-    }
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
 
-    private void LEADGATEWAY_updateDB(Application application) throws Exception {
-        mongoTemplate.save(application);
+            stage = "HOME PAGE";
+            HomePage homePage = new HomePage(driver);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "QUICK LEAD";
+            // ========== QUICK LEAD =================
+            homePage.menuClick();
+            homePage.leadQuickClick();
+
+            await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Quick Lead Entry"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
+            QuickLeadEntryPage quickLeadEntryPage = new QuickLeadEntryPage(driver);
+            quickLeadEntryPage.setData(quickLead);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "LEADS GRID";
+            // ========== LEAD PAGE =================
+            LeadGridPage leadGridPage = new LeadGridPage(driver);
+            await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Lead Grid"));
+
+            await("notifyTextElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadGridPage.getNotifyTextElement().isEnabled() && leadGridPage.getNotifyTextElement().isDisplayed());
+
+            String notify = leadGridPage.getNotifyTextElement().getText();
+            String leadApp = "";
+
+            if (notify.contains("LEAD")) {
+                leadApp = notify.substring(notify.indexOf("LEAD"), notify.length());
+            }
+
+            System.out.println("LEAD APP: => " + leadApp);
+            leadGridPage.setData(leadApp);
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "LEAD STAGE";
+            // ========== LEAD STAGE =================
+            LeadPage leadPage = new LeadPage(driver);
+            await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadPage.getContentElement().isDisplayed());
+
+            boolean flagResult = leadPage.setData(quickLead, leadApp, downdloadFileURL);
+
+            if (flagResult == false) {
+                quickLeadDTO.setApplicationId("UNKNOW");
+                quickLeadDTO.setStatus("ERROR");
+                quickLeadDTO.setStage(stage);
+                quickLeadDTO.setDescription("File not enough!!!");
+                return;
+            }
+
+            Utilities.captureScreenShot(driver);
+
+            await("Lead Page timeout").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Lead Grid"));
+
+            leadGridPage.getSpanAllNotifyElement().click();
+            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadGridPage.getDivAllNotifyElement().isEnabled() && leadGridPage.getDivAllNotifyElement().isDisplayed());
+
+            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadGridPage.getBtnAllNotifyElement().isEnabled() && leadGridPage.getBtnAllNotifyElement().isDisplayed());
+            leadGridPage.getBtnAllNotifyElement().click();
+
+            Utilities.captureScreenShot(driver);
+            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> leadGridPage.getNotifyTextSuccessElement().size() > 0);
+
+            stage = "APPLICATION MANAGER";
+            // ========== APPLICATION MANAGER =================
+            homePage.getMenuApplicationElement().click();
+            homePage.getApplicationManagerElement().click();
+            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Manager"));
+
+            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+            //get appID moi o day
+            leadAppID = de_applicationManagerPage.getAppID(leadApp);
+            System.out.println("APP: => " + leadAppID);
+
+            //******update thêm phần assign về acc tạo app để tranh rơi vào pool******//
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
+
+            de_applicationManagerPage.getBackBtnElement().click();
+
+            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
+            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
+            //******END******//
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            //-------------------- END ---------------------------
+
+            quickLeadDTO.setApplicationId(leadAppID);
+            quickLeadDTO.setLeadApp(leadApp);
+
+            //UPDATE STATUS
+            quickLeadDTO.setStatus("QUICKLEAD PASS");
+            quickLeadDTO.setDescription("Thanh cong" + " - Session: " + session);
+
+            //region //*****Update Automation Monitor*****//
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplicationVendor"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("description", "QUICKLEAD_PASS");
+            updateAutoMonitor.set("flagStatus", 2);
+            updateAutoMonitor.set("status", "COMPLETED");
+            mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            //endregion
+
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+            //UPDATE STATUS
+            quickLeadDTO.setStatus("QUICKLEAD_FAILED");
+            quickLeadDTO.setStage(stage);
+            quickLeadDTO.setDescription(e.getMessage());
+
+            //region //*****Update Automation Monitor*****//
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplicationVendor"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("description", "QUICKLEAD_FAIL - Error: " + e.getMessage() + " - Session: " + session);
+            updateAutoMonitor.set("flagStatus", 3);
+            updateAutoMonitor.set("status", "AUTO_QUICKLEAD_FAIL");
+            mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            //endregion
+
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+
+        } finally {
+            if (quickLeadDTO.getApplicationId() == null || quickLeadDTO.getApplicationId().isEmpty() || quickLeadDTO.getApplicationId().indexOf("LEAD") > 0 || quickLeadDTO.getApplicationId().indexOf("APPL") < 0) {
+                quickLeadDTO.setApplicationId("UNKNOWN");
+                quickLeadDTO.setStatus("QUICKLEAD_FAILED");
+                if (!"File not enough!!!".equals(quickLeadDTO.getDescription())) {
+                    quickLeadDTO.setDescription("Khong thanh cong" + " - Session: " + session + " - LEADID" + leadAppID);
+                }else{
+                    quickLeadDTO.setDescription(quickLeadDTO.getDescription() + " - Session: " + session);
+                }
+            }
+
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            try {
+                responseUpdateAutomation(quickLeadDTO, "updateAutomation");
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            }
+            updateSaveDB(quickLeadDTO);
+            logoutFinOne(driver, accountDTO);
+            updateAccountFromMongoDB(accountDTO, quickLeadDTO.getProject().toUpperCase());
+        }
     }
     //endregion
+    private void updateSaveDB(QuickLeadDTO quickLeadDTO) throws Exception {
+        mongoTemplate.save(quickLeadDTO);
+    }
     //endregion
 
     //region FUNCTION RETURN_QUERY
@@ -8134,12 +8383,12 @@ public class AutomationHandlerService {
             loginPage.loginValue(accountDTO);
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getAppId());
+            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getApplicationId());
             //***************************//END LOGIN//***************************//
 
             //*************************** UPDATE STATUS DATA *********************//
             Query query = new Query();
-            query.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(0).and("appId").is(saleQueueDTO.getAppId()).and("project").is(saleQueueDTO.getProject()));
+            query.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(0).and("appId").is(saleQueueDTO.getApplicationId()).and("project").is(saleQueueDTO.getProject()));
             Update update = new Update();
             update.set("userAuto", accountDTO.getUserName());
             update.set("status", 2);
@@ -8154,9 +8403,9 @@ public class AutomationHandlerService {
             await("Application Manager Page loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
-            applicationManagerPage.setData(saleQueueDTO.getAppId(), accountDTO.getUserName());
+            applicationManagerPage.setData(saleQueueDTO.getApplicationId(), accountDTO.getUserName());
 
-            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getAppId());
+            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getApplicationId());
 
             stage = "SALE QUEUE";
             SaleQueuePage saleQueuePage = new SaleQueuePage(driver);
@@ -8173,13 +8422,13 @@ public class AutomationHandlerService {
             await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> checkMoveNextStage > 0);
 
-            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getAppId());
+            System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getApplicationId());
 
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(saleQueueDTO.getUserCreatedSalesQueue())) {
 //                ApplicationManagerPage de_applicationManagerPage = new ApplicationManagerPage(driver);
                 //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
-                if (!saleQueueDTO.getDataDocuments().stream().filter(c -> c.getDocumentName().contains("(ACCA)")).findAny().isPresent()) {
+                if (!saleQueueDTO.getDocuments().stream().filter(c -> c.getDocumentName().contains("(ACCA)")).findAny().isPresent()) {
                     applicationManagerPage.getMenuApplicationElement().click();
 
                     applicationManagerPage.getApplicationManagerElement().click();
@@ -8190,7 +8439,7 @@ public class AutomationHandlerService {
                     await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Manager"));
 
-                    applicationManagerPage.assignNotACCA(saleQueueDTO.getAppId(), accountDTO.getUserName());
+                    applicationManagerPage.assignNotACCA(saleQueueDTO.getApplicationId(), accountDTO.getUserName());
 
                     applicationManagerPage.getMenuApplicationElement().click();
 
@@ -8201,12 +8450,12 @@ public class AutomationHandlerService {
 
                     applicationManagerPage.getApplicationAssignedNumberElement().clear();
 
-                    applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(saleQueueDTO.getAppId());
+                    applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(saleQueueDTO.getApplicationId());
 
                     await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> applicationManagerPage.getTbApplicationAssignedElement().size() > 2);
 
-                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + saleQueueDTO.getAppId() + "')]"));
+                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + saleQueueDTO.getApplicationId() + "')]"));
 
                     await("webAssignElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> applicationIdAssignedNumberElement.isDisplayed());
@@ -8225,7 +8474,7 @@ public class AutomationHandlerService {
                     await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Manager"));
 
-                    applicationManagerPage.getApplicationNumberElement().sendKeys(saleQueueDTO.getAppId());
+                    applicationManagerPage.getApplicationNumberElement().sendKeys(saleQueueDTO.getApplicationId());
 
                     applicationManagerPage.getSearchApplicationElement().click();
 
@@ -8251,17 +8500,28 @@ public class AutomationHandlerService {
                 await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Manager"));
                 //Service Acc đang lấy cho team DE tại ngày 04/09/2020
-                de_applicationManagerPage.setData(saleQueueDTO.getAppId(), "serviceacc_ldl");
+                de_applicationManagerPage.setData(saleQueueDTO.getApplicationId(), "serviceacc_ldl");
             }
 
             saleQueueDTO.setStatus("OK");
             saleQueueDTO.setUserAuto(accountDTO.getUserName());
 
             responseModel.setProject(saleQueueDTO.getProject());
-            responseModel.setReference_id(saleQueueDTO.getReference_id());
-            responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
-            responseModel.setApp_id(saleQueueDTO.getAppId());
+            responseModel.setReference_id(saleQueueDTO.getReferenceId());
+            responseModel.setTransaction_id(saleQueueDTO.getTransactionId());
+            responseModel.setApp_id(saleQueueDTO.getApplicationId());
             responseModel.setAutomation_result("SALEQUEUE PASS");
+
+            //region //*****Update Automation Monitor*****//
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(saleQueueDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(saleQueueDTO.getProject()).and("funcAutomation").is("saleQueue"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("description", "SALEQUEUE_PASS");
+            updateAutoMonitor.set("flagStatus", 2);
+            updateAutoMonitor.set("status", "COMPLETED");
+            mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            //endregion
 
             Utilities.captureScreenShot(driver);
 
@@ -8270,10 +8530,21 @@ public class AutomationHandlerService {
             saleQueueDTO.setUserAuto(accountDTO.getUserName());
 
             responseModel.setProject(saleQueueDTO.getProject());
-            responseModel.setReference_id(saleQueueDTO.getReference_id());
-            responseModel.setTransaction_id(saleQueueDTO.getTransaction_id());
-            responseModel.setApp_id(saleQueueDTO.getAppId());
+            responseModel.setReference_id(saleQueueDTO.getReferenceId());
+            responseModel.setTransaction_id(saleQueueDTO.getTransactionId());
+            responseModel.setApp_id(saleQueueDTO.getApplicationId());
             responseModel.setAutomation_result("SALEQUEUE FAILED" + " - " + e.getMessage() + " - Session: " + session);
+
+            //region //*****Update Automation Monitor*****//
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(saleQueueDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(saleQueueDTO.getProject()).and("funcAutomation").is("saleQueue"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("description", "SALEQUEUE_FAIL - Error: " + e.getMessage() + " - Session: " + session);
+            updateAutoMonitor.set("flagStatus", 3);
+            updateAutoMonitor.set("status", "AUTO_SALEQUEUE_FAIL");
+            mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            //endregion
 
             System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
@@ -8286,10 +8557,11 @@ public class AutomationHandlerService {
             mongoTemplate.save(saleQueueDTO);
             logoutFinOne(driver, accountDTO);
             updateAccountFromMongoDB(accountDTO, saleQueueDTO.getProject().toUpperCase());
-            autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            responseUpdateAutomation(responseModel, "updateAutomation");
         }
     }
     //******endregion
 
     //endregion
+
 }

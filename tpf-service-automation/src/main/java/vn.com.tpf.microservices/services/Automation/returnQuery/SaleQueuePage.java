@@ -2,7 +2,6 @@ package vn.com.tpf.microservices.services.Automation.returnQuery;
 
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -108,13 +107,13 @@ public class SaleQueuePage {
 
         applicationAssignedNumberElement.clear();
 
-        applicationAssignedNumberElement.sendKeys(saleQueueDTO.getAppId());
+        applicationAssignedNumberElement.sendKeys(saleQueueDTO.getApplicationId());
 
         with().pollInterval(Duration.FIVE_SECONDS).
         await("Application Id Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + saleQueueDTO.getAppId() + "')]"));
+        WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + saleQueueDTO.getApplicationId() + "')]"));
 
         applicationIdAssignedNumberElement.click();
 
@@ -148,7 +147,7 @@ public class SaleQueuePage {
 
         System.out.println("LOAD TABLE DOCUMENT" + " => DONE");
 
-        for (SaleQueueDocumentDTO documentList : saleQueueDTO.getDataDocuments()) {
+        for (SaleQueueDocumentDTO documentList : saleQueueDTO.getDocuments()) {
 
             WebElement documentStatusElement2 = _driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + documentList.getDocumentName() + "')]//select[starts-with(@id,'applicationDocument_receiveState')]"));
 
@@ -188,7 +187,7 @@ public class SaleQueuePage {
 
         Utilities.captureScreenShot(_driver);
 
-        await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSearchDocumentElement.isDisplayed());
 
         System.out.println("SAVE DOCUMENT" + " => DONE");
@@ -209,7 +208,7 @@ public class SaleQueuePage {
         await("Document Text Comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTextCommentElement.isDisplayed());
 
-        documentTextCommentElement.sendKeys(saleQueueDTO.getCommentText());
+        documentTextCommentElement.sendKeys(saleQueueDTO.getComments());
 
         documentBtnAddCommnetElement.click();
 
