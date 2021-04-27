@@ -7830,7 +7830,9 @@ public class AutomationHandlerService {
         Instant start = Instant.now();
         String stage = "";
         String leadAppID = "";
+        String automationMonitorId = "";
         QuickLeadDTO quickLeadDTO = QuickLeadDTO.builder().build();
+        AutomationMonitorDTO automationMonitorDTO = AutomationMonitorDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
         log.info("{}", quickLeadDTO);
         try {
@@ -7840,8 +7842,16 @@ public class AutomationHandlerService {
             quickLeadDTO.setAutomationAcc(accountDTO.getUserName());
             QuickLeadDetails quickLead = quickLeadDTO.getQuickLead();
 
-
             //*************************** END GET DATA *********************//
+
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("quickLeadId").is(quickLeadDTO.getQuickLeadId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplication"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("flagStatus", 2);
+            automationMonitorDTO = mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            automationMonitorId = automationMonitorDTO.getId();
+
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
 
@@ -7958,12 +7968,13 @@ public class AutomationHandlerService {
             quickLeadDTO.setDescription("Thanh cong" + " - Session: " + session);
 
             //region //*****Update Automation Monitor*****//
-            Query querAutoMonitor = new Query();
-            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplication"));
-            Update updateAutoMonitor = new Update();
+            querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("_id").is(new ObjectId(automationMonitorId)).and("quickLeadId").is(quickLeadDTO.getQuickLeadId()).and("flagStatus").is(2).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplication"));
+            updateAutoMonitor = new Update();
             updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("applicationId", quickLeadDTO.getApplicationId());
             updateAutoMonitor.set("description", "QUICKLEAD_PASS");
-            updateAutoMonitor.set("flagStatus", 2);
+            updateAutoMonitor.set("flagStatus", 1);
             updateAutoMonitor.set("status", "COMPLETED");
             mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
             //endregion
@@ -7978,11 +7989,13 @@ public class AutomationHandlerService {
 
             //region //*****Update Automation Monitor*****//
             Query querAutoMonitor = new Query();
-            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplication"));
+            querAutoMonitor.addCriteria(Criteria.where("_id").is(new ObjectId(automationMonitorId)).and("quickLeadId").is(quickLeadDTO.getQuickLeadId()).and("flagStatus").is(2).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplication"));
             Update updateAutoMonitor = new Update();
             updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("applicationId", quickLeadDTO.getApplicationId());
             updateAutoMonitor.set("description", "QUICKLEAD_FAIL - Error: " + e.getMessage() + " - Session: " + session);
             updateAutoMonitor.set("flagStatus", 3);
+            updateAutoMonitor.set("flagRetry", 1);
             updateAutoMonitor.set("status", "AUTO_QUICKLEAD_FAIL");
             mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
             //endregion
@@ -8016,12 +8029,15 @@ public class AutomationHandlerService {
         }
     }
     //endregion
+
     //region //******ASSIGN VENDOR******//
     public void runAutomation_QuickLeadApplication_Vendor(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
         String stage = "";
         String leadAppID = "";
+        String automationMonitorId = "";
         QuickLeadDTO quickLeadDTO = QuickLeadDTO.builder().build();
+        AutomationMonitorDTO automationMonitorDTO = AutomationMonitorDTO.builder().build();
         SessionId session = ((RemoteWebDriver) driver).getSessionId();
         log.info("{}", quickLeadDTO);
         try {
@@ -8030,7 +8046,17 @@ public class AutomationHandlerService {
             quickLeadDTO = (QuickLeadDTO) mapValue.get("QuickLeadDTOList");
             quickLeadDTO.setAutomationAcc(accountDTO.getUserName());
             QuickLeadDetails quickLead = quickLeadDTO.getQuickLead();
+
             //*************************** END GET DATA *********************//
+
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("quickLeadId").is(quickLeadDTO.getQuickLeadId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplicationVendor"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("flagStatus", 2);
+            automationMonitorDTO = mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            automationMonitorId = automationMonitorDTO.getId();
+
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
 
@@ -8159,12 +8185,13 @@ public class AutomationHandlerService {
             quickLeadDTO.setDescription("Thanh cong" + " - Session: " + session);
 
             //region //*****Update Automation Monitor*****//
-            Query querAutoMonitor = new Query();
-            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplicationVendor"));
-            Update updateAutoMonitor = new Update();
+            querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("_id").is(new ObjectId(automationMonitorId)).and("quickLeadId").is(quickLeadDTO.getQuickLeadId()).and("flagStatus").is(2).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplicationVendor"));
+            updateAutoMonitor = new Update();
             updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("applicationId", quickLeadDTO.getApplicationId());
             updateAutoMonitor.set("description", "QUICKLEAD_PASS");
-            updateAutoMonitor.set("flagStatus", 2);
+            updateAutoMonitor.set("flagStatus", 1);
             updateAutoMonitor.set("status", "COMPLETED");
             mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
             //endregion
@@ -8179,11 +8206,13 @@ public class AutomationHandlerService {
 
             //region //*****Update Automation Monitor*****//
             Query querAutoMonitor = new Query();
-            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(quickLeadDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplicationVendor"));
+            querAutoMonitor.addCriteria(Criteria.where("_id").is(new ObjectId(automationMonitorId)).and("quickLeadId").is(quickLeadDTO.getQuickLeadId()).and("flagStatus").is(2).and("project").is(quickLeadDTO.getProject()).and("funcAutomation").is("quickLeadApplicationVendor"));
             Update updateAutoMonitor = new Update();
             updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("applicationId", quickLeadDTO.getApplicationId());
             updateAutoMonitor.set("description", "QUICKLEAD_FAIL - Error: " + e.getMessage() + " - Session: " + session);
             updateAutoMonitor.set("flagStatus", 3);
+            updateAutoMonitor.set("flagRetry", 1);
             updateAutoMonitor.set("status", "AUTO_QUICKLEAD_FAIL");
             mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
             //endregion
@@ -8217,6 +8246,7 @@ public class AutomationHandlerService {
         }
     }
     //endregion
+
     private void updateSaveDB(QuickLeadDTO quickLeadDTO) throws Exception {
         mongoTemplate.save(quickLeadDTO);
     }
@@ -8365,8 +8395,10 @@ public class AutomationHandlerService {
         Instant start = Instant.now();
         String stage = "";
         String idMongoDb = "";
+        String automationMonitorId = "";
         SessionId session = ((RemoteWebDriver)driver).getSessionId();
         SaleQueueDTO saleQueueDTO = SaleQueueDTO.builder().build();
+        AutomationMonitorDTO automationMonitorDTO = AutomationMonitorDTO.builder().build();
         try {
             stage = "INIT DATA";
             //*************************** INSERT DATA *********************//
@@ -8374,7 +8406,25 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             SaleQueueDTO idMongoDB = mongoTemplate.insert(saleQueueDTO);
             idMongoDb = idMongoDB.getId();
+
             //*************************** INSERT DATA - DONE *********************//
+
+            //*************************** UPDATE STATUS DATA *********************//
+            Query querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(saleQueueDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(saleQueueDTO.getProject()).and("funcAutomation").is("saleQueue"));
+            Update updateAutoMonitor = new Update();
+            updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
+            updateAutoMonitor.set("flagStatus", 2);
+            automationMonitorDTO = mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
+            automationMonitorId = automationMonitorDTO.getId();
+
+            Query querySaleQueue = new Query();
+            querySaleQueue.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(0).and("appId").is(saleQueueDTO.getApplicationId()).and("project").is(saleQueueDTO.getProject()));
+            Update updateSaleQueue = new Update();
+            updateSaleQueue.set("userAuto", accountDTO.getUserName());
+            updateSaleQueue.set("status", 2);
+            mongoTemplate.findAndModify(querySaleQueue, updateSaleQueue, SaleQueueDTO.class);
+            //*************************** END UPDATE STATUS DATA *********************//
 
             stage = "LOGIN FINONE";
 
@@ -8386,14 +8436,6 @@ public class AutomationHandlerService {
             System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getApplicationId());
             //***************************//END LOGIN//***************************//
 
-            //*************************** UPDATE STATUS DATA *********************//
-            Query query = new Query();
-            query.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(0).and("appId").is(saleQueueDTO.getApplicationId()).and("project").is(saleQueueDTO.getProject()));
-            Update update = new Update();
-            update.set("userAuto", accountDTO.getUserName());
-            update.set("status", 2);
-            mongoTemplate.findAndModify(query, update, SaleQueueDTO.class);
-            //*************************** END UPDATE STATUS DATA *********************//
             // ========== SALE QUEUE =================
             stage = "APPLICATION MANAGER";
             ApplicationManagerPage applicationManagerPage = new ApplicationManagerPage(driver);
@@ -8503,22 +8545,26 @@ public class AutomationHandlerService {
                 de_applicationManagerPage.setData(saleQueueDTO.getApplicationId(), "serviceacc_ldl");
             }
 
-            saleQueueDTO.setStatus("OK");
-            saleQueueDTO.setUserAuto(accountDTO.getUserName());
-
             responseModel.setProject(saleQueueDTO.getProject());
             responseModel.setReference_id(saleQueueDTO.getReferenceId());
             responseModel.setTransaction_id(saleQueueDTO.getTransactionId());
             responseModel.setApp_id(saleQueueDTO.getApplicationId());
             responseModel.setAutomation_result("SALEQUEUE PASS");
 
+            querySaleQueue = new Query();
+            querySaleQueue.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(2).and("appId").is(saleQueueDTO.getApplicationId()).and("project").is(saleQueueDTO.getProject()));
+            updateSaleQueue = new Update();
+            updateSaleQueue.set("userAuto", accountDTO.getUserName());
+            updateSaleQueue.set("status", 1);
+            mongoTemplate.findAndModify(querySaleQueue, updateSaleQueue, SaleQueueDTO.class);
+
             //region //*****Update Automation Monitor*****//
-            Query querAutoMonitor = new Query();
-            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(saleQueueDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(saleQueueDTO.getProject()).and("funcAutomation").is("saleQueue"));
-            Update updateAutoMonitor = new Update();
+            querAutoMonitor = new Query();
+            querAutoMonitor.addCriteria(Criteria.where("_id").is(new ObjectId(automationMonitorId)).and("applicationId").is(saleQueueDTO.getApplicationId()).and("flagStatus").is(2).and("project").is(saleQueueDTO.getProject()).and("funcAutomation").is("saleQueue"));
+            updateAutoMonitor = new Update();
             updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
             updateAutoMonitor.set("description", "SALEQUEUE_PASS");
-            updateAutoMonitor.set("flagStatus", 2);
+            updateAutoMonitor.set("flagStatus", 1);
             updateAutoMonitor.set("status", "COMPLETED");
             mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
             //endregion
@@ -8526,8 +8572,12 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
         } catch (Exception e) {
-            saleQueueDTO.setStatus("ERROR");
-            saleQueueDTO.setUserAuto(accountDTO.getUserName());
+            Query querySaleQueue = new Query();
+            querySaleQueue.addCriteria(Criteria.where("_id").is(new ObjectId(idMongoDb)).and("status").is(2).and("appId").is(saleQueueDTO.getApplicationId()).and("project").is(saleQueueDTO.getProject()));
+            Update updateSaleQueue = new Update();
+            updateSaleQueue.set("userAuto", accountDTO.getUserName());
+            updateSaleQueue.set("status", 3);
+            mongoTemplate.findAndModify(querySaleQueue, updateSaleQueue, SaleQueueDTO.class);
 
             responseModel.setProject(saleQueueDTO.getProject());
             responseModel.setReference_id(saleQueueDTO.getReferenceId());
@@ -8537,11 +8587,12 @@ public class AutomationHandlerService {
 
             //region //*****Update Automation Monitor*****//
             Query querAutoMonitor = new Query();
-            querAutoMonitor.addCriteria(Criteria.where("applicationId").is(saleQueueDTO.getApplicationId()).and("flagStatus").is(0).and("project").is(saleQueueDTO.getProject()).and("funcAutomation").is("saleQueue"));
+            querAutoMonitor.addCriteria(Criteria.where("_id").is(new ObjectId(automationMonitorId)).and("applicationId").is(saleQueueDTO.getApplicationId()).and("flagStatus").is(2).and("project").is(saleQueueDTO.getProject()).and("funcAutomation").is("saleQueue"));
             Update updateAutoMonitor = new Update();
             updateAutoMonitor.set("accountAuto", accountDTO.getUserName());
             updateAutoMonitor.set("description", "SALEQUEUE_FAIL - Error: " + e.getMessage() + " - Session: " + session);
             updateAutoMonitor.set("flagStatus", 3);
+            updateAutoMonitor.set("flagRetry", 1);
             updateAutoMonitor.set("status", "AUTO_SALEQUEUE_FAIL");
             mongoTemplate.findAndModify(querAutoMonitor, updateAutoMonitor, AutomationMonitorDTO.class);
             //endregion

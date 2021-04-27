@@ -21,7 +21,7 @@ public class SaleQueueDTO {
     private String referenceId;
     private String transactionId;
     private String userAuto;
-    private String status;
+    private int status = 0;
     private String userCreatedSalesQueue;
     private String comments;
     private String project;

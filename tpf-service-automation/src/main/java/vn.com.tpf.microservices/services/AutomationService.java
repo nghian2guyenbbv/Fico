@@ -778,8 +778,9 @@ public class AutomationService {
 		autoMonitor.setIdentificationNumber(monitorQuickLeadDTO.getQuickLead().getIdentificationNumber());
 		autoMonitor.setReferentId(monitorQuickLeadDTO.getReference_id());
 		autoMonitor.setQuickLeadId(monitorQuickLeadDTO.getQuickLeadId());
-		autoMonitor.setFuncAutomation("quickLeadApp");
+		autoMonitor.setFuncAutomation("quickLeadApplication");
 		autoMonitor.setStatus("PROCESSING");
+		autoMonitor.setProject(monitorQuickLeadDTO.getProject());
 		mongoTemplate.insert(autoMonitor);
 
 		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_quickLeadApplication", monitorQuickLeadDTO.getProject().toUpperCase());
@@ -816,6 +817,7 @@ public class AutomationService {
 		autoMonitor.setQuickLeadId(monitorQuickLeadVendorDTO.getQuickLeadId());
 		autoMonitor.setFuncAutomation("quickLeadApplicationVendor");
 		autoMonitor.setStatus("PROCESSING");
+		autoMonitor.setProject(monitorQuickLeadVendorDTO.getProject());
 		mongoTemplate.insert(autoMonitor);
 
 		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_quickLeadApplicationVendor", monitorQuickLeadVendorDTO.getProject().toUpperCase());
@@ -857,6 +859,7 @@ public class AutomationService {
 		autoMonitor.setTransactionId(monitorSaleQueueDTO.getTransactionId());
 		autoMonitor.setFuncAutomation("saleQueue");
 		autoMonitor.setStatus("PROCESSING");
+		autoMonitor.setProject(monitorSaleQueueDTO.getProject());
 		mongoTemplate.insert(autoMonitor);
 
 		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_SaleQueue", projectJson.toUpperCase());
