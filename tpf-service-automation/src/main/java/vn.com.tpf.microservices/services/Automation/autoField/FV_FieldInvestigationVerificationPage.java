@@ -45,16 +45,18 @@ public class FV_FieldInvestigationVerificationPage {
     private WebElement menuApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'FI Allocation Grid')]")
-    @CacheLookup
     private WebElement fiAllocationGridElement;
 
     @FindBy(how = How.ID, using = "fiSearchForm")
+    @CacheLookup
     private WebElement fiAllocationGridFormElement;
 
     @FindBy(how = How.ID, using = "applicationId")
+    @CacheLookup
     private WebElement fiAllocationGridApplicationNumberElement;
 
     @FindBy(how = How.XPATH, using = "//div[@class = 'row-fluid']//button[@id = 'searchApplication']")
+    @CacheLookup
     private WebElement searchFIAllocationGridElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'container-no-tpl']//table[@id = 'FiSearch']//tbody//tr//td")
@@ -62,12 +64,15 @@ public class FV_FieldInvestigationVerificationPage {
     private List<WebElement> fiAllocationGridTable;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'container-no-tpl']//table[@id = 'FiSearch']//tbody//tr//td[20]//img[@id = 'AssignTo']")
+    @CacheLookup
     private WebElement assignToFIAllocationGridElement;
 
     @FindBy(how = How.XPATH, using = "//div[@class = 'modal-scrollable']")
+    @CacheLookup
     private WebElement popupFIAllocationGridElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[@id = '-control-group']//input[contains(@class, 'agent_search_input')]")
+    @CacheLookup
     private WebElement inputSearchFIAllocationGridElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table//tbody[@id = 'agent-table-tbody']//tr[not(starts-with(@style, 'display: none;'))]//td")
@@ -75,123 +80,96 @@ public class FV_FieldInvestigationVerificationPage {
     private List<WebElement> tableSearchFIAllocationGridElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[contains(@class, 'modal-body')]//table//tbody[@id = 'agent-table-tbody']//tr[not(starts-with(@style, 'display: none;'))]//td//input")
+    @CacheLookup
     private WebElement selectFIAllocationGridElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//div[@id = 'pill-div']//span[contains(@class, 'pill-bread')]")
+    @CacheLookup
     private WebElement spanSelectUserElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'agents-modal']//button[text() = 'Done']")
+    @CacheLookup
     private WebElement doneButtonFIAllocationGridElement;
 
-
-
-
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Field Investigation Verification')]")
-    @CacheLookup
     private WebElement fieldInvestigationVerificationElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'tableParentDiv']//div[@id='fieldInvestigationEntryTable_wrapper']")
-    @CacheLookup
     private WebElement fieldInvestigationEntryElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'tableParentDiv']//div[@id='fieldInvestigationEntryTable_wrapper']//table[@id = 'fieldInvestigationEntryTable']//tbody//tr")
-    @CacheLookup
+    @FindBy(how = How.XPATH, using = "//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
     private List<WebElement> fieldInvestigationEntryTable;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'fieldInvestigationEntryTable_filter']//input[@type = 'text']")
-    @CacheLookup
     private WebElement appIdSearchInput;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'tableParentDiv']//div[@id='fieldInvestigationEntryTable_wrapper']//table[@id ='fieldInvestigationEntryTable']//tbody//tr[1]//td[2]//a[contains(text(),'Residence Verification')]")
-    @CacheLookup
+    @FindBy(how = How.XPATH, using = "//table[@id ='fieldInvestigationEntryTable']//tbody//tr[1]//td[2]//a[contains(text(),'Residence Verification')]")
     private WebElement residenceVerificationTd;
 
     @FindBy(how = How.XPATH, using = "//div[starts-with(@id, 'miscDynamicForm')]//div[starts-with(@id, 'loanInfo_miscDynamicForm_')]//div[@id = 'accordion_advSearch']")
-    @CacheLookup
     private WebElement fieldVerificationElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_Residence_Verification_')]//div[@class = 'chzn-search']//input[@type = 'text']")
-    @CacheLookup
     private WebElement resultHomeVisitInput;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_Residence_Verification_')]//ul[@class = 'chzn-results']")
-    @CacheLookup
     private WebElement resultHomeVisitUl;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_Residence_Verification_')]//ul[@class = 'chzn-results']//li[starts-with(@id, 'Result_home_visit_Residence_Verification_1_chzn_o_')]")
-    @CacheLookup
     private List<WebElement> resultHomeVisitSelect;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_office_visit_Residence_Verification_')]//div[@class = 'chzn-search']//input[@type = 'text']")
-    @CacheLookup
     private WebElement resultOfficeVisitInput;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_office_visit_Residence_Verification_')]//ul[@class = 'chzn-results']")
-    @CacheLookup
     private WebElement resultOfficeVisitUl;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_office_visit_Residence_Verification_')]//ul[@class = 'chzn-results']//li[starts-with(@id, 'Result_office_visit_Residence_Verification_2_chzn_o_')]")
-    @CacheLookup
     private List<WebElement> resultOfficeVisitSelect;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_2_Residence_Verification_')]//div[@class = 'chzn-search']//input[@type = 'text']")
-    @CacheLookup
     private WebElement resultHomeVisit2Input;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_2_Residence_Verification_')]//ul[@class = 'chzn-results']")
-    @CacheLookup
     private WebElement resultHomeVisit2Ul;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_2_Residence_Verification_')]//ul[@class = 'chzn-results']//li[starts-with(@id, 'Result_home_visit_2_Residence_Verification_3_chzn_o_')]")
-    @CacheLookup
     private List<WebElement> resultHomeVisit2Select;
 
     @FindBy(how = How.XPATH, using = "//a[@id = 'addAttachment']")
-    @CacheLookup
     private WebElement attachmentsButtonUploadA;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'noOfAttempts-control-group']//input[@id = 'noOfAttempts']")
-    @CacheLookup
     private WebElement noOfAttemptsInput;
 
     @FindBy(how = How.XPATH, using = "//form[@id = 'field_investigation_entry']//div[1]//div[2]//div[@id = 'field_investigation_entry_verification_agent-control-group']//div[@id = 'field_investigation_entry_verification_agent_chzn']//input[@type = 'text']")
-    @CacheLookup
     private WebElement verificationAgentInputElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id='field_investigation_entry_verification_agent_chzn']//ul[@class='chzn-results']")
-    @CacheLookup
     private WebElement verificationAgentUlElement;
 
     @FindBy(how = How.XPATH, using = "//li[starts-with(@id, 'field_investigation_entry_verification_agent_chzn_o_')]")
-    @CacheLookup
     private List<WebElement> verificationAgentLiElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'field_investigation_entry_verification_agent_chzn']//li[starts-with(@class, 'active-result')]")
-    @CacheLookup
     private List<WebElement> verificationAgentLiAndElement;
 
     @FindBy(how = How.XPATH, using = "//select[@id = 'field_investigation_entry_vo_verificationResult']")
-    @CacheLookup
     private WebElement resultDescriptionSelect;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'field_investigation_entry_remarks-control-group']//textarea[@id = 'field_investigation_entry_remarks']")
-    @CacheLookup
     private WebElement remarksDescriptionTextArea;
 
     @FindBy(how = How.XPATH, using = "//input[@id = 'move_to_next_stage']")
-    @CacheLookup
     private WebElement buttonSaveAndProceed;
 
     @FindBy(how = How.XPATH, using = "//input[@name = 'timeOfVisit']")
-    @CacheLookup
     private WebElement timeOfVisitElement;
 
     @FindBy(how = How.XPATH, using = "//input[@id = 'field_investigation_entry_fDate']")
-    @CacheLookup
     private WebElement verificationDateElement;
 
     @FindBy(how = How.XPATH, using = "//textarea[@id = 'field_investigation_entry_remarks']")
-    @CacheLookup
     private WebElement textareaRemarkElement;
 
 
@@ -209,8 +187,11 @@ public class FV_FieldInvestigationVerificationPage {
 
         fiAllocationGridElement.click();
 
+
         await("FI Entries Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("FI Entries Grid"));
+
+        Utilities.captureScreenShot(_driver);
 
         await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fiAllocationGridFormElement.isDisplayed());
@@ -220,6 +201,9 @@ public class FV_FieldInvestigationVerificationPage {
 
         await("Application FIAllocationGrid not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fiAllocationGridTable.size() > 2);
+
+        Utilities.captureScreenShot(_driver);
+
 
         assignToFIAllocationGridElement.click();
 
@@ -236,13 +220,7 @@ public class FV_FieldInvestigationVerificationPage {
         await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> spanSelectUserElement.isDisplayed());
 
-//        doneButtonFIAllocationGridElement.click();
-
-//        JavascriptExecutor jseBTNDone = (JavascriptExecutor)_driver;
-//        jseBTNDone.executeScript("arguments[0].click();", doneButtonFIAllocationGridElement);
-
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Done FI Allocation Grid Element visibale Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button Done FI Allocation Grid Element visibale Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> doneButtonFIAllocationGridElement.isEnabled());
 
         actions.moveToElement(doneButtonFIAllocationGridElement).click().build().perform();
@@ -251,22 +229,29 @@ public class FV_FieldInvestigationVerificationPage {
 
         System.out.println("FI ALLOCATION GRID Assigned" + ": DONE");
 
-        with().pollDelay(Duration.FIVE_SECONDS).
-        await("FI ALLOCATION GRID Assigned Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        Utilities.captureScreenShot(_driver);
+
+        with().pollDelay(Duration.FIVE_SECONDS).await("FI ALLOCATION GRID Assigned Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> menuApplicationElement.isEnabled());
 
         menuApplicationElement.click();
 
         fieldInvestigationVerificationElement.click();
+
         await("fieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fieldInvestigationEntryElement.isDisplayed());
 
         appIdSearchInput.clear();
         appIdSearchInput.sendKeys(submitFieldDTO.getAppId());
 
-        Thread.sleep(30000);
+        Utilities.captureScreenShot(_driver);
 
-        if(fieldInvestigationEntryTable.size()!=0) {
+        int sizeFieldInvestigationEntryTable = fieldInvestigationEntryTable.size();
+
+        await("ApplicationID not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> sizeFieldInvestigationEntryTable > 2);
+
+        if(sizeFieldInvestigationEntryTable > 2) {
             List<WebElement> residenceVerificationTds =_driver.findElements(new By.ByXPath("//table[@id='fieldInvestigationEntryTable']//tbody//tr//td[3][contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
             await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> residenceVerificationTds.size() > 0);
@@ -354,7 +339,8 @@ public class FV_FieldInvestigationVerificationPage {
             toFile += UUID.randomUUID().toString() + "_" + docName;
 
 
-            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+//            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile));
             File file = new File(toFile);
 
             if (file.exists()) {
@@ -409,27 +395,15 @@ public class FV_FieldInvestigationVerificationPage {
         verificationDateElement.clear();
         verificationDateElement.sendKeys(submitFieldDTO.getVerificationDate());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> buttonSaveAndProceed.isDisplayed());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> buttonSaveAndProceed.isEnabled());
 
         textareaRemarkElement.click();
 
         Thread.sleep(5000);
-
-
-//        Actions actionKey = new Actions(_driver);
-//        actionKey.sendKeys(Keys.TAB).build().perform();
-//        actionKey.sendKeys(Keys.TAB).build().perform();
-//        actionKey.sendKeys(Keys.TAB).build().perform();
-//        actionKey.sendKeys(Keys.ENTER).build().perform();
-
-//        JavascriptExecutor jseMoveToNextStage = (JavascriptExecutor)_driver;
-//        jseMoveToNextStage.executeScript("arguments[0].click();", buttonSaveAndProceed);
 
         actions.moveToElement(buttonSaveAndProceed).sendKeys(buttonSaveAndProceed, Keys.ENTER).perform();
 

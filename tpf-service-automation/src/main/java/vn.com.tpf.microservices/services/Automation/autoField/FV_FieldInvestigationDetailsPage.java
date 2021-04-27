@@ -30,7 +30,6 @@ public class FV_FieldInvestigationDetailsPage {
     private WebElement menuApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Application Manager')]")
-    @CacheLookup
     private WebElement applicationManagerElement;
 
     @FindBy(how = How.ID, using = "applicationManagerForm1")
@@ -67,23 +66,18 @@ public class FV_FieldInvestigationDetailsPage {
     private WebElement saveTaskElement;
 
     @FindBy(how = How.ID, using = "holder")
-    @CacheLookup
     private WebElement textSelectUserContainerElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
-    @CacheLookup
     private WebElement applicationElement;
 
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
-    @CacheLookup
     private WebElement applicationFormElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
-    @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
-    @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'fieldInvestigationEntryTable_wrapper']//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
@@ -102,15 +96,12 @@ public class FV_FieldInvestigationDetailsPage {
     private List<WebElement> reasonOptionElement;
 
     @FindBy(how = How.XPATH, using = "//textarea[@id = 'application_fi_verdict_decision_comments']")
-    @CacheLookup
     private WebElement decisionCommentsElement;
 
     @FindBy(how = How.XPATH, using = "//input[@id = 'field_investigation_form_waive_field_button']")
-    @CacheLookup
     private WebElement btnSaveDecisionElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
-    @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id = 'LoanApplication_Assigned']//tbody//tr//td")
@@ -120,7 +111,6 @@ public class FV_FieldInvestigationDetailsPage {
     private List<WebElement> checkMoveToNextStageElement;
 
 
-
     public FV_FieldInvestigationDetailsPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -128,8 +118,6 @@ public class FV_FieldInvestigationDetailsPage {
 
     public void setData(SubmitFieldDTO submitFieldDTO, String user) {
         String stage = "";
-
-        Actions actions = new Actions(_driver);
 
         menuApplicationElement.click();
 
@@ -147,7 +135,7 @@ public class FV_FieldInvestigationDetailsPage {
         applicationNumberElement.sendKeys(submitFieldDTO.getAppId());
         searchApplicationElement.click();
 
-        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 2);
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -168,6 +156,7 @@ public class FV_FieldInvestigationDetailsPage {
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
+
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
@@ -182,6 +171,7 @@ public class FV_FieldInvestigationDetailsPage {
                 break;
             }
         }
+
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
         System.out.println(stage + ": DONE");
@@ -200,8 +190,7 @@ public class FV_FieldInvestigationDetailsPage {
 
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("ApplicationID Find not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
         WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
@@ -249,12 +238,8 @@ public class FV_FieldInvestigationDetailsPage {
 
         System.out.println("Button Save" + ": DONE");
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
-
-//        btnMoveToNextStageElement.click();
-//        actions.moveToElement(btnMoveToNextStageElement).sendKeys(btnMoveToNextStageElement, Keys.ENTER).perform();
 
         keyActionMoveNextStage();
 
