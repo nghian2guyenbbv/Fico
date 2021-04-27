@@ -18,7 +18,12 @@ import vn.com.tpf.microservices.models.AutoCRM.CRM_SaleQueueDTO;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDTO;
+import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDetails;
+import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDetails;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
+import vn.com.tpf.microservices.models.AutomationMonitor.AutomationMonitorDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
@@ -26,6 +31,7 @@ import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.DataInitial;
 
 import javax.annotation.PostConstruct;
+import javax.management.Query;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -744,4 +750,131 @@ public class AutomationService {
 		//awaitTerminationAfterShutdown(workerThreadPool);
 	}
 	//------------------------ END - QUICKLEAD  -------------------------------------
+
+	//region FUNCTION QUICKLEAD
+	//region PROJECT LEADGATEWAY
+	public Map<String, Object> quickLeadApplication(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		Assert.notNull(request.get("body"), "no body");
+		QuickLeadDTO quickLeadDTOList = mapper.treeToValue(request.path("body"), QuickLeadDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_QuickLeadApplication(quickLeadDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, quickLeadDTOList.getQuickLead());
+	}
+
+	private void runAutomation_QuickLeadApplication(QuickLeadDTO quickLeadDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromQuickLead(quickLeadDTOList);
+
+		QuickLeadDTO monitorQuickLeadDTO = (QuickLeadDTO) mapValue.get("QuickLeadDTOList");
+		AutomationMonitorDTO autoMonitor = AutomationMonitorDTO.builder().build();
+		autoMonitor.setIdentificationNumber(monitorQuickLeadDTO.getQuickLead().getIdentificationNumber());
+		autoMonitor.setReferentId(monitorQuickLeadDTO.getReference_id());
+		autoMonitor.setQuickLeadId(monitorQuickLeadDTO.getQuickLeadId());
+		autoMonitor.setFuncAutomation("quickLeadApplication");
+		autoMonitor.setStatus("PROCESSING");
+		autoMonitor.setProject(monitorQuickLeadDTO.getProject());
+		mongoTemplate.insert(autoMonitor);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_quickLeadApplication", monitorQuickLeadDTO.getProject().toUpperCase());
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//endregion
+
+	//region PROJECT LEADGATEWAY
+	public Map<String, Object> quickLeadApplicationVendor(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		Assert.notNull(request.get("body"), "no body");
+		QuickLeadDTO quickLeadDTOList = mapper.treeToValue(request.path("body"), QuickLeadDTO.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_QuickLeadApplicationVendor(quickLeadDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, quickLeadDTOList.getQuickLead());
+	}
+
+	private void runAutomation_QuickLeadApplicationVendor(QuickLeadDTO quickLeadDTOList) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromQuickLeadVendor(quickLeadDTOList);
+
+		QuickLeadDTO monitorQuickLeadVendorDTO = (QuickLeadDTO) mapValue.get("QuickLeadDTOList");
+		AutomationMonitorDTO autoMonitor = AutomationMonitorDTO.builder().build();
+		autoMonitor.setIdentificationNumber(monitorQuickLeadVendorDTO.getQuickLead().getIdentificationNumber());
+		autoMonitor.setReferentId(monitorQuickLeadVendorDTO.getReference_id());
+		autoMonitor.setQuickLeadId(monitorQuickLeadVendorDTO.getQuickLeadId());
+		autoMonitor.setFuncAutomation("quickLeadApplicationVendor");
+		autoMonitor.setStatus("PROCESSING");
+		autoMonitor.setProject(monitorQuickLeadVendorDTO.getProject());
+		mongoTemplate.insert(autoMonitor);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_quickLeadApplicationVendor", monitorQuickLeadVendorDTO.getProject().toUpperCase());
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//endregion
+
+	//endregion
+
+	//region FUNCTION RETURN QUERY
+	//region FUNCTION SALEQUEUE
+	public Map<String, Object> saleQueue(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		SaleQueueDetails saleQueueDetailsList = mapper.treeToValue(request.path("body"), SaleQueueDetails.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_SaleQueue(saleQueueDetailsList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, saleQueueDetailsList);
+	}
+
+	private void runAutomation_SaleQueue(SaleQueueDetails saleQueueDetailsList) throws Exception {
+		String browser = "chrome";
+		String projectJson = saleQueueDetailsList.getProject();
+		Map<String, Object> mapValue = DataInitial.getData_SaleQueue(saleQueueDetailsList);
+
+		SaleQueueDTO monitorSaleQueueDTO = (SaleQueueDTO) mapValue.get("SaleQueueList");
+		AutomationMonitorDTO autoMonitor = AutomationMonitorDTO.builder().build();
+		autoMonitor.setApplicationId(monitorSaleQueueDTO.getApplicationId());
+		autoMonitor.setReferentId(monitorSaleQueueDTO.getReferenceId());
+		autoMonitor.setTransactionId(monitorSaleQueueDTO.getTransactionId());
+		autoMonitor.setFuncAutomation("saleQueue");
+		autoMonitor.setStatus("PROCESSING");
+		autoMonitor.setProject(monitorSaleQueueDTO.getProject());
+		mongoTemplate.insert(autoMonitor);
+
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_SaleQueue", projectJson.toUpperCase());
+
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+	//endregion
+	//endregion
+
+
+
+
+
+
+
+
 }

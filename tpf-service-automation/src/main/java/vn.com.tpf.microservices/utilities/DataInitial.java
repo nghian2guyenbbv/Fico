@@ -11,6 +11,9 @@ import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDetails;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
@@ -129,7 +132,8 @@ public class DataInitial {
                     .bankName(bankCreditCardDetails.getBankName())
                     .branchName(bankCreditCardDetails.getBranchName())
                     .accountNumber(bankCreditCardDetails.getAccountNumber())
-                    .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
+//                    .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
+                    .typeOfAccount("Current Account")
                     .build();
             bankCreditCardDetailsDTOList.add(bankingDetailDTO);
         }
@@ -1003,6 +1007,7 @@ public class DataInitial {
                 .gender(saleQueueList.getFullInfoApp().getGender())
                 .dateOfBirth(saleQueueList.getFullInfoApp().getDateOfBirth())
                 .nationality("Vietnamese")
+                .customerCategoryCode(saleQueueList.getFullInfoApp().getCustomerCategoryCode())
                 .maritalStatus(saleQueueList.getFullInfoApp().getMaritalStatus())
                 .build();
 
@@ -1228,4 +1233,44 @@ public class DataInitial {
         map.put("AutoAssignAllocation", autoAssignAllocationDTOs);
         return map;
     }
+
+    //region QUICKLEAD
+    public static Map<String, Object> getDataFromQuickLead(QuickLeadDTO quickLeadDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.isEmpty(quickLeadDTOList.getQuickLead().getCommunicationTranscript())){
+            quickLeadDTOList.getQuickLead().setCommunicationTranscript("dummy");
+        }
+        map.put("QuickLeadDTOList", quickLeadDTOList);
+        return map;
+    }
+
+    public static Map<String, Object> getDataFromQuickLeadVendor(QuickLeadDTO quickLeadDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.isEmpty(quickLeadDTOList.getQuickLead().getCommunicationTranscript())){
+            quickLeadDTOList.getQuickLead().setCommunicationTranscript("dummy");
+        }
+        map.put("QuickLeadDTOList", quickLeadDTOList);
+        return map;
+    }
+    //endregion
+
+    //region SALE_QUEUE
+    public static Map<String, Object> getData_SaleQueue(SaleQueueDetails saleQueueDetailsList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+
+        SaleQueueDTO saleQueueDTO = SaleQueueDTO.builder()
+                .applicationId(saleQueueDetailsList.getAppId())
+                .project(saleQueueDetailsList.getProject())
+                .transactionId(saleQueueDetailsList.getTransaction_id())
+                .comments(saleQueueDetailsList.getCommentText())
+                .referenceId(saleQueueDetailsList.getReference_id())
+                .documents(saleQueueDetailsList.getDataDocuments())
+                .userCreatedSalesQueue(StringUtils.isEmpty(saleQueueDetailsList.getUserCreatedSalesQueue())? null:saleQueueDetailsList.getUserCreatedSalesQueue())
+                .build();
+        map.put("SaleQueueList", saleQueueDTO);
+        return map;
+    }
+    //endregion
+
+
 }

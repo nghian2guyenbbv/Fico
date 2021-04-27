@@ -251,12 +251,12 @@ public class DE_ReturnSaleQueuePage {
         textSelectUserElement.sendKeys(user);
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("Select user visibale!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
         int textSelectUserList = textSelectUserOptionElement.size();
 
-        await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("User Auto not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserList > 0);
 
         for (WebElement e : textSelectUserOptionElement) {

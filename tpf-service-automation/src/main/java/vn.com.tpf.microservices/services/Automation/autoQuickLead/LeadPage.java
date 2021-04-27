@@ -1,15 +1,11 @@
-package vn.com.tpf.microservices.services.Automation;
-
+package vn.com.tpf.microservices.services.Automation.autoQuickLead;
 
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -17,9 +13,9 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
-import vn.com.tpf.microservices.models.Document;
+import vn.com.tpf.microservices.models.AutoQuickLead.DocumentDTO;
+import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDetails;
 import vn.com.tpf.microservices.models.FileUploadDoc;
-import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -33,7 +29,7 @@ import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 
 @Getter
-public class LeadDetailPage {
+public class LeadPage {
     private WebDriver _driver;
 
     @FindBy(how = How.ID, using = "simulationContentOfleadTab0")
@@ -176,16 +172,17 @@ public class LeadDetailPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'docu_jsp_include']//input[contains(@id, 'photoimg')]")
     private List<WebElement> listBtnUploadDocument;
 
-    public LeadDetailPage(WebDriver driver) {
+    public LeadPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
 
-    public boolean setData(QuickLead quickLead, String leadId,String downLoadFileURL) {
+    public boolean setData(QuickLeadDetails quickLead, String leadId, String downLoadFileURL) {
         boolean flag=true;
         try {
             ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
             Actions actions = new Actions(_driver);
+            JavascriptExecutor js= (JavascriptExecutor)_driver;
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> contentElement.isDisplayed());
 
@@ -269,7 +266,7 @@ public class LeadDetailPage {
             Utilities.captureScreenShot(_driver);
 
             with().pollInterval(Duration.FIVE_SECONDS).
-            await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentContainerElement.isDisplayed());
 
             int listButtonDoc = listBtnUploadDocument.size();
@@ -277,13 +274,7 @@ public class LeadDetailPage {
             await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> listButtonDoc > 0);
 
-            //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
-            //String toFile = SCREENSHOT_PRE_PATH_DOC;
-
-           String fromFile = downLoadFileURL;
-            //"http://192.168.0.203:3001/v1/file/"
-            //String fromFile = "http://tpf-service-file:3001/v1/file/";
-            //String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD;
+            String fromFile = downLoadFileURL;
             System.out.println("URLdownload: " + fromFile);
 
             int index = 0;
@@ -311,42 +302,33 @@ public class LeadDetailPage {
             for (WebElement element : docNameElement) {
                 final int _tempIndex = index;
                 String docName = element.getText();
-                //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
                 String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                 if (requiredFiled.contains(docName)) {
 
                     String finalDocName = docName;
-                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(finalDocName)).findAny().orElse(null);
+                    DocumentDTO doc=quickLead.documents.stream().filter(q->q.getType().equals(finalDocName)).findAny().orElse(null);
 
                     if(doc!=null)
                     {
                         //bo sung get ext file
-                        String ext=FilenameUtils.getExtension(doc.getFilename());
+                        String ext= FilenameUtils.getExtension(doc.getFilename());
 
                         if ("TPF_Transcript".equals(docName)){
                             docName = "TPF_Tran1";
                         }
 
-                        toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
+                        toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
 //                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                         FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile));
                         File file = new File(toFile);
                         if(file.exists()) {
-                            //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
                             String photoUrl = file.getAbsolutePath();
                             System.out.println("PATH: " + photoUrl);
-                            // Added sleep to make you see the difference.
                             Thread.sleep(3000);
-
                             photoElement.get(_tempIndex).sendKeys(photoUrl);
-
-                            //add object
                             listIndexDoc.add(FileUploadDoc.builder().index(_tempIndex).urlPhoto(photoUrl).build());
 
-                            //Utilities.captureScreenShot(_driver);
-//                        // Added sleep to make you see the difference.
-//                        Thread.sleep(2000);
                         }
                     }
                 }
@@ -369,27 +351,12 @@ public class LeadDetailPage {
                 flag=false;
                 return flag;
             }
-
-//            //TH thieu file
-//            while(listCheckBoxUpload.size()!=listIndexDoc.size())
-//            {
-//                for (FileUploadDoc i: listIndexDoc) {
-//                    if(checkBoxFileElement.get(i.getIndex()).getAttribute("value").equals("0"))
-//                    {
-//                        photoElement.get(i.getIndex()).sendKeys(i.getUrlPhoto());
-//                        Thread.sleep(2000);
-//                    }
-//                }
-//                saveDocBtnElement.click();
-//                await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> moveAppBtnElement.isDisplayed());
-//
-//                listCheckBoxUpload=_driver.findElements(By.xpath("//*[contains(@id, 'c_docStatus') and contains(@value,'2')]"));
-//                Utilities.captureScreenShot(_driver);
-//            }
             //------------------- End update
 
-            moveAppBtnElement.click();
+            String moveToApplicationBtnElement = _driver.findElement(By.id("moveToApplication1")).getAttribute("onclick");
+            js.executeScript(moveToApplicationBtnElement);
+
+//            moveAppBtnElement.click();
 
             Utilities.captureScreenShot(_driver);
 
@@ -401,11 +368,6 @@ public class LeadDetailPage {
                 System.out.println("modalConfirmElement visibale Timeout!");
             }
 
-//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> modalConfirmElement.isDisplayed());
-//
-//            modalBtnConfirmElement.click();
-
             Utilities.captureScreenShot(_driver);
         } catch (Exception e) {
             e.printStackTrace();
@@ -413,4 +375,3 @@ public class LeadDetailPage {
         return flag;
     }
 }
-

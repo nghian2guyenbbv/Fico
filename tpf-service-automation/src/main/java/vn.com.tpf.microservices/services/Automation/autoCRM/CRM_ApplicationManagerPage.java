@@ -167,12 +167,12 @@ public class CRM_ApplicationManagerPage {
         textSelectUserElement.sendKeys(user);
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("Select user enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
         int listUserOption = textSelectUserOptionElement.size();
 
-        await("No User Auto Found timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("No User Auto Found timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> listUserOption > 0);
 
         for (WebElement eUserName : textSelectUserOptionElement) {
