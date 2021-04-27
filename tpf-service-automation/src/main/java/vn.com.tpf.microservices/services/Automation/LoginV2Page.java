@@ -39,21 +39,20 @@ public class LoginV2Page {
 
     public void loginValue(LoginDTO accountDTO) {
 
-        Actions actions = new Actions(_driver);
-
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Textbox Username Visibale Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> userNameElement.isDisplayed());
+        with().pollInterval(Duration.FIVE_SECONDS).await("Textbox Username Visibale Timeout!!!")
+                .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> userNameElement.isDisplayed());
 
         userNameElement.sendKeys(accountDTO.getUserName());
 
-        await("Textbox Password Visibale Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> passwordElement.isDisplayed());
+        await("Textbox Password Visibale Timeout!!!")
+                .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> passwordElement.isDisplayed());
 
         passwordElement.sendKeys(accountDTO.getPassword());
 
         Utilities.captureScreenShot(_driver);
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button login cannot click Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> loginbuttonElement.isDisplayed());
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button login cannot click Timeout!!!")
+                .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> loginbuttonElement.isDisplayed());
 
 //        String onclickValue = _driver.findElement(By.xpath("//button[@id = 'loginbutton']")).getAttribute("onclick");
 //
@@ -76,33 +75,36 @@ public class LoginV2Page {
 
         if(checkTitlePage.equals("Logging out")){
 
-            with().pollInterval(Duration.FIVE_SECONDS).
-            await("Button Redirect to Login Visibale is Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> redirectToLoginElement.isDisplayed());
+            with().pollInterval(Duration.FIVE_SECONDS).await("Button Redirect to Login Visibale is Timeout!!!")
+                    .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> redirectToLoginElement.isDisplayed());
 
             redirectToLoginElement.click();
 
             with().pollInterval(Duration.FIVE_SECONDS).
-            await("Check page logout pass!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(_driver::getTitle, is("FinnOne-CAS"));
+            await("Check page logout pass!!!")
+                    .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(_driver::getTitle, is("FinnOne-CAS"));
 
-            await("Textbox Username Visibale Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> userNameElement.isDisplayed());
+            await("Textbox Username Visibale Timeout!!!")
+                    .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> userNameElement.isDisplayed());
 
             userNameElement.sendKeys(accountDTO.getUserName());
 
-            await("Textbox Password Visibale Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> passwordElement.isDisplayed());
+            await("Textbox Password Visibale Timeout!!!")
+                    .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> passwordElement.isDisplayed());
 
             passwordElement.sendKeys(accountDTO.getPassword());
 
             Utilities.captureScreenShot(_driver);
 
-            with().pollInterval(Duration.FIVE_SECONDS).
-            await("Button login cannot click Timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> loginbuttonElement.isDisplayed());
+            with().pollInterval(Duration.FIVE_SECONDS).await("Button login cannot click Timeout!!!")
+                    .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(() -> loginbuttonElement.isDisplayed());
 
             loginbuttonElement.click();
 
         }
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Login timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(_driver::getTitle, is("DashBoard"));
+        with().pollInterval(Duration.FIVE_SECONDS).await("Login timeout!!!")
+                .atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(_driver::getTitle, is("DashBoard"));
 
     }
 

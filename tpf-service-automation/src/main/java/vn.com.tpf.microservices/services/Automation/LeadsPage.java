@@ -74,15 +74,15 @@ public class LeadsPage {
 
         searchQueryElement.sendKeys(leadId);
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("tdLeadElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tdLeadElement.size() > 2);
-
         try {
-            Thread.sleep(60000);
+            Thread.sleep(30000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("tdLeadElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tdLeadElement.size() > 2);
 
         WebElement webElement=_driver.findElement(new By.ByXPath("//table[@id='lead']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + leadId +"')]"));
 

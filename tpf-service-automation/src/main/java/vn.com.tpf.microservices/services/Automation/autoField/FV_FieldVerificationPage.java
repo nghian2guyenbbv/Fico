@@ -30,7 +30,6 @@ public class FV_FieldVerificationPage {
     private WebElement menuApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Application Manager')]")
-    @CacheLookup
     private WebElement applicationManagerElement;
 
     @FindBy(how = How.ID, using = "applicationManagerForm1")
@@ -67,83 +66,66 @@ public class FV_FieldVerificationPage {
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
-    @CacheLookup
     private WebElement applicationElement;
 
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
-    @CacheLookup
     private WebElement applicationFormElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
-    @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
-    @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td")
-    @CacheLookup
     private List<WebElement> tbFieldInvestigationInitiationElement;
 
     @FindBy(how = How.XPATH, using = "//button[contains(text(), 'Initiate Verification')]")
-    @CacheLookup
     private WebElement btnInitiateVerificationElement;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@id, 'initiate_Verification')]")
-    @CacheLookup
     private WebElement tbVerificationTypeElement;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@id, 'initiate_Verification')]//select")
-    @CacheLookup
     private WebElement selectVerificationTypeElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'initiateVerification')]//div[contains(@class,'modal-body')]//table[contains(@id, 'initiate_Verification')]//input[starts-with(@id, 'Text_field_investigation_entry_verification_agencyNO')]")
-    @CacheLookup
     private WebElement inputAgencyElement;
 
     @FindBy(how = How.ID, using = "holder")
     private WebElement textSelectUserContainerElement;
 
     @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO')]")
-    @CacheLookup
     private List<WebElement> liAgencyElement;
 
     @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO')]//a")
-    @CacheLookup
     private List<WebElement> liAgencyTagAElement;
 
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_field_investigation_entry_verification_agency')]")
-    @CacheLookup
     private List<WebElement> textInputAgencyElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'initiateVerification')]//div[contains(@class,'modal-footer actionBtnDiv')]//button[contains(text(), 'Initiate Verification')]")
-    @CacheLookup
     private WebElement btnInitiateVerificationPopupElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
-    @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td[5]")
     private WebElement tdCurrentVerificationStatus;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[contains(text(), 'View Details')]")
-    @CacheLookup
     private WebElement btnViewDetails;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//table[@id = 'initiate_Verification']//tbody//tr//td")
     private List<WebElement> tableInDialogElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
-    @CacheLookup
     private WebElement btnInverse;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//table[@id = 'initiate_Verification']//tbody//tr")
     private List<WebElement> tableFiiBtnAddElement;
 
     @FindBy(how = How.XPATH, using = "//div[starts-with(@class, 'ui-pnotify')]//div[@class ='alert ui-pnotify-container alert-error ui-pnotify-shadow']//div[@class = 'ui-pnotify-text']")
-    @CacheLookup
     private WebElement popupError;
 
     @FindBy(how = How.XPATH, using = "//table[@id = 'LoanApplication_Assigned']//tbody//tr//td")
@@ -164,8 +146,6 @@ public class FV_FieldVerificationPage {
     public void setData(SubmitFieldDTO submitFieldDTO, String user, String downdloadFileURL, Instant start) {
         String stage = "";
 
-        Actions actions = new Actions(_driver);
-
         // ========== APPLICATION MANAGER =================
         stage = "APPLICATION MANAGER";
 
@@ -184,11 +164,14 @@ public class FV_FieldVerificationPage {
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
+
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
+        int sizeTextSelectUserOptionElement = textSelectUserOptionElement.size();
+
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserOptionElement.size() > 0);
+                .until(() -> sizeTextSelectUserOptionElement > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
@@ -213,8 +196,7 @@ public class FV_FieldVerificationPage {
 
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
         WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + submitFieldDTO.getAppId() +"')]"));
@@ -231,39 +213,7 @@ public class FV_FieldVerificationPage {
         await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tableInDialogElement.size() > 2);
 
-//        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
-//
-//            btnInitiateVerificationElement.click();
-//
-//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> tableInDialogElement.size() > 2);
-//
-//        }else{
-//
-//            btnViewDetails.click();
-//
-//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> tableInDialogElement.size() > 2);
-//
-//            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> btnInverse.isDisplayed());
-//
-//            if(tableFiiBtnAddElement.size() < 2){
-//
-//                btnInverse.click();
-//
-//                JavascriptExecutor btnInverseJE = (JavascriptExecutor)_driver;
-//                btnInverseJE.executeScript("arguments[0].click();", btnInverse);
-//
-//
-//                await("Line visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> tableFiiBtnAddElement.size() > 1);
-//            }
-//
-//        }
-
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbVerificationTypeElement.isDisplayed());
 
         await("tbVerificationTypeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -274,9 +224,6 @@ public class FV_FieldVerificationPage {
 
         Utilities.chooseDropdownValue("Residence Verification", optionVerificationTypeElement);
 
-//        selectVerificationTypeElement.sendKeys("Residence Verification");
-
-
         await("inputAgencyElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> inputAgencyElement.isDisplayed());
 
@@ -285,8 +232,10 @@ public class FV_FieldVerificationPage {
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
+        int sizeLiAgencyElement = liAgencyElement.size();
+
         await("liAgencyElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> liAgencyElement.size() > 0);
+                .until(() -> sizeLiAgencyElement > 0);
 
         for (WebElement e : liAgencyTagAElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals("TPAgency")) {
@@ -300,11 +249,8 @@ public class FV_FieldVerificationPage {
         await("Table Field Investigation Initiation visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnViewDetails.isDisplayed());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
-
-//        btnMoveToNextStageElement.click();
 
         keyActionMoveNextStage();
 

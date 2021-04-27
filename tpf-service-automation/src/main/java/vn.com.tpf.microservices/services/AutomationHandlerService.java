@@ -4602,17 +4602,26 @@ public class AutomationHandlerService {
             //*************************** END GET DATA *********************//
             Actions actions = new Actions(driver);
             System.out.println(stage + ": DONE");
+
+//            stage = "LOGIN FINONE";
+//
+//            HashMap<String, String> dataControl = new HashMap<>();
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            Utilities.captureScreenShot(driver);
+//            loginPage.clickLogin();
+//            Utilities.captureScreenShot(driver);
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
+
+            //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            HashMap<String, String> dataControl = new HashMap<>();
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            Utilities.captureScreenShot(driver);
-            loginPage.clickLogin();
-            Utilities.captureScreenShot(driver);
+            LoginV2Page loginPage = new LoginV2Page(driver);
+            loginPage.loginValue(accountDTO);
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+            //***************************//END LOGIN//***************************//
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -4905,16 +4914,31 @@ public class AutomationHandlerService {
             driver = setupTestDriver.getDriver();
             SessionId session = ((RemoteWebDriver)driver).getSessionId();
             //get account run
+
+//            stage = "LOGIN FINONE";
+//
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            Utilities.captureScreenShot(driver);
+//            loginPage.clickLogin();
+//            Utilities.captureScreenShot(driver);
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
+
+
+            //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            Utilities.captureScreenShot(driver);
-            loginPage.clickLogin();
+            LoginV2Page loginPage = new LoginV2Page(driver);
+            loginPage.loginValue(accountDTO);
+
+            //***************************//END LOGIN//***************************//
+
+            System.out.println(stage + ": DONE");
+
             Utilities.captureScreenShot(driver);
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
 
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
@@ -4973,6 +4997,12 @@ public class AutomationHandlerService {
                         stage = "WAIVE OFF ALL";
                         FV_WaiveFieldPage fv_WaiveFieldPage = new FV_WaiveFieldPage(driver);
                         fv_WaiveFieldPage.setData(waiveFieldDTO, accountDTO.getUserName().toLowerCase());
+
+                        System.out.println("PAGE LOADING: " + driver.getTitle());
+
+                        await("WAIVE OFF ALL - FIELD INVESTIGATION INITIATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(driver::getTitle, is("Application Grid"));
+
                         System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
                         // ========= UPDATE DB ============================
@@ -5257,21 +5287,19 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
 
-            stage = "LOGIN FINONE";
-
-            //***************************//LOGIN PAGE//***************************//
-
+//            stage = "LOGIN FINONE";
 //            LoginPage loginPage = new LoginPage(driver);
 //            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
 //            Utilities.captureScreenShot(driver);
 //            loginPage.clickLogin();
 //            Utilities.captureScreenShot(driver);
-//
 //            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(driver::getTitle, is("DashBoard"));
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
+            //***************************//LOGIN FINONE//***************************//
+            stage = "LOGIN FINONE";
 
+            LoginV2Page loginPage = new LoginV2Page(driver);
             loginPage.loginValue(accountDTO);
 
             //***************************//END LOGIN//***************************//
@@ -5306,8 +5334,15 @@ public class AutomationHandlerService {
                 FV_FieldVerificationPage fv_FieldVerificationPage = new FV_FieldVerificationPage(driver);
                 fv_FieldVerificationPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL, start);
 
+                System.out.println("PAGE LOADING: " + driver.getTitle());
+
                 await("Field Investigation Initiation failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> fv_FieldVerificationPage.getCheckMoveToNextStageElement().size() == 0);
+
+                await("FIELD INVESTIGATION INITIATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Grid"));
+
+                System.out.println("STAGE - " + stageApplication + " - PASS");
 
                 System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                 stageApplication = "FIV";
@@ -5318,8 +5353,12 @@ public class AutomationHandlerService {
                 FV_FieldInvestigationVerificationPage fv_FieldInvestigationVerificationPage = new FV_FieldInvestigationVerificationPage(driver);
                 fv_FieldInvestigationVerificationPage.setData(submitFieldDTO, downdloadFileURL, accountDTO.getUserName());
 
-                await("Field Investigation Verification failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                System.out.println("PAGE LOADING: " + driver.getTitle());
+
+                await("FIELD INVESTIGATION VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("FI Entries Grid"));
+
+                System.out.println("STAGE - " + stageApplication + " - PASS");
 
                 System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
                 stageApplication = "FIC";
@@ -5330,8 +5369,15 @@ public class AutomationHandlerService {
                 FV_FieldInvestigationDetailsPage fv_FieldInvestigationDetailsPage = new FV_FieldInvestigationDetailsPage(driver);
                 fv_FieldInvestigationDetailsPage.setData(submitFieldDTO, accountDTO.getUserName().toLowerCase());
 
+                System.out.println("PAGE LOADING: " + driver.getTitle());
+
                 await("Field Investigation Details failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> fv_FieldInvestigationDetailsPage.getCheckMoveToNextStageElement().size() == 0);
+
+                await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Grid"));
+
+                System.out.println("STAGE - " + stageApplication + " - PASS");
 
                 System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
             } else {
@@ -7070,6 +7116,7 @@ public class AutomationHandlerService {
 
     //endregion
 
+    //region PROJECT: AUTO QUICKLEAD POOL
     public void runAutomation_QuickLead_Assign_Pool(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
         String appId = "";
@@ -7088,15 +7135,24 @@ public class AutomationHandlerService {
             //*************************** END GET DATA *********************//
             Actions actions = new Actions(driver);
             System.out.println(stage + ": DONE");
+
+//            stage = "LOGIN FINONE";
+//            HashMap<String, String> dataControl = new HashMap<>();
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            loginPage.clickLogin();
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
+
+
+            //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
-            HashMap<String, String> dataControl = new HashMap<>();
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            loginPage.clickLogin();
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+            LoginV2Page loginPage = new LoginV2Page(driver);
+            loginPage.loginValue(accountDTO);
 
+            //***************************//END LOGIN//***************************//
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -7251,6 +7307,7 @@ public class AutomationHandlerService {
             logout(driver, accountDTO.getUserName());
         }
     }
+    //endregion
 
     //region PROJECT: AUTO ALLOCATION
     public void runAutomation_autoAssignAllocation(Map<String, Object> mapValue, String project, String browser) throws Exception {
@@ -7540,16 +7597,24 @@ public class AutomationHandlerService {
             Actions actions = new Actions(driver);
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
-            HashMap<String, String> dataControl = new HashMap<>();
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-            Utilities.captureScreenShot(driver);
-            loginPage.clickLogin();
-            Utilities.captureScreenShot(driver);
 
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+//            HashMap<String, String> dataControl = new HashMap<>();
+//            LoginPage loginPage = new LoginPage(driver);
+//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+//            Utilities.captureScreenShot(driver);
+//            loginPage.clickLogin();
+//            Utilities.captureScreenShot(driver);
+//
+//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("DashBoard"));
 
+            //***************************//LOGIN FINONE//***************************//
+            stage = "LOGIN FINONE";
+
+            LoginV2Page loginPage = new LoginV2Page(driver);
+            loginPage.loginValue(accountDTO);
+
+            //***************************//END LOGIN//***************************//
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -7683,27 +7748,14 @@ public class AutomationHandlerService {
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
-
-            if (e.getMessage().contains("Work flow failed!!!")) {
-                stage = "END OF LEAD DETAIL";
-
-                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
-
-                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-                    String error = "Error: ";
-                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-                        error += " - " + we.getText();
-                    }
-                    System.out.println(stage + "=>" + error);
-                }
-            }
         } finally {
             if (application.getApplicationId() == null || application.getApplicationId().isEmpty() || application.getApplicationId().indexOf("LEAD") > 0 || application.getApplicationId().indexOf("APPL") < 0) {
                 application.setApplicationId("UNKNOW");
                 application.setStatus("QUICKLEAD_FAILED");
                 if (!"File not enough!!!".equals(application.getDescription())) {
-                    application.setDescription("Khong thanh cong" + " - " + session);
+                    application.setDescription("Khong thanh cong" + " - Session: " + session);
+                }else{
+                    application.setDescription(application.getDescription() + " - Session: " + session);
                 }
             }
 
@@ -7721,8 +7773,6 @@ public class AutomationHandlerService {
     }
 
     //endregion
-
-
 
     //region FUNCTION ACCOUNT FINONE
     //region LOGOUT
@@ -7853,6 +7903,8 @@ public class AutomationHandlerService {
             automationMonitorId = automationMonitorDTO.getId();
 
             System.out.println(stage + ": DONE");
+
+            //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
             LoginV2Page loginPage = new LoginV2Page(driver);
@@ -8058,6 +8110,8 @@ public class AutomationHandlerService {
             automationMonitorId = automationMonitorDTO.getId();
 
             System.out.println(stage + ": DONE");
+
+            //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
             LoginV2Page loginPage = new LoginV2Page(driver);

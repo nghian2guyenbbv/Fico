@@ -31,7 +31,6 @@ public class FV_WaiveFieldPage {
     private WebElement menuApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][3]//li//a[contains(text(),'Application Manager')]")
-    @CacheLookup
     private WebElement applicationManagerElement;
 
     @FindBy(how = How.ID, using = "applicationManagerForm1")
@@ -68,46 +67,36 @@ public class FV_WaiveFieldPage {
     private WebElement saveTaskElement;
 
     @FindBy(how = How.ID, using = "holder")
-    @CacheLookup
     private WebElement textSelectUserContainerElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li//span[contains(text(),'Applications')]")
-    @CacheLookup
     private WebElement applicationElement;
 
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
-    @CacheLookup
     private WebElement applicationFormElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
-    @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
-    @CacheLookup
     private List<WebElement> tbApplicationAssignedElement;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td")
-    @CacheLookup
     private List<WebElement> tbFieldInvestigationInitiationElement;
 
     @FindBy(how = How.ID, using = "waiveOffAll")
-    @CacheLookup
     private WebElement btnWaiveOffAllElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']")
     private WebElement popupFiiWaiveOffElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'waiveOffVerification')]//div[contains(@class,'modal-body')]//form[@id = 'waiveOffVerificationForm']//table[contains(@id,'fii_waiveOff')]//select[starts-with(@id, 'field_investigation_waiveOff_reasonCodeNO')]")
-    @CacheLookup
     private WebElement selectReasonCodeElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@class,'modal-body')]//div[contains(@class,'modal-footer')]//button[contains(text(), 'Waive Off Verification')]")
-    @CacheLookup
     private WebElement btnWaiveOffVerificationPopupElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
-    @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td[5]")
@@ -120,18 +109,15 @@ public class FV_WaiveFieldPage {
     private WebElement tableInDialogElement2;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[contains(text(), 'View Details')]")
-    @CacheLookup
     private WebElement btnViewDetails;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
-    @CacheLookup
     private WebElement btnInverse;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr")
     private List<WebElement> tableFiiBtnAddElement;
 
     @FindBy(how = How.XPATH, using = "//div[starts-with(@class, 'ui-pnotify')]//div[@class ='alert ui-pnotify-container alert-error ui-pnotify-shadow']//div[@class = 'ui-pnotify-text']")
-    @CacheLookup
     private WebElement popupError;
 
 
@@ -141,7 +127,6 @@ public class FV_WaiveFieldPage {
     }
 
     public void setData(WaiveFieldDTO waiveFieldDTO, String user) {
-//        WebDriverWait wait = new WebDriverWait(_driver, 10);
         Actions actions = new Actions(_driver);
         String stage = "";
 
@@ -167,11 +152,14 @@ public class FV_WaiveFieldPage {
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
+
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
+        int sizeTextSelectUserOptionElement = textSelectUserOptionElement.size();
+
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserOptionElement.size() > 0);
+                .until(() -> sizeTextSelectUserOptionElement > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
             if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
@@ -180,6 +168,7 @@ public class FV_WaiveFieldPage {
             }
         }
         Utilities.captureScreenShot(_driver);
+
         saveTaskElement.click();
         System.out.println(stage + ": DONE");
 
@@ -196,8 +185,10 @@ public class FV_WaiveFieldPage {
 
         applicationAssignedNumberElement.sendKeys(waiveFieldDTO.getAppId());
 
-        await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
+
+        Utilities.captureScreenShot(_driver);
 
         WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + waiveFieldDTO.getAppId() +"')]"));
 
@@ -206,44 +197,19 @@ public class FV_WaiveFieldPage {
         await("tbFieldInvestigationInitiationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationInitiationElement.size() > 2);
 
+        Utilities.captureScreenShot(_driver);
+
         System.out.println(tdCurrentVerificationStatus.getText());
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-                await("button Waive Off All Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("button Waive Off All Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnWaiveOffAllElement.isDisplayed() && btnWaiveOffAllElement.isEnabled());
 
         btnWaiveOffAllElement.click();
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tableInDialogElement.size() > 2);
 
-//        if ("Verification Not Initiated".equals(tdCurrentVerificationStatus.getText())){
-//
-//            btnWaiveOffAllElement.click();
-//
-//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> tableInDialogElement.size() > 2);
-//
-//        }else{
-//
-//            btnViewDetails.click();
-//
-//            await("Popup visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> tableInDialogElement2.isDisplayed());
-//
-//            await("btnInverse visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> btnInverse.isDisplayed());
-//
-//            if(tableFiiBtnAddElement.size() < 2){
-//
-//                btnInverse.click();
-//
-//                await("Line waive visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> tableFiiBtnAddElement.size() > 1);
-//            }
-//
-//        }
+        Utilities.captureScreenShot(_driver);
 
         await("selectReasonCodeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> selectReasonCodeElement.isDisplayed());
@@ -253,35 +219,29 @@ public class FV_WaiveFieldPage {
         await("btnWaiveOffVerificationPopupElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnWaiveOffVerificationPopupElement.isDisplayed());
 
-//        wait.until(ExpectedConditions.elementToBeClickable(btnWaiveOffVerificationPopupElement));
-//        btnWaiveOffVerificationPopupElement.click();
-
         actions.moveToElement(btnWaiveOffVerificationPopupElement).sendKeys(btnWaiveOffVerificationPopupElement, Keys.ENTER).perform();
-
-//        JavascriptExecutor btnWaiveOffVerificationPopup = (JavascriptExecutor)_driver;
-//        btnWaiveOffVerificationPopup.executeScript("arguments[0].click();", btnWaiveOffVerificationPopupElement);
-
-//        await(popupError.getText()).atMost(5, TimeUnit.SECONDS)
-//                .until(() -> "false".equals(popupError.isDisplayed()));
-
-        with().pollInterval(Duration.FIVE_SECONDS).
-                await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnMoveToNextStageElement.isDisplayed());
-
-        with().pollInterval(Duration.FIVE_SECONDS).
-                await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnMoveToNextStageElement.isEnabled());
-
-
-//        wait.until(ExpectedConditions.elementToBeClickable(btnMoveToNextStageElement));
-//        btnMoveToNextStageElement.click();
-
-        actions.moveToElement(btnMoveToNextStageElement).sendKeys(btnMoveToNextStageElement, Keys.ENTER).perform();
-
-        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Grid"));
 
         Utilities.captureScreenShot(_driver);
 
+        with().pollInterval(Duration.FIVE_SECONDS).await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isDisplayed());
+
+        with().pollInterval(Duration.FIVE_SECONDS).await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isEnabled());
+
+        keyActionMoveNextStage();
+
+        Utilities.captureScreenShot(_driver);
+
+    }
+
+    public void keyActionMoveNextStage(){
+        Actions actionKey = new Actions(_driver);
+        WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
+
+        actionKey.moveToElement(divTimeRemaining).click();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.ENTER).build().perform();
     }
 }
