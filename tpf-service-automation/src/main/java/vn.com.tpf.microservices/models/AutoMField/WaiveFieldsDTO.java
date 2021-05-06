@@ -1,4 +1,4 @@
-package vn.com.tpf.microservices.models.AutoAllocation;
+package vn.com.tpf.microservices.models.AutoMField;
 
 import lombok.Builder;
 import lombok.Data;
@@ -11,22 +11,20 @@ import java.util.Date;
 
 @Data
 @Builder
-@Document(collection="automation_allocation")
-public class AutoAssignAllocationDTO {
+@Document(collection="automation_mobility_field")
+public class WaiveFieldsDTO {
     @Id
     private String id;
-    private String idAutoAllocation;
-    private String appId;
-    private String userName;
-    private String userAuto;
-    private int status=0;
+
+    private String applicationId;
+    private String project;
+    private String projectAuto;
+    private int status = 0;
+    private String referenceId;
+    private String transactionId;
 
     @CreatedDate
     private Date createDate;
     @LastModifiedDate
     private Date lastDate;
-
-    private String project;
-    private String reference_id;
-    private int assignStatus = 0;
 }

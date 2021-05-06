@@ -18,8 +18,12 @@ import vn.com.tpf.microservices.models.AutoCRM.CRM_SaleQueueDTO;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.models.AutoMField.MFieldRequest;
+import vn.com.tpf.microservices.models.AutoMField.WaiveFieldDetails;
 import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDTO;
 import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDetails;
+import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDetails;
 import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
 import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDetails;
 import vn.com.tpf.microservices.models.Automation.LoginDTO;
@@ -753,7 +757,7 @@ public class AutomationService {
 
 	//region FUNCTION QUICKLEAD
 	//region PROJECT LEADGATEWAY
-	public Map<String, Object> quickLeadApplication(JsonNode request) throws Exception {
+	public Map<String, Object> QuickLeadApplication(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		Assert.notNull(request.get("body"), "no body");
 		QuickLeadDTO quickLeadDTOList = mapper.treeToValue(request.path("body"), QuickLeadDTO.class);
@@ -790,7 +794,7 @@ public class AutomationService {
 	//endregion
 
 	//region PROJECT LEADGATEWAY
-	public Map<String, Object> quickLeadApplicationVendor(JsonNode request) throws Exception {
+	public Map<String, Object> QuickLeadApplicationVendor(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		Assert.notNull(request.get("body"), "no body");
 		QuickLeadDTO quickLeadDTOList = mapper.treeToValue(request.path("body"), QuickLeadDTO.class);
@@ -828,9 +832,49 @@ public class AutomationService {
 
 	//endregion
 
-	//region FUNCTION RETURN QUERY
+	//region FUNCTION RESPONSE QUERY
+
+	public Map<String, Object> ResponseQuery(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		ResponseQueryDetails responseQueryDTOList = mapper.treeToValue(request.path("body"), ResponseQueryDetails.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_ResponseQuery(responseQueryDTOList);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, responseQueryDTOList);
+	}
+
+	private void runAutomation_ResponseQuery(ResponseQueryDetails responseQueryDTOList) throws Exception {
+		String browser = "chrome";
+		String projectJson = responseQueryDTOList.getProject();
+		Map<String, Object> mapValue = DataInitial.getDataFrom_ResponseQuery(responseQueryDTOList);
+		AutomationThreadService automationThreadService = new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_ResponseQuery", projectJson.toUpperCase());
+
+		ResponseQueryDTO monitorResponseQueryDTO = (ResponseQueryDTO) mapValue.get("ResponseQueryList");
+		AutomationMonitorDTO autoMonitor = AutomationMonitorDTO.builder().build();
+		autoMonitor.setApplicationId(monitorResponseQueryDTO.getApplicationId());
+		autoMonitor.setReferentId(monitorResponseQueryDTO.getReferenceId());
+		autoMonitor.setTransactionId(monitorResponseQueryDTO.getTransactionId());
+		autoMonitor.setFuncAutomation("responseQuery");
+		autoMonitor.setStatus("PROCESSING");
+		autoMonitor.setProject(monitorResponseQueryDTO.getProject());
+		mongoTemplate.insert(autoMonitor);
+
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+
+	//endregion
+
 	//region FUNCTION SALEQUEUE
-	public Map<String, Object> saleQueue(JsonNode request) throws Exception {
+	public Map<String, Object> SaleQueue(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		System.out.println(request);
 		Assert.notNull(request.get("body"), "no body");
@@ -868,7 +912,37 @@ public class AutomationService {
 		workerThreadPool.submit(automationThreadService);
 	}
 	//endregion
+
+	//region FUNCTION WAIVEFIELD
+	public Map<String, Object> WaiveField(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		Assert.notNull(request.get("body"), "no body");
+		MFieldRequest requestWaiveField = mapper.convertValue(request.path("body"), new TypeReference<MFieldRequest>(){});
+		List<WaiveFieldDetails> waiveFieldDTOList = mapper.convertValue(request.path("body").path("data"), new TypeReference<List<WaiveFieldDetails>>(){});
+		requestWaiveField.setWaiveFieldDTO(waiveFieldDTOList);
+
+		new Thread(() -> {
+			try {
+				runAutomation_WaiveField(requestWaiveField);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, requestWaiveField);
+	}
+
+	private void runAutomation_WaiveField(MFieldRequest requestWaiveField) throws Exception {
+		String browser = "chrome";
+		String projectAuto = "WAIVEFIELD";
+		Map<String, Object> mapValue = DataInitial.getDataFrom_WaiveField(requestWaiveField);
+
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_Waive_Field", projectAuto);
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
 	//endregion
+
 
 
 
