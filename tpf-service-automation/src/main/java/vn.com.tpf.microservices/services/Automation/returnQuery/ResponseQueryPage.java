@@ -26,7 +26,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 
 @Getter
@@ -90,7 +89,7 @@ public class ResponseQueryPage {
 
         textSearchAppIdResponseElement.clear();
 
-        textSearchAppIdResponseElement.sendKeys(responseQueryDTO.getAppId());
+        textSearchAppIdResponseElement.sendKeys(responseQueryDTO.getApplicationId());
 
         with().pollInterval(Duration.FIVE_SECONDS).
         await("Search Application ID Response Query Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -98,7 +97,7 @@ public class ResponseQueryPage {
 
         Utilities.captureScreenShot(_driver);
 
-        WebElement rowAppIdResponseQuery = _driver.findElement(By.xpath("//table[@id = 'queries_to_be_responded']//*[contains(text(),'" + responseQueryDTO.getAppId() + "')]//ancestor::tr//td//a[@id = 'openApplicationOfQuery']"));
+        WebElement rowAppIdResponseQuery = _driver.findElement(By.xpath("//table[@id = 'queries_to_be_responded']//*[contains(text(),'" + responseQueryDTO.getApplicationId() + "')]//ancestor::tr//td//a[@id = 'openApplicationOfQuery']"));
 
         rowAppIdResponseQuery.click();
 

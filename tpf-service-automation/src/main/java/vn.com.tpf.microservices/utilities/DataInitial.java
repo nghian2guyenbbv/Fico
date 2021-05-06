@@ -11,7 +11,12 @@ import vn.com.tpf.microservices.models.AutoCRM.*;
 import vn.com.tpf.microservices.models.AutoField.RequestAutomationDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.models.AutoMField.MFieldRequest;
+import vn.com.tpf.microservices.models.AutoMField.WaiveFieldDetails;
+import vn.com.tpf.microservices.models.AutoMField.WaiveFieldsDTO;
 import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDTO;
+import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDetails;
 import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
 import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDetails;
 import vn.com.tpf.microservices.models.Automation.*;
@@ -1225,6 +1230,7 @@ public class DataInitial {
             AutoAssignAllocationDTO autoAssignAllocationDTO = AutoAssignAllocationDTO.builder()
                     .project(autoAssignAllocationDTOList.getProject())
                     .reference_id(autoAssignAllocationDTOList.getReference_id())
+                    .idAutoAllocation(autoAssignAllocation.getIdAutoAllocation())
                     .appId(autoAssignAllocation.getAppId())
                     .userName(autoAssignAllocation.getUserName())
                     .build();
@@ -1254,6 +1260,24 @@ public class DataInitial {
     }
     //endregion
 
+    //region RESPONSE QUERY
+    public static Map<String, Object> getDataFrom_ResponseQuery(ResponseQueryDetails responseQueryDTOList) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+
+        ResponseQueryDTO responseQueryDTO = ResponseQueryDTO.builder()
+                .applicationId(responseQueryDTOList.getAppId())
+                .project(responseQueryDTOList.getProject())
+                .referenceId(responseQueryDTOList.getReference_id())
+                .transactionId(responseQueryDTOList.getTransaction_id())
+                .commentText(responseQueryDTOList.getCommentText())
+                .dataDocument(responseQueryDTOList.getDataDocument())
+                .build();
+
+        map.put("ResponseQueryList", responseQueryDTO);
+        return map;
+    }
+    //endregion
+
     //region SALE_QUEUE
     public static Map<String, Object> getData_SaleQueue(SaleQueueDetails saleQueueDetailsList) throws JsonProcessingException {
         Map<String, Object> map = new HashMap<>();
@@ -1268,6 +1292,27 @@ public class DataInitial {
                 .userCreatedSalesQueue(StringUtils.isEmpty(saleQueueDetailsList.getUserCreatedSalesQueue())? null:saleQueueDetailsList.getUserCreatedSalesQueue())
                 .build();
         map.put("SaleQueueList", saleQueueDTO);
+        return map;
+    }
+    //endregion
+
+    //region WAIVEFIELD
+    public static Map<String, Object> getDataFrom_WaiveField(MFieldRequest requestWaiveField) throws JsonProcessingException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("RequestWaiveFieldList", requestWaiveField);
+        ////********************************REASSIGN USER************************************////
+        List<WaiveFieldsDTO> waiveFieldDTOs = new ArrayList<>();
+        for(WaiveFieldDetails waiveField : requestWaiveField.getWaiveFieldDTO()) {
+            WaiveFieldsDTO waiveFieldDTO = WaiveFieldsDTO.builder()
+                    .applicationId(waiveField.getAppId())
+                    .project(requestWaiveField.getProject())
+                    .referenceId(requestWaiveField.getReference_id())
+                    .transactionId(requestWaiveField.getTransaction_id())
+                    .projectAuto("WAIVEFIELD")
+                    .build();
+            waiveFieldDTOs.add(waiveFieldDTO);
+        }
+        map.put("waiveFieldList", waiveFieldDTOs);
         return map;
     }
     //endregion

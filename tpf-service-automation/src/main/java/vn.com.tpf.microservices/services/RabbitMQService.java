@@ -190,11 +190,13 @@ public class RabbitMQService {
 			case "quickLeadMobilityVendor":
 					return response(message, payload, automationService.MOBILITY_quickLeadApp_Vendor(request));
 			case "quickLeadApplication":
-					return response(message, payload, automationService.quickLeadApplication(request));
+					return response(message, payload, automationService.QuickLeadApplication(request));
 			case "quickLeadApplicationVendor":
-					return response(message, payload, automationService.quickLeadApplicationVendor(request));
+					return response(message, payload, automationService.QuickLeadApplicationVendor(request));
 			case "saleQueue":
-					return response(message, payload, automationService.saleQueue(request));
+					return response(message, payload, automationService.SaleQueue(request));
+			case "responseQuery":
+					return response(message, payload, automationService.ResponseQuery(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

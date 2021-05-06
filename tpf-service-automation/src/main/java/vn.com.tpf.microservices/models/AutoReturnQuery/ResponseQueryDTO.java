@@ -22,12 +22,12 @@ public class ResponseQueryDTO {
     private Date lastDate;
 
     private int status = 0;
-    private String appId;
+    private String applicationId;
     private String userAuto;
     private String commentText;
-    private String reference_id;
+    private String referenceId;
     private String project;
-    private String transaction_id;
+    private String transactionId;
     private String queryName;
     private ResponseQueryDocumentDTO dataDocument;
 
