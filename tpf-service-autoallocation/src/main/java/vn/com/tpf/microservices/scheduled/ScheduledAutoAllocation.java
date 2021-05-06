@@ -117,6 +117,7 @@ public class ScheduledAutoAllocation {
                         List<AutoAssignModel> autoAssignModelsList = new ArrayList<AutoAssignModel>();
                         for (AssignmentDetail ad : assignmentDetailsList.getContent()) {
                             AutoAssignModel autoAssignModel = new AutoAssignModel();
+                            autoAssignModel.setIdAutoAllocation(UUID.randomUUID().toString());
                             autoAssignModel.setAppId(ad.getAppNumber());
                             autoAssignModel.setUserName(ad.getAssignee());
                             autoAssignModelsList.add(autoAssignModel);
