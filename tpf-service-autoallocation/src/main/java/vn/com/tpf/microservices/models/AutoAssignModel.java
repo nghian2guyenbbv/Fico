@@ -7,6 +7,7 @@ import java.io.Serializable;
 @Data
 public class AutoAssignModel<T> implements Serializable {
 
+    private String idAutoAllocation;
     private String appId;
     private String userName;
     private String userAuto;
