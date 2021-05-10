@@ -149,18 +149,6 @@ public class AutoAssignAllocationPage {
     }
 
     public void selectUserOption(String userSelect) {
-//        List<WebElement> textSelectUserOptionElements = _driver.findElements(By.xpath("//a[contains(@id, 'listitem_selected_user')]"));
-//        for (WebElement e : textSelectUserOptionElements) {
-//            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(userSelect)) {
-//                e.click();
-//                return;
-//            }
-//        }
-//        WebElement nextButtonElements =  _driver.findElement(By.xpath("//input[@id = 'paginate'][@class= 'swFB']"));
-//        JavascriptExecutor btnMoveToNextStage = (JavascriptExecutor)_driver;
-//        btnMoveToNextStage.executeScript("arguments[0].click();", nextButtonElements);
-//        selectUserOption(userSelect);
-
         boolean findUserInListElement = _driver.findElements(By.xpath("//li[contains(@id, 'listitem_selected_user0')][@username = '" + userSelect + "']")).size() != 0;
         if (findUserInListElement){
             List<WebElement> textSelectUserOptionElements = _driver.findElements(By.xpath("//a[contains(@id, 'listitem_selected_user')]"));
