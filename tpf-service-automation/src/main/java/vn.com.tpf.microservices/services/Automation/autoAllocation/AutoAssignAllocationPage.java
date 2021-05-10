@@ -156,7 +156,7 @@ public class AutoAssignAllocationPage {
     }
 
     public void selectUserOption(String userSelect) {
-        boolean findUserInListElement = _driver.findElements(By.xpath("//li[contains(@id, 'listitem_selected_user00')][@username = '" + userSelect + "']")).size() != 0;
+        boolean findUserInListElement = _driver.findElements(By.xpath("//li[contains(@id, 'listitem_selected_user0')][@username = '" + userSelect + "']")).size() != 0;
         if (findUserInListElement){
             List<WebElement> textSelectUserOptionElements = _driver.findElements(By.xpath("//a[contains(@id, 'listitem_selected_user')]"));
             for (WebElement e : textSelectUserOptionElements) {
