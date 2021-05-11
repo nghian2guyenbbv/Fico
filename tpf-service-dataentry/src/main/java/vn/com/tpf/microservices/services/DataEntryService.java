@@ -5504,73 +5504,78 @@ public class DataEntryService {
 	}
 
 //	@Scheduled(cron = "${spring.cron.config}")
-//	public void jobUpdateStatusIH()
-//	{
-//		String slog = "func: jobUpdateStatusIH";
-//		try{
-//			//get all app IH with status "PROCESSING" để update status
-//			Query query = new Query();
-//			query.addCriteria(Criteria.where("partnerId").is("3").and("status").in("PROCESSING", "RETURNED"));
-//			List<Application> list = mongoTemplate.find(query, Application.class);
-//			slog += " - list app update: ";
-//			//loop get status
-//			for (Application app: list) {
-//				JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", app.getApplicationId()), JsonNode.class);
-//				JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
-//
-//				//convert , log DB
-//				AppStatusModel appStatusModel=mapper.convertValue(getStage,AppStatusModel.class);
-//				mongoTemplate.save(appStatusModel);
-//
-//				//check stage : POLICY_EXECUTION, LOGIN_ACCEPTANCE
-//				if(appStatusModel.getResponseCode().equals("0"))
-//				{
-//					if(appStatusModel.getResponseData().getOtherInfo()!=null){
-//						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
-//
-//						//update status app dataentry
-//						if (stage.indexOf("LEAD_DETAILS") < 0)
-//						{
-//							Query queryUpdate = new Query();
-//							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
-//
-//							Update update = new Update();
-//							update.set("status", "COMPLETED");
-//							update.set("lastModifiedDate", new Date());
-//							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
-//
-//							Report report = new Report();
-//							report.setQuickLeadId(resultUpdate.getQuickLeadId());
-//							report.setApplicationId(resultUpdate.getApplicationId());
-//							report.setFunction("UPDATESTATUS");
-//							report.setStatus(resultUpdate.getStatus().toUpperCase());
-//							report.setCreatedBy("system");
-//							report.setCreatedDate(new Date());
-//
-//							if(resultUpdate != null){
-//								report.setPartnerId(resultUpdate.getPartnerId());
-//								report.setPartnerName(resultUpdate.getPartnerName());
-//							}
-//							report.setDescription(resultUpdate.getDescription());
-//							mongoTemplate.save(report);
-//							rabbitMQService.send("tpf-service-app",
-//									Map.of("func", "updateApp","reference_id", UUID.randomUUID().toString(),
-//											"param", Map.of("project", "dataentry", "id", resultUpdate.getId()),"body", convertService.toAppDisplay(resultUpdate)));
-//							slog += app.getApplicationId() + ", ";
-//						}
-//					}
-//				}
-//
-//			}
-//
-//		}catch (Exception e)
-//		{
-//			slog += " - exception: " + e.toString();
-//
-//		}finally {
-//			log.info("{}", slog);
-//		}
-//	}
+	public Map<String, Object> jobUpdateStatusIH()
+	{
+		ResponseModel responseModel = new ResponseModel();
+		responseModel.setDate_time(new Timestamp(new Date().getTime()));
+		String slog = "func: jobUpdateStatusIH";
+		try{
+			//get all app IH with status "PROCESSING" để update status
+			Query query = new Query();
+			query.addCriteria(Criteria.where("partnerId").is("3").and("status").in("PROCESSING", "RETURNED"));
+			List<Application> list = mongoTemplate.find(query, Application.class);
+			slog += " - list app update: ";
+			//loop get status
+			for (Application app: list) {
+				JsonNode body = mapper.convertValue(Map.of("loanApplicationNumber", app.getApplicationId()), JsonNode.class);
+				JsonNode getStage = apiService.callApiF1(urlGetStatus, body);
+
+				//convert , log DB
+				AppStatusModel appStatusModel=mapper.convertValue(getStage,AppStatusModel.class);
+				mongoTemplate.save(appStatusModel);
+
+				//check stage : POLICY_EXECUTION, LOGIN_ACCEPTANCE
+				if(appStatusModel.getResponseCode().equals("0"))
+				{
+					if(appStatusModel.getResponseData().getOtherInfo()!=null){
+						String stage=appStatusModel.getResponseData().getOtherInfo().getCurrentProcessingStage();
+
+						//update status app dataentry
+						if (stage.indexOf("LEAD_DETAILS") < 0)
+						{
+							Query queryUpdate = new Query();
+							queryUpdate.addCriteria(Criteria.where("applicationId").is(app.getApplicationId()));
+
+							Update update = new Update();
+							update.set("status", "COMPLETED");
+							update.set("lastModifiedDate", new Date());
+							Application resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, FindAndModifyOptions.options().returnNew(true), Application.class);
+
+							Report report = new Report();
+							report.setQuickLeadId(resultUpdate.getQuickLeadId());
+							report.setApplicationId(resultUpdate.getApplicationId());
+							report.setFunction("UPDATESTATUS");
+							report.setStatus(resultUpdate.getStatus().toUpperCase());
+							report.setCreatedBy("system");
+							report.setCreatedDate(new Date());
+
+							if(resultUpdate != null){
+								report.setPartnerId(resultUpdate.getPartnerId());
+								report.setPartnerName(resultUpdate.getPartnerName());
+							}
+							report.setDescription(resultUpdate.getDescription());
+							mongoTemplate.save(report);
+							rabbitMQService.send("tpf-service-app",
+									Map.of("func", "updateApp","reference_id", UUID.randomUUID().toString(),
+											"param", Map.of("project", "dataentry", "id", resultUpdate.getId()),"body", convertService.toAppDisplay(resultUpdate)));
+							slog += app.getApplicationId() + ", ";
+						}
+					}
+				}
+
+			}
+			responseModel.setResult_code("0");
+			responseModel.setMessage("Success");
+		}catch (Exception e)
+		{
+			slog += " - exception: " + e.toString();
+			responseModel.setResult_code("1");
+			responseModel.setMessage("Other error");
+		}finally {
+			log.info("{}", slog);
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
 
 	public Map<String, Object> getListReason(JsonNode token) {
 		ResponseModel responseModel = new ResponseModel();

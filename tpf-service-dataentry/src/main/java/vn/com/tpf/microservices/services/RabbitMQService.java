@@ -261,6 +261,8 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.updateAppErrorApiF1(request));
 				case "getTokenDGT":
 					return response(message, payload, dataEntryService.getTokenDGT(request, token));
+				case "jobUpdateStatusIH":
+					return response(message, payload, dataEntryService.jobUpdateStatusIH());
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

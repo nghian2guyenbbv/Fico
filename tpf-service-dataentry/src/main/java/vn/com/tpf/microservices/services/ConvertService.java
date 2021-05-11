@@ -905,38 +905,37 @@ public class ConvertService {
 
 			if (!node.findPath("dataDocument").isMissingNode()){
 				String fileName = node.findPath("dataDocument").path("fileName").asText("");
-				if (StringUtils.isEmpty(fileName)){
-					throw new Exception("fileName null");
-				}
-				String documentName = node.findPath("dataDocument").path("documentName").asText("");
-				if (StringUtils.isEmpty(documentName)){
-					throw new Exception("documentName null");
-				}
-				String extension = node.findPath("dataDocument").path("contentType").asText("");
-				if (StringUtils.isEmpty(extension)){
-					throw new Exception("contentType null");
-				}
-				String md5 = node.findPath("dataDocument").path("md5").asText("");
-				if (StringUtils.isEmpty(extension)){
-					throw new Exception("md5 null");
-				}
-				fileName = fileName.trim();
-				Link link = new Link();
-				link.setUrlFico(fileName);
-				vn.com.tpf.microservices.models.Document document = new vn.com.tpf.microservices.models.Document();
-				document.setType(documentName);
-				document.setOriginalname(documentName + "." + extension);
-				document.setFilename(fileName);
-				document.setLink(link);
-				commentResponseModel.setDocuments(Collections.singletonList(document));
+				if (StringUtils.hasLength(fileName)){
+					String documentName = node.findPath("dataDocument").path("documentName").asText("");
+					if (StringUtils.isEmpty(documentName)){
+						throw new Exception("documentName null");
+					}
+					String extension = node.findPath("dataDocument").path("contentType").asText("");
+					if (StringUtils.isEmpty(extension)){
+						throw new Exception("contentType null");
+					}
+					String md5 = node.findPath("dataDocument").path("md5").asText("");
+					if (StringUtils.isEmpty(extension)){
+						throw new Exception("md5 null");
+					}
+					fileName = fileName.trim();
+					Link link = new Link();
+					link.setUrlFico(fileName);
+					vn.com.tpf.microservices.models.Document document = new vn.com.tpf.microservices.models.Document();
+					document.setType(documentName);
+					document.setOriginalname(documentName + "." + extension);
+					document.setFilename(fileName);
+					document.setLink(link);
+					commentResponseModel.setDocuments(Collections.singletonList(document));
 
-				QLDocument qlDocument = new QLDocument();
-				qlDocument.setFilename(fileName);
-				qlDocument.setType(documentName);
-				qlDocument.setOriginalname(documentName + "." + extension);
-				qlDocument.setMd5(md5);
-				qlDocument.setContentType(extension);
-				quickLead.setDocumentsComment(Collections.singletonList(qlDocument));
+					QLDocument qlDocument = new QLDocument();
+					qlDocument.setFilename(fileName);
+					qlDocument.setType(documentName);
+					qlDocument.setOriginalname(documentName + "." + extension);
+					qlDocument.setMd5(md5);
+					qlDocument.setContentType(extension);
+					quickLead.setDocumentsComment(Collections.singletonList(qlDocument));
+				}
 			}
 			commentModel.setResponse(commentResponseModel);
 
