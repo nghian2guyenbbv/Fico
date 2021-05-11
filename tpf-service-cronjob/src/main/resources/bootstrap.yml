@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: tpf-service-cronjob
+  cloud:
+    config:
+      uri: http://127.0.0.1:8888
+      fail-fast: true
+      retry.initial-interval: 5000
+      retry.max-attempts: 100
+      retry.max-interval: 10000
+      retry.multiplier: 2
+---
+spring:
+  profiles: dev
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: uat
+  cloud:
+    config:
+      uri: http://tpf-service-config:8888
+---
+spring:
+  profiles: pro
+  cloud:
+    config:
+      uri: http://10.1.64.41:8888

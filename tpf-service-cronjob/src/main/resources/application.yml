@@ -1,0 +1,116 @@
+#server:
+#  port: 4031
+#spring:
+#  cloud:
+#    config:
+#      allow-override: true
+#      override-none: true
+#  rabbitmq:
+#    host: 10.1.69.14
+#    port: 5672
+#    username: tpf-service-cronjob
+#    password: tpf-service-cronjob
+#    app-id: tpf-service-cronjob
+#    logstash: tpf-service-logstash-cronjob
+#  datasource:
+#    jdbc-url: jdbc:postgresql://10.1.66.30:5435/ficodb
+#    username: postgres
+#    password: postgres
+#    testWhileIdle: true
+#    validationQuery: SELECT 1
+#  f1-datasource:
+#    jdbc-url: jdbc:oracle:thin:@10.1.66.26:1525:ficodbuat
+#    username: ServiceApp
+#    password: UATServiceApp#Test2019#sp_ora_data_net_amount
+#    driver-class-name: oracle.jdbc.OracleDriver
+#  f1-datasource-de:
+#    jdbc-url: jdbc:oracle:thin:@10.1.66.32:1521:FICOCEN
+#    username: SVC_DE
+#    password: Data_Entry#32#2020
+#    driver-class-name: oracle.jdbc.OracleDriver
+#  f1-datasource-ih:
+#    jdbc-url: jdbc:oracle:thin:@10.1.66.32:1521:FICOCEN
+#    username: MIS
+#    password: Luanpv1#mis#2020
+#    driver-class-name: oracle.jdbc.OracleDriver
+#  data:
+#    mongodb:
+#      uri: mongodb://10.1.69.14:27017/tpfdb
+#  jpa:
+#    show-sql: true
+#    generate-ddl: true
+#    hibernate.ddl-auto: update
+#    properties:
+#      hibernate:
+#        format_sql: false
+#        jdbc:
+#          lob:
+#            non_contextual_creation: true
+#  url:
+#    uploadfile: http://192.168.0.203:3001/v1/file
+#    esb:
+#      create-lead: https://tpfesbuat.tpb.vn/esb/app/f1/leadCreation
+#      update-app: https://tpfesbuat.tpb.vn/esb/app/f1/updateApp
+#  cron:
+#    updateAppStatus: "0 0/5 * ? * *"
+#security:
+#  oauth2:
+#    client:
+#      client-id: tpf-service-root
+#      client-secret: tpf-service-root
+#    resource:
+#      token-info-uri: http://10.1.69.14:1100/oauth/check_token
+#eureka:
+#  client:
+#    registerWithEureka: true
+#    fetchRegistry: true
+#    serviceUrl:
+#      defaultZone: http://10.1.69.14:8761/eureka
+#  instance:
+#    hostname: tpf-service-cronjob
+#logging:
+#  level:
+#    com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver: WARN
+#---
+#spring:
+#  profiles: dev
+#  cloud:
+#    config:
+#      allow-override: false
+#      override-none: false
+#  rabbitmq:
+#    host: tpf-opensource-rabbitmq
+#  datasource:
+#    url: jdbc:postgresql://tpf-opensource-postgres:5432/tpfdb
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://tpf-service-eureka:8761/eureka
+#  instance:
+#    hostname: tpf-service-cronjob
+#---
+#spring:
+#  profiles: uat
+#  rabbitmq:
+#    host: tpf-opensource-rabbitmq
+#  datasource:
+#    url: jdbc:postgresql://10.1.66.30:5435/ficodb
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://tpf-service-eureka:8761/eureka
+#  instance:
+#    hostname: tpf-service-cronjob
+#---
+#spring:
+#  profiles: pro
+#  rabbitmq:
+#    host: tpf-opensource-rabbitmq
+#  datasource:
+#    url: jdbc:postgresql://10.1.65.23:5435/ficodb
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://tpf-service-eureka:8761/eureka
+#  instance:
+#    hostname: tpf-service-cronjob
