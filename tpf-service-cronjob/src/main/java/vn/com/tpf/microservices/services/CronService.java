@@ -40,12 +40,6 @@ public class CronService {
     public JdbcTemplate jdbcTemplateFicoIh;
 
     @Autowired
-    private ApplicationDataPushDao applicationDataPushDao;
-
-    @Autowired
-    private ApiFin1Service apiFin1Service;
-
-    @Autowired
     private RabbitMQService rabbitMQService;
 
 }

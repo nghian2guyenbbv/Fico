@@ -161,8 +161,8 @@ public class AutoAssignService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 
-	@Scheduled(cron="0 0 0 * * *", zone="Asia/Saigon")
-	public void createdConfigureAuto() {
+//	@Scheduled(cron="0 0 0 * * *", zone="Asia/Saigon")
+	public Map<String, Object> createdConfigureAuto() {
 		try{
 			try{
 				List<AutoAssignConfigure> inputDataInsert = new ArrayList<>();
@@ -223,16 +223,16 @@ public class AutoAssignService {
 			catch (Exception e) {
 				log.info("Error_Insert: " + e.toString());
 			}
-			return;
+			return Map.of("status", 200, "data", "OK");
 		}
 		catch (Exception e) {
 			log.info("Error_Insert_Auto: " + e.toString());
-			return;
+			return Map.of("status", 200, "data", e.toString());
 		}
 	}
 
-	@Scheduled(cron="${spring.cronJob.syncStatus}", zone="Asia/Saigon")
-	public void updateTotalQuantityInDayFromDE() {
+//	@Scheduled(cron="${spring.cronJob.syncStatus}", zone="Asia/Saigon")
+	public Map<String, Object> updateTotalQuantityInDayFromDE() {
 		String logs="updateTotalQuantityInDayFromDE: ";
 		try{
 
@@ -294,6 +294,7 @@ public class AutoAssignService {
 		finally {
 			log.info(logs);
 		}
+		return Map.of("status", 200, "data", "OK");
 	}
 
 	@Transactional

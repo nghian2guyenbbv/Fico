@@ -82,6 +82,10 @@ public class RabbitMQService {
 			switch (request.path("func").asText()) {
 			case "configureVendor":
 				return response(message, payload, autoAssignService.configureApplication(request));
+			case "job_autoAssignSyncConfig":
+				return response(message, payload, autoAssignService.createdConfigureAuto());
+			case "job_autoAssignSyncCountStatus":
+				return response(message, payload, autoAssignService.updateTotalQuantityInDayFromDE());
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

@@ -57,6 +57,8 @@
 #    repaymentSyncQueue: "0 30 6 ? * *"
 #    repaymentSyncRetry: "0 */30 * ? * *"
 #    dataentrySyncStatusIH: "0 0 0/1 ? * *"
+#    autoAssignSyncConfig: "0 0 0 * * *"
+#    autoAssignSyncCountStatus: "0 0 0/1 ? * *"
 #security:
 #  oauth2:
 #    client:
