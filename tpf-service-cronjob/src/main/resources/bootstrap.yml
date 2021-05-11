@@ -26,4 +26,4 @@ spring:
   profiles: pro
   cloud:
     config:
-      uri: http://10.1.64.41:8888
+      uri: http://tpf-service-config:8888

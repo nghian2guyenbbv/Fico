@@ -1154,7 +1154,7 @@ public class RepaymentService {
 		return success;
 	}
 
-	@Scheduled(cron = "${spring.ftp.cronconfig}")
+//	@Scheduled(cron = "${spring.ftp.cronconfig}")
 	@Transactional
 	public Map<String, Object> getCron() throws IOException, MessagingException {
 		ResponseModel responseModel = new ResponseModel();
@@ -1320,7 +1320,7 @@ public class RepaymentService {
 		}
 	}
 
-	@Scheduled(cron = "${spring.syncqueue.cronconfig}")
+//	@Scheduled(cron = "${spring.syncqueue.cronconfig}")
 	public Map<String, Object> syncDataInQueue()
 	{
 		String message="";
@@ -1512,5 +1512,137 @@ public class RepaymentService {
 		}
 	}
 	// ---------------------- END --------------------------------------
+
+	// ----------------------- call retry --------------------------------
+
+	//@Scheduled(cron = "${spring.syncqueue.cronretry}")
+	public String autoRetry()
+	{
+		String message="";
+		Timestamp date_time = new Timestamp(new Date().getTime());
+		try{
+			StoredProcedureQuery q = entityManager.createNamedStoredProcedureQuery("getlistretry");
+			q.setParameter(1, 0);
+			List<FicoReceiptPaymentLog> list=q.getResultList();
+
+			if(list!=null && list.size()>0)
+			{
+				callFin1API_retry(list);
+
+				System.out.println("autoRetry:" + list.size() +"- OK" );
+			}
+
+
+			return "OK";
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return e.toString();
+		}
+	}
+
+	public int updateTranRetry(long paymentLogId,String transactionId){
+
+		SqlParameterSource namedParameters = new MapSqlParameterSource()
+				.addValue("paymentlogid", paymentLogId)
+				.addValue("transactionid",transactionId);
+		String sql="Update payoo.fico_trans_pay_auto_retry " +
+				"set status=1 " +
+				"where payment_log_id=:paymentlogid and transaction_id=:transactionid";
+
+		int resultData =namedParameterJdbcTemplatePosgres.update(sql,namedParameters);
+
+		return resultData;
+	}
+
+	public void callFin1API_retry(List<FicoReceiptPaymentLog> ficoReceiptPaymentLogList) {
+		for (FicoReceiptPaymentLog fico: ficoReceiptPaymentLogList) {
+
+			updateTranRetry(fico.getId(), fico.getInstrumentReferenceNumber());
+
+			String errorMessage="";
+
+			FicoRepaymentModel ficoRepaymentModel = new FicoRepaymentModel();
+			ReceiptProcessingMO ficoReceiptPayment = new ReceiptProcessingMO();
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			if (!fico.getInstrumentReferenceNumber().isEmpty()){
+				ficoReceiptPayment.setInstrumentReferenceNumber(fico.getInstrumentReferenceNumber());
+			}
+			if (fico.getInstrumentReferenceNumber().startsWith("PY")){
+				ficoReceiptPayment.setSourceAccountNumber("45992855603");
+				ficoReceiptPayment.setReceiptPayoutChannel("PAYOO");
+			} else if (fico.getInstrumentReferenceNumber().startsWith("MO")) {
+				ficoReceiptPayment.setSourceAccountNumber("45992855306");
+				ficoReceiptPayment.setReceiptPayoutChannel("MOMO");
+			}else if (fico.getInstrumentReferenceNumber().startsWith("VP")) {
+				ficoReceiptPayment.setSourceAccountNumber("45992855108"); //update lai sau
+				ficoReceiptPayment.setReceiptPayoutChannel("VNPOST"); //update lai sau
+			}
+
+			ReqHeader requestHeader = new ReqHeader();
+			requestHeader.setTenantId(505);
+			UserDetail userDetail = new UserDetail();
+			userDetail.setBranchId(5);
+			userDetail.setUserCode("system");
+			requestHeader.setUserDetail(userDetail);
+			ficoReceiptPayment.setRequestHeader(requestHeader);
+			ficoReceiptPayment.setReceiptPayOutMode("ELECTRONIC_FUND_TRANSFER");
+			ficoReceiptPayment.setPaymentSubMode("INTERNAL_TRANSFER");
+			ficoReceiptPayment.setReceiptAgainst("SINGLE_LOAN");
+			ficoReceiptPayment.setLoanAccountNo(fico.getLoanAccountNo());
+			ficoReceiptPayment.setTransactionCurrencyCode("VND");
+			ficoReceiptPayment.setInstrumentDate(simpleDateFormat.format(fico.getInstrumentDate()));
+			ficoReceiptPayment.setTransactionValueDate(simpleDateFormat.format(fico.getInstrumentDate()));
+			ficoReceiptPayment.setReceiptOrPayoutAmount(fico.getReceiptOrPayoutAmount());
+			ficoReceiptPayment.setAutoAllocation("Y");
+			ficoReceiptPayment.setReceiptNo("");
+			ficoReceiptPayment.setReceiptPurpose("ANY_DUE");
+			ficoReceiptPayment.setDepositDate(simpleDateFormat.format(fico.getInstrumentDate()));
+			ficoReceiptPayment.setDepositBankAccountNumber("519200003");
+			ficoReceiptPayment.setRealizationDate(simpleDateFormat.format(fico.getInstrumentDate()));
+			ficoReceiptPayment.setReceiptTransactionStatus("C");
+			ficoReceiptPayment.setProcessTillMaker(false);
+			ficoReceiptPayment.setRequestChannel("RECEIPT");
+			ficoReceiptPayment.setRequestAt(fico.getInstrumentDate().toString());
+			ficoRepaymentModel.setReceiptProcessingMO(ficoReceiptPayment);
+
+
+			String urlReceiptLMS = urlAPI;
+			URI uri = null;
+			String response="";
+			try {
+				uri = new URI(urlAPI);
+
+
+				RestTemplate restTemplate = new RestTemplate();
+				MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+				headers.add("clientId", "1");
+				headers.add("sign", "1");
+				headers.add("Content-Type", "application/json");
+				HttpEntity<FicoRepaymentModel> body = new HttpEntity<>(ficoRepaymentModel, headers);
+				ResponseEntity<String> res = restTemplate.postForEntity(uri, body, String.class);
+
+				response=res.getBody();
+
+			} catch (Exception e) {
+				errorMessage=e.getMessage();
+				e.printStackTrace();
+			}finally {
+				//save report
+				try {
+					System.out.println("REQ:" + mapper.writeValueAsString(fico) +" - RES:" + response);
+
+					saveReportReceiptPaymentLog(ficoRepaymentModel,response,fico.getInstrumentDate(),errorMessage);
+				} catch (JsonProcessingException e) {
+					System.out.println(e.toString());
+				} catch (IOException e) {
+					System.out.println(e.toString());
+				} catch (ParseException e) {
+					System.out.println(e.toString());
+				}
+			}
+		}
+	}
+	// ----------------------- end ---------------------------------------
 
 }

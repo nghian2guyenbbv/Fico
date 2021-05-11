@@ -105,6 +105,12 @@ public class RabbitMQService {
 				return response(message, payload, repaymentService.getCustomers_vnPost(request));
 			case "customers_pay_vnPost":
 				return response(message, payload, repaymentService.customers_pay_vnPost(request));
+			case "job_repaymentSyncFcc":
+					return response(message, payload, repaymentService.getCron());
+			case "job_repaymentSyncDataInQueue":
+				return response(message, payload, repaymentService.syncDataInQueue());
+			case "job_repaymentAutoRetry":
+				return response(message, payload, repaymentService.autoRetry());
 //			case "cronSchedule":
 //					return response(message, payload, repaymentService.getCron());
 			default:

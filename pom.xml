@@ -46,6 +46,7 @@
         <module>tpf-service-autoassign</module>
 		<module>tpf-service-autorouting</module>
 		<module>tpf-service-autoallocation</module>
+		<module>tpf-service-cronjob</module>
 	</modules>
 
 
