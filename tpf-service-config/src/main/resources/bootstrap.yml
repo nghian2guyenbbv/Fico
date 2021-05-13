@@ -3,52 +3,34 @@ server:
 spring:
   application:
     name: tpf-service-config
-#  rabbitmq:
-#    host: 127.0.0.1
-#    port: 5672
-#    username: tpf-service-config
-#    password: tpf-service-config
-#    app-id: tpf-service-config
+  profiles:
+    active: native
   cloud:
     config:
       server:
-        git:
-          uri: http://127.0.0.1:8088/tpf-service/tpf-config.git
-          username: tpf-service
-          password: tpf-service
+        native:
+          searchLocations: file:/config-repo
 ---
 spring:
   profiles: dev
-  rabbitmq:
-    host: tpf-opensource-rabbitmq
   cloud:
     config:
       server:
-        git:
-          uri: http://tpf-opensource-git/tpf-service/tpf-config.git
-          username: tpf-service
-          password: tpf-service
+        native:
+          searchLocations: file:/config-repo
 ---
 spring:
   profiles: uat
-  rabbitmq:
-    host: tpf-opensource-rabbitmq
   cloud:
     config:
       server:
-        git:
-          uri: http://tpf-opensource-git/tpf-service/tpf-config.git
-          username: tpf-service
-          password: tpf-service
+        native:
+          searchLocations: file:/config-repo
 ---
 spring:
   profiles: pro
-  rabbitmq:
-    host: 10.1.64.41
   cloud:
     config:
       server:
-        git:
-          uri: http://10.1.64.41:8088/tpf-service/tpf-config.git
-          username: tpf-service
-          password: tpf-service
+        native:
+          searchLocations: file:/config-repo
