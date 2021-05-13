@@ -7482,7 +7482,7 @@ public class AutomationHandlerService {
 
                         Query queryUpdatePass = new Query();
                         queryUpdatePass.addCriteria(Criteria.where("appId").is(appID).and("userName").is(autoAssignAllocationDTO.getUserName()).and("status").is(1).and("idAutoAllocation").is(autoAssignAllocationDTO.getIdAutoAllocation()));
-                        AutoAllocationResponseDTO resultRespone = mongoTemplate.findOne(queryUpdatePass, AutoAllocationResponseDTO.class);
+                        List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdatePass, AutoAllocationResponseDTO.class);
                         responseModel.setReference_id(referenceId);
                         responseModel.setProject(projectId);
                         responseModel.setData(resultRespone);
@@ -7504,7 +7504,7 @@ public class AutomationHandlerService {
 
                     Query queryUpdateFail = new Query();
                     queryUpdateFail.addCriteria(Criteria.where("appId").is(appID).and("userName").is(autoAssignAllocationDTO.getUserName()).and("status").is(3).and("idAutoAllocation").is(autoAssignAllocationDTO.getIdAutoAllocation()));
-                    AutoAllocationResponseDTO resultRespone = mongoTemplate.findOne(queryUpdateFail, AutoAllocationResponseDTO.class);
+                    List<AutoAllocationResponseDTO> resultRespone = mongoTemplate.find(queryUpdateFail, AutoAllocationResponseDTO.class);
                     responseModel.setReference_id(referenceId);
                     responseModel.setProject(projectId);
                     responseModel.setData(resultRespone);
