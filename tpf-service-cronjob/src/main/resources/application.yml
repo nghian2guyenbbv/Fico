@@ -59,6 +59,9 @@
 #    dataentrySyncStatusIH: "0 0 0/1 ? * *"
 #    autoAssignSyncConfig: "0 0 0 * * *"
 #    autoAssignSyncCountStatus: "0 0 0/1 ? * *"
+#    autoRoutingScheduledInitCacheJob: "0 1 0 * * *"
+#    autoAllocationScheduledCallFunction: "120000"
+#    autoAllocationScheduledPushAssignRobot: "120000"
 #security:
 #  oauth2:
 #    client:
