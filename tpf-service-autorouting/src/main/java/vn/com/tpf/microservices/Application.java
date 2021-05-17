@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableScheduling
+//@EnableScheduling
 public class Application {
 
     public static void main(String[] args) {

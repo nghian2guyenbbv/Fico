@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import vn.com.tpf.microservices.scheduled.ScheduledAutoAllocationService;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
@@ -40,6 +41,9 @@ public class RabbitMQService {
 
 	@Autowired
 	private AutoAllocationService autoAllocationService;
+
+	@Autowired
+	private ScheduledAutoAllocationService scheduledAutoAllocationService;
 
 	@Value("${security.oauth2.resource.token-info-uri}")
 	private String tokenUri;
@@ -143,6 +147,10 @@ public class RabbitMQService {
 					return response(message, payload, autoAllocationService.updateLoginStatus(request, token));
 				case "updateLeader":
 					return response(message, payload, autoAllocationService.updateLeader(request, token));
+				case "scheduledCallFunction":
+					return response(message, payload, scheduledAutoAllocationService.callFunctionAssignApp());
+				case "scheduledPushAssignRobot":
+					return response(message, payload, scheduledAutoAllocationService.pushAssignToRobot());
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
