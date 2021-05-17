@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import vn.com.tpf.microservices.dao.AssignmentDetailDAO;
 import vn.com.tpf.microservices.dao.UserDetailsDAO;
 import vn.com.tpf.microservices.models.*;
@@ -24,8 +25,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Component
-public class ScheduledAutoAllocation {
+@Service
+public class ScheduledAutoAllocationService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -41,9 +42,9 @@ public class ScheduledAutoAllocation {
     private static String KEY_ASSIGN_APP = "WAITING";
 
 
-    @Async
-    @Scheduled(fixedRateString = "${spring.syncfunc.fixedRate}")
-    public void callFunctionAssignApp() {
+//    @Async
+//    @Scheduled(fixedRateString = "${spring.syncfunc.fixedRate}")
+    public String callFunctionAssignApp() {
         log.info("callFunctionAssignApp is start.");
         String sql = "select * from VIEW_ALLOCATION_FUNCTION";
         List<ConfigFunction> listConfigFunction = jdbcTemplate.query(sql, new Object[]{}, (rs, rowNum) -> {
@@ -75,10 +76,11 @@ public class ScheduledAutoAllocation {
                 }
             }
         }
+        return "Run AutoAllocation-Scheduled-CallFunction";
     }
 
-    @Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
-    public void pushAssignToRobot() {
+//    @Scheduled(fixedRateString = "${spring.syncrobot.fixedRate}")
+    public String pushAssignToRobot() {
         log.info("pushAssignToRobot - get config from DB");
         String sql = "select * from VIEW_ALLOCATION_ROBOT";
         List<ConfigRobot> listConfigRobot = jdbcTemplate.query(sql, new Object[]{}, (rs, rowNum) -> {
@@ -137,41 +139,42 @@ public class ScheduledAutoAllocation {
                 }
             }
         }
+        return "Run AutoAllocation-Scheduled-PussAssignRobot";
     }
 
-    @Bean
-    @Scheduled(fixedDelayString ="3600000")
-    public String getTimeCronjob(){
-        String cronJob = null;
-        try{
-            String sql = "SELECT PARAMETER_VALUE FROM ALLOCATION_PARAMETERS WHERE PARAMETER_NAME = 'INACTIVE_FLAG'";
+//    @Bean
+//    @Scheduled(fixedDelayString ="3600000")
+//    public String getTimeCronjob(){
+//        String cronJob = null;
+//        try{
+//            String sql = "SELECT PARAMETER_VALUE FROM ALLOCATION_PARAMETERS WHERE PARAMETER_NAME = 'INACTIVE_FLAG'";
+//
+//            cronJob = (String) jdbcTemplate.queryForObject(
+//                    sql, new Object[]{}, String.class);
+//            log.info("Time CronJob: " + cronJob);
+//        }catch (Exception e) {
+//            log.error("Error getTimeCronjob: " + e);
+//        }
+//        return cronJob;
+//    }
 
-            cronJob = (String) jdbcTemplate.queryForObject(
-                    sql, new Object[]{}, String.class);
-            log.info("Time CronJob: " + cronJob);
-        }catch (Exception e) {
-            log.error("Error getTimeCronjob: " + e);
-        }
-        return cronJob;
-    }
-
-    @Scheduled(cron = "#{@getTimeCronjob}")
-    public void cronJobInactive(){
-        try{
-            List<UserDetail> userDetail = userDetailsDAO.findByActiveFlag("Y");
-            userDetail.forEach(u->
-                    u.setActiveFlag("N")
-            );
-            userDetailsDAO.saveAll(userDetail);
-
-            String sql = "SELECT FN_ALLOCATION_BACKUP_DAILY() FROM DUAL";
-            String backupDaily = jdbcTemplate.queryForObject(sql, String.class);
-            log.info("Result run backupDaily : " + backupDaily);
-
-        }catch (Exception e) {
-            log.error("Error cronJobInactive: " + e);
-        }
-    }
+//    @Scheduled(cron = "#{@getTimeCronjob}")
+//    public void cronJobInactive(){
+//        try{
+//            List<UserDetail> userDetail = userDetailsDAO.findByActiveFlag("Y");
+//            userDetail.forEach(u->
+//                    u.setActiveFlag("N")
+//            );
+//            userDetailsDAO.saveAll(userDetail);
+//
+//            String sql = "SELECT FN_ALLOCATION_BACKUP_DAILY() FROM DUAL";
+//            String backupDaily = jdbcTemplate.queryForObject(sql, String.class);
+//            log.info("Result run backupDaily : " + backupDaily);
+//
+//        }catch (Exception e) {
+//            log.error("Error cronJobInactive: " + e);
+//        }
+//    }
 
 
 }

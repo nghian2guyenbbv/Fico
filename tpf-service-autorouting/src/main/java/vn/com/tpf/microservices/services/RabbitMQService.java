@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import vn.com.tpf.microservices.scheduled.ScheduledCacheService;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class RabbitMQService {
 	private RabbitTemplate rabbitTemplate;
 
 	@Autowired
-	private RestTemplate restTemplate;
+	private ScheduledCacheService scheduledCacheService;
 
 	@Autowired
 	private AutoRoutingService autoRoutingServiceService;
@@ -93,6 +94,8 @@ public class RabbitMQService {
 					return response(message, payload, autoRoutingServiceService.logRouting(request));
 				case "historyConfig":
 					return response(message, payload, autoRoutingServiceService.getHistoryConfig(request));
+				case "scheduledInitCacheJob":
+					return response(message, payload, scheduledCacheService.initCache());
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
