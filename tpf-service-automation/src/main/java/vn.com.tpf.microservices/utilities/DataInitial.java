@@ -131,17 +131,17 @@ public class DataInitial {
 
         //Bank Credit Card Detail [19/01/2021]
         List<BankCreditCardDetailsDTO> bankCreditCardDetailsDTOList=new ArrayList<>();
-        for(BankCreditCardDetails bankCreditCardDetails : application.getApplicationInformation().getBankingDetails())
-        {
-            BankCreditCardDetailsDTO bankingDetailDTO = BankCreditCardDetailsDTO.builder()
-                    .bankName(bankCreditCardDetails.getBankName())
-                    .branchName(bankCreditCardDetails.getBranchName())
-                    .accountNumber(bankCreditCardDetails.getAccountNumber())
-//                    .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
-                    .typeOfAccount("Current Account")
-                    .build();
-            bankCreditCardDetailsDTOList.add(bankingDetailDTO);
-        }
+//        for(BankCreditCardDetails bankCreditCardDetails : application.getApplicationInformation().getBankingDetails())
+//        {
+//            BankCreditCardDetailsDTO bankingDetailDTO = BankCreditCardDetailsDTO.builder()
+//                    .bankName(bankCreditCardDetails.getBankName())
+//                    .branchName(bankCreditCardDetails.getBranchName())
+//                    .accountNumber(bankCreditCardDetails.getAccountNumber())
+////                    .typeOfAccount(bankCreditCardDetails.getTypeOfAccount())
+//                    .typeOfAccount("Current Account")
+//                    .build();
+//            bankCreditCardDetailsDTOList.add(bankingDetailDTO);
+//        }
 
         ApplicationInfoDTO applicationInfoDTO = ApplicationInfoDTO.builder()
                 .gender(personalInfo.getGender())
