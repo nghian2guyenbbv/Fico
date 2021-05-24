@@ -235,6 +235,7 @@ public class ApplicationManagerPage {
         actionKey.moveToElement(divTimeRemaining).click();
         actionKey.sendKeys(Keys.TAB).build().perform();
         actionKey.sendKeys(Keys.TAB).build().perform();
+        actionKey.sendKeys(Keys.TAB).build().perform();
         actionKey.sendKeys(Keys.ENTER).build().perform();
     }
 
