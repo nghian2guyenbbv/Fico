@@ -152,7 +152,7 @@ public class Utilities {
         int i = 0;
         String textSendkey = "";
         do {
-            webElement.click();
+//            webElement.click();
             webElement.clear();
             webElement.sendKeys(inputValue);
             textSendkey = webElement.getAttribute("value").replace(",","");
