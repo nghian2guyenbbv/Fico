@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>tpf-service-automation-sgb</artifactId>
+    <artifactId>tpf-service-automation</artifactId>
     <description>TPF SERVICE AUTOMATION</description>
 
     <dependencies>
