@@ -76,9 +76,8 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
         with().pollInterval(Duration.FIVE_SECONDS).await("Table create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> sizeTableBanks > 2);
 
-        with().pollInterval(Duration.FIVE_SECONDS).await("Button Fetch Bank visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> fetchBankButton.isDisplayed());
-
+//        with().pollInterval(Duration.FIVE_SECONDS).await("Button Fetch Bank visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> fetchBankButton.isDisplayed());
 //        fetchBankButton.click();
 
         Utilities.captureScreenShot(_driver);
@@ -166,6 +165,16 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
             currentAccountNumber.clear();
 
             currentAccountNumber.sendKeys(data.getAccountNumber());
+
+            Utilities.captureScreenShot(_driver);
+
+            //Default Account
+            WebElement defaultAccount = _driver.findElement(By.xpath("//input[@id='selectedAccountType_" + index + "']"));
+            if (defaultAccount != null) {
+                defaultAccount.click();
+                System.out.println("AUTOMATION TICKED DEFAULT ACCOUNT");
+            }else
+                System.out.println("NOT FOUND ELEMENT selectedAccountType_" + index);
 
             Utilities.captureScreenShot(_driver);
 
@@ -207,8 +216,8 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
         with().pollInterval(Duration.FIVE_SECONDS).await("Table create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> sizeTableBanks > 2);
 
-        with().pollInterval(Duration.FIVE_SECONDS).await("Button Fetch Bank visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> fetchBankButton.isDisplayed());
+//        with().pollInterval(Duration.FIVE_SECONDS).await("Button Fetch Bank visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> fetchBankButton.isDisplayed());
 
 //        fetchBankButton.click();
 
@@ -297,6 +306,16 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
             currentAccountNumber.clear();
 
             currentAccountNumber.sendKeys(data.getAccountNumber());
+
+            Utilities.captureScreenShot(_driver);
+
+            //Default Account
+            WebElement defaultAccount = _driver.findElement(By.xpath("//input[@id='selectedAccountType_" + index + "']"));
+            if (defaultAccount != null) {
+                defaultAccount.click();
+                System.out.println("AUTOMATION TICKED DEFAULT ACCOUNT");
+            }else
+                System.out.println("NOT FOUND ELEMENT selectedAccountType_" + index);
 
             Utilities.captureScreenShot(_driver);
 
