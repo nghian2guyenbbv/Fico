@@ -849,13 +849,13 @@ public class MobilityService {
 
 		HashMap<String, Object> returnQuery = new HashMap<>();
 		JsonNode returns = mapper.convertValue(mobility.getReturns(), JsonNode.class);
-		if(3 == mobility.getPartnerId()) {
-			if (returns.hasNonNull("returnQueries")
-					&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
-					.asBoolean())
-				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
-						String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
-		}
+//		if(3 == mobility.getPartnerId()) {
+//			if (returns.hasNonNull("returnQueries")
+//					&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
+//					.asBoolean())
+//				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+//						String.format("data.appId %s returnQuery not complete", mobility.getAppId())));
+//		}
 		if(hasDocuments) {
 			JsonNode document = data.path("document");
 			if (document != null) {
@@ -924,6 +924,10 @@ public class MobilityService {
 		} else {
 //			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
 //					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+			update.set("status", STATUS_RESUBMITING);
+
+			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+					Mobility.class);
 			responseQuery(mobility);
 		}
 
