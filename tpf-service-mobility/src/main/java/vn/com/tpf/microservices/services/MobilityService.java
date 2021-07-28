@@ -831,10 +831,14 @@ public class MobilityService {
 					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
 		if(3 == mobility.getPartnerId()) {
 			if (!mobility.getStatus().equals(STATUS_T_RETURN))
+//				return utils.getJsonNodeResponse(1, body,
+//						mapper.createObjectNode().put("message",
+//								String.format("data.appId %s not request resubmit query. current stage %s status %s", appId,
+//										mobility.getStage(), mobility.getStatus())));
 				return utils.getJsonNodeResponse(1, body,
-						mapper.createObjectNode().put("message",
-								String.format("data.appId %s not request resubmit query. current stage %s status %s", appId,
-										mobility.getStage(), mobility.getStatus())));
+					mapper.createObjectNode().put("message",
+							String.format("data.appId %s da submit raise query. Vui long thu lai sau 45 phut neu trang thai khong doi.", appId
+							)));
 		}
 		final String productCode = mobility.getProduct().replace(" ", "_").trim().toLowerCase();
 		final String schemeCode = mobility.getScheme().replace(" ", "_").trim().toLowerCase();
@@ -925,7 +929,7 @@ public class MobilityService {
 //			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
 //					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
 			update.set("status", STATUS_RESUBMITING);
-
+			update.set("viewLastUpdated","");
 			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 					Mobility.class);
 			responseQuery(mobility);
