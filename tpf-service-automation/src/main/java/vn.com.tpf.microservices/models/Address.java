@@ -15,7 +15,14 @@ public class Address {
     public String addressLine1;
     public String addressLine2;
     public String addressLine3;
-    public String landMark;
+
+    private String landMark;
+    public void setLandMark(String landMark) {
+        if (landMark == null || landMark.isEmpty())
+            landMark = "";
+        this.landMark = landMark;
+    }
+
     public String yearsInCurrentAddress;
     public String monthsInCurrentAddress;
     public List<Phonenumber> phoneNumbers = null;
