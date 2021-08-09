@@ -74,7 +74,7 @@ public class RabbitMQService {
 
 		return null;
 	}
-	
+
 	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
 	public Message onMessage(Message message, byte[] payload) throws Exception {
 
@@ -86,7 +86,7 @@ public class RabbitMQService {
 				case "preCheck2":
 					return response(message, payload, Map.of("status", 200, "data", crmService.getPreCheck2(request)));
 				case "getAppInfo":
-					return response(message, payload, Map.of("status", 200, "data", crmService.getAppInfo(request)));	
+					return response(message, payload, Map.of("status", 200, "data", crmService.getAppInfo(request)));
 				case "returnQuery":
 					return response(message, payload, Map.of("status", 200, "data", crmService.returnQuery(request)));
 				case "returnQueue":
@@ -98,21 +98,25 @@ public class RabbitMQService {
 				case "addDocumentsWithCustIdAndFullApp":
 					return response(message, payload, Map.of("status", 200, "data", crmService.addDocumentsWithCustIdAndFullApp((request))));
 				case "updateAutomation":
-					return response(message, payload, Map.of("status", 200, "data", crmService.updateAutomation((request))));	
+					return response(message, payload, Map.of("status", 200, "data", crmService.updateAutomation((request))));
 				case "createField":
-					return response(message, payload, Map.of("status", 200, "data", crmService.createField((request))));	
-				case "submitField": 
-					return response(message, payload, Map.of("status", 200, "data", crmService.submitField((request))));	
-				case "waiveField": 
+					return response(message, payload, Map.of("status", 200, "data", crmService.createField((request))));
+				case "submitField":
+					return response(message, payload, Map.of("status", 200, "data", crmService.submitField((request))));
+				case "waiveField":
 					return response(message, payload, Map.of("status", 200, "data", crmService.waiveField((request))));
 				case "returnQueueAndSendBack":
 					return response(message, payload, Map.of("status", 200, "data", crmService.returnQueueAndSendBack(request)));
 				case "retryAddDocumentsWithCustIdAndFullApp":
 					return response(message, payload, Map.of("status", 200, "data", crmService.retryAddDocumentsWithCustIdAndFullApp(request)));
+				case "addDocumentsWithCustIdAndFullAppSimpleProduct":
+					return response(message, payload, Map.of("status", 200, "data", crmService.addDocumentsWithCustIdAndFullAppSimpleProduct((request))));
+				case "returnQueueSimpleProduct":
+					return response(message, payload, Map.of("status", 200, "data", crmService.returnQueueSimpleProduct(request)));
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
 							mapper.createObjectNode().put("message", "function not found"))));
-			}				
+			}
 
 		} catch (Exception e) {
 			return response(message, payload,

@@ -27,10 +27,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import vn.com.tpf.microservices.models.Crm;
-import vn.com.tpf.microservices.models.CrmField;
-import vn.com.tpf.microservices.models.CrmWaiveField;
-import vn.com.tpf.microservices.models.CrmFieldKH;
+import vn.com.tpf.microservices.models.*;
 import vn.com.tpf.microservices.utils.Utils;
 
 @Service
@@ -173,7 +170,7 @@ public class CrmService {
 			return utils.getJsonNodeResponse(500, body, preCheckResult.path("data"));
 		}
 		System.out.println(preCheckResult.path("data"));
-		
+
 
 		crm.setPreChecks(Map.of("preCheck1",
 				Map.of("createdAt", new Date(), "data", mapper.convertValue(preCheckResult.path("data"), Map.class))));
@@ -261,47 +258,53 @@ public class CrmService {
 					mapper.createObjectNode().put("message", "data.appId not null"));
 		Query query = Query.query(Criteria.where("appId").is(appId));
 		Crm crm = crmTemplate.findOne(query, Crm.class);
-		if (crm == null)
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s not exits", appId)));
+		JsonNode item = null;
+		if (crm == null) {
+			item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
 
-		if (LIST_STATUS_COMPLETE.contains(crm.getStatus().toUpperCase().trim()))
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s",
-							appId, crm.getStatus().toUpperCase().trim())));
-		JsonNode item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
+			if (item.path("status").asInt() != 200)
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.appId %s waiting sync data", appId)));
+			return utils.getJsonNodeResponse(0, body, item.path("data"));
+		} else {
 
-		if (item.path("status").asInt() != 200)
-			return utils.getJsonNodeResponse(1, body,
-					mapper.createObjectNode().put("message", String.format("data.appId %s waiting sync data", appId)));
+			if (LIST_STATUS_COMPLETE.contains(crm.getStatus().toUpperCase().trim()))
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.appId %s complete with status %s",
+								appId, crm.getStatus().toUpperCase().trim())));
+			item = rabbitMQService.sendAndReceive("tpf-service-esb", Map.of("func", "getAppInfo", "body", body));
 
-		Update update = new Update().set("updatedAt", new Date());
-		final boolean updateStageAndStatus = (crm.getViewLastUpdated() == null
-				|| !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()
-						.equals(crm.getViewLastUpdated().trim().toUpperCase())
-				|| !item.path("data").path(KEY_STATUS).asText().trim().toUpperCase()
-						.equals(crm.getStatus().trim().toUpperCase())
-				|| !item.path("data").path(KEY_STAGE).asText().trim().toUpperCase()
-				.equals(crm.getStage().trim().toUpperCase()));
+			if (item.path("status").asInt() != 200)
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message", String.format("data.appId %s waiting sync data", appId)));
 
-		if (updateStageAndStatus)
-			update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase())
-					.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
-					.set("status", item.path("data").path(KEY_STATUS).asText().toUpperCase().trim());
+			Update update = new Update().set("updatedAt", new Date());
+			final boolean updateStageAndStatus = (crm.getViewLastUpdated() == null
+					|| !item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase()
+					.equals(crm.getViewLastUpdated().trim().toUpperCase())
+					|| !item.path("data").path(KEY_STATUS).asText().trim().toUpperCase()
+					.equals(crm.getStatus().trim().toUpperCase())
+					|| !item.path("data").path(KEY_STAGE).asText().trim().toUpperCase()
+					.equals(crm.getStage().trim().toUpperCase()));
 
-		if (!item.path("data").path(KEY_STAGE).asText().toUpperCase().trim().equals(STAGE_SALES_QUEUE))
-			update.set("userCreatedQueue", item.path("data").path(KEY_USER_NAME).asText());
+			if (updateStageAndStatus)
+				update.set("viewLastUpdated", item.path("data").path(KEY_LAST_UPDATE_DATE).asText().trim().toUpperCase())
+						.set("stage", item.path("data").path(KEY_STAGE).asText().toUpperCase().trim())
+						.set("status", item.path("data").path(KEY_STATUS).asText().toUpperCase().trim());
 
-		if (updateStageAndStatus) {
-			crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
-					Crm.class);
-			rabbitMQService.send("tpf-service-app",
-					Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
-							Map.of("project", "crm", "id", crm.getId()), "body",
-							convertService.toAppStatus(crm)));
+			if (!item.path("data").path(KEY_STAGE).asText().toUpperCase().trim().equals(STAGE_SALES_QUEUE))
+				update.set("userCreatedQueue", item.path("data").path(KEY_USER_NAME).asText());
+
+			if (updateStageAndStatus) {
+				crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+						Crm.class);
+				rabbitMQService.send("tpf-service-app",
+						Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+								Map.of("project", "crm", "id", crm.getId()), "body",
+								convertService.toAppStatus(crm)));
+			}
+			((ObjectNode) item.path("data")).remove(KEY_USER_NAME);
 		}
-		((ObjectNode) item.path("data")).remove(KEY_USER_NAME);
-
 		return utils.getJsonNodeResponse(0, body, item.path("data"));
 	}
 
@@ -406,14 +409,14 @@ public class CrmService {
 			if (uploadResult.path("resultCode").asInt() != 200)
 				return utils.getJsonNodeResponse(499, body,
 						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
-			
+
 			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
 					.equals(document.path("documentMd5").asText().toLowerCase()))
 				return utils.getJsonNodeResponse(499, body,
 						mapper.createObjectNode().put("message",
 								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
 										uploadResult.path("md5").asText().toLowerCase())));
-			
+
 			HashMap<String, String> docUpload = new HashMap<>();
 			docUpload.put("documentCode", document.path("documentCode").asText());
 			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
@@ -445,7 +448,7 @@ public class CrmService {
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public JsonNode addDocumentsWithCustIdAndFullApp(JsonNode request) throws Exception {
 
@@ -554,9 +557,9 @@ public class CrmService {
 		if (data.path("fullInfoApp").path("employmentName").asText().isBlank())
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "data.employmentName not blank"));
-
+		Crm crm = null;
 		Query query = Query.query(Criteria.where("leadId").is(leadId));
-		Crm crm = crmTemplate.findOne(query, Crm.class);
+		crm = crmTemplate.findOne(query, Crm.class);
 		if (crm == null)
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 					String.format("data.leadId %s not exits", data.path("leadId").asInt())));
@@ -579,6 +582,7 @@ public class CrmService {
 			return utils.getJsonNodeResponse(1, body,
 					mapper.createObjectNode().put("message", String.format("data.leadId %s uploaded document at %s ",
 							data.path("leadId").asInt(), crm.getUpdatedAt())));
+
 		final String productCode = data.path("productCode").asText().replace(" ", "_").trim().toLowerCase();
 		final String schemeCode = data.path("schemeCode").asText().replace(" ", "_").trim().toLowerCase();
 
@@ -632,7 +636,7 @@ public class CrmService {
 						mapper.createObjectNode().put("message",
 								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
 										uploadResult.path("md5").asText().toLowerCase())));
-			
+
 			HashMap<String, String> docUpload = new HashMap<>();
 			docUpload.put("documentCode", document.path("documentCode").asText());
 			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
@@ -756,7 +760,6 @@ public class CrmService {
 				;
 		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Crm.class);
-
 		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadAppWithCustId", "body",
 				convertService.toAppFinnoneWithFullApp(crm).put("reference_id", body.path("reference_id").asText())));
 
@@ -765,7 +768,7 @@ public class CrmService {
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public JsonNode addDocuments(JsonNode request) throws Exception {
 
@@ -864,14 +867,14 @@ public class CrmService {
 			if (uploadResult.path("resultCode").asInt() != 200)
 				return utils.getJsonNodeResponse(499, body,
 						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
-			
+
 			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
 					.equals(document.path("documentMd5").asText().toLowerCase()))
 				return utils.getJsonNodeResponse(499, body,
 						mapper.createObjectNode().put("message",
 								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
 										uploadResult.path("md5").asText().toLowerCase())));
-			
+
 			HashMap<String, String> docUpload = new HashMap<>();
 			docUpload.put("documentCode", document.path("documentCode").asText());
 			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
@@ -910,12 +913,12 @@ public class CrmService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "body.transaction_id not null"));
 		switch (body.path("transaction_id").asText()) {
-		case "transaction_waive_field":
-			return updateAutomationWaveField(request);
-		case "transaction_submit_field":
-			return updateAutomationSubmitField(request);
-		default:
-			return updateAutomationCrm(request);
+			case "transaction_waive_field":
+				return updateAutomationWaveField(request);
+			case "transaction_submit_field":
+				return updateAutomationSubmitField(request);
+			default:
+				return updateAutomationCrm(request);
 		}
 	}
 
@@ -1087,10 +1090,10 @@ public class CrmService {
 					Crm.class);
 			final Crm crmSender ;
 			if (body.path("app_id").asText().isBlank() || body.path("app_id").asText().equals("UNKNOWN")) {
-				 crmSender = Crm.builder().leadId(crm.getLeadId()).appId(crm.getAppId()).automationDescription("FAIELD - Mất kết nối, Vui lòng retry lại")
+				crmSender = Crm.builder().leadId(crm.getLeadId()).appId(crm.getAppId()).automationDescription("FAIELD - Mất kết nối, Vui lòng retry lại")
 						.build();
 			} else {
-				 crmSender = Crm.builder().leadId(crm.getLeadId()).appId(crm.getAppId()).automationDescription("FAIELD - Vui lòng kiểm tra data và retry lại hoặc liên hệ IT để hỗ trợ")
+				crmSender = Crm.builder().leadId(crm.getLeadId()).appId(crm.getAppId()).automationDescription("FAIELD - Vui lòng kiểm tra data và retry lại hoặc liên hệ IT để hỗ trợ")
 						.build();
 			}
 			new Thread(() -> {
@@ -1117,7 +1120,7 @@ public class CrmService {
 
 			if (returns.hasNonNull("returnQueries")
 					&& (mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
-							.asBoolean())
+					.asBoolean())
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 						String.format("data.appId %s returnQuery is complete", crm.getAppId())));
 
@@ -1141,7 +1144,7 @@ public class CrmService {
 
 			if (returns.hasNonNull("returnQueues")
 					&& (mapper.convertValue(returns.path("returnQueues"), ArrayNode.class)).get(0).path("isComplete")
-							.asBoolean())
+					.asBoolean())
 				return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 						String.format("data.appId %s returnQueue is complete", crm.getAppId())));
 
@@ -1234,7 +1237,7 @@ public class CrmService {
 		JsonNode returns = mapper.convertValue(crm.getReturns(), JsonNode.class);
 		if (returns.hasNonNull("returnQueries")
 				&& !(mapper.convertValue(returns.path("returnQueries"), ArrayNode.class)).get(0).path("isComplete")
-						.asBoolean())
+				.asBoolean())
 			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 					String.format("data.appId %s returnQuery not complete", crm.getAppId())));
 
@@ -1282,8 +1285,7 @@ public class CrmService {
 		Update update = new Update().set("updatedAt", new Date());
 		if (returns.hasNonNull("returnQueues"))
 			update.set("returns",
-					Map.of("returnQueries", returnQueriesNew, "returnQueues", mapper
-							.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class)));
+					Map.of("returnQueries", returnQueriesNew, "returnQueues", returns.path("returnQueues")));
 		else
 			update.set("returns", Map.of("returnQueries", returnQueriesNew));
 		update.set("status", STATUS_RESUBMITING);
@@ -2296,19 +2298,11 @@ public class CrmService {
 				}
 			}
 		}
-
-		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
-				Map.of("func", "getEducationField", "custid", crm.getNeoCustID()));
-		if (customerCategoryCode.path("status").asInt(0) != 200) {
-			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
-		}
-
-
 		returnQueue.put("addresses", addressesUpload);
 		returnQueue.put("references", referencesUpload);
 		returnQueue.put("family", familyesUpload);
 		returnQueue.put("identifications", identificationsUpload);
-		returnQueue.put("customerCategoryCode", customerCategoryCode.path("data").path("description").asText());
+
 		LinkedList<Map> returnQueuesNew = mapper
 				.convertValue(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class), LinkedList.class);
 		if (returnQueuesNew == null)
@@ -2596,12 +2590,6 @@ public class CrmService {
 			}
 		}
 
-		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
-				Map.of("func", "getEducationField", "custid", data.path("custId").asText()));
-		if (customerCategoryCode.path("status").asInt(0) != 200) {
-			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
-		}
-
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
@@ -2647,7 +2635,6 @@ public class CrmService {
 				.set("appId", data.path("appId").asText())
 				.set("addresses", addressesUpload)
 				.set("references", referencesUpload)
-				.set("customerCategoryCode", customerCategoryCode.path("data").path("description").asText())
 				;
 		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Crm.class);
@@ -2657,6 +2644,575 @@ public class CrmService {
 
 		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
 				"body", convertService.toAppDisplay(crm).put("reference_id", body.path("reference_id").asText())));
+
+		return utils.getJsonNodeResponse(0, body, null);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public JsonNode addDocumentsWithCustIdAndFullAppSimpleProduct(JsonNode request) throws Exception {
+
+		JsonNode body = request.path("body");
+		if (body.path("data").isNull())
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+		final JsonNode data = request.path("body").path("data");
+
+		final long leadId = data.path("leadId").asLong(0);
+
+		if (data.path("branch").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.branch not null"));
+
+		if (data.path("chanel").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.chanel not null"));
+
+		if (data.path("productCode").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.productCode not blank"));
+		if (data.path("schemeCode").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.schemeCode not blank"));
+		if (data.path("custId").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.custId not blank"));
+		if (!data.hasNonNull("documents") || mapper.convertValue(data.path("documents"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.documents array required"));
+		if (!data.path("fullInfoApp").hasNonNull("references") || mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.references array required"));
+		if (data.path("fullInfoApp").path("primaryAddress").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.primaryAddress not blank"));
+		if (data.path("fullInfoApp").path("phoneNumber").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.phoneNumber not blank"));
+		if (data.path("fullInfoApp").path("incomeExpense").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.incomeExpense not blank"));
+		if (data.path("fullInfoApp").path("modeOfPayment").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.modeOfPayment not blank"));
+		if (data.path("fullInfoApp").path("dayOfSalaryPayment").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.dayOfSalaryPayment not blank"));
+		if (data.path("fullInfoApp").path("loanApplicationType").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.loanApplicationType not blank"));
+		if (data.path("fullInfoApp").path("loanAmountRequested").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.loanAmountRequested not blank"));
+		if (data.path("fullInfoApp").path("requestedTenure").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.requestedTenure not blank"));
+		if (data.path("fullInfoApp").path("interestRate").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.interestRate not blank"));
+		if (data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.saleAgentCodeLoanDetails not blank"));
+//		if (data.path("fullInfoApp").path("vapProduct").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.vapProduct not blank"));
+//		if (data.path("fullInfoApp").path("vapTreatment").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.vapTreatment not blank"));
+//		if (data.path("fullInfoApp").path("insuranceCompany").asText().isBlank())
+//			return utils.getJsonNodeResponse(499, body,
+//					mapper.createObjectNode().put("message", "data.insuranceCompany not blank"));
+		if (data.path("fullInfoApp").path("loanPurpose").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.loanPurpose not blank"));
+		if (data.path("fullInfoApp").path("numberOfDependents").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.numberOfDependents not blank"));
+		if (data.path("fullInfoApp").path("monthlyRental").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.monthlyRental not blank"));
+		if (data.path("fullInfoApp").path("houseOwnership").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.houseOwnership not blank"));
+		if (data.path("fullInfoApp").path("newBankCardNumber").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.newBankCardNumber not blank"));
+		if (data.path("fullInfoApp").path("saleAgentCodeDynamicForm").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.saleAgentCodeDynamicForm not blank"));
+		if (data.path("fullInfoApp").path("courierCode").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.courierCode not blank"));
+		if (data.path("fullInfoApp").path("maximumInterestedRate").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.maximumInterestedRate not blank"));
+		if (!data.path("fullInfoApp").hasNonNull("identifications") || mapper.convertValue(data.path("fullInfoApp").path("identifications"), ArrayNode.class).size() == 0)
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.identifications array required"));
+		if (data.path("fullInfoApp").path("remarksDynamicForm").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.remarksDynamicForm not blank"));
+		if (data.path("fullInfoApp").path("maritalStatus").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.maritalStatus not blank"));
+		if (data.path("fullInfoApp").path("employmentName").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.employmentName not blank"));
+		Crm crm = null;
+		Query query = Query.query(Criteria.where("leadId").is(leadId));
+		crm = crmTemplate.findOne(query, Crm.class);
+		if (crm != null)
+			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+					String.format("data.leadId %s uploaded document",leadId)));
+
+		final String productCode = data.path("productCode").asText().replace(" ", "_").trim().toLowerCase();
+		final String schemeCode = data.path("schemeCode").asText().replace(" ", "_").trim().toLowerCase();
+
+		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
+						Map.of("productCode", data.path("productCode").asText(), "schemeCode",
+								data.path("schemeCode").asText())));
+
+		if (documentFinnOne.path("status").asInt() != 200)
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+					String.format("%s %s not found", productCode, schemeCode)));
+
+		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
+		ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+		for (int index = 0; index < documents.size(); index++) {
+			if (documents.get(index).path("documentMd5").asText().isBlank()
+					|| documents.get(index).path("documentCode").asText().isBlank()
+					|| documents.get(index).path("documentFileExtension").asText().isBlank()
+					|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+			if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+						String.format("%s not found", documents.get(index).path("documentCode").asText())));
+			ObjectNode document = ((ObjectNode) documentsDb.path(documents.get(index).path("documentCode").asText()));
+
+			document.put("required", false);
+			if (document.hasNonNull("documentsReplace")) {
+				List<String> documentsReplace = mapper.convertValue(document.path("documentsReplace"), List.class);
+				for (String docReplace : documentsReplace)
+					if (documentsDb.hasNonNull(docReplace))
+						((ObjectNode) documentsDb.path(docReplace)).put("required", false);
+			}
+		}
+
+		for (JsonNode document : documentsDb)
+			if (document.path("required").asBoolean())
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+						String.format("document %s required", document.path("code").asText())));
+		List<HashMap> filesUpload = new ArrayList<HashMap>();
+		for (JsonNode document : documents) {
+			JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+			JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+			if (uploadResult.path("resultCode").asInt() != 200)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+
+			if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+					.equals(document.path("documentMd5").asText().toLowerCase()))
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message",
+								String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+										uploadResult.path("md5").asText().toLowerCase())));
+
+			HashMap<String, String> docUpload = new HashMap<>();
+			docUpload.put("documentCode", document.path("documentCode").asText());
+			docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+			docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+			docUpload.put("documentMd5", document.path("documentMd5").asText());
+			docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+			docUpload.put("originalname", document.path("documentCode").asText().concat(".")
+					.concat(document.path("documentFileExtension").asText()));
+			docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+			filesUpload.add(docUpload);
+		}
+		ArrayNode addresses = mapper.convertValue(data.path("fullInfoApp").path("addresses"), ArrayNode.class);
+		List<HashMap> addressesUpload = new ArrayList<HashMap>();
+		if (addresses != null ) {
+			if (addresses.size() != 0) {
+				for(JsonNode address : addresses) {
+					HashMap<String, String> addressUpload = new HashMap<>();
+					addressUpload.put("addressType", address.path("addressType").asText());
+					addressUpload.put("addressLine1", address.path("addressLine1").asText());
+					addressUpload.put("addressLine2", address.path("addressLine2").asText());
+					addressUpload.put("addressLine3", address.path("addressLine3").asText());
+					addressUpload.put("area", address.path("area").asText());
+					addressUpload.put("city", address.path("city").asText());
+					addressUpload.put("phoneNumber", address.path("phoneNumber").asText());
+					addressesUpload.add(addressUpload);
+				}
+			}
+		}
+		ArrayNode references = mapper.convertValue(data.path("fullInfoApp").path("references"), ArrayNode.class);
+		List<HashMap> referencesUpload = new ArrayList<HashMap>();
+		for(JsonNode reference : references) {
+			HashMap<String, String> referenceUpload = new HashMap<>();
+			referenceUpload.put("name", reference.path("name").asText());
+			referenceUpload.put("relationship", reference.path("relationship").asText());
+			referenceUpload.put("phoneNumber", reference.path("phoneNumber").asText());
+			referencesUpload.add(referenceUpload);
+		}
+
+		ArrayNode familyes = mapper.convertValue(data.path("fullInfoApp").path("family"), ArrayNode.class);
+		List<HashMap> familyesUpload = new ArrayList<HashMap>();
+		if (familyes != null ) {
+			if (familyes.size() != 0) {
+				for(JsonNode family : familyes) {
+					HashMap<String, String> familyUpload = new HashMap<>();
+					familyUpload.put("memberName", family.path("memberName").asText());
+					familyUpload.put("phoneNumber", family.path("phoneNumber").asText());
+					familyUpload.put("relationship", family.path("relationship").asText());
+					familyesUpload.add(familyUpload);
+				}
+			}
+		}
+
+		ArrayNode identifications = mapper.convertValue(data.path("fullInfoApp").path("identifications"), ArrayNode.class);
+		List<HashMap> identificationsUpload = new ArrayList<HashMap>();
+		if (identifications != null ) {
+			if (identifications.size() != 0) {
+				for(JsonNode identification : identifications) {
+					HashMap<String, String> identificationUpload = new HashMap<>();
+					identificationUpload.put("identificationType", identification.path("identificationType").asText());
+					identificationUpload.put("identificationNumber", identification.path("identificationNumber").asText());
+					identificationUpload.put("issuingCountry", identification.path("issuingCountry").asText());
+					identificationUpload.put("placeOfIssue", identification.path("placeOfIssue").asText());
+					identificationUpload.put("issueDate", identification.path("issueDate").asText());
+					identificationUpload.put("expiryDate", identification.path("expiryDate").asText());
+					identificationsUpload.add(identificationUpload);
+				}
+			}
+		}
+
+		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
+				Map.of("func", "getEducationField", "custid", data.path("custId").asText()));
+		if (customerCategoryCode.path("status").asInt(0) != 200) {
+			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
+		}
+
+		crm = Crm.builder().leadId(leadId).stage(STAGE_UPLOADED).status(STATUS_PRE_APPROVAL).scheme(data.path("schemeCode").asText()).
+				product(data.path("productCode").asText()).chanel(data.path("chanel").asText()).branch(data.path("branch").asText()).
+				schemeFinnOne(documentFinnOne.path("data").path("valueShemeFinnOne").asText()).
+				productFinnOne(documentFinnOne.path("data").path("valueProductFinnOne").asText()).
+				filesUpload(mapper.convertValue(filesUpload, List.class)).neoCustID(data.path("custId").asText()).
+				cifNumber(data.path("cifNumber").asText()).idNumber(data.path("idNumber").asText()).firstName(data.path("fullInfoApp").path("firstName").asText()).
+				middleName(data.path("fullInfoApp").path("middleName").asText()).lastName(data.path("fullInfoApp").path("lastName").asText()).
+				gender(data.path("fullInfoApp").path("gender").asText()).dateOfBirth(data.path("fullInfoApp").path("dateOfBirth").asText()).
+				maritalStatus(data.path("fullInfoApp").path("maritalStatus").asText()).family(mapper.convertValue(familyesUpload,List.class)).
+				identifications(mapper.convertValue(identificationsUpload,List.class)).primaryAddress(data.path("fullInfoApp").path("primaryAddress").asText()).
+				phoneNumber(data.path("fullInfoApp").path("phoneNumber").asText()).employmentName(data.path("fullInfoApp").path("employmentName").asText()).
+				incomeExpense(data.path("fullInfoApp").path("incomeExpense").asText()).amount(data.path("fullInfoApp").path("amount").asText()).
+				modeOfPayment(data.path("fullInfoApp").path("modeOfPayment").asText()).dayOfSalaryPayment(data.path("fullInfoApp").path("dayOfSalaryPayment").asText()).
+				loanApplicationType(data.path("fullInfoApp").path("loanApplicationType").asText()).loanAmountRequested(data.path("fullInfoApp").path("loanAmountRequested").asText()).
+				requestedTenure(data.path("fullInfoApp").path("requestedTenure").asText()).interestRate(data.path("fullInfoApp").path("interestRate").asText()).
+				saleAgentCodeLoanDetails(data.path("fullInfoApp").path("saleAgentCodeLoanDetails").asText()).vapProduct(data.path("fullInfoApp").path("vapProduct").asText()).
+				vapTreatment(data.path("fullInfoApp").path("vapTreatment").asText()).insuranceCompany(data.path("fullInfoApp").path("insuranceCompany").asText()).
+				loanPurpose(data.path("fullInfoApp").path("loanPurpose").asText()).loanPurposeOther(data.path("fullInfoApp").path("loanPurposeOther").asText()).
+				numberOfDependents(data.path("fullInfoApp").path("numberOfDependents").asText()).monthlyRental(data.path("fullInfoApp").path("monthlyRental").asText()).
+				houseOwnership(data.path("fullInfoApp").path("houseOwnership").asText()).newBankCardNumber(data.path("fullInfoApp").path("newBankCardNumber").asText()).
+				remarksDynamicForm(data.path("fullInfoApp").path("remarksDynamicForm").asText()).saleAgentCodeDynamicForm(data.path("fullInfoApp").path("saleAgentCodeDynamicForm").asText()).
+				courierCode(data.path("fullInfoApp").path("courierCode").asText()).maximumInterestedRate(data.path("fullInfoApp").path("maximumInterestedRate").asText()).
+				addresses(mapper.convertValue(addressesUpload,List.class)).references(mapper.convertValue(referencesUpload,List.class)).customerCategoryCode(customerCategoryCode.path("data").path("description").asText()).build();
+
+		crmTemplate.save(crm);
+
+		rabbitMQService.send("tpf-service-esb", Map.of("func", "createQuickLeadAppWithCustId", "body",
+				convertService.toAppFinnoneWithFullApp(crm).put("reference_id", body.path("reference_id").asText())));
+
+		rabbitMQService.send("tpf-service-app", Map.of("func", "createApp", "reference_id", body.path("reference_id"),
+				"body", convertService.toAppDisplay(crm).put("reference_id", body.path("reference_id").asText())));
+
+		return utils.getJsonNodeResponse(0, body, null);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public JsonNode returnQueueSimpleProduct(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		boolean hasDocumentCodeACCA = false;
+		if (body.path("data").isNull())
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+		ObjectNode data = (ObjectNode) request.path("body").path("data");
+		final String appId = data.path("applicationId").asText();
+		if (appId.isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "data.appId not null"));
+		Application application = mapper.convertValue(request.path("body").path("data"), Application.class);
+		final boolean hasDocuments = data.path("quickLead").hasNonNull("documents");
+		final boolean hasDocumentsComment = data.path("quickLead").hasNonNull("documentsComment");
+		final boolean documentsComment = data.hasNonNull("documents");
+		if (hasDocuments) {
+			ArrayNode documents = mapper.convertValue(data.path("quickLead").path("documents"), ArrayNode.class);
+			if (documents != null && documents.size() == 0)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.documents not empty"));
+			for (int index = 0; index < documents.size(); index++) {
+				JsonNode document = documents.get(index);
+				if (document.path("documentCode").asText().isBlank()
+						|| document.path("documentFileExtension").asText().isBlank()
+						|| document.path("documentMd5").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s]  not valid", index)));
+				// \\.[a-z]{2,5}
+				if (!document.path("documentUrlDownload").asText().matches(
+						"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
+
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s].documentUrlDownload not valid", index)));
+				if (document.path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
+						.equals(DOCUMENT_CODE_ACCA))
+					hasDocumentCodeACCA = true;
+
+			}
+		}
+		if (hasDocumentsComment) {
+			ArrayNode documents = mapper.convertValue(data.path("quickLead").path("documentsComment"), ArrayNode.class);
+			if (documents != null && documents.size() == 0)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.documents not empty"));
+			for (int index = 0; index < documents.size(); index++) {
+				JsonNode document = documents.get(index);
+				if (document.path("documentCode").asText().isBlank()
+						|| document.path("documentFileExtension").asText().isBlank()
+						|| document.path("documentMd5").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s]  not valid", index)));
+				// \\.[a-z]{2,5}
+				if (!document.path("documentUrlDownload").asText().matches(
+						"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
+
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s].documentUrlDownload not valid", index)));
+				if (document.path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
+						.equals(DOCUMENT_CODE_ACCA))
+					hasDocumentCodeACCA = true;
+
+			}
+		}
+
+		if (documentsComment) {
+			ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+			if (documents != null && documents.size() == 0)
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.documents not empty"));
+			for (int index = 0; index < documents.size(); index++) {
+				JsonNode document = documents.get(index);
+				if (document.path("documentCode").asText().isBlank()
+						|| document.path("documentFileExtension").asText().isBlank()
+						|| document.path("documentMd5").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s]  not valid", index)));
+				// \\.[a-z]{2,5}
+				if (!document.path("documentUrlDownload").asText().matches(
+						"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$"))
+
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("data.documents[%s].documentUrlDownload not valid", index)));
+				if (document.path("documentCode").asText().toLowerCase().trim().replace(" ", "_")
+						.equals(DOCUMENT_CODE_ACCA))
+					hasDocumentCodeACCA = true;
+
+			}
+		}
+
+		Query query = Query.query(Criteria.where("appId").is(appId));
+		Crm crm = crmTemplate.findOne(query, Crm.class);
+		if (crm != null) {
+			if (!crm.getStatus().equals(STATUS_SEND_BACK))
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message",
+								String.format("data.appId %s not request resubmit queue and send back. current stage %s status %s", appId,
+										crm.getStage(), crm.getStatus())));
+			if (!crm.getStage().equals(STAGE_LEAD_DETAILS))
+				return utils.getJsonNodeResponse(1, body,
+						mapper.createObjectNode().put("message",
+								String.format("data.appId %s not request resubmit queue and send back. current stage %s status %s", appId,
+										crm.getStage(), crm.getStatus())));
+		}
+		final String productCode = data.path("quickLead").path("productCode").asText();
+		final String schemeCode = data.path("quickLead").path("schemeCode").asText();
+
+		JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
+				Map.of("func", "getListDocuments", "reference_id", request.path("reference_id"), "body",
+						Map.of("productCode", productCode, "schemeCode", schemeCode)));
+
+		if (documentFinnOne.path("status").asInt() != 200)
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+					String.format("%s %s not found", productCode, schemeCode)));
+//		JsonNode returns = mapper.convertValue(crm.getReturns(), JsonNode.class);
+//		if (returns.hasNonNull("returnQueues") && !(mapper.convertValue(returns.path("returnQueues"), ArrayNode.class))
+//				.get(0).path("isComplete").asBoolean())
+//			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
+//					String.format("data.appId %s returnQueue not complete", crm.getAppId())));
+
+		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
+		HashMap<String, Object> returnQueue = new HashMap<>();
+		if (hasDocuments) {
+			ArrayNode documents = mapper.convertValue(data.path("quickLead").path("documents"), ArrayNode.class);
+
+			for (int index = 0; index < documents.size(); index++) {
+				if (documents.get(index).path("documentMd5").asText().isBlank()
+						|| documents.get(index).path("documentCode").asText().isBlank()
+						|| documents.get(index).path("documentFileExtension").asText().isBlank()
+						|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+				if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("%s not found", documents.get(index).path("documentCode").asText())));
+			}
+
+			List<HashMap> filesUpload = new ArrayList<HashMap>();
+			for (JsonNode document : documents) {
+				JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+				JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+				if (uploadResult.path("resultCode").asInt() != 200)
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+				if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+						.equals(document.path("documentMd5").asText().toLowerCase()))
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message",
+									String.format("document %s md5 %s not valid",
+											document.path("documentCode").asText(),
+											uploadResult.path("md5").asText().toLowerCase())));
+				HashMap<String, String> docUpload = new HashMap<>();
+//				docUpload.put("documentCode", document.path("documentCode").asText());
+//				docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+//				docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+//				docUpload.put("documentMd5", document.path("documentMd5").asText());
+				docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+				docUpload.put("originalname", document.path("documentCode").asText().concat(".")
+						.concat(document.path("documentFileExtension").asText()));
+				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+				docUpload.put("md5", uploadResult.path("data").path("md5").asText());
+				docUpload.put("contentType", uploadResult.path("data").path("contentType").asText());
+				filesUpload.add(docUpload);
+
+			}
+			for (int index = 0; index < filesUpload.size(); index++) {
+				application.getQuickLead().getDocuments().set(index, mapper.convertValue(filesUpload.get(index),QLDocument.class));
+			}
+
+		}
+
+		if (hasDocumentsComment) {
+			ArrayNode documents = mapper.convertValue(data.path("quickLead").path("documentsComment"), ArrayNode.class);
+
+			for (int index = 0; index < documents.size(); index++) {
+				if (documents.get(index).path("documentMd5").asText().isBlank()
+						|| documents.get(index).path("documentCode").asText().isBlank()
+						|| documents.get(index).path("documentFileExtension").asText().isBlank()
+						|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+				if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("%s not found", documents.get(index).path("documentCode").asText())));
+			}
+
+			List<HashMap> filesUploadHasDocumentsComment = new ArrayList<HashMap>();
+			for (JsonNode document : documents) {
+				JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+				JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+				if (uploadResult.path("resultCode").asInt() != 200)
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+				if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+						.equals(document.path("documentMd5").asText().toLowerCase()))
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message",
+									String.format("document %s md5 %s not valid",
+											document.path("documentCode").asText(),
+											uploadResult.path("md5").asText().toLowerCase())));
+				HashMap<String, String> docUpload = new HashMap<>();
+//				docUpload.put("documentCode", document.path("documentCode").asText());
+//				docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+//				docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+//				docUpload.put("documentMd5", document.path("documentMd5").asText());
+				docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+				docUpload.put("originalname", document.path("documentCode").asText().concat(".")
+						.concat(document.path("documentFileExtension").asText()));
+				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+				docUpload.put("md5", uploadResult.path("data").path("md5").asText());
+				docUpload.put("contentType", uploadResult.path("data").path("contentType").asText());
+				filesUploadHasDocumentsComment.add(docUpload);
+			}
+			for (int index = 0; index < filesUploadHasDocumentsComment.size(); index++) {
+				application.getQuickLead().getDocumentsComment().set(index, mapper.convertValue(filesUploadHasDocumentsComment.get(index),QLDocument.class));
+			}
+		}
+
+		if (documentsComment) {
+			ArrayNode documents = mapper.convertValue(data.path("documents"), ArrayNode.class);
+
+			for (int index = 0; index < documents.size(); index++) {
+				if (documents.get(index).path("documentMd5").asText().isBlank()
+						|| documents.get(index).path("documentCode").asText().isBlank()
+						|| documents.get(index).path("documentFileExtension").asText().isBlank()
+						|| documents.get(index).path("documentUrlDownload").asText().isBlank())
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", String.format("document %s not valid", index)));
+				if (!documentsDb.hasNonNull(documents.get(index).path("documentCode").asText()))
+					return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+							String.format("%s not found", documents.get(index).path("documentCode").asText())));
+			}
+
+			List<HashMap> filesUploadDocumentsComment = new ArrayList<HashMap>();
+			for (JsonNode document : documents) {
+				JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+				JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+				if (uploadResult.path("resultCode").asInt() != 200)
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+				if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+						.equals(document.path("documentMd5").asText().toLowerCase()))
+					return utils.getJsonNodeResponse(499, body,
+							mapper.createObjectNode().put("message",
+									String.format("document %s md5 %s not valid",
+											document.path("documentCode").asText(),
+											uploadResult.path("md5").asText().toLowerCase())));
+				HashMap<String, String> docUpload = new HashMap<>();
+//				docUpload.put("documentCode", document.path("documentCode").asText());
+//				docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
+//				docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
+//				docUpload.put("documentMd5", document.path("documentMd5").asText());
+				docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+				docUpload.put("originalname", document.path("documentCode").asText().concat(".")
+						.concat(document.path("documentFileExtension").asText()));
+				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
+				docUpload.put("md5", uploadResult.path("data").path("md5").asText());
+				docUpload.put("contentType", uploadResult.path("data").path("contentType").asText());
+				filesUploadDocumentsComment.add(docUpload);
+			}
+			for (int index = 0; index < filesUploadDocumentsComment.size(); index++) {
+				application.getDocuments().set(index, mapper.convertValue(filesUploadDocumentsComment.get(index),QLDocument.class));
+			}
+		}
+
+
+		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
+				Map.of("func", "getEducationField", "custid", data.path("quickLeadId").path("customerId")));
+		if (customerCategoryCode.path("status").asInt(0) != 200) {
+			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
+		}
+
+//		if (hasDocumentCodeACCA)
+//			update.set("stage", STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA);
+//		else
+//			update.set("stage", STAGE_SALES_QUEUE_UPLOADING);
+//
+//		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
+//				Crm.class);
+
+		rabbitMQService.send("tpf-service-automation-crm", Map.of("func", "returnSimpleProduct", "body",
+				application));
+
+//		rabbitMQService.send("tpf-service-app",
+//				Map.of("func", "updateApp", "reference_id", request.path("reference_id"), "param",
+//						Map.of("project", "crm", "id", crm.getId()), "body",
+//						convertService.toAppStage(crm)));
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}

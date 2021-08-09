@@ -167,4 +167,15 @@ public class CrmController {
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-crm", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}
+
+	@PostMapping("/crm/returnQueueSimpleProduct")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-crm')")
+	public ResponseEntity<?> returnQueueSimpleProduct(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "returnQueueSimpleProduct");
+		request.put("body", body);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-crm", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
 }
