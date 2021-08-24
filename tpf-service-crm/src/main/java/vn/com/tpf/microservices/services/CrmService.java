@@ -3045,7 +3045,10 @@ public class CrmService {
 //				.get(0).path("isComplete").asBoolean())
 //			return utils.getJsonNodeResponse(1, body, mapper.createObjectNode().put("message",
 //					String.format("data.appId %s returnQueue not complete", crm.getAppId())));
-
+		application.getQuickLead().setSchemeCode(documentFinnOne.path("data").path("valueShemeFinnOne").asText());
+		application.getQuickLead().setProductCode(documentFinnOne.path("data").path("valueProductFinnOne").asText());
+		application.getLoanDetails().getSourcingDetails().setProductCode(documentFinnOne.path("data").path("valueProductFinnOne").asText());
+		application.getLoanDetails().getSourcingDetails().setSchemeCode(documentFinnOne.path("data").path("valueShemeFinnOne").asText());
 		ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"), ObjectNode.class);
 		HashMap<String, Object> returnQueue = new HashMap<>();
 		if (hasDocuments) {
@@ -3178,9 +3181,8 @@ public class CrmService {
 //				docUpload.put("documentFileExtension", document.path("documentFileExtension").asText());
 //				docUpload.put("documentUrlDownload", document.path("documentUrlDownload").asText());
 //				docUpload.put("documentMd5", document.path("documentMd5").asText());
-				docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
-				docUpload.put("originalname", document.path("documentCode").asText().concat(".")
-						.concat(document.path("documentFileExtension").asText()));
+			//	docUpload.put("type", documentDbInfo.path("valueFinnOne").asText());
+				docUpload.put("originalname", documentDbInfo.path("valueFinnOne").asText());
 				docUpload.put("filename", uploadResult.path("data").path("filename").asText());
 				docUpload.put("md5", uploadResult.path("data").path("md5").asText());
 				docUpload.put("contentType", uploadResult.path("data").path("contentType").asText());
@@ -3192,11 +3194,6 @@ public class CrmService {
 		}
 
 
-		JsonNode customerCategoryCode = rabbitMQService.sendAndReceive("tpf-service-finnone",
-				Map.of("func", "getEducationField", "custid", data.path("quickLeadId").path("customerId")));
-		if (customerCategoryCode.path("status").asInt(0) != 200) {
-			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
-		}
 
 //		if (hasDocumentCodeACCA)
 //			update.set("stage", STAGE_SALES_QUEUE_UPLOADING_HAS_ACCA);
@@ -3215,5 +3212,11 @@ public class CrmService {
 //						convertService.toAppStage(crm)));
 
 		return utils.getJsonNodeResponse(0, body, null);
+	}
+
+	public JsonNode returnSimpleProduct(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+
+		return utils.getJsonNodeResponse(0, request, null);
 	}
 }

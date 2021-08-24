@@ -113,6 +113,8 @@ public class RabbitMQService {
 					return response(message, payload, Map.of("status", 200, "data", crmService.addDocumentsWithCustIdAndFullAppSimpleProduct((request))));
 				case "returnQueueSimpleProduct":
 					return response(message, payload, Map.of("status", 200, "data", crmService.returnQueueSimpleProduct(request)));
+				case "returnSimpleProduct":
+					return response(message, payload, Map.of("status", 200, "data", crmService.returnSimpleProduct(request)));
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
 							mapper.createObjectNode().put("message", "function not found"))));
