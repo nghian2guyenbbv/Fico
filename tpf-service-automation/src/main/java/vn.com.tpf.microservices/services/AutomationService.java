@@ -942,7 +942,37 @@ public class AutomationService {
 		workerThreadPool.submit(automationThreadService);
 	}
 	//endregion
+//region simple product
+	public Map<String, Object> returnSimpleProduct(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
 
+		System.out.println(request);
+
+		Assert.notNull(request.get("body"), "no body");
+		Application application = mapper.treeToValue(request.path("body"), Application.class);
+
+		new Thread(() -> {
+			try {
+				runAutomation_return(application);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+
+		return response(0, body, application);
+	}
+
+	private void runAutomation_return(Application application) throws Exception {
+		String browser = "chrome";
+		Map<String, Object> mapValue = DataInitial.getDataFromDE(application);
+
+		mapValue.put("func", "returnSimpleProduct");
+		AutomationThreadService automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomation_return","SIMPLE_PRODUCT");
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
+
+	//endregion
 
 
 

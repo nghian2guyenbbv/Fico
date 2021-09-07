@@ -19,9 +19,9 @@
 		<springProfile name="uat"><host>${rabbitHost}</host></springProfile>
 		<springProfile name="pro"><host>${rabbitHost}</host></springProfile>
 		<port>5672</port>
-		<username>tpf-service-automation</username>
-		<password>tpf-service-automation</password>
-		<routingKeyPattern>tpf-service-logstash-automation</routingKeyPattern>
+		<username>tpf-service-automation-crm</username>
+		<password>tpf-service-automation-crm</password>
+		<routingKeyPattern>tpf-service-logstash-automation-crm</routingKeyPattern>
 	</appender>
 	<root level="INFO">
 		<appender-ref ref="CONSOLE" />

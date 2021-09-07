@@ -83,14 +83,16 @@ public class DataInitial {
 
         //Family
         List<FamilyDTO> familyDTOs = new ArrayList<>();
-        for (Family family : application.getApplicationInformation().getPersonalInformation().getFamily()) {
-            FamilyDTO familyDTO = FamilyDTO.builder()
-                    .relationshipType(family.getRelationship())
-                    .memberName(family.getMemberName())
-                    .phoneNumber(family.getPhoneNumber())
-                    .educationStatus("")
-                    .comName("").build();
-            familyDTOs.add(familyDTO);
+        if (application.getApplicationInformation().getPersonalInformation().getFamily() != null && application.getApplicationInformation().getPersonalInformation().getFamily().size() > 0) {
+            for (Family family : application.getApplicationInformation().getPersonalInformation().getFamily()) {
+                FamilyDTO familyDTO = FamilyDTO.builder()
+                        .relationshipType(family.getRelationship())
+                        .memberName(family.getMemberName())
+                        .phoneNumber(family.getPhoneNumber())
+                        .educationStatus("")
+                        .comName("").build();
+                familyDTOs.add(familyDTO);
+            }
         }
 
         //Employment Detail

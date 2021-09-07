@@ -381,6 +381,12 @@ public class AutomationHandlerService {
                     driver = setupTestDriver.getDriver();
                     runAutomation_Field(driver, mapValue, browser, project);
                     break;
+                case "runAutomation_return":
+                    accountDTO = pollAccountFromQueue(accounts, project);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
+                    runAutomation_return(driver, mapValue, accountDTO);
+                    break;
             }
 
         } catch (Exception e) {
@@ -2445,14 +2451,12 @@ public class AutomationHandlerService {
 
             stage = "BANK/CREDIT CARD DETAILS";
             // ==========BANK/CREDIT CARD DETAILS=================
-            if (applicationInfoDTO.getBankCreditCardDetails() != null && applicationInfoDTO.getBankCreditCardDetails().size() > 0) {
-                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
+            await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
 
-                DE_ApplicationInfoBankCreditCardDetailsTab bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTab();
-                bankCreditCardDetailsTab.updateBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
-                bankCreditCardDetailsTab.saveAndNext();
-            }
+            DE_ApplicationInfoBankCreditCardDetailsTab bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTab();
+            bankCreditCardDetailsTab.updateBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
+            bankCreditCardDetailsTab.saveAndNext();
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -2502,12 +2506,21 @@ public class AutomationHandlerService {
 //            if(driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size()>0) {
 
             try {
+                Thread.sleep(5000);
+                List<WebElement> confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]"));
+                if (confirmDeleteVap.size() > 0){
+                    await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> confirmDeleteVap.get(0).isDisplayed());
+                    Utilities.captureScreenShot(driver);
+                    confirmDeleteVap.get(0).click();
+                    System.out.println("LOAN DETAILS: CONFIRM DELETE VAP");
+                }
 
-                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
-
-                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
+//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
+//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
+//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+//
+//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
             } catch (Exception e) {
                 log.info("Vap:" + e.toString());
             }
@@ -2525,7 +2538,7 @@ public class AutomationHandlerService {
                 Utilities.captureScreenShot(driver);
                 DE_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new DE_LoanDetailsVapDetailsTab(driver);
 
-                await("Load loanDetailsVapDetailsTab container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("Load loanDetailsVapDetailsTab container Timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                         .until(() -> loanDetailsVapDetailsTab.getVapDetailsDivContainerElement().isDisplayed());
 
                 loanDetailsVapDetailsTab.updateData(loanDetailsVapDTO);
@@ -2638,7 +2651,8 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
-            updateStatusRabbit(application, "updateAppError");
+            String function = mapValue.getOrDefault("func", "updateAppError").toString();
+            updateStatusRabbit(application, function);
             System.out.println(stage);
             logout(driver, accountDTO.getUserName());
         }
@@ -9097,4 +9111,32 @@ public class AutomationHandlerService {
     }
     //endregion
 
+    //region return simple product
+    private void runAutomation_return(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) {
+        Instant start = Instant.now();
+        String stage = "";
+        StringBuilder sb = new StringBuilder();
+
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            Application application = (Application) mapValue.get("ApplicationDTO");
+            String leadAppID = application.getApplicationId();
+
+            sb.append("START: runAutomation_return APP: ").append(leadAppID)
+                    .append(" - TIME: ").append(new Date().toString());
+
+            updateAppError_Full(driver, stage, accountDTO, leadAppID, mapValue);
+
+            sb.append(" - END runAutomation_return").append(" - TIME: ").append(new Date().toString());
+        }catch (Exception e) {
+            sb.append(" - ERROR: ").append(e.toString()).append(" - TIME: ").append(new Date().toString());;
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+            System.out.println(stage);
+            log.info("{}", sb.toString());
+        }
+    }
+    //endregion
 }

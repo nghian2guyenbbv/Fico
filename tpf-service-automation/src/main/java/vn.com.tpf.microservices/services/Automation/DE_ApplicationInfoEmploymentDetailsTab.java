@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class DE_ApplicationInfoEmploymentDetailsTab {
@@ -159,13 +161,42 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         this._driver = driver;
     }
 
-    public void setData(EmploymentDTO data) throws JsonParseException, JsonMappingException, IOException {
+    public void setData(EmploymentDTO data) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
 
+        //start - remove all Occupation Type
+
+        Actions actions = new Actions(_driver);
+
+        List<WebElement> listOccupationDelete = _driver.findElements(By.xpath("//table[@id = 'occupation_Info_Table']//tr//td[1]"));
+        for (WebElement OccupationDeleteButton: listOccupationDelete){
+
+            WebElement occupationDelete = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton.getAttribute("innerHTML") + "')]//ancestor::tr//*[contains(@id,'delete')]"));
+
+            actions.moveToElement(occupationDelete).click().build().perform();
+
+            Thread.sleep(5000);
+
+            boolean checkModalMajorChange = modalMajorChangeElement.isDisplayed();
+
+            if (checkModalMajorChange){
+                await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
+                        .until(() -> modalMajorChangeElement.isDisplayed());
+                Utilities.captureScreenShot(_driver);
+                btnMajorChangeElement.get(0).click();
+            }
+        }
+
+        //end - remove all Occupation Type
+
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed() && occupationTypeElement.isEnabled());
+
         occupationTypeElement.click();
+
         await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeOptionElement.size() > 0);
+
         for (WebElement element : occupationTypeOptionElement) {
             if (element.getText().equals(data.getOccupationType())) {
                 element.click();
@@ -178,8 +209,10 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
 //		occupationTypeSelect.selectByVisibleText(data.getOccupationType());
 
         if (data.getOccupationType().equals("Others")) {
-            WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
-            we.click();
+            //start - remove all Occupation Type - comment with line
+//            WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]"));
+//            we.click();
+            //end - remove all Occupation Type - comment with line
 
             await("natureOfOccupationElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> natureOfOccupationElement.isDisplayed() && natureOfOccupationElement.isEnabled());
@@ -287,7 +320,7 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         }
     }
 
-    public void updateData(EmploymentDTO data) throws JsonParseException, JsonMappingException, IOException {
+    public void updateData(EmploymentDTO data) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
 
         if(_driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size()==0)
         {
@@ -400,7 +433,7 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
         Utilities.captureScreenShot(_driver);
     }
 
-    public void setMajorOccupation(EmploymentDTO data) {
+    public void setMajorOccupation(EmploymentDTO data) throws InterruptedException {
         if(!data.getIsMajorEmployment().isEmpty()&&!data.getIsMajorEmployment().equals("Others"))
         {
             if(_driver.findElements(By.xpath("//*[@id='occupation_Info_Table']/tbody/tr[td/*[@id='view'][contains(text(),'" + data.getIsMajorEmployment() +"')]]/td[6]/input")).size()>0)
@@ -410,10 +443,25 @@ public class DE_ApplicationInfoEmploymentDetailsTab {
                 webElement.click();
 
                 Utilities.captureScreenShot(_driver);
-                await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> modalMajorChangeElement.isDisplayed());
-                Utilities.captureScreenShot(_driver);
-                btnMajorChangeElement.get(0).click();
+
+                //====Check modalMajorChangeElement
+                Thread.sleep(5000);
+
+                boolean modalMajorChange = modalMajorChangeElement.isDisplayed();
+
+                if (modalMajorChange){
+                    await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> modalMajorChangeElement.isDisplayed());
+                    Utilities.captureScreenShot(_driver);
+                    btnMajorChangeElement.get(0).click();
+                }
+                //====End - Check modalMajorChangeElement
+
+//                //=====OLD
+//                await("modalMajorChangeElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> modalMajorChangeElement.isDisplayed());
+//                Utilities.captureScreenShot(_driver);
+//                btnMajorChangeElement.get(0).click();
 
                 Utilities.captureScreenShot(_driver);
             }

@@ -190,7 +190,7 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
     }
 
     public void updateBankDetailsData(List<BankCreditCardDetailsDTO> bankCreditCardDetailsDTO) {
-
+        int index = 0;
         if(_driver.findElements(By.xpath("//*[contains(@id, 'deleteTag')]")).size()!=0){
             await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> deleteBankDetailsElement.size() > 0);
@@ -202,14 +202,16 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
                 WebElement var = deleteBankDetailsElement.get(i);
                 var.click();
             }
+            index = 1;
+        }
+        if (bankCreditCardDetailsDTO == null || bankCreditCardDetailsDTO.size() < 1){
+            return;
         }
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Button create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> createNewBankDetails.isDisplayed());
 
         createNewBankDetails.click();
-
-        int index = 0;
 
         int sizeTableBanks = tableBankDetails.size();
 
@@ -237,12 +239,12 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
 
             textBankName.sendKeys(data.getBankName());
 
-            await("Select BankName Element displayed timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Select BankName Element displayed timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(() -> popupBankName.isDisplayed());
 
             int sizeSelectBankName = selectBankNameOptionElement.size();
 
-            await("List BankName Element displayed timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("List BankName Element displayed timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(() -> sizeSelectBankName > 0);
 
             for (WebElement e : selectBankNameOptionElement) {
@@ -262,14 +264,14 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
 
             textBrandName.sendKeys(data.getBranchName());
 
-            await("Select BranchName Element displayed timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("Select BranchName Element displayed timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(() -> popupBrandName.isDisplayed());
 
             Utilities.captureScreenShot(_driver);
 
             int sizeSelectBranchName = selectBranchNameOptionElement.size();
 
-            await("List BranchName Element displayed timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            await("List BranchName Element displayed timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(() -> sizeSelectBranchName > 0);
 
             for (WebElement e : selectBranchNameOptionElement) {
@@ -319,7 +321,8 @@ public class DE_ApplicationInfoBankCreditCardDetailsTab {
 
             Utilities.captureScreenShot(_driver);
 
-            if (index < bankCreditCardDetailsDTO.size() - 1) {
+            if ((index == 1 && index < bankCreditCardDetailsDTO.size())
+                    || (index == 0 && index < bankCreditCardDetailsDTO.size() - 1)) {
                 await("Button create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> createNewBankDetails.isEnabled());
                 createNewBankDetails.click();

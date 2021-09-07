@@ -197,6 +197,8 @@ public class RabbitMQService {
 					return response(message, payload, automationService.SaleQueue(request));
 			case "responseQuery":
 					return response(message, payload, automationService.ResponseQuery(request));
+			case "returnSimpleProduct":
+				return response(message, payload, automationService.returnSimpleProduct(request));
 			default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

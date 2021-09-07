@@ -710,6 +710,7 @@ public class DE_ApplicationInfoPersonalTab {
 
 
             //dien so dien thoan ban neu co
+
             primaryStdElement.clear();
             primaryStdElement.sendKeys(data.getPriStd());
             primaryNumberElement.clear();
@@ -1030,21 +1031,31 @@ public class DE_ApplicationInfoPersonalTab {
     }
 
     public void updateFamilyValue(List<FamilyDTO> datas) throws IOException {
-        for (FamilyDTO data : datas) {
-            this.memberNameElement.clear();
-            this.memberNameElement.sendKeys(data.getMemberName());
-            new Select(this.relationshipTypeElement).selectByVisibleText(data.getRelationshipType());
-            this.phoneNumberElement.clear();
-            this.phoneNumberElement.sendKeys(data.getPhoneNumber());
-            if (StringUtils.isNotBlank(data.getEducationStatus()))
-                new Select(this.educationStatusElement).selectByVisibleText(data.getEducationStatus());
-            this.comNameElement.clear();
-            this.comNameElement.sendKeys(data.getComName());
-            if (StringUtils.isNotBlank(data.getIsDependent()) && Integer.parseInt(data.getIsDependent()) == 1)
-                this.IsDependentElement.click();
+        if (datas == null || datas.size() < 1){
+            List<WebElement> deleteFamily = _driver.findElements(By.id("DeleteFamilyDetails0"));
+            if (deleteFamily.size() > 0){
+                for (WebElement e: deleteFamily){
+                    e.click();
+                }
+                System.out.println("DELETE FAMILY");
+            }
+        }else{
+            for (FamilyDTO data : datas) {
+                this.memberNameElement.clear();
+                this.memberNameElement.sendKeys(data.getMemberName());
+                new Select(this.relationshipTypeElement).selectByVisibleText(data.getRelationshipType());
+                this.phoneNumberElement.clear();
+                this.phoneNumberElement.sendKeys(data.getPhoneNumber());
+                if (StringUtils.isNotBlank(data.getEducationStatus()))
+                    new Select(this.educationStatusElement).selectByVisibleText(data.getEducationStatus());
+                this.comNameElement.clear();
+                this.comNameElement.sendKeys(data.getComName());
+                if (StringUtils.isNotBlank(data.getIsDependent()) && Integer.parseInt(data.getIsDependent()) == 1)
+                    this.IsDependentElement.click();
 
-            // TODO: instead of break this loop, we must create new family row element here if have more data
-            break;
+                // TODO: instead of break this loop, we must create new family row element here if have more data
+                break;
+            }
         }
 
     }
@@ -1132,8 +1143,7 @@ public class DE_ApplicationInfoPersonalTab {
 
     }
 
-    public void updateValue(ApplicationInfoDTO applicationInfoDTO) throws Exception
-    {
+    public void updateValue(ApplicationInfoDTO applicationInfoDTO) throws Exception {
 
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -1184,6 +1194,7 @@ public class DE_ApplicationInfoPersonalTab {
                 .until(() -> btnAddIdentElement.isEnabled());
         btnAddIdentElement.click();
         updateIdentificationValue(applicationInfoDTO.getIdentification(),deleteIdDetailElement.size()-1);
+        loadIdentificationSection();
         //end update identification
 
         //update address: ko xoa dc do anh huong cac employment detail nen chi edit
@@ -1195,12 +1206,11 @@ public class DE_ApplicationInfoPersonalTab {
         updateAddressValue(applicationInfoDTO.getAddress());
         loadAddressSection();
 
-        if (applicationInfoDTO.getFamily().size() > 0) {
-            loadFamilySection();
-            await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> familyDivElement.isDisplayed());
-            updateFamilyValue(applicationInfoDTO.getFamily());
-        }
+        loadFamilySection();
+        await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> familyDivElement.isDisplayed());
+        updateFamilyValue(applicationInfoDTO.getFamily());
+        loadFamilySection();
 
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -1219,6 +1229,14 @@ public class DE_ApplicationInfoPersonalTab {
             cusMobileElements.sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(0).getPhoneNumber());
         }
 
+        //Check neu co sdt thu 2 thi xoa
+        List<WebElement> deletePhone = _driver.findElements(By.xpath("//div[@id='comm_mobileNumbers']//a//i"));
+        if (deletePhone != null && deletePhone.size() > 1){
+            for (int i = 1; i < deletePhone.size(); i++){
+                deletePhone.get(i).click();
+            }
+        }
+
         //check nhap them so dien thoai thu 2, update them, luc nao so mobile cung lay cua current
         if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
         {
@@ -1231,13 +1249,15 @@ public class DE_ApplicationInfoPersonalTab {
             listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
             Utilities.captureScreenShot(_driver);
         }
+        Actions actions=new Actions(_driver);
+        actions.moveToElement(saveAndNextElement).sendKeys(Keys.PAGE_UP).perform();
 
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateUpdateElement.isDisplayed());
 
-        Actions actions=new Actions(_driver);
+
          //actions.moveToElement(btnCheckDuplicateUpdateElement).click().build().perform();
         btnCheckDuplicateElement.click();
 
