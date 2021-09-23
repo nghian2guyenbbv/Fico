@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -223,6 +224,16 @@ public class DE_LoanDetailsSourcingDetailsTab {
 
         applicationFormNumberElement.clear();
         applicationFormNumberElement.sendKeys(data.getApplicationNumber());
+
+        List<WebElement> deleteLoanType = _driver.findElements(By.xpath("//*[contains(@id, 'loanApplication_type_chzn')]//*[contains(@class, 'search-choice-close')]"));
+        if (deleteLoanType != null && deleteLoanType.size() > 0){
+            deleteLoanType.get(0).click();
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
