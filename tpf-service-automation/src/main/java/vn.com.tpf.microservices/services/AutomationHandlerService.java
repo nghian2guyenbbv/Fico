@@ -2568,6 +2568,7 @@ public class AutomationHandlerService {
                 documentsPage.updateData(documentDTOS, downdloadFileURL);
                 Utilities.captureScreenShot(driver);
                 documentsPage.getBtnSubmitElement().click();
+                Thread.sleep(10000);
             }
 
 

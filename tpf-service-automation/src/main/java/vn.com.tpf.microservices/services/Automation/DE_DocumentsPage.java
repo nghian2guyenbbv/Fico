@@ -132,7 +132,7 @@ public class DE_DocumentsPage {
 
        //String fromFile = "http://192.168.0.203:3001/v1/file/";
         String fromFile = downLoadFileURL;
-        String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+
         //do index=0 la 1 element khac
         System.out.println("update doc - URLdownload: " + fromFile);
 
@@ -161,7 +161,7 @@ public class DE_DocumentsPage {
 
                     //bo sung get ext file
                     String ext= FilenameUtils.getExtension(documentDTO.getFilename());
-
+                    String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                     toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
                     //File file = new File(toFile + documentDTO.getFilename());
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( documentDTO.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
