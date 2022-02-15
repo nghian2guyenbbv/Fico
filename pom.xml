@@ -37,6 +37,7 @@
 		<module>tpf-service-repayment</module>
 		<module>tpf-service-dataentry</module>
 		<module>tpf-service-automation</module>
+		<module>tpf-service-automation-new-f1</module>
 	</modules>
 
 
