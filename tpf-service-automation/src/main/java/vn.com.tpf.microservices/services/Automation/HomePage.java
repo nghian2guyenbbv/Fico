@@ -15,7 +15,7 @@ import static org.awaitility.Awaitility.await;
 
 @Getter
 public class HomePage {
-	@FindBy(how = How.CLASS_NAME, using = "applications-li")
+	@FindBy(how = How.ID, using = "applications-li")
 	@CacheLookup
 	private WebElement menuApplication;
 	

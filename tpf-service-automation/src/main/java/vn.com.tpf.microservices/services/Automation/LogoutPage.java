@@ -18,7 +18,7 @@ import static org.awaitility.Awaitility.await;
 public class LogoutPage {
     private WebDriver _driver;
 
-	@FindBy(how = How.ID, using = "loggedInUserPhoto")
+	@FindBy(how = How.ID, using = "userProfileImageDiv")
 	@CacheLookup
 	private WebElement userPhotoElement;
 

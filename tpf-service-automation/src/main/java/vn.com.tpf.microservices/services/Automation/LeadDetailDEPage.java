@@ -26,6 +26,10 @@ public class LeadDetailDEPage {
     @CacheLookup
     private WebElement editCustomerElement;
 
+    @FindBy(how = How.ID, using = "applicationChildTabs_customerPersonal")
+    @CacheLookup
+    private WebElement applicationChildTabs;
+
     public LeadDetailDEPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -34,6 +38,18 @@ public class LeadDetailDEPage {
     public void setData(String appId) {
         await("loanApplicationExistingElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanApplicationExistingElement.isDisplayed());
+
+        Utilities.captureScreenShot(_driver);
+
+        editCustomerElement.click();
+    }
+
+    public void applicationInformation() {
+        await("loanApplicationExistingElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationChildTabs.isDisplayed());
+        applicationChildTabs.click();
+        await("editCustomerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> editCustomerElement.isDisplayed());
 
         Utilities.captureScreenShot(_driver);
 
