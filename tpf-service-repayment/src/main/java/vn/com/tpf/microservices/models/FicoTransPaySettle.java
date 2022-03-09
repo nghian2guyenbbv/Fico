@@ -50,4 +50,15 @@ public class FicoTransPaySettle {
     @Column(name="trans_date")
     private Date transDate;
 
+    @Column(name="flag_closure")
+    private int flagclosure;
+
+    @Column(name="partner_id")
+    private int partnerid;
+
+    @Column(name="device")
+    private String device;
+
+    @Column(columnDefinition = "integer default 0")
+    private long paymentFee;
 }

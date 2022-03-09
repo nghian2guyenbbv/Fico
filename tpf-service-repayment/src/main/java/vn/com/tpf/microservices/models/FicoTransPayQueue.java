@@ -57,4 +57,7 @@ public class FicoTransPayQueue {
     private long amount;
 
     private int status;
+
+    @Column(name="partner_id")
+    private int partnerId;
 }

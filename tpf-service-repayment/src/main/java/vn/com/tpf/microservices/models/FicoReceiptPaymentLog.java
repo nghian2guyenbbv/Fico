@@ -1,14 +1,26 @@
 package vn.com.tpf.microservices.models;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+@NamedStoredProcedureQuery(
+        name = "getlistretry",
+        procedureName = "payoo.getlistretry",
+        resultClasses = FicoReceiptPaymentLog.class,
+        parameters = {
+                @StoredProcedureParameter(mode = ParameterMode.IN, type = int.class)
+        }
+)
 @Data
 @Builder
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "fico_receipt_payment_log", schema = "payoo")
 public class FicoReceiptPaymentLog {
     @Id

@@ -113,8 +113,12 @@ public class RabbitMQService {
 				return response(message, payload, repaymentService.autoRetry());
 //			case "cronSchedule":
 //					return response(message, payload, repaymentService.getCron());
+			case "repayment_get":
+				return response(message, payload, repaymentService.repayment_get(request));
+			case "repayment_pay":
+				return response(message, payload, repaymentService.repayment_pay(request));
 			default:
-			return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
+				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
 		} catch (IllegalArgumentException e) {
 			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));
