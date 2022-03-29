@@ -28,9 +28,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -45,6 +42,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.dao.*;
 import vn.com.tpf.microservices.models.*;
+
+import javax.annotation.PostConstruct;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -53,6 +52,10 @@ import javax.mail.internet.MimeMultipart;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -128,6 +131,15 @@ public class RepaymentService {
 
 	@Autowired
 	private FicoTransPaySettleDAO ficoTransPaySettleDAO;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplateF1;
+
+	@PostConstruct
+	private void init(){
+		jdbcTemplateF1.setQueryTimeout(30_000);
+		namedParameterJdbcTemplateF1 = new NamedParameterJdbcTemplate(jdbcTemplateF1);
+	}
 
 	@SuppressWarnings("unchecked")
 
@@ -1816,7 +1828,7 @@ public class RepaymentService {
 	}
 
 	public Map<String, Object> repayment_pay(JsonNode request) throws JsonProcessingException {
-		String sLogs= "request: " + mapper.writeValueAsString(request);
+		String sLogs= "request: " + mapper.writeValueAsString(request) + "; time: ";
 
 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
@@ -2056,4 +2068,306 @@ public class RepaymentService {
 		return Map.of("status", 200, "data", responseModel);
 	}
 	//endregion
+
+	@Autowired
+	private FicoTransCancelDAO  ficoTransCancelDAO;
+
+	final private String ERROR_MSG_1000 = "Yêu cầu của quý khách không được chấp nhận vì còn nghĩa vụ thanh toán cho Fico";
+	final private String ERROR_MSG_1001 = "Hệ thống xảy ra lỗi khi xử lý yêu cầu";
+	final private String ERROR_MSG_1002 = "Dữ liệu không hợp lệ";
+	final private String SUCCESS_MSG = "Đồng ý hủy";
+
+	@Transactional
+	public Map<String, Object> cancelTrans(JsonNode request) {
+		Assert.notNull(request, "request not null");
+		ResponseModel responseModel = new ResponseModel();
+		responseModel.setReference_id(UUID.randomUUID().toString());
+		Timestamp timestamp = new Timestamp(new Date().getTime());
+		responseModel.setDate_time(timestamp);
+		responseModel.setResult_code(0);
+		responseModel.setMessage(SUCCESS_MSG);
+		String requestId = UUID.randomUUID().toString();
+		StringBuilder sb = new StringBuilder();
+		try {
+			sb.append(new Throwable().getStackTrace()[0].getMethodName());
+			sb.append(" - TIME START: ").append(new Date().toString());
+			sb.append(" - REQUEST: ").append(mapper.writeValueAsString(request));
+
+			RequestModel2 requestModel = mapper.treeToValue(request.get("body"), RequestModel2.class);
+			requestId = requestModel.getRequest_id();
+			responseModel.setRequest_id(requestId);
+
+			ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+			//It validates bean instances
+			Validator validator = factory.getValidator();
+			//Validate bean
+			Set<ConstraintViolation<RequestModel2>> constraintViolations = validator.validate(requestModel);
+			if (constraintViolations != null && constraintViolations.size() > 0){
+				HashMap<String,String> map = new HashMap<>();
+				for (ConstraintViolation<RequestModel2> violation : constraintViolations) {
+					map.put(violation.getPropertyPath().toString(), violation.getMessage());
+				}
+				sb.append(" ERROR: ").append(map.toString());
+				responseModel.setResult_code(1002);
+				responseModel.setMessage(ERROR_MSG_1002);
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+
+			CancelTransModel cancelTransModel = requestModel.getData();
+
+			//check transaction
+			FicoTransPaySettle ficoTransPaySettle =
+					ficoTransPaySettleDAO.findByTransactionId(cancelTransModel.getCancelTransactionId());
+			if (ficoTransPaySettle == null){
+				sb.append("Transaction not exist");
+				responseModel.setResult_code(1002);
+				responseModel.setMessage(ERROR_MSG_1002);
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			//check transaction cancel
+			FicoTransCancel ficoTransCancel =
+					ficoTransCancelDAO.findByTransactionCancelIdAndApproveStatus(
+							cancelTransModel.getCancelTransactionId(), 0);
+			if (ficoTransCancel != null){
+				sb.append("Transaction canceled");
+				responseModel.setResult_code(1002);
+				responseModel.setMessage(ERROR_MSG_1002);
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			//check partner
+			int partnerId = requestModel.getData().getPartnerId() != null ? requestModel.getData().getPartnerId():0;
+			FicoPartner ficoPartner = ficoPartnerDAO.findById(partnerId);
+			if(ficoPartner  == null) {
+				sb.append("Partner not exist");
+				responseModel.setResult_code(1002);
+				responseModel.setMessage(ERROR_MSG_1002 );
+				return Map.of("status", 200, "data", responseModel);
+			}
+			if (StringUtils.isEmpty(cancelTransModel.getTransactionId())){
+				cancelTransModel.setTransactionId(String.valueOf(timestamp.getTime()));
+			}
+			String transactionId = cancelTransModel.getTransactionId();
+
+			ficoTransCancel = FicoTransCancel.builder()
+					.transactionId(transactionId)
+					.transactionCancelId(ficoTransPaySettle.getTransactionId())
+					.loanId(ficoTransPaySettle.getLoanId())
+					.loanAccountNo(ficoTransPaySettle.getLoanAccountNo())
+					.identificationNumber(ficoTransPaySettle.getIdentificationNumber())
+					.amount(ficoTransPaySettle.getAmount())
+					.transDate(ficoTransPaySettle.getCreateDate())
+					.reason(cancelTransModel.getCancelDescription())
+					.cancelDate(timestamp)
+					.status(0)
+					.approveStatus(0)
+					.build();
+
+			//check rule cancel
+			String checkRule = checkRuleCancel(ficoTransCancel);
+			if (StringUtils.hasLength(checkRule)){
+				ficoTransCancel.setStatus(1);
+				ficoTransCancel.setApproveStatus(1);
+				ficoTransCancel.setReasonReject(checkRule);
+				ficoTransCancelDAO.save(ficoTransCancel);
+
+				sb.append(" - CHECK RULE: ").append(checkRule.toUpperCase());
+				responseModel.setResult_code(1000);
+				responseModel.setMessage(ERROR_MSG_1000);
+				return Map.of("status", 200, "data", responseModel);
+			}
+
+			//save transaction cancel
+			ficoTransCancelDAO.save(ficoTransCancel);
+
+			//call api cancel
+			new Thread(this::callCancelApi).start();
+
+		} catch (JsonProcessingException e){
+			sb.append(" - EXCEPTION: PARSE ERROR");
+			responseModel.setRequest_id(requestId);
+			responseModel.setResult_code(1001);
+			responseModel.setMessage(ERROR_MSG_1001);
+		} catch (Exception e){
+			sb.append(" - EXCEPTION: ").append(e.toString());
+			responseModel.setRequest_id(requestId);
+			responseModel.setResult_code(1001);
+			responseModel.setMessage(ERROR_MSG_1001);
+		} finally {
+			sb.append(" - TIME END: ").append(new Date().toString());
+			log.info("{}", sb.toString());
+		}
+		return Map.of("status", 200, "data", responseModel);
+	}
+
+	private String checkRuleCancel(FicoTransCancel ficoTransCancel) {
+		StringBuilder sb = new StringBuilder();
+		try {
+			sb.append(new Throwable().getStackTrace()[0].getMethodName());
+			sb.append(" - ficoTransPay: ").append(mapper.writeValueAsString(ficoTransCancel));
+
+			//check same day
+			//Thời gian hủy giao dịch hợp lệ: Ngày giao dịch = ngày yêu cầu hủy giao dịch
+			LocalDate transDate = ficoTransCancel.getTransDate().toLocalDateTime().toLocalDate();
+			LocalDate cancelDate = ficoTransCancel.getCancelDate().toLocalDateTime().toLocalDate();
+
+			if (!transDate.isEqual(cancelDate)){
+				return "transDate diff cancelDate";
+			}
+
+			//get excess amount
+			Long excessAmount = getExcessAmount(ficoTransCancel.getLoanAccountNo());
+			if (excessAmount == -1){
+				return "Error getExcessAmount";
+			}
+			FicoCustomer cus = ficoCustomerDAO.findByLoanId(ficoTransCancel.getLoanId());
+			if (cus == null){
+				return "Loan id not exist";
+			}
+
+			//Hợp đồng active và số dư còn lại của hợp đồng ≥ số tiền giao dịch hủy.
+			if (cus.isLoanActive() && ficoTransCancel.getAmount() > excessAmount){
+				return "Loan active: " + cus.isLoanActive() + " - excess amount: " + excessAmount + " - transaction amount: " + ficoTransCancel.getAmount();
+			}
+
+			//Hợp đồng closed nhưng thời điểm phát sinh giao dịch cần hủy sau thời điểm phát sinh trạng thái closed.
+			String closeDateStr = getCloseDate(ficoTransCancel.getLoanAccountNo());
+			if (StringUtils.hasLength(closeDateStr)){
+				if (ERROR_MSG_1002.equals(closeDateStr)){
+					return "getCloseDate fail";
+				}
+				LocalDate closeDate = LocalDate.parse(closeDateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+				if (!cus.isLoanActive() && (transDate.isBefore(closeDate) || transDate.isEqual(closeDate))){
+					return "Loan active: " + cus.isLoanActive() + " - trans date: " + transDate + " close Date: " + closeDate;
+				}
+			}
+
+			//check simulation
+			//Hợp đồng không có lệnh Simulation trên hệ thống LMS (lệnh tất toán).
+			String checkSimulation = checkSimulation(ficoTransCancel.getLoanAccountNo());
+			if (StringUtils.isEmpty(checkSimulation)){
+				return "checkSimulation fail";
+			}
+
+			if ("Y".equals(checkSimulation)){
+				return "checkSimulation is Y";
+			}
+			return null;
+		} catch (Exception e){
+			sb.append(" - EXCEPTION: ").append(e.toString());
+			log.error(sb.toString().toUpperCase());
+			return ERROR_MSG_1001;
+		}
+	}
+
+	private String getCloseDate(String loanAccountNo) {
+		StringBuilder sb = new StringBuilder();
+		try {
+			sb.append(new Throwable().getStackTrace()[0].getMethodName());
+			sb.append(" - LOAN ACCOUNT: ").append(loanAccountNo);
+
+			SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("loanAccount", loanAccountNo);
+			String sql = "select serviceapp.fn_getloancloseddate(:loanAccount) as RESULT from dual";
+
+			sb.append(" - START CALL AT: ").append(new Timestamp(new Date().getTime()));
+			String resultData = namedParameterJdbcTemplateF1.queryForObject(sql, namedParameters, String.class);
+
+			sb.append(" - END CALL AT: ").append(new Timestamp(new Date().getTime()));
+			sb.append(" - RESULT: ").append(resultData);
+
+			if(StringUtils.hasLength(resultData)) {
+				return resultData;
+			}
+			return null;
+		}catch (Exception e){
+			sb.append(" - EXCEPTION: ").append(e.toString());
+			log.error(sb.toString());
+			return ERROR_MSG_1002;
+		}
+	}
+
+	/**
+	 *
+	 * @param loanAccountNo: String
+	 * @return number
+	 */
+	private Long getExcessAmount(String loanAccountNo) {
+		StringBuilder sb = new StringBuilder();
+		try {
+			sb.append(new Throwable().getStackTrace()[0].getMethodName());
+			sb.append(" - LOAN ACCOUNT: ").append(loanAccountNo);
+
+			SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("loanAccount", loanAccountNo);
+			String sql = "select serviceapp.fn_loan_excessAmount(:loanAccount) as RESULT from dual";
+
+			sb.append(" - START CALL AT: ").append(new Timestamp(new Date().getTime()));
+			String resultData = namedParameterJdbcTemplateF1.queryForObject(sql, namedParameters, String.class);
+
+			sb.append(" - END CALL AT: ").append(new Timestamp(new Date().getTime()));
+			sb.append(" - RESULT: ").append(resultData);
+
+			if(StringUtils.hasLength(resultData)) {
+				return Long.valueOf(resultData);
+			}
+		}catch (Exception e){
+			sb.append(" - EXCEPTION: ").append(e.toString());
+			log.error(sb.toString());
+		}
+		return -1L;
+	}
+
+	/**
+	 *
+	 * @param loanAccountNo: String
+	 * @return 'Y' or 'N'
+	 */
+	private String checkSimulation(String loanAccountNo) {
+		StringBuilder sb = new StringBuilder();
+		try {
+			sb.append(new Throwable().getStackTrace()[0].getMethodName());
+			sb.append(" - LOAN ACCOUNT: ").append(loanAccountNo);
+
+			SqlParameterSource namedParameters = new MapSqlParameterSource().addValue("loanAccount", loanAccountNo);
+			String sql="select serviceapp.fn_loan_forceclose(:loanAccount) as RESULT from dual";
+
+			sb.append(" - START CALL fn_loan_forceclose AT: ").append(new Timestamp(new Date().getTime()));
+
+			String resultData = namedParameterJdbcTemplateF1.queryForObject(sql, namedParameters, String.class);
+
+			sb.append(" - END CALL AT: ").append(new Timestamp(new Date().getTime()));
+			sb.append(" - RESULT: ").append(resultData);
+
+			if(StringUtils.hasLength(resultData) && ("Y".equals(resultData) || "N".equals(resultData))) {
+				return resultData;
+			}
+			log.info("{}", sb);
+		}catch (Exception e){
+			sb.append(" - EXCEPTION: ").append(e.toString());
+			log.error(sb.toString());
+		}
+		return null;
+	}
+
+	private void callCancelApi() {
+	}
+
+	public Map<String, Object> syncCancelTransFromF1(JsonNode request) {
+		try {
+			Session session = entityManager.unwrap(Session.class);
+			session.doWork(connection -> {
+				//connection, finally!
+				String storeProc = "CALL payoo.up_ficoTransCancel_syncData();";
+				try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
+					int result = stmt.executeUpdate();
+					log.info("cronjob syncCancelTransFromF1: Update : " + result + " result");
+				}
+			});
+		}catch (Exception e){
+			log.error(e.toString());
+		}
+		return Map.of("status", 200, "data", request);
+	}
 }

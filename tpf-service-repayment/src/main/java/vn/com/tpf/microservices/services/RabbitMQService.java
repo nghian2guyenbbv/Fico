@@ -117,6 +117,10 @@ public class RabbitMQService {
 				return response(message, payload, repaymentService.repayment_get(request));
 			case "repayment_pay":
 				return response(message, payload, repaymentService.repayment_pay(request));
+			case "cancelTrans":
+				return response(message, payload, repaymentService.cancelTrans(request));
+			case "job_repaymentSyncCancelTrans":
+				return response(message, payload, repaymentService.syncCancelTransFromF1(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

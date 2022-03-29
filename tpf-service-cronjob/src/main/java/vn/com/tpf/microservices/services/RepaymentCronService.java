@@ -65,4 +65,20 @@ public class RepaymentCronService {
             log.info("{}", slog);
         }
     }
+
+    @Scheduled(cron = "${spring.cron.repaymentSyncCancelTrans}")
+    public void job_repaymentSyncCancelTrans()
+    {
+        String slog = "func: job_repaymentSyncCancelTrans";
+        try{
+            rabbitMQService.send("tpf-service-repayment",
+                    Map.of("func", "job_repaymentSyncCancelTrans","reference_id", UUID.randomUUID().toString()));
+        }catch (Exception e)
+        {
+            slog += " - exception: " + e.toString();
+
+        }finally {
+            log.info("{}", slog);
+        }
+    }
 }
