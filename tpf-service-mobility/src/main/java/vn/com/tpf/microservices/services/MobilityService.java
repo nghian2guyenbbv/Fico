@@ -932,7 +932,9 @@ public class MobilityService {
 			update.set("viewLastUpdated","");
 			mobility = mobilityTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 					Mobility.class);
-			responseQuery(mobility);
+			rabbitMQService.send("tpf-service-esb", Map.of("func", "deResponseQuery", "body",
+					convertService.toReturnQueryFinnone(mobility).put("reference_id", body.path("reference_id").asText())));
+//			responseQuery(mobility);
 		}
 
 
