@@ -32,11 +32,11 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement btnCreateNewUserElement;
 
-    @FindBy(how = How.ID, using = "genderType_new_chzn")
+    @FindBy(how = How.ID, using = "genderType_new_chosen")
     @CacheLookup
     private WebElement genderSelectElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'genderType_new_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'genderType_new_chosen_o_')]")
     @CacheLookup
     private List<WebElement> genderSelectOptionElement;
 
@@ -60,27 +60,27 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement dateOfBirthdaElement;
 
-    @FindBy(how = How.ID, using = "maritalStatus_chzn")
+    @FindBy(how = How.ID, using = "maritalStatus_chosen")
     @CacheLookup
     private WebElement maritalStatusElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'maritalStatus_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'maritalStatus_chosen_o_')]")
     @CacheLookup
     private List<WebElement> maritalStatusOptionElement;
 
-    @FindBy(how = How.ID, using = "nationality_chzn")
+    @FindBy(how = How.ID, using = "nationality_chosen")
     @CacheLookup
     private WebElement nationalElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'nationality_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'nationality_chosen_o_')]")
     @CacheLookup
     private List<WebElement> nationalOptionElement;
 
-    @FindBy(how = How.ID, using = "category_chzn")
+    @FindBy(how = How.ID, using = "Text_category")
     @CacheLookup
     private WebElement educationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'category_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_category')]")
     @CacheLookup
     private List<WebElement> educationOptionElement;
 
@@ -109,40 +109,38 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement btnLoadAddressElementElement;
 
-//    @FindBy(how = How.ID, using = "address_detail_body")
-    @FindBy(how = How.XPATH, using = "//div[@id = 'address_detail_body']")
+    @FindBy(how = How.ID, using = "address_detail_body")
     @CacheLookup
     private WebElement addressDivElement;
 
-//    @FindBy(how = How.ID, using = "addressType_chzn")
-    @FindBy(how = How.XPATH, using = "//div[@id = 'addressType_chzn']")
+    @FindBy(how = How.ID, using = "addressType_chosen")
     private WebElement addressTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'addressType_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'addressType_chosen_o_')]")
     private List<WebElement> addressTypeOptionElement;
 
-    @FindBy(how = How.ID, using = "text_country_chzn")
+    @FindBy(how = How.ID, using = "text_country_chosen")
     private WebElement textCountryElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'text_country_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'text_country_chosen_o_')]")
     private List<WebElement> textCountryOptionElement;
 
-    @FindBy(how = How.ID, using = "state_country_chzn")
+    @FindBy(how = How.ID, using = "state_country_chosen")
     private WebElement regionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chosen_o_')]")
     private List<WebElement> regionOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'state_country_chosen')]//input")
     private WebElement regionInputElement;
 
-    @FindBy(how = How.ID, using = "city_country_chzn")
+    @FindBy(how = How.ID, using = "city_country_chosen")
     private WebElement cityElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'city_country_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'city_country_chosen_o_')]")
     private List<WebElement> cityOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'city_country_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'city_country_chosen')]//input")
     private WebElement cityInputElement;
 
     @FindBy(how = How.ID, using = "Text_postalCode_country")
@@ -151,13 +149,13 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "listitem_postalCode_country0a")
     private WebElement pinCodeValueElement;
 
-    @FindBy(how = How.ID, using = "area_country_chzn")
+    @FindBy(how = How.ID, using = "area_country_chosen")
     private WebElement areaElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chosen_o_')]")
     private List<WebElement> areaOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'area_country_chosen')]//input")
     private WebElement areaInputElement;
 
     @FindBy(how = How.ID, using = "address1ToBeAddedInput_country")
@@ -172,10 +170,10 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "address_landmark")
     private WebElement addressLandmark;
 
-    @FindBy(how = How.ID, using = "address_noOfYearsAtCurrentAdress")
+    @FindBy(how = How.ID, using = "address_currentAddressFrom")
     private WebElement currentAddrYearsElement;
 
-    @FindBy(how = How.ID, using = "address_noOfMonthsAtCurrentAdress")
+    @FindBy(how = How.ID, using = "address_currentAddressTo")
     private WebElement currentAddrMonthsElement;
 
     @FindBy(how = How.ID, using = "address_yearsInCurrentCity")
@@ -212,7 +210,7 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "dedupeCheckButton")
     private WebElement btnCheckDuplicateUpdateElement;
 
-    @FindBy(how = How.ID, using = "noOfMatchesFound")
+    @FindBy(how = How.ID, using = "intMatchesNone")
     private WebElement numDuplicateElement;
 
     // Communication Details
@@ -236,7 +234,7 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement primaryEmailElement;
 
-    @FindBy(how = How.ID, using = "customer_mobile_phonen1_phoneNumber")
+    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
     @CacheLookup
     private WebElement cusMobileElements;
 
@@ -287,7 +285,7 @@ public class CRM_ApplicationInfoPersonalTab {
     private WebElement saveAndNextElement;
 
     //update for DE
-    @FindBy(how = How.ID, using = "personal_customer_details")
+    @FindBy(how = How.ID, using = "personal")
     @CacheLookup
     private WebElement personalCustomerDetailsElement;
 
@@ -373,12 +371,6 @@ public class CRM_ApplicationInfoPersonalTab {
                 .until(() -> nationalOptionElement.size() > 0);
         Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getNationality(), nationalOptionElement);
 
-        if (applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode() != null) {
-            this.educationElement.click();
-            await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> educationOptionElement.size() > 0);
-            Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode(), educationOptionElement);
-        }
         //btnPersonInfoProcessClick(); -- update ko co nút này click
 
         loadIdentificationSection();

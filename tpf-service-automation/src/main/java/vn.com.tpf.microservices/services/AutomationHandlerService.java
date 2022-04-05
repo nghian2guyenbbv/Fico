@@ -434,9 +434,9 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
             HashMap<String, String> dataControl = new HashMap<>();
-            LoginPage loginPage = new LoginPage(driver);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
             Utilities.captureScreenShot(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
             loginPage.clickLogin();
             Utilities.captureScreenShot(driver);
             //actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
@@ -449,7 +449,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage = new HomePageNeo(driver);
 
 
             System.out.println(stage + ": DONE");
@@ -466,14 +466,14 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            QuickLeadPageNeo quickLeadPage = new QuickLeadPageNeo(driver);
             quickLeadPage.setData(quickLead);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEADS GRID";
             // ========== LEAD PAGE =================
-            LeadsPage leadsPage = new LeadsPage(driver);
+            LeadsPageNeo leadsPage = new LeadsPageNeo(driver);
             await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
@@ -488,12 +488,14 @@ public class AutomationHandlerService {
             }
 
             System.out.println("LEAD APP: =>" + leadApp);
-            leadsPage.setData(leadApp);
+            //leadsPage.setData(leadApp);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-            stage = "LEAD STAGE";
+            //stage = "LEAD STAGE";
             // ========== LEAD STAGE =================
+            Thread.sleep(10000);
+            this.getApplicationLead(driver, leadApp);
             LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
@@ -513,56 +515,12 @@ public class AutomationHandlerService {
             await("Lead Page timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
-            leadsPage.getSpanAllNotifyElement().click();
-            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
-
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
-            leadsPage.getBtnAllNotifyElement().click();
-
-            Utilities.captureScreenShot(driver);
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
 
             String leadAppID = "";
-//            for (WebElement e: leadsPage.getNotifyTextSuccessElement())
-//            {
-//                System.out.println(e.getText());
-//                if(e.getText().contains("APPL")){
-//                    leadAppID=e.getText().substring(e.getText().indexOf("APPL"),e.getText().indexOf("APPL") + 12);
-//                }
-//            }
-//            System.out.println("APPID: => " + leadAppID);
-//
-//            Utilities.captureScreenShot(driver);
-//            System.out.println(stage + ": DONE" );
-
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-
-            //get appID moi o day
-            leadAppID = de_applicationManagerPage.getAppID(leadApp);
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
-
-            de_applicationManagerPage.getBackBtnElement().click();
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-
-            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", accountDTO.getUserName());
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -4319,8 +4277,8 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
             HashMap<String, String> dataControl = new HashMap<>();
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
             //actions.moveToElement(loginPage.getBtnElement()).click().build().perform();
 
@@ -4332,7 +4290,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage = new HomePageNeo(driver);
 
 
             System.out.println(stage + ": DONE");
@@ -4349,17 +4307,16 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            QuickLeadPageNeo quickLeadPage = new QuickLeadPageNeo(driver);
             quickLeadPage.setData(quickLead);
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
+
             stage = "LEADS GRID";
             // ========== LEAD PAGE =================
-            LeadsPage leadsPage = new LeadsPage(driver);
+            LeadsPageNeo leadsPage = new LeadsPageNeo(driver);
             await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
-
             await("notifyTextElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
 
@@ -4370,16 +4327,21 @@ public class AutomationHandlerService {
             }
 
             System.out.println("LEAD APP: =>" + leadApp);
-            leadsPage.setData(leadApp);
+//            leadsPage.setData(leadApp);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEAD STAGE";
             // ========== LEAD STAGE =================
+            //Thread.sleep(3000);
+            //this.assignManger(driver, leadApp, "TPF DATA ENTRY", "trunglc");
+            //=============================
+            Thread.sleep(10000);
+            this.getApplicationLead(driver, leadApp);
+            //=============================
             LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
-
             boolean flagResult = leadDetailPage.setData(quickLead, leadApp, downdloadFileURL);
 
             if (flagResult == false) {
@@ -4394,90 +4356,20 @@ public class AutomationHandlerService {
 
             await("Lead Page timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
-
-            leadsPage.getSpanAllNotifyElement().click();
-            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
-
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
-            leadsPage.getBtnAllNotifyElement().click();
-
-            Utilities.captureScreenShot(driver);
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
-
             String leadAppID = "";
 
-//            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
-//                System.out.println(e.getText());
-//                if (e.getText().contains("APPL")) {
-//                    leadAppID = e.getText().substring(e.getText().indexOf("APPL"), e.getText().indexOf("APPL") + 12);
-//                }
-//            }
-//            System.out.println("APPID: => " + leadAppID);
-//
-//            Utilities.captureScreenShot(driver);
-//            System.out.println(stage + ": DONE");
-
-
-//            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
-//                System.out.println(e.getText());
-//                if (e.getText().contains("APPL")) {
-//                    leadAppID = e.getText().substring(e.getText().indexOf("APPL"), e.getText().indexOf("APPL") + 12);
-//                }
-//            }
-//            System.out.println("APPID: => " + leadAppID);
-//
-//            Utilities.captureScreenShot(driver);
-//            System.out.println(stage + ": DONE");
-
-
-//            //update thêm phần assign về acc tạo app để tranh rơi vào pool
-//            stage = "APPLICATION MANAGER";
-//            // ========== APPLICATION MANAGER =================
-//            homePage.getMenuApplicationElement().click();
-//            homePage.getApplicationManagerElement().click();
-//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("Application Manager"));
-//
-//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-//
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
-//            System.out.println(stage + ": DONE");
-//            Utilities.captureScreenShot(driver);
-//
-//            //-------------------- END ---------------------------
+//            System.out.println("LEAD APP: =>" + leadApp);
 
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", "trunglc");
 
             //get appID moi o day
-            leadAppID = de_applicationManagerPage.getAppID(leadApp);
             System.out.println(" APP: =>" + leadAppID);
 
             //smartner bo phan reassign user auto
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
-//
-//            de_applicationManagerPage.getBackBtnElement().click();
-//
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-//
-//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
+
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -4492,7 +4384,6 @@ public class AutomationHandlerService {
 
 
             Utilities.captureScreenShot(driver);
-            //logout(driver);
 
         } catch (Exception e) {
             //UPDATE STATUS
@@ -4588,31 +4479,20 @@ public class AutomationHandlerService {
             Actions actions = new Actions(driver);
             System.out.println(stage + ": DONE");
 
-//            stage = "LOGIN FINONE";
-//
-//            HashMap<String, String> dataControl = new HashMap<>();
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
 
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
-
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
+            loginPage.clickLogin();
             //***************************//END LOGIN//***************************//
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage = new HomePageNeo(driver);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -4628,14 +4508,14 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            QuickLeadPageNeo quickLeadPage = new QuickLeadPageNeo(driver);
             quickLeadPage.setData(quickLead);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEADS GRID";
             // ========== LEAD PAGE =================
-            LeadsPage leadsPage = new LeadsPage(driver);
+            LeadsPageNeo leadsPage = new LeadsPageNeo(driver);
             await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
@@ -4649,12 +4529,19 @@ public class AutomationHandlerService {
             }
 
             System.out.println("LEAD APP: =>" + leadApp);
-            leadsPage.setData(leadApp);
+//            leadsPage.setData(leadApp);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEAD STAGE";
             // ========== LEAD STAGE =================
+            //Thread.sleep(3000);
+            //this.assignManger(driver, leadApp, "TPF DATA ENTRY", "trunglc");
+            //=============================
+            Thread.sleep(10000);
+            this.getApplicationLead(driver, leadApp);
+
+            //=============================
             LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
@@ -4674,75 +4561,16 @@ public class AutomationHandlerService {
             await("Lead Page timeout").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
-            leadsPage.getSpanAllNotifyElement().click();
-            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
 
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
-            leadsPage.getBtnAllNotifyElement().click();
-
-            Utilities.captureScreenShot(driver);
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
 
             String leadAppID = "";
-//            for (WebElement e : leadsPage.getNotifyTextSuccessElement()) {
-//                System.out.println(e.getText());
-//                if (e.getText().contains("APPL")) {
-//                    leadAppID = e.getText().substring(e.getText().indexOf("APPL"), e.getText().indexOf("APPL") + 12);
-//                }
-//            }
-//            System.out.println("APPID: => " + leadAppID);
-//
-//            Utilities.captureScreenShot(driver);
-//            System.out.println(stage + ": DONE");
-
-
-//            //update thêm phần assign về acc tạo app để tranh rơi vào pool
-//            stage = "APPLICATION MANAGER";
-//            // ========== APPLICATION MANAGER =================
-//            homePage.getMenuApplicationElement().click();
-//            homePage.getApplicationManagerElement().click();
-//            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("Application Manager"));
-//
-//            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-//
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
-//            System.out.println(stage + ": DONE");
-//            Utilities.captureScreenShot(driver);
-//
 //            //-------------------- END ---------------------------
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
-            // ========== APPLICATION MANAGER =================
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-
-            //get appID moi o day
-            leadAppID = de_applicationManagerPage.getAppID(leadApp);
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", "trunglc");
             System.out.println(" APP: =>" + leadAppID);
 
-            //smartner bo phan reassign user auto
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
-//
-//            de_applicationManagerPage.getBackBtnElement().click();
-//
-//            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-//
-//            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
+
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -5452,30 +5280,18 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
 
             stage = "LOGIN FINONE";
-
-            //***************************//LOGIN PAGE//***************************//
-
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
-
-            //***************************//END LOGIN//***************************//
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage = new HomePageNeo(driver);
 
 
             System.out.println(stage + ": DONE");
@@ -5492,17 +5308,16 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            CRM_QuickLeadPage quickLeadPage = new CRM_QuickLeadPage(driver);
+            CRM_QuickLeadPageNeo quickLeadPage = new CRM_QuickLeadPageNeo(driver);
             quickLeadPage.setData(quickLead);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEADS GRID";
             // ========== LEAD PAGE =================
-            LeadsPage leadsPage = new LeadsPage(driver);
+            LeadsPageNeo leadsPage = new LeadsPageNeo(driver);
             await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
-
             await("notifyTextElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
 
@@ -5513,12 +5328,18 @@ public class AutomationHandlerService {
             }
 
             System.out.println("LEAD APP: =>" + leadApp);
-            leadsPage.setData(leadApp);
+//            leadsPage.setData(leadApp);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEAD STAGE";
             // ========== LEAD STAGE =================
+//            Thread.sleep(3000);
+//            this.assignManger(driver, leadApp, "TPF DATA ENTRY", "trunglc");
+            //=============================
+            Thread.sleep(10000);
+            this.getApplicationLead(driver, leadApp);
+
             CRM_LeadDetailPage leadDetailPage = new CRM_LeadDetailPage(driver);
             await("contentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDetailPage.getContentElement().isDisplayed());
@@ -5530,33 +5351,12 @@ public class AutomationHandlerService {
             await("Lead Page timeout").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
-            leadsPage.getSpanAllNotifyElement().click();
-            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
-
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
-            leadsPage.getBtnAllNotifyElement().click();
-
-            Utilities.captureScreenShot(driver);
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
-
             String leadAppID = "";
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", "trunglc");
 
             //get appID moi o day
-            leadAppID = de_applicationManagerPage.getAppID(leadApp);
             System.out.println("APP: =>" + leadAppID);
 
             System.out.println(stage + ": DONE");
@@ -5886,9 +5686,9 @@ public class AutomationHandlerService {
 //            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(driver::getTitle, is("DashBoard"));
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
 
@@ -5898,9 +5698,10 @@ public class AutomationHandlerService {
             // ========== EXISTING CUSTOMER =================
             stage = "EXISTING CUSTOMER";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
-            crm_ExistingCustomerPage.getMenuApplicationElement().click();
-            crm_ExistingCustomerPage.getPersonalLoanElement().click();
-
+            crm_ExistingCustomerPage.application_personal_Click();
+            await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> crm_ExistingCustomerPage.getCustomerPersonal().isDisplayed());
+            crm_ExistingCustomerPage.getCustomerPersonal().click();
             await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getCreateCustomerElement().isDisplayed());
 
@@ -6330,9 +6131,9 @@ public class AutomationHandlerService {
 //            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(driver::getTitle, is("DashBoard"));
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
 
@@ -6340,16 +6141,16 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage = new HomePageNeo(driver);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
             // ========== APPLICATIONS =================
-            homePage.getMenuApplicationElement().click();
+            homePage.menuClick();
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getApplicationManagerElement().click();
+            homePage.applicationManagerClick();
             await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
@@ -6367,14 +6168,7 @@ public class AutomationHandlerService {
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_applicationManagerPage.getMenuApplicationElement().isDisplayed());
 
-            crm_applicationManagerPage.getMenuApplicationElement().click();
-            Utilities.captureScreenShot(driver);
-            crm_applicationManagerPage.getApplicationElement().click();
-            Utilities.captureScreenShot(driver);
-            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Grid"));
-            Utilities.captureScreenShot(driver);
-            crm_applicationManagerPage.applicationGrid(applicationId);
+            getApplicationAppId(driver, applicationId);
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -7134,8 +6928,9 @@ public class AutomationHandlerService {
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
 
@@ -7143,7 +6938,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage = new HomePageNeo(driver);
 
 
             System.out.println(stage + ": DONE");
@@ -7160,17 +6955,16 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            QuickLeadPageNeo quickLeadPage = new QuickLeadPageNeo(driver);
             quickLeadPage.setData(quickLead);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEADS GRID";
             // ========== LEAD PAGE =================
-            LeadsPage leadsPage = new LeadsPage(driver);
+            LeadsPageNeo leadsPage = new LeadsPageNeo(driver);
             await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
-
             await("notifyTextElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadsPage.getNotifyTextElement().isEnabled() && leadsPage.getNotifyTextElement().isDisplayed());
 
@@ -7208,33 +7002,12 @@ public class AutomationHandlerService {
             await("Lead Page timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
-            leadsPage.getSpanAllNotifyElement().click();
-            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
-
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
-            leadsPage.getBtnAllNotifyElement().click();
-
-            Utilities.captureScreenShot(driver);
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
-
             String leadAppID = "";
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", "trunglc");
 
             //get appID moi o day
-            leadAppID = de_applicationManagerPage.getAppID(leadApp);
             System.out.println(" APP: =>" + leadAppID);
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -7583,21 +7356,12 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             stage = "LOGIN FINONE";
 
-//            HashMap<String, String> dataControl = new HashMap<>();
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
+            loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
 
@@ -7605,7 +7369,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage = new HomePageNeo(driver);
 
 
             System.out.println(stage + ": DONE");
@@ -7622,14 +7386,14 @@ public class AutomationHandlerService {
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "QUICK LEAD (DOCUMENT UPLOAD & APPLICATION CREATION)";
-            QuickLeadPage quickLeadPage = new QuickLeadPage(driver);
+            QuickLeadPageNeo quickLeadPage = new QuickLeadPageNeo(driver);
             quickLeadPage.setData(quickLead);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "LEADS GRID";
             // ========== LEAD PAGE =================
-            LeadsPage leadsPage = new LeadsPage(driver);
+            LeadsPageNeo leadsPage = new LeadsPageNeo(driver);
             await("Quick Lead Entry timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
@@ -7643,10 +7407,14 @@ public class AutomationHandlerService {
             }
 
             System.out.println("LEAD APP: =>" + leadApp);
-            leadsPage.setData(leadApp);
+//            leadsPage.setData(leadApp);
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
+
+            Thread.sleep(10000);
+            this.getApplicationLead(driver, leadApp);
+
             stage = "LEAD STAGE";
             // ========== LEAD STAGE =================
             LeadDetailPage leadDetailPage = new LeadDetailPage(driver);
@@ -7665,48 +7433,15 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
-            await("Lead Page timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Lead Grid"));
-
-            leadsPage.getSpanAllNotifyElement().click();
-            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getDivAllNotifyElement().isEnabled() && leadsPage.getDivAllNotifyElement().isDisplayed());
-
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getBtnAllNotifyElement().isEnabled() && leadsPage.getBtnAllNotifyElement().isDisplayed());
-            leadsPage.getBtnAllNotifyElement().click();
-
-            Utilities.captureScreenShot(driver);
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadsPage.getNotifyTextSuccessElement().size() > 0);
 
             String leadAppID = "";
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationManagerElement().click();
-            await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Manager"));
-
-            DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-
             //get appID moi o day
-            leadAppID = de_applicationManagerPage.getAppID(leadApp);
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", accountDTO.getUserName());
             System.out.println(" APP: =>" + leadAppID);
 
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getBackBtnElement().isDisplayed());
-
-            de_applicationManagerPage.getBackBtnElement().click();
-
-            await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-
-            de_applicationManagerPage.setData(leadAppID, accountDTO.getUserName());
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -9173,8 +8908,8 @@ public class AutomationHandlerService {
 //            stage = "LEAD STAGE";
 //            // ========== LEAD STAGE =================
             //=============================
-            Thread.sleep(3000);
-            this.assignManger(driver, leadApp, "TPF DATA ENTRY", "trunglc");
+//            Thread.sleep(3000);
+//            this.assignManger(driver, leadApp, "TPF DATA ENTRY", "trunglc");
             //=============================
             Thread.sleep(10000);
             this.getApplicationLead(driver, leadApp);
@@ -9204,12 +8939,13 @@ public class AutomationHandlerService {
             log.info("{}", sb.toString());
         }
     }
-    private void assignManger(WebDriver driver, String leadApp, String teamName, String accountName){
+    private void assignManger(WebDriver driver, String leadApp, String teamName, String accountName) throws InterruptedException {
         HomePageNeo homePage = new HomePageNeo(driver);
         homePage.menuClick();
         homePage.applicationManagerClick();
         homePage.getLeadNumber().sendKeys(leadApp);
         homePage.getSearchApplication().click();
+        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
         homePage.getShowTasks().click();
         homePage.getEditAssigned().click();
         homePage.getTeamName().clear();
@@ -9237,8 +8973,8 @@ public class AutomationHandlerService {
 
     private void getApplicationLead(WebDriver driver, String leadApp) throws InterruptedException {
         HomePageNeo homePage= new HomePageNeo(driver);
-        homePage.menuClick();
-        homePage.leadQuickClickSearch();
+//        homePage.menuClick();
+//        homePage.leadQuickClickSearch();
         homePage.getAssigned().click();
         homePage.getSearchQueryElement().sendKeys(leadApp);
         homePage.getSearchQueryElement().sendKeys(Keys.ENTER);
@@ -9258,4 +8994,40 @@ public class AutomationHandlerService {
         Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
         homePage.getAppQueryElement().click();
     }
+
+    private String assignManger2(WebDriver driver, String leadApp, String teamName, String accountName) throws InterruptedException {
+        HomePageNeo homePageNeo = new HomePageNeo(driver);
+        homePageNeo.menuClick();
+        homePageNeo.applicationManagerClick();
+        homePageNeo.getLeadNumber().sendKeys(leadApp);
+        homePageNeo.getSearchApplication().click();
+        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+        await("showTasks displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> homePageNeo.getShowTasks().isDisplayed());
+        homePageNeo.getShowTasks().click();
+        homePageNeo.getEditAssigned().click();
+        homePageNeo.getTeamName().clear();
+        homePageNeo.getTeamName().sendKeys(teamName);
+        await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> homePageNeo.getTeamOptionElement().size() > 0);
+        for (WebElement e : homePageNeo.getTeamOptionElement()) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(teamName)) {
+                e.click();
+                break;
+            }
+        }
+        homePageNeo.getNameAccount().clear();
+        homePageNeo.getNameAccount().sendKeys(accountName);
+        await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> homePageNeo.getAccountOptionElement().size() > 0);
+        for (WebElement e : homePageNeo.getAccountOptionElement()) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(accountName.toUpperCase())) {
+                e.click();
+                break;
+            }
+        }
+        homePageNeo.getSaveAssigned().click();
+        return homePageNeo.getApplicationTableAppIDElement().getText();
+    }
+
 }

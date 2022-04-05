@@ -58,27 +58,31 @@ public class CRM_LeadDetailPage {
     @CacheLookup
     private List<WebElement> branchOptionElement;
 
-    @FindBy(how = How.ID, using = "occupationType0_chzn")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_loanSchemeList')]")
+    @CacheLookup
+    private List<WebElement> loanOptionElement;
+
+    @FindBy(how = How.ID, using = "occupationType0_chosen")
     @CacheLookup
     private WebElement occupationTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chosen_o_')]")
     @CacheLookup
     private List<WebElement> occupationTypeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chosen')]//input")
     @CacheLookup
     private WebElement occupationTypeInputElement;
 
-    @FindBy(how = How.ID, using = "loanSchemeList_chzn")
+    @FindBy(how = How.ID, using = "loanSchemeList")
     @CacheLookup
     private WebElement schemeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanSchemeList_chzn_o')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_loanSchemeList')]")
     @CacheLookup
     private List<WebElement> schemeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanSchemeList_chzn')]//input")
+    @FindBy(how = How.ID, using = "Text_loanSchemeList")
     @CacheLookup
     private WebElement schemeInputElement;
 
@@ -102,7 +106,7 @@ public class CRM_LeadDetailPage {
     @CacheLookup
     private WebElement communicationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-small btn-primary']")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-sm btn-primary']")
     @CacheLookup
     private WebElement addCommunicationElement;
 
@@ -118,15 +122,15 @@ public class CRM_LeadDetailPage {
     @CacheLookup
     private WebElement leadResponseElement;
 
-    @FindBy(how = How.ID, using = "comm_status_chzn")
+    @FindBy(how = How.ID, using = "comm_status_chosen")
     @CacheLookup
     private WebElement leadStatusElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen_o_')]")
     @CacheLookup
     private List<WebElement> leadStatusOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen')]//input")
     @CacheLookup
     private WebElement leadStatusInputElement;
 
@@ -142,7 +146,7 @@ public class CRM_LeadDetailPage {
     @CacheLookup
     private WebElement leadDocElement;
 
-    @FindBy(how = How.ID, using = "getDocumentQucikLead")
+    @FindBy(how = How.XPATH, using = " //*[contains(@id, 'lead_comm_modal_docu')]//input[contains(@value,'Get Documents')]")
     @CacheLookup
     private WebElement getDocBtnElement;
 
@@ -155,15 +159,12 @@ public class CRM_LeadDetailPage {
     private List<WebElement> docNameElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'photoimg')]")
-    @CacheLookup
     private List<WebElement> photoElement;
 
     @FindBy(how = How.ID, using = "saveButtonLeadToSaveDocuments")
-    @CacheLookup
     private WebElement saveDocBtnElement;
 
     @FindBy(how = How.ID, using = "moveToApplication1")
-    @CacheLookup
     private WebElement moveAppBtnElement;
 
     @FindBy(how = How.ID, using = "moveToAppConfirmDialog")
@@ -173,6 +174,9 @@ public class CRM_LeadDetailPage {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'moveToAppConfirmDialog')]//a[contains(@id, 'saveAndMoveToAppConfirm')]")
     @CacheLookup
     private WebElement modalBtnConfirmElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'c_docStatus')]")
+    private List<WebElement> checkBoxFileElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'docu_jsp_include']//input[contains(@id, 'photoimg')]")
     private List<WebElement> listBtnUploadDocument;
@@ -192,7 +196,7 @@ public class CRM_LeadDetailPage {
 
             dobElement.sendKeys(quickLead.getDateOfBirth());
             dobElement.sendKeys(Keys.ENTER);
-
+            branchElement.clear();
             branchElement.sendKeys(quickLead.getSourcingBranch());
             await("branchContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchContainerElement.isDisplayed());
@@ -214,13 +218,23 @@ public class CRM_LeadDetailPage {
             occupationTypeInputElement.sendKeys(quickLead.getNatureOfOccupation());
             occupationTypeInputElement.sendKeys(Keys.ENTER);
 
-            actions.moveToElement(schemeElement).click().build().perform();
-
-            await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> schemeOptionElement.size() > 0);
-
+//            actions.moveToElement(schemeElement).click().build().perform();
+//
+//            await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> schemeOptionElement.size() > 0);
+            schemeInputElement.clear();
             schemeInputElement.sendKeys(quickLead.getSchemeCode());
-            schemeInputElement.sendKeys(Keys.ENTER);
+            //await("branchContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            //      .until(() -> branchContainerElement.isDisplayed());
+
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanOptionElement.size() > 0);
+            for (WebElement e : loanOptionElement) {
+                if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(quickLead.getSchemeCode())) {
+                    e.click();
+                    break;
+                }
+            }
             Utilities.captureScreenShot(_driver);
 
             //ACTIVITY
@@ -262,9 +276,10 @@ public class CRM_LeadDetailPage {
             await("leadDocElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDocElement.isDisplayed());
 
-            getDocBtnElement.click();
+            Thread.sleep(3000);
+            actions.moveToElement(getDocBtnElement).click().build().perform();
 
-            Thread.sleep(15000);
+            Thread.sleep(3000);
 
             Utilities.captureScreenShot(_driver);
 
@@ -332,24 +347,25 @@ public class CRM_LeadDetailPage {
                 index++;
             }
 
-            saveDocBtnElement.click();
+            actions.moveToElement(saveDocBtnElement).click().build().perform();
             Utilities.captureScreenShot(_driver);
 
             await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> moveAppBtnElement.isDisplayed());
-            moveAppBtnElement.click();
+            Thread.sleep(10000);
+            actions.moveToElement(moveAppBtnElement).click().build().perform();
 
             Utilities.captureScreenShot(_driver);
 
 //            Thread.sleep(5000);
 
-            boolean checkModalConfirm = _driver.findElements(By.xpath("//div[@id = 'moveToAppConfirmDialog'][contains(@style, 'block')]")).size() != 0;
-
-            if (checkModalConfirm){
-                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
-                modalBtnConfirmElement.click();
-            }
+//            boolean checkModalConfirm = _driver.findElements(By.xpath("//div[@id = 'moveToAppConfirmDialog'][contains(@style, 'block')]")).size() != 0;
+//
+//            if (checkModalConfirm){
+//                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
+//                modalBtnConfirmElement.click();
+//            }
 
             Utilities.captureScreenShot(_driver);
         } catch (Exception e) {

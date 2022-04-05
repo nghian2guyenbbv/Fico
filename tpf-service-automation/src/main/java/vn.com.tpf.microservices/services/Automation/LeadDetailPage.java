@@ -230,8 +230,6 @@ public class LeadDetailPage {
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanOptionElement.size() > 0);
             for (WebElement e : loanOptionElement) {
-                System.out.println(StringEscapeUtils.unescapeJava(e.getAttribute("username")));
-                System.out.println(quickLead.getSchemeCode());
                 if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(quickLead.getSchemeCode())) {
                     e.click();
                     break;

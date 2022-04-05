@@ -56,16 +56,16 @@ public class CRM_ApplicationManagerPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'content_selected_user0']//ul[@id = 'holder']")
     private WebElement textSelectUserContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
+    @FindBy(how = How.XPATH, using = "//li[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='button']")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//li[contains(@class,'application-column-loan')]//span[contains(text(),'Applications')]")
     private WebElement applicationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'menuClick')]")
     private WebElement menuApplicationElement;
 
 
@@ -176,7 +176,7 @@ public class CRM_ApplicationManagerPage {
                 .until(() -> listUserOption > 0);
 
         for (WebElement eUserName : textSelectUserOptionElement) {
-            if (!Objects.isNull(eUserName.getAttribute("title")) && StringEscapeUtils.unescapeJava(eUserName.getAttribute("title")).equals(user)) {
+            if (!Objects.isNull(eUserName.getAttribute("username")) && StringEscapeUtils.unescapeJava(eUserName.getAttribute("username")).equals(user)) {
                 eUserName.click();
                 break;
             }

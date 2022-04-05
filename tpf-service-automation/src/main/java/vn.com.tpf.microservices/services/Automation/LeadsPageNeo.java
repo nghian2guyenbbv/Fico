@@ -45,15 +45,15 @@ public class LeadsPageNeo {
     @FindBy(how = How.XPATH, using="//div[@class='ui-pnotify-text']")
     private WebElement notifyTextElement;
 
-    @FindBy(how = How.XPATH, using="//span[@class='ui-pnotify-history-pulldown icon-chevron-down']")
+    @FindBy(how = How.XPATH, using="//span[@class='ui-pnotify-history-pulldown glyphicon glyphicon-chevron-down']")
     @CacheLookup
     private WebElement spanAllNotifyElement;
 
-    @FindBy(how = How.XPATH, using="//div[@class='ui-pnotify-history-container well']")
+    @FindBy(how = How.XPATH, using="//div[@class='ui-pnotify-history-container well ui-pnotify-history-fixed']")
     @CacheLookup
     private WebElement divAllNotifyElement;
 
-    @FindBy(how = How.XPATH, using="//button[@class='ui-pnotify-history-all btn']")
+    @FindBy(how = How.XPATH, using="//button[@class='ui-pnotify-history-all btn btn-default']")
     @CacheLookup
     private WebElement btnAllNotifyElement;
 

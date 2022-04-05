@@ -7,8 +7,10 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import vn.com.tpf.microservices.utilities.Constant;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
@@ -53,15 +55,15 @@ public class CRM_ExistingCustomerPage {
     @CacheLookup
     private WebElement idNumberInputElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'idType-control-group']//div[@id = 'idType_chzn']//div[contains(@class, 'chzn-drop')]//div[contains(@class, 'chzn-search')]//input[@type = 'text']")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'idType-control-group']//div[@id = 'idType_chosen']//div[contains(@class, 'chosen-drop')]//div[contains(@class, 'chosen-search')]//input[@type = 'text']")
     @CacheLookup
     private WebElement identificationTypeInputElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'idType-control-group']//div[@id = 'idType_chzn']//div[contains(@class, 'chzn-drop')]//ul[contains(@class, 'chzn-results')]")
+        @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'idType-control-group']//div[@id = 'idType_chosen']//div[contains(@class, 'chosen-drop')]//ul[contains(@class, 'chosen-results')]")
     @CacheLookup
     private WebElement identificationTypeUlElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'idType-control-group']//div[@id = 'idType_chzn']//div[contains(@class, 'chzn-drop')]//ul[contains(@class, 'chzn-results')]//li[starts-with(@id, 'idType_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'idType-control-group']//div[@id = 'idType_chosen']//div[contains(@class, 'chosen-drop')]//ul[contains(@class, 'chosen-results')]//li[starts-with(@id, 'idType_chosen_o_')]")
     @CacheLookup
     private List<WebElement> identificationTypeLiElement;
 
@@ -118,6 +120,41 @@ public class CRM_ExistingCustomerPage {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
+    @FindBy(how = How.ID, using = "menuidsapplications")
+    @CacheLookup
+    private WebElement applicationMenu;
 
+    @FindBy(how = How.ID, using = "menuidsapplication.grid")
+    @CacheLookup
+    private WebElement applicationMenuGrid;
+
+    @FindBy(how = How.ID, using = "menuidsapplicationGridView")
+    @CacheLookup
+    private WebElement applicationMenuGridView;
+
+    @FindBy(how = How.CLASS_NAME, using = "imageLinked")
+    @CacheLookup
+    private WebElement quickLead;
+
+    @FindBy(how = How.ID, using = "appForm")
+    @CacheLookup
+    private WebElement createApplication;
+
+    @FindBy(how = How.ID, using = "menuidsPersonalloan")
+    @CacheLookup
+    private WebElement applicationMenuGridPersonalLoan;
+
+    @FindBy(how = How.ID, using = "applicationChildTabs_customerPersonal")
+    @CacheLookup
+    private WebElement customerPersonal;
+
+    public void application_personal_Click() {
+        this.applicationMenu.click();
+        await("quickLead visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> quickLead.isDisplayed());
+        this.applicationMenuGrid.click();
+        this.applicationMenuGridPersonalLoan.click();
+
+    }
 
 }

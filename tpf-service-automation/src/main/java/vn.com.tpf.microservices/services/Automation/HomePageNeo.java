@@ -116,6 +116,9 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement saveAssigned;
 
+	@FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
+	private WebElement applicationTableAppIDElement;
+
 	public HomePageNeo(WebDriver driver) {
         PageFactory.initElements(driver, this);
     }
