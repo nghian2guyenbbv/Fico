@@ -30,27 +30,27 @@ public class CRM_LoanDetailsVapDetailsTab {
     @FindBy(how = How.ID, using = "vapDetails")
     private WebElement vapDetailsDivContainerElement;
 
-    @FindBy(how = How.ID, using = "vapProduct_chzn")
+    @FindBy(how = How.ID, using = "vapProduct_chosen")
     @CacheLookup
     private WebElement vapProductElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'vapProduct_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'vapProduct_chosen_o_')]")
     @CacheLookup
     private List<WebElement> vapProductOptionElement;
 
-    @FindBy(how = How.ID, using = "treatmentType_chzn")
+    @FindBy(how = How.ID, using = "treatmentType_chosen")
     @CacheLookup
     private WebElement vapTreatmentElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'treatmentType_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'treatmentType_chosen_o_')]")
     @CacheLookup
     private List<WebElement> vapTreatmentOptionElement;
 
-    @FindBy(how = How.ID, using = "insuranceCompany_chzn")
+    @FindBy(how = How.ID, using = "Text_disburseToBP")
     @CacheLookup
     private WebElement insuranceCompanyElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'insuranceCompany_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_disburseToBP')]")
     @CacheLookup
     private List<WebElement> insuranceCompanyOptionElement;
 
@@ -77,15 +77,16 @@ public class CRM_LoanDetailsVapDetailsTab {
     public void setData(CRM_VapDetailsDTO data) {
         //vap product
         //Delete row VAP product
-        Utilities.captureScreenShot(_driver);
-        int count = deleteVapElement.size();
-        if (count > 0) {
-            Utilities.captureScreenShot(_driver);
-            for(WebElement we : deleteVapElement.subList(0, count))
-            {
-                we.click();
-            }
-        }
+        //comment - have not in video topup
+//        Utilities.captureScreenShot(_driver);
+//        int count = deleteVapElement.size();
+//        if (count > 0) {
+//            Utilities.captureScreenShot(_driver);
+//            for(WebElement we : deleteVapElement.subList(0, count))
+//            {
+//                we.click();
+//            }
+//        }
 
         Utilities.captureScreenShot(_driver);
         vapProductElement.click();
@@ -99,14 +100,28 @@ public class CRM_LoanDetailsVapDetailsTab {
                 break;
             }
         }
-        Utilities.captureScreenShot(_driver);
+        //application name
+        WebElement applName = _driver.findElement(By.xpath("//*[@id=\"applicantList_chosen\"]"));
+        List<WebElement> applNameOption = _driver.findElements(By.xpath("//*[contains(@id, 'applicantList_chosen_o_')]"));
+        await("applName loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applName.isDisplayed());
+
+        applName.click();
+
+        await("applNameOption name loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applNameOption.size() > 0);
+        for (WebElement element : applNameOption) {
+            element.click();
+        }
         //vap treatment
         await("vapTreatmentElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> vapTreatmentElement.isDisplayed());
         vapTreatmentElement.click();
+
         Utilities.captureScreenShot(_driver);
         await("vapTreatmentElementOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> vapTreatmentOptionElement.size() > 0);
+
         for (WebElement element : vapTreatmentOptionElement) {
             if (element.getText().equals(data.getVapTreatment())) {
                 element.click();
@@ -115,17 +130,18 @@ public class CRM_LoanDetailsVapDetailsTab {
             }
         }
         Utilities.captureScreenShot(_driver);
+
         //insurance company
         await("insuranceCompanyElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> insuranceCompanyElement.isDisplayed());
-        insuranceCompanyElement.click();
+        insuranceCompanyElement.clear();
+        insuranceCompanyElement.sendKeys(data.getInsuranceCompany());
+
         await("insuranceCompanyElementOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> insuranceCompanyOptionElement.size() > 0);
+
         for (WebElement element : insuranceCompanyOptionElement) {
-            if (element.getText().equals(data.getInsuranceCompany())) {
-                element.click();
-                break;
-            }
+            element.click();
         }
 
         doneBtnElement.click();

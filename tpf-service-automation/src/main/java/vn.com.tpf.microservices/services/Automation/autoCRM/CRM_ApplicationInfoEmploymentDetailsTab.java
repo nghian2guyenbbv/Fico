@@ -27,13 +27,13 @@ import static org.awaitility.Awaitility.with;
 public class CRM_ApplicationInfoEmploymentDetailsTab {
     private WebDriver _driver;
 
-    @FindBy(how = How.ID, using = "occupationType_chzn")
+    @FindBy(how = How.ID, using = "occupationType_chosen")
     private WebElement occupationTypeElement;
 
     @FindBy(how = How.ID, using = "occupationType_chznss")
     private WebElement occupationTypeElements;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType_chosen_o_')]")
     private List<WebElement> occupationTypeOptionElement;
 
     @FindBy(how = How.ID, using = "listitem_employerName0")
@@ -57,10 +57,10 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'EmpTypeId_chzn_o_')]")
     private List<WebElement> employmentTypeOptionElement;
 
-    @FindBy(how = How.ID, using = "natOfOccId_chzn")
+    @FindBy(how = How.ID, using = "natOfOccId_chosen")
     private WebElement natureOfOccupationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'natOfOccId_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'natOfOccId_chosen_o_')]")
     private List<WebElement> natureOfOccupationOptionElement;
 
     @FindBy(how = How.ID, using = "industrySalaried_chzn")
@@ -157,7 +157,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
         if(checkListOccupationDelete && deleteIdDetailElement.size() > 2){
             for (String OccupationDeleteButton: listStringOccupationDelete){
-                String occupationTypeElement = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[3]/a[@id = 'view']")).getAttribute("innerHTML").trim();
+                String occupationTypeElement = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[4]/a[@id = 'viewOccupation']")).getAttribute("innerHTML").trim();
                 if ("Salaried".equals(occupationTypeElement)){
 
                     Thread.sleep(5000);

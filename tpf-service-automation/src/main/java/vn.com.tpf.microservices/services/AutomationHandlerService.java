@@ -246,6 +246,7 @@ public class AutomationHandlerService {
                     accountDTO = pollAccountFromQueue(accounts, project);
                     setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
                     driver = setupTestDriver.getDriver();
+                    System.out.println("run runAutomation_UpdateInfo");
                     runAutomation_UpdateInfo(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_UpdateAppError":
@@ -5698,7 +5699,8 @@ public class AutomationHandlerService {
             // ========== EXISTING CUSTOMER =================
             stage = "EXISTING CUSTOMER";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
-            crm_ExistingCustomerPage.application_personal_Click();
+            /*crm_ExistingCustomerPage.application_personal_Click();
+
             await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getCustomerPersonal().isDisplayed());
             crm_ExistingCustomerPage.getCustomerPersonal().click();
@@ -5728,7 +5730,7 @@ public class AutomationHandlerService {
 
             }
 
-            if (!Objects.isNull(existingCustomerDTO.getIdNumber())) {
+            if (!StringUtils.isEmpty(existingCustomerDTO.getIdNumber())) {
 
                 crm_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
 
@@ -5757,6 +5759,7 @@ public class AutomationHandlerService {
 
             crm_ExistingCustomerPage.getSearchCustomerButtonElement().click();
 
+
             await("Not Existing Customer!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getSearchCustomerTableElement().size() > 2);
 
@@ -5779,6 +5782,7 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
+            System.out.println("Check _v1");
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
 
@@ -5790,8 +5794,13 @@ public class AutomationHandlerService {
             cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
             System.out.println("CIF Number => " + cifNo);
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
-            System.out.println("APPID => " + applicationId);
-
+            System.out.println("APPID => " + applicationId);*/
+            //switch test flow
+            crm_ExistingCustomerPage.applications_Click();
+            ((RemoteWebDriver) driver).findElementById("lead").click();
+            ((RemoteWebDriver) driver).findElementByXPath("//*[@id=\"LoanApplication_Assigned_wrapper\"]/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td").click();
+            crm_ExistingCustomerPage.getCustomerPersonal().click();
+            //switch test flow end
             // ========== VIEW/EDIT DETAILED INFORMATION =================
             stage = "VIEW/EDIT DETAILED INFORMATION";
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
@@ -5799,7 +5808,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             // ========== APPLICANT INFORMATION =================
-            // ========== PERSONAL INFORMATION =================
+             //========== PERSONAL INFORMATION =================
             stage = "PERSONAL INFORMATION";
             CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
             CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
@@ -5828,6 +5837,8 @@ public class AutomationHandlerService {
 
             employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetail());
             employmentDetailsTab.getDoneBtnElement().click();
+
+
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetail());
@@ -5845,6 +5856,7 @@ public class AutomationHandlerService {
                 financialDetailsTab.openIncomeDetailSection();
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
+
                 financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
                 financialDetailsTab.saveAndNext();
             }
@@ -5878,7 +5890,7 @@ public class AutomationHandlerService {
                     var.click();
                 }
             }
-
+            // CHECK BANK/CREDIT CARD
             bankDetailsTab.saveAndNext();
 
             System.out.println(stage + ": DONE");
@@ -5946,7 +5958,7 @@ public class AutomationHandlerService {
                 Utilities.captureScreenShot(driver);
 
             }
-
+//
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
@@ -5956,9 +5968,10 @@ public class AutomationHandlerService {
                 documentsPage.getTabDocumentsElement().click();
                 await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-                documentsPage.getBtnGetDocumentElement().click();
-                await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentsPage.getLendingTrElement().size() > 0);
+
+//                documentsPage.getBtnGetDocumentElement().click();
+//                await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> documentsPage.getLendingTrElement().size() > 0);
 
                 documentsPage.setData(documentDTOS, downdloadFileURL);
                 Utilities.captureScreenShot(driver);
@@ -6766,12 +6779,13 @@ public class AutomationHandlerService {
             with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
             await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
 
             Utilities.captureScreenShot(driver);
 
             Thread.sleep(15000);
 
-            miscFrmAppDtlPage.keyActionMoveNextStage();
+//            miscFrmAppDtlPage.keyActionMoveNextStage(); check again 14.4
 
 //            actions.moveToElement(keyActionMoveNextStage.getBtnMoveToNextStageElement()).click().perform();
 //            actions.click(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).perform();
@@ -8084,10 +8098,14 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
             //***************************//LOGIN PAGE//***************************//
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+//
+//            LoginV2Page loginPage = new LoginV2Page(driver);
+//            loginPage.loginValue(accountDTO);
+//            System.out.println(stage + ": DONE");
+//            Utilities.captureScreenShot(driver);
             System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + responseQueryDTO.getApplicationId());
             //***************************//END LOGIN//***************************//
 

@@ -71,12 +71,12 @@ public class CRM_MiscFrmAppDtlPage {
 
     //PRO
     //production khac id
-    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chosen")
     @CacheLookup
     private WebElement loanPurposeElement;
 
     //production khac
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chosen_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
 
@@ -85,7 +85,7 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private List<WebElement> loanPurposeCloseElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chosen')]//input")
     @CacheLookup
     private WebElement loanPurposeInputElement;
 
@@ -101,11 +101,11 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement numberOfDependentsElement;
 
-    @FindBy(how = How.ID, using = "house_ownership_frmAppDtl_1_chzn")
+    @FindBy(how = How.ID, using = "house_ownership_frmAppDtl_1_chosen")
     @CacheLookup
     private WebElement houseOwnerShipElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'house_ownership_frmAppDtl_1_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'house_ownership_frmAppDtl_1_chosen_o_')]")
     @CacheLookup
     private List<WebElement> houseOwnerShipOptionElement;
 
@@ -168,7 +168,7 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement communicationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-small btn-primary']")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-sm btn-primary']")
     @CacheLookup
     private WebElement addCommunicationElement;
 
@@ -180,15 +180,15 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement webPortalElement;
 
-    @FindBy(how = How.ID, using = "comm_status_chzn")
+    @FindBy(how = How.ID, using = "comm_status_chosen")
     @CacheLookup
     private WebElement leadStatusElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen_o_')]")
     @CacheLookup
     private List<WebElement> leadStatusOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen')]//input")
     @CacheLookup
     private WebElement leadStatusInputElement;
 
@@ -236,20 +236,19 @@ public class CRM_MiscFrmAppDtlPage {
         loanPurposeElement.click();
         await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanPurposeOptionElement.size() > 0);
-        String[] listPurpose= data.getLoanPurpose().split(";");
-
-        if(listPurpose.length>0)
-        {
-
-            for(String loanPurpose : listPurpose){
-                loanPurposeInputElement.sendKeys(loanPurpose);
-                loanPurposeInputElement.sendKeys(Keys.ENTER);
-                Utilities.captureScreenShot(_driver);
-            }
-
-        }
-
-
+//        String[] listPurpose= data.getLoanPurpose().split(";");
+        loanPurposeInputElement.sendKeys(data.getLoanPurpose() + Keys.ENTER);
+        Utilities.captureScreenShot(_driver);
+//        if(listPurpose.length>0)
+//        {
+//
+//            for(String loanPurpose : listPurpose){
+//                loanPurposeInputElement.sendKeys(loanPurpose);
+//                loanPurposeInputElement.sendKeys(Keys.ENTER);
+//                Utilities.captureScreenShot(_driver);
+//            }
+//
+//        }
         numberOfDependentsElement.clear();
         numberOfDependentsElement.sendKeys(data.getNumberOfDependents());
 
@@ -369,17 +368,13 @@ public class CRM_MiscFrmAppDtlPage {
                 .until(() -> textSelectContactedByOptionElement.size() > 0);
 
         for (WebElement e : textSelectContactedByOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(addedByElement.getAttribute("value"))) {
-                e.click();
-                break;
-            }
+            e.click();
         }
 
         actions.moveToElement(leadStatusElement).click().build().perform();
         await("leadStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> leadStatusOptionElement.size() > 0);
-        leadStatusInputElement.sendKeys("NA");
-        leadStatusInputElement.sendKeys(Keys.ENTER);
+        Utilities.chooseDropdownValue("NA", leadStatusOptionElement);
         Utilities.captureScreenShot(_driver);
 
         leadResponseElement.sendKeys(communication);
