@@ -3996,9 +3996,9 @@ public class AutomationHandlerService {
 //            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(driver::getTitle, is("DashBoard"));
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
 
@@ -5796,6 +5796,8 @@ public class AutomationHandlerService {
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
             System.out.println("APPID => " + applicationId);*/
             //switch test flow
+            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+            System.out.println("APPID => " + applicationId);
             crm_ExistingCustomerPage.applications_Click();
             ((RemoteWebDriver) driver).findElementById("lead").click();
             ((RemoteWebDriver) driver).findElementByXPath("//*[@id=\"LoanApplication_Assigned_wrapper\"]/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td").click();
@@ -5809,7 +5811,6 @@ public class AutomationHandlerService {
 
             // ========== APPLICANT INFORMATION =================
              //========== PERSONAL INFORMATION =================
-            //done v1
             stage = "PERSONAL INFORMATION";
             CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
             CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
@@ -5969,6 +5970,7 @@ public class AutomationHandlerService {
             await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
             referencesPage.getTabReferencesElement().click();
+            Thread.sleep(2000);
             referencesPage.setData(referenceDTO);
             referencesPage.getSaveBtnElement().click();
 

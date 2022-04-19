@@ -66,7 +66,7 @@ public class CRM_LoanDetailsVapDetailsTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'vap_details_Table')]//*[contains(@id,'edit')]")
     private WebElement editVapElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'vap_details_Table_wrapper']//table[@id = 'vap_details_Table']//img[@id = 'delete']")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'vap_details_Table_Piano_wrapper']//table[@id = 'vap_details_Table_Piano']//img[@id = 'delete']")
     private List<WebElement> deleteVapElement;
 
     public CRM_LoanDetailsVapDetailsTab(WebDriver driver) {
@@ -78,16 +78,15 @@ public class CRM_LoanDetailsVapDetailsTab {
         //vap product
         //Delete row VAP product
         //comment - have not in video topup
-//        Utilities.captureScreenShot(_driver);
-//        int count = deleteVapElement.size();
-//        if (count > 0) {
-//            Utilities.captureScreenShot(_driver);
-//            for(WebElement we : deleteVapElement.subList(0, count))
-//            {
-//                we.click();
-//            }
-//        }
-
+        Utilities.captureScreenShot(_driver);
+        int count = deleteVapElement.size();
+        if (count > 0) {
+            Utilities.captureScreenShot(_driver);
+            for(WebElement we : deleteVapElement.subList(0, count))
+            {
+                we.click();
+            }
+        }
         Utilities.captureScreenShot(_driver);
         vapProductElement.click();
         Utilities.captureScreenShot(_driver);

@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -19,12 +20,14 @@ import vn.com.tpf.microservices.models.Automation.MiscFrmAppDtlDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 
+@Slf4j
 @Getter
 public class CRM_MiscFrmAppDtlPage {
 
@@ -71,7 +74,7 @@ public class CRM_MiscFrmAppDtlPage {
 
     //PRO
     //production khac id
-    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chosen")
+    @FindBy(how = How.XPATH, using = "//*[@id='loanpurpose_frmAppDtl_0_chosen']/ul")
     @CacheLookup
     private WebElement loanPurposeElement;
 
@@ -231,24 +234,44 @@ public class CRM_MiscFrmAppDtlPage {
     }
 
     public void setData(CRM_DynamicFormDTO data) {
-        await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
-        loanPurposeElement.click();
-        await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> loanPurposeOptionElement.size() > 0);
-//        String[] listPurpose= data.getLoanPurpose().split(";");
-        loanPurposeInputElement.sendKeys(data.getLoanPurpose() + Keys.ENTER);
+//        await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
+        //target: add loan purpose if not exists
+
+        String[] listPurpose;
+        // get list loan Purpose current
+        List<String> lNameCurPurpose = new ArrayList<>();
+        List<WebElement> getLoanCur = _driver.findElements(By.cssSelector("#loanpurpose_frmAppDtl_0_chosen > ul > li > span"));
+        if(!getLoanCur.isEmpty()){
+            for (WebElement e : getLoanCur){
+                lNameCurPurpose.add(e.getText());
+            }
+        }
+
+        // get list customer input
+        if(data.getLoanPurpose().indexOf(";") > 0){
+            listPurpose = data.getLoanPurpose().split(";");
+        }else{
+            if(!data.getLoanPurpose().equals("")){
+                listPurpose = new String[]{data.getLoanPurpose()};
+            }else{
+                listPurpose = new String[]{};
+            }
+
+        }
+        if(listPurpose.length > 0){
+            for (String item : listPurpose){
+                if(!lNameCurPurpose.contains(item)){
+                    loanPurposeInputElement.click();
+                    await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> loanPurposeOptionElement.size() > 0);
+                    loanPurposeInputElement.clear();
+                    loanPurposeInputElement.sendKeys(item.toUpperCase());
+                    loanPurposeInputElement.sendKeys(Keys.ENTER);
+                }
+            }
+        }
         Utilities.captureScreenShot(_driver);
-//        if(listPurpose.length>0)
-//        {
-//
-//            for(String loanPurpose : listPurpose){
-//                loanPurposeInputElement.sendKeys(loanPurpose);
-//                loanPurposeInputElement.sendKeys(Keys.ENTER);
-//                Utilities.captureScreenShot(_driver);
-//            }
-//
-//        }
         numberOfDependentsElement.clear();
         numberOfDependentsElement.sendKeys(data.getNumberOfDependents());
 
