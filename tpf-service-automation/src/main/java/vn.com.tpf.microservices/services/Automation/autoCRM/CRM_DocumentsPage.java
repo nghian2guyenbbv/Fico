@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 
+@Slf4j
 @Getter
 public class CRM_DocumentsPage {
     private WebDriver _driver;
@@ -37,7 +39,7 @@ public class CRM_DocumentsPage {
     @CacheLookup
     private WebElement tabDocumentsElement;
 
-    @FindBy(how = How.ID, using = "//*[contains(@id,'documentContent')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'documentContent')]")
     @CacheLookup
     private WebElement documentsContainerElement;
 
@@ -89,16 +91,10 @@ public class CRM_DocumentsPage {
     }
 
     public void setData(List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL) throws IOException, InterruptedException {
-        //comment - 13.4
-//        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-//        await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
-
         String fromFile = downLoadFileURL;
         System.out.println("URL get File: " + fromFile);
 
         List<String> requiredFiled = new ArrayList<>();
-        int index = 0;
         if(documentDTOS.size() > 0){
             documentDTOS.stream().forEach(doc -> {
                 requiredFiled.add(doc.getType());
@@ -107,11 +103,14 @@ public class CRM_DocumentsPage {
 
 
         Utilities.captureScreenShot(_driver);
+        System.out.println(requiredFiled.toString());
+
+        Thread.sleep(5000);
 
         for (WebElement element : docNameElement) {
-            final int _tempIndex = index;
             String docName = element.getText();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+            log.info("docName: {}",docName);
             if (requiredFiled.contains(docName)) {
                 await("Show document Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() ->  element.isDisplayed());
@@ -123,16 +122,14 @@ public class CRM_DocumentsPage {
 
                 if(doc!=null)
                 {
-                    //bo sung get ext file
                     String ext = FilenameUtils.getExtension(doc.getFilename());
 
                     if ("TPF_Transcript".equals(docName)){
                         docName = "TPF_Tran1";
                     }
-
-                    toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
-
-                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;;
+//                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    FileUtils.copyURLToFile(new URL(fromFile + doc.getFilename()), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();
@@ -149,26 +146,28 @@ public class CRM_DocumentsPage {
                             }
                         }
                         if(!_driver.findElement(By.xpath("//li[contains(@class,'imageBox add_more_box')]")).isDisplayed()){
-                            WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id=\"dv_documentEdit\"]"));
+                            WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
                             await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                     .until(() ->  editViewDoc.isDisplayed());
                             editViewDoc.click();
+                            System.out.println("EXISTS");
+                        }else{
+                            System.out.println("NEW");
                         }
-                        WebElement ipxUploadFile = _driver.findElement(By.xpath("//*[@id=\"document_viewer_mp\"]//input[contains(@class,'input_images')]"));
-                        WebElement submitFile = _driver.findElement(By.xpath("//*[@id=\"topActionBar\"]/button[1]"));
-                        WebElement statusUpload = _driver.findElement(By.xpath("//*[@id=\"topActionBar\"]/span/span[2]"));
+                        WebElement ipxUploadFile = _driver.findElement(By.xpath("//*[@id='document_viewer_mp']//input[contains(@class,'input_images')]"));
+
                         ipxUploadFile.sendKeys(photoUrl);
-//                        photoElement.get(_tempIndex).sendKeys(photoUrl);
-                        submitFile.click();
-                        await("Status upload file Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(() ->  statusUpload.getText().equals("Complete"));
+                        WebElement saveDoc = _driver.findElement(By.id("dv_documentSave"));
+                        saveDoc.click();
+                        await("dv_documentSave Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() ->  !saveDoc.isDisplayed());
                         Utilities.captureScreenShot(_driver);
                     }
                 }
             }
-            index++;
         }
-
+        WebElement submitFile = _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]"));
+        submitFile.click();
         Utilities.captureScreenShot(_driver);
 
     }

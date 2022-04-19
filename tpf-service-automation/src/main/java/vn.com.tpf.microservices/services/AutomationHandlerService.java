@@ -5809,6 +5809,7 @@ public class AutomationHandlerService {
 
             // ========== APPLICANT INFORMATION =================
              //========== PERSONAL INFORMATION =================
+            //done v1
             stage = "PERSONAL INFORMATION";
             CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
             CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
@@ -5916,17 +5917,6 @@ public class AutomationHandlerService {
 
             Thread.sleep(5000);
 
-//            try {
-//
-//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
-//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
-//
-//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
-//            } catch (Exception e) {
-//                System.out.println("Confirm Delete Vap Next Visibale!!!");
-//            }
-
             boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
 
             if (confirmDeleteVap){
@@ -5958,7 +5948,6 @@ public class AutomationHandlerService {
                 Utilities.captureScreenShot(driver);
 
             }
-//
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
@@ -5968,18 +5957,10 @@ public class AutomationHandlerService {
                 documentsPage.getTabDocumentsElement().click();
                 await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-
-//                documentsPage.getBtnGetDocumentElement().click();
-//                await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> documentsPage.getLendingTrElement().size() > 0);
-
                 documentsPage.setData(documentDTOS, downdloadFileURL);
-                Utilities.captureScreenShot(driver);
-                documentsPage.getBtnSubmitElement().click();
             }
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
 
             stage = "REFERENCES";
             // ==========REFERENCES=================
