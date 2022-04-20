@@ -583,6 +583,7 @@ public class AutomationHandlerService {
         String stage = "";
         Instant start = Instant.now();
         Application application = Application.builder().build();
+        Actions actions=new Actions(driver);
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -654,7 +655,7 @@ public class AutomationHandlerService {
 ////
             await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
-//// comment delete
+////// comment delete
             personalTab.setValue(applicationInfoDTO);
 ////
             System.out.println(stage + ": DONE");
@@ -714,26 +715,29 @@ public class AutomationHandlerService {
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
                 financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getIncomeDetails());
+                actions.moveToElement(financialDetailsTab.getBtnSaveAndNextElement()).click().build().perform();
                 financialDetailsTab.saveAndNext();
             }
-//
+
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
             stage = "BANK/CREDIT CARD DETAILS";
             // ==========BANK/CREDIT CARD DETAILS=================
             if (applicationInfoDTO.getBankCreditCardDetails() != null && applicationInfoDTO.getBankCreditCardDetails().size() > 0) {
-//                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
-//
-//                DE_ApplicationInfoBankCreditCardDetailsTabNeo bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTabNeo();
-//                bankCreditCardDetailsTab.setBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
-//                bankCreditCardDetailsTab.saveAndNext();
+                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElement(By.id("bankDetails")).isDisplayed());
+                await("Load Bank/Credit card details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> appInfoPage.getBankCreditCardDetailsDetailsTabElement().getAttribute("class").contains("active"));
+
+                DE_ApplicationInfoBankCreditCardDetailsTabNeo bankCreditCardDetailsTab = appInfoPage.getApplicationInfoBankCreditCardDetailsTabNeo();
+                bankCreditCardDetailsTab.setBankDetailsData(applicationInfoDTO.getBankCreditCardDetails());
+                bankCreditCardDetailsTab.saveAndNext();
             }
-//
-//            System.out.println(stage + ": DONE");
-//            Utilities.captureScreenShot(driver);
-//
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
             DE_LoanDetailsPage loanDetailsPage = new DE_LoanDetailsPage(driver);
@@ -747,8 +751,7 @@ public class AutomationHandlerService {
                     .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
             loanDetailsSourcingDetailsTab.setData(loanDetailsDTO);
             Utilities.captureScreenShot(driver);
-            loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
-
+            actions.moveToElement(loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement()).click().build().perform();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 //
@@ -803,7 +806,7 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-//
+
             // ==========MISC FRM APP DTL=================
             stage = "MISC FRM APPDTL PAGE";
             DE_MiscFrmAppDtlPageNeo miscFrmAppDtlPage = new DE_MiscFrmAppDtlPageNeo(driver);
@@ -817,11 +820,11 @@ public class AutomationHandlerService {
             await("getBtnMoveToNextStageElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
             Utilities.captureScreenShot(driver);
-//
+
             //tam thoi cho sleep de an notification moi click dc button movetonextstage
             Thread.sleep(15000);
-//
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+
+            actions.moveToElement(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).click().build().perform();
             Utilities.captureScreenShot(driver);
             System.out.println("MISC FRM APP DTL: DONE");
 
@@ -848,30 +851,30 @@ public class AutomationHandlerService {
             System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
             e.printStackTrace();
 //
-//            Utilities.captureScreenShot(driver);
-//
-//            if (e.getMessage().contains("Work flow failed!!!")) {
-//                stage = "END OF LEAD DETAIL";
-//                application.setStage(stage);
-//                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
-//
-//                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
-//                    String error = "Error: ";
-//                    for (WebElement we : driver.findElements(By.id("error-message"))) {
-//                        error += " - " + we.getText();
-//                    }
-//                    application.setError(error);
-//                    System.out.println(stage + "=>" + error);
-//                }
-//            }
+            Utilities.captureScreenShot(driver);
+
+            if (e.getMessage().contains("Work flow failed!!!")) {
+                stage = "END OF LEAD DETAIL";
+                application.setStage(stage);
+                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+
+                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                    String error = "Error: ";
+                    for (WebElement we : driver.findElements(By.id("error-message"))) {
+                        error += " - " + we.getText();
+                    }
+                    application.setError(error);
+                    System.out.println(stage + "=>" + error);
+                }
+            }
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
 //
             logout(driver, accountDTO.getUserName());
 //
-//            updateStatusRabbit(application, "updateFullApp");
+            updateStatusRabbit(application, "updateFullApp");
 
         }
     }
@@ -4567,7 +4570,7 @@ public class AutomationHandlerService {
 //            //-------------------- END ---------------------------
             //update thêm phần assign về acc tạo app để tranh rơi vào pool
             stage = "APPLICATION MANAGER";
-            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", "trunglc");
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", accountDTO.getUserName());
             System.out.println(" APP: =>" + leadAppID);
 
 
@@ -5354,7 +5357,7 @@ public class AutomationHandlerService {
             String leadAppID = "";
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", "trunglc");
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", accountDTO.getUserName());
 
             //get appID moi o day
             System.out.println("APP: =>" + leadAppID);
@@ -7005,7 +7008,7 @@ public class AutomationHandlerService {
             String leadAppID = "";
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", "trunglc");
+            leadAppID = this.assignManger2(driver, leadApp, "TPF DATA ENTRY", accountDTO.getUserName());
 
             //get appID moi o day
             System.out.println(" APP: =>" + leadAppID);
@@ -8986,7 +8989,8 @@ public class AutomationHandlerService {
         HomePageNeo homePage= new HomePageNeo(driver);
         homePage.menuClick();
         homePage.applicationClick();
-//        homePage.getAssigned().click();
+        Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+        homePage.getAssignedApp().click();
         await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> homePage.getApplicationNumber().isDisplayed());
         homePage.getApplicationNumber().sendKeys(leadApp);

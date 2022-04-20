@@ -71,7 +71,7 @@ public class DE_MiscFrmAppDtlPageNeo {
     private WebElement loanPurposeElement;
 
     //production khac
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chosen_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
 
@@ -80,7 +80,7 @@ public class DE_MiscFrmAppDtlPageNeo {
     @CacheLookup
     private List<WebElement> loanPurposeCloseElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chosen')]//input")
     @CacheLookup
     private WebElement loanPurposeInputElement;
 

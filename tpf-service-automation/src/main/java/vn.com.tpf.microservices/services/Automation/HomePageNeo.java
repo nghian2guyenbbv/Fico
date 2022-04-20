@@ -60,7 +60,11 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement assigned;
 
-	@FindBy(how = How.XPATH, using = "//input[@data-id='applicationNumber']")
+	@FindBy(how = How.ID, using = "lead")
+	@CacheLookup
+	private WebElement assignedApp;
+
+	@FindBy(how = How.XPATH, using = "//div[contains(@class,'DTFC_LeftHeadWrapper')]//input[@data-id='applicationNumber']")
 	@CacheLookup
 	private WebElement applicationNumber;
 
@@ -72,7 +76,7 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement LeadQueryElement;
 
-	@FindBy(how = How.XPATH, using = "//*[contains(@id, 'LoanApplication_Assigned')]//a[contains(@class,'IDnumber')]")
+	@FindBy(how = How.XPATH, using = "//*[contains(@class, 'DTFC_LeftBodyWrapper')]//a[contains(@class,'IDnumber')]")
 	@CacheLookup
 	private WebElement appQueryElement;
 

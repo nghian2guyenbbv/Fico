@@ -246,15 +246,15 @@ public class DE_ApplicationInfoEmploymentDetailsTabNeo {
                     .until(() -> occupationTypeOthersElement.isDisplayed());
             occupationTypeOthersElement.click();
 
-//            natureOfBusinessElement.click();
-//            await("natureOfBusinessOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> natureOfBusinessOptionElement.size() > 0);
-//            for (WebElement element : natureOfBusinessOptionElement) {
-//                if (element.getText().equals(data.getNatureOfBussiness())) {
-//                    element.click();
-//                    break;
-//                }
-//            }
+            natureOfBusinessElement.click();
+            await("natureOfBusinessOptionElement loading timeout.").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> natureOfBusinessOptionElement.size() > 0);
+            for (WebElement element : natureOfBusinessOptionElement){
+                if (element.getText().equals(data.getNatureOfBussiness())) {
+                    element.click();
+                    break;
+                }
+            }
 
 //		Select natureOfBusinessSelect = new Select(natureOfBusinessElement);
 //		await("Nature of business loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -276,8 +276,7 @@ public class DE_ApplicationInfoEmploymentDetailsTabNeo {
 //				.until(() -> industrySelect.getOptions().size() > 0);
 //		industrySelect.selectByVisibleText(data.getIndustry());
 
-            if(!data.getEmploymentType().isEmpty())
-            {
+            if(!data.getEmploymentType().isEmpty()){
                 employmentTypeElement.click();
                 await("employmentTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> employmentTypeOptionElement.size() > 0);

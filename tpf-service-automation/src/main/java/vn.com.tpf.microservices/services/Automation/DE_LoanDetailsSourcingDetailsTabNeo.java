@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -15,6 +16,7 @@ import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -43,11 +45,11 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
     @CacheLookup
     private List<WebElement> branchOptionElement;
 
-    @FindBy(how = How.ID, using = "channelId_chzn")
+    @FindBy(how = How.ID, using = "channelId_chosen")
     @CacheLookup
     private WebElement channelElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'channelId_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'channelId_chosen_o_')]")
     @CacheLookup
     private List<WebElement> channelOptionElement;
 
@@ -63,11 +65,11 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
     @CacheLookup
     private List<WebElement> loanApplicationTypeOptionElement;
 
-    @FindBy(how = How.ID, using = "loan_product_chzn")
+    @FindBy(how = How.ID, using = "Text_loan_product")
     @CacheLookup
     private WebElement productNameElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loan_product_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_loan_product')]")
     @CacheLookup
     private List<WebElement> productNameOptionElement;
 
@@ -139,42 +141,57 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
 //        if (StringUtils.isNotBlank(data.getBranch())) {
 //            branchElement.clear();
 //            // TODO: should select value from dropdown autocomplete
-//            branchElement.sendKeys(data.getBranch());
+        branchElement.clear();
+            branchElement.sendKeys("HO CHI MINH");
 //
 //            await("branchContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(() -> branchContainerElement.isDisplayed());
 ////        branchOptionElement.get(0).click();
-//            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> branchOptionElement.size() > 0);
-//            for(WebElement e: branchOptionElement) {
-//                if(!Objects.isNull(e.getAttribute("username")) && e.getAttribute("username").equals(data.getBranch())) {
-//                    e.click();
-//                    Utilities.captureScreenShot(_driver);
-//                    break;
-//                }
-//            }
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> branchOptionElement.size() > 0);
+            for(WebElement e: branchOptionElement) {
+                if(!Objects.isNull(e.getAttribute("username")) && e.getAttribute("username").toUpperCase().equals("HO CHI MINH")) {
+                    e.click();
+                    Utilities.captureScreenShot(_driver);
+                    break;
+                }
+            }
 //        }
-//        channelElement.click();
-//        await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                .until(() -> channelOptionElement.size() > 0);
-//        Utilities.chooseDropdownValue(data.getChannel(), channelOptionElement);
-
+        channelElement.click();
+        await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> channelOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(data.getChannel(), channelOptionElement);
+        applicationFormNumberElement.clear();
         applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanApplicationTypeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getLoanAppType(), loanApplicationTypeOptionElement);
-
-//        productNameElement.click();
-//        await("productNameOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                .until(() -> productNameOptionElement.size() > 0);
-//        Utilities.chooseDropdownValue(data.getProductName(), productNameOptionElement);
+        productNameElement.clear();
+        productNameElement.sendKeys(data.getProductName());
+        await("productNameOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> productNameOptionElement.size() > 0);
+        for(WebElement e: productNameOptionElement) {
+            if(!Objects.isNull(e.getAttribute("username")) && e.getAttribute("username").toUpperCase().equals(data.getProductName().toUpperCase())) {
+                e.click();
+                Utilities.captureScreenShot(_driver);
+                break;
+            }
+        }
 //
-        schemeElement.click();
+//        schemeElement.click();
+        schemeElement.clear();
+        schemeElement.sendKeys(data.getScheme());
         await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> schemeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+//        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+        for (WebElement e : schemeOptionElement) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getScheme().toUpperCase())) {
+                e.click();
+                break;
+            }
+        }
 
 //        //update them scheme
 //        schemeElement.click();
@@ -215,9 +232,16 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
         loanDetailPurposeElement.sendKeys(data.getLoadPurpose());
 
         salesAgentCodeElement.click();
+        salesAgentCodeElement.clear();
+        salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
         await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> salesAgentCodeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getSaleAgentCode(), salesAgentCodeOptionElement);
+        for (WebElement e : salesAgentCodeOptionElement) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getSaleAgentCode().toUpperCase())) {
+                e.click();
+                break;
+            }
+        }
     }
 
     public void updateData(LoanDetailsDTO data) {

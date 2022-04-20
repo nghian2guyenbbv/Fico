@@ -10,7 +10,7 @@ spring:
     port: 5672
     username: tpf-service-automation-test
     password: tpf-service-automation-test
-    app-id: tpf-service-automation-test
+    app-id: tpf-service-automation-test1
     logstash: tpf-service-logstash-automation
   data:
     mongodb:
@@ -18,7 +18,7 @@ spring:
   url:
     finone: http://10.1.66.85:3333/neutrino-sso-web/login?param=
     seleHost: 127.0.0.1
-    selePort: 4444
+    selePort: 4445
     downloadFile: http://10.1.66.27:3001/v1/file/
     rabbitIdRes: tpf-service-dataentry
 eureka:

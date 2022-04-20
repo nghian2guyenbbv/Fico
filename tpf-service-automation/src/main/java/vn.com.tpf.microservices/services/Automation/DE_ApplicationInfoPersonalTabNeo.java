@@ -239,7 +239,7 @@ public class DE_ApplicationInfoPersonalTabNeo {
     @CacheLookup
     private WebElement primaryEmailElement;
 
-    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'phoneNumber_customer_primary_phonen')]")
     @CacheLookup
     private WebElement cusMobileElements;
 
@@ -488,7 +488,7 @@ public class DE_ApplicationInfoPersonalTabNeo {
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
 
-        btnCheckDuplicateElement.click();
+        actions.moveToElement( this.btnCheckDuplicateElement).click().build().perform();
 
         await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
@@ -515,7 +515,8 @@ public class DE_ApplicationInfoPersonalTabNeo {
     }
 
     public void loadCommunicationSection() {
-        this.loadCommunicationDetailElement.click();
+        Actions actions = new Actions(_driver);
+        actions.moveToElement( this.loadCommunicationDetailElement).click().build().perform();
     }
 
     public void loadFamilySection() {
@@ -584,6 +585,7 @@ public class DE_ApplicationInfoPersonalTabNeo {
             if(index!=0) {
                 await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> btnCreateAnotherElement.isEnabled());
+
                 actions.moveToElement(btnCreateAnotherElement).click().build().perform();
             }
 
@@ -593,7 +595,7 @@ public class DE_ApplicationInfoPersonalTabNeo {
 //            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
 
             //Sleep Wait Address Type
-            Thread.sleep(15000);
+//            Thread.sleep(15000);
 
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
@@ -722,14 +724,14 @@ public class DE_ApplicationInfoPersonalTabNeo {
 
             //dien so dien thoan ban neu co
 
-            primaryStdElement.clear();
-            primaryStdElement.sendKeys(data.getPriStd());
-            primaryNumberElement.clear();
-            primaryNumberElement.sendKeys(data.getPriNumber());
-            primaryEXTNElement.clear();
-            primaryEXTNElement.sendKeys(data.getPriExt());
-
-            mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+//            primaryStdElement.clear();
+//            primaryStdElement.sendKeys(data.getPriStd());
+//            primaryNumberElement.clear();
+//            primaryNumberElement.sendKeys(data.getPriNumber());
+//            primaryEXTNElement.clear();
+//            primaryEXTNElement.sendKeys(data.getPriExt());
+//
+//            mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             Utilities.captureScreenShot(_driver);
             actions.moveToElement(btnSaveAddressElement).click().build().perform();
             if (index < datas.size() - 1) {

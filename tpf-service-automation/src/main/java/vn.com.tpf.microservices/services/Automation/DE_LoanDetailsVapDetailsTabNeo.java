@@ -13,6 +13,7 @@ import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -43,11 +44,11 @@ public class DE_LoanDetailsVapDetailsTabNeo {
     @CacheLookup
     private List<WebElement> vapTreatmentOptionElement;
 
-    @FindBy(how = How.ID, using = "insuranceCompany_chosen")
+    @FindBy(how = How.ID, using = "Text_disburseToBP")
     @CacheLookup
     private WebElement insuranceCompanyElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'insuranceCompany_chosen_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_disburseToBP')]")
     @CacheLookup
     private List<WebElement> insuranceCompanyOptionElement;
 
@@ -62,6 +63,14 @@ public class DE_LoanDetailsVapDetailsTabNeo {
     //-------------------- UPDATE -------------------
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'vap_details_Table')]//*[contains(@id,'edit')]")
     private WebElement editVapElement;
+
+    @FindBy(how = How.ID, using = "applicantList_chosen")
+    @CacheLookup
+    private WebElement applicationNameElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicantList_chosen_o_')]")
+    @CacheLookup
+    private List<WebElement> applicationNameOptionElement;
 
     public DE_LoanDetailsVapDetailsTabNeo(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -85,6 +94,18 @@ public class DE_LoanDetailsVapDetailsTabNeo {
             }
         }
         Utilities.captureScreenShot(_driver);
+        await("vapTreatmentElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationNameElement.isDisplayed());
+        applicationNameElement.click();
+        Utilities.captureScreenShot(_driver);
+        await("vapTreatmentElementOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationNameOptionElement.size() > 0);
+        for (WebElement element : applicationNameOptionElement) {
+                element.click();
+                Utilities.captureScreenShot(_driver);
+                break;
+        }
+
         //vap treatment
         await("vapTreatmentElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> vapTreatmentElement.isDisplayed());
@@ -103,15 +124,17 @@ public class DE_LoanDetailsVapDetailsTabNeo {
         //insurance company
         await("insuranceCompanyElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> insuranceCompanyElement.isDisplayed());
-        insuranceCompanyElement.click();
+        insuranceCompanyElement.clear();
+        insuranceCompanyElement.sendKeys(data.getInsuranceCompany());
         await("insuranceCompanyElementOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> insuranceCompanyOptionElement.size() > 0);
         for (WebElement element : insuranceCompanyOptionElement) {
-            if (element.getText().equals(data.getInsuranceCompany())) {
+            if (!Objects.isNull(element.getAttribute("username")) && element.getAttribute("username").equals(data.getInsuranceCompany())) {
                 element.click();
                 break;
             }
         }
+
 
         doneBtnElement.click();
     }
@@ -148,7 +171,7 @@ public class DE_LoanDetailsVapDetailsTabNeo {
         await("vapTreatmentElementOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> vapTreatmentOptionElement.size() > 0);
         for (WebElement element : vapTreatmentOptionElement) {
-            if (element.getText().equals(data.getVapTreatment())) {
+            if (element.getAttribute("username").equals(data.getVapTreatment())) {
                 element.click();
                 Utilities.captureScreenShot(_driver);
                 break;
@@ -158,11 +181,12 @@ public class DE_LoanDetailsVapDetailsTabNeo {
         //insurance company
         await("insuranceCompanyElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> insuranceCompanyElement.isDisplayed());
-        insuranceCompanyElement.click();
+        insuranceCompanyElement.clear();
+        insuranceCompanyElement.sendKeys(data.getInsuranceCompany());
         await("insuranceCompanyElementOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> insuranceCompanyOptionElement.size() > 0);
         for (WebElement element : insuranceCompanyOptionElement) {
-            if (element.getText().equals(data.getInsuranceCompany())) {
+            if (!Objects.isNull(element.getAttribute("username")) && element.getAttribute("username").equals(data.getInsuranceCompany())) {
                 element.click();
                 break;
             }

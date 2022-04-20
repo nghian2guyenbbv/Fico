@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.awaitility.Duration;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -70,7 +71,7 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
 
         createNewBankDetails.click();
 
-        int index = 0;
+        int index = 1;
 
         int sizeTableBanks = tableBankDetails.size();
 
@@ -104,10 +105,10 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
 
             await("List BankName Element displayed timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> sizeSelectBankName > 0);
-
+            JavascriptExecutor js = (JavascriptExecutor)_driver;
             for (WebElement e : selectBankNameOptionElement) {
                 if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getBankName().toUpperCase())) {
-                    e.click();
+                    js.executeScript(e.findElement(By.xpath("//*[@id='"+e.getAttribute("id")+"']/a")).getAttribute("onclick"));
                     break;
                 }
             }
@@ -134,7 +135,7 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
 
             for (WebElement e : selectBranchNameOptionElement) {
                 if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getBranchName().toUpperCase())) {
-                    e.click();
+                    js.executeScript(e.findElement(By.xpath("//*[@id='"+e.getAttribute("id")+"']/a")).getAttribute("onclick"));
                     break;
                 }
             }
@@ -145,12 +146,12 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
 
                 System.out.println("TYPE OF ACCOUNT: " + data.getTypeOfAccount());
 
-                WebElement typeofAccountElement = _driver.findElement(By.xpath("//div[@id = 'accountTypeId_" + index + "_chzn']"));
+                WebElement typeofAccountElement = _driver.findElement(By.xpath("//div[@id = 'accountTypeId_" + index + "_chosen']"));
 
                 await("Type Of Account Element not enabled!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> typeofAccountElement.isEnabled());
 
-                List<WebElement> listTypeofAccountElement = _driver.findElements(By.xpath("//*[contains(@id, 'accountTypeId_" + index + "_chzn_o_')]"));
+                List<WebElement> listTypeofAccountElement = _driver.findElements(By.xpath("//*[contains(@id, 'accountTypeId_" + index + "_chosen_o_')]"));
 
                 await("list Type Of Account Element loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> listTypeofAccountElement.size() > 0);
