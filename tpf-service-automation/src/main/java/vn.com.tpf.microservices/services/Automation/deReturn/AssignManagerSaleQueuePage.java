@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation.deReturn;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -70,7 +71,7 @@ public class AssignManagerSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
     private WebElement applicationTableAppIDElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input")
     @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
@@ -96,7 +97,6 @@ public class AssignManagerSaleQueuePage {
 
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
-
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 0);
 
@@ -112,26 +112,30 @@ public class AssignManagerSaleQueuePage {
                 .until(() -> editElement.isDisplayed());
 
         editElement.click();
+        _driver.findElement(By.xpath("//*[@id='Text_team_Branch0']")).clear();
+        _driver.findElement(By.xpath("//*[@id='Text_team_Branch0']"))
+        .sendKeys("TPF DATA ENTRY");
+        List<WebElement> listTeamName = _driver.findElements(By.xpath("//a[contains(@id, 'listitem_team_Branch')]"));
+
+        await("listTeamName enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> listTeamName.size() > 0);
+
+        for (WebElement e : listTeamName) {
+            e.click();
+            break;
+        }
 
         await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserElement.isEnabled());
-
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
 
-        await("Select user visibale!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserContainerElement.isDisplayed());
-
-        int textSelectUserList = textSelectUserOptionElement.size();
-
         await("User Auto not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserList > 0);
+                .until(() -> textSelectUserOptionElement.size() > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
@@ -161,16 +165,12 @@ public class AssignManagerSaleQueuePage {
         await("Select user visibale!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        int textSelectUserList = textSelectUserOptionElement.size();
-
         await("User Auto not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserList > 0);
+                .until(() -> textSelectUserOptionElement.size() > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
