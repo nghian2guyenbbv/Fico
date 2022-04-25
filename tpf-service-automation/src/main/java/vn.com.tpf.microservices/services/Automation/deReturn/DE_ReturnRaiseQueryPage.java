@@ -14,8 +14,6 @@ import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
-import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDocumentDTO;
-import vn.com.tpf.microservices.models.Document;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -40,7 +38,7 @@ public class DE_ReturnRaiseQueryPage {
     @CacheLookup
     private WebElement responseQueryFormElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'queries_to_be_responded_filter')]//input[contains(@type, 'text')]")
+    @FindBy(how = How.XPATH, using = "//div[contains(@id,'queries_to_be_responded_filter')]//input")
     @CacheLookup
     private WebElement applicationNumberElement;
 
@@ -60,7 +58,7 @@ public class DE_ReturnRaiseQueryPage {
     @CacheLookup
     private List<WebElement> tbDivResponseQueryElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'tablediv')]//div[contains(@id,'response_grid_table_wrapper')]//table[@id='response_grid_table']//tbody//tr//td//a[contains(@id,'calculation')]")
+    @FindBy(how = How.XPATH, using = "//table[@id='response_grid_table']//tbody//tr//td//a[contains(@id,'calculation')]")
     @CacheLookup
     private WebElement idRowCalculationElement;
 
@@ -68,7 +66,7 @@ public class DE_ReturnRaiseQueryPage {
     @CacheLookup
     private WebElement textResponseElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id, tablediv)]//div[contains(@id,'response_grid_table_filter')]//input[@type='text']")
+    @FindBy(how = How.XPATH, using = "//div[@id = 'tablediv']//div[@id = 'response_grid_table_filter']//input")
     @CacheLookup
     private WebElement textSeachResponseQueryElement;
 
@@ -94,20 +92,26 @@ public class DE_ReturnRaiseQueryPage {
     @SneakyThrows
     public void setData(DEResponseQueryDTO deResponseQueryDTO, String downLoadFileURL) {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+
         await("responseQueryFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> responseQueryFormElement.isDisplayed());
 
         applicationNumberElement.clear();
         applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
 
-        await("tdResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        with().pollInterval(Duration.FIVE_SECONDS).
+        await("Search Application ID Response Query Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdResponseQueryElement.size() > 2);
+
+        Utilities.captureScreenShot(_driver);
 
         idRowResponseQueryElement.click();
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbDivResponseQueryElement.size() > 2);
 
+        Utilities.captureScreenShot(_driver);
 
         textSeachResponseQueryElement.clear();
 
@@ -121,6 +125,8 @@ public class DE_ReturnRaiseQueryPage {
                 await("Raise Query Code Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbDivResponseQueryElement.size() > 2);
 
+        Utilities.captureScreenShot(_driver);
+
         idRowCalculationElement.click();
 
         textResponseElement.clear();
@@ -131,6 +137,7 @@ public class DE_ReturnRaiseQueryPage {
             System.out.println("URLdownload: " + fromFile);
 
             String docName = deResponseQueryDTO.getDataDocument().getFileName();
+
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             toFile += UUID.randomUUID().toString() + "_" + docName;
 
