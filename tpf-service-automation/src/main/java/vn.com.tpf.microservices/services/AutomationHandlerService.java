@@ -3831,20 +3831,14 @@ public class AutomationHandlerService {
             driver = setupTestDriver.getDriver();
             //get account run
             stage = "LOGIN FINONE";
-            HashMap<String, String> dataControl = new HashMap<>();
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
-
-//            //check da login
-//            if(driver.findElements(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]")).size()!=0){
-//                WebElement we=driver.findElement(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]"));
-//                we.click();
-//            }
-
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
+
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
             Utilities.captureScreenShot(driver);
 
             AutoAssignDTO autoAssignDTO = null;
@@ -3874,25 +3868,20 @@ public class AutomationHandlerService {
 
                         System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
-                        stage = "HOME PAGE";
-                        HomePage homePage = new HomePage(driver);
-                        //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
-                        // ========== APPLICATIONS =================
                         String appID = autoAssignDTO.getAppid();
-                        homePage.getMenuApplicationElement().click();
-
-                        stage = "APPLICATION MANAGER";
+                        SearchMenu goToMn = new SearchMenu(driver);
+                        goToMn.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
                         // ========== APPLICATION MANAGER =================
-                        homePage.getApplicationManagerElement().click();
+                        stage = "APPLICATION MANAGER";
                         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(driver::getTitle, is("Application Manager"));
 
                         DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
                         await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
                         de_applicationManagerPage.setData(appID, autoAssignDTO.getUsername().toLowerCase());
-                        //System.out.println(stage + ": DONE");
-                        //Utilities.captureScreenShot(driver);
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
@@ -5644,16 +5633,6 @@ public class AutomationHandlerService {
             stage = "LOGIN FINONE";
 
             //***************************//LOGIN PAGE//***************************//
-
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
             LoginPageNeo loginPage = new LoginPageNeo(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
@@ -7104,23 +7083,20 @@ public class AutomationHandlerService {
             SessionId session = ((RemoteWebDriver)driver).getSessionId();
             //get account run
             stage = "LOGIN FINONE";
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
+
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": LOGIN DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
-
-            stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
-            // ========== APPLICATIONS =================
-            homePage.getMenuApplicationElement().click();
-
+            SearchMenu goToMN = new SearchMenu(driver);
+            goToMN.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getApplicationManagerElement().click();
             await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 

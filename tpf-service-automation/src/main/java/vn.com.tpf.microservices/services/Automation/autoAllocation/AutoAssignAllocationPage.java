@@ -41,7 +41,7 @@ public class AutoAssignAllocationPage {
     @FindBy(how = How.ID, using = "appManager_lead_application_number")
     private WebElement applicationNumberElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicationManagerForm1')]//input[@type='button']")
+    @FindBy(how = How.XPATH, using = "//*[@id='applicationManagerForm1']/div[5]/input[1]")
     private WebElement searchApplicationElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr//td")
@@ -65,13 +65,13 @@ public class AutoAssignAllocationPage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//li[contains(@class,'application-column-loan')]//span[contains(text(),'Applications')]")
     private WebElement applicationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'backSaveBtns')]//input[@type='button']")
+    @FindBy(how = How.XPATH, using = "//*[@id='appManagerContent']/div[3]/div[2]/input")
     private WebElement backBtnElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
@@ -95,13 +95,10 @@ public class AutoAssignAllocationPage {
     }
 
     public void setData(String appId,String user) throws InterruptedException {
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationManagerFormElement.isDisplayed());
-
         Utilities.captureScreenShot(_driver);
+
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
-
         System.out.println("Search Application ID" + ": DONE");
 
         with().pollInterval(Duration.FIVE_SECONDS).
@@ -122,26 +119,26 @@ public class AutoAssignAllocationPage {
 
         Utilities.captureScreenShot(_driver);
         editElement.click();
-
         System.out.println("Edit Application ID" + ": DONE");
-
         await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserElement.isEnabled());
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
+
         await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        int listUserAssigned = textSelectUserOptionElement.size();
-
         await("No User Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> listUserAssigned > 0);
-
+                .until(() -> textSelectUserOptionElement.size() > 0);
         System.out.println("Search User Assign" + ": DONE");
+        Utilities.captureScreenShot(_driver);
 
-        selectUserOption(user);
-
+        for (WebElement e: textSelectUserOptionElement){
+            e.click();
+            break;
+        }
+        //selectUserOption(user);
         System.out.println("Assign User Auto" + ": DONE");
 
         Utilities.captureScreenShot(_driver);
