@@ -87,8 +87,11 @@ public class ResponseQueryPage {
     public void setData(ResponseQueryDTO responseQueryDTO, String downLoadFileURL) throws IOException, InterruptedException {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
 
-        textSearchAppIdResponseElement.clear();
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("From response query timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> divAppIdResponseElement.size() > 0);
 
+        textSearchAppIdResponseElement.clear();
         textSearchAppIdResponseElement.sendKeys(responseQueryDTO.getApplicationId());
 
         with().pollInterval(Duration.FIVE_SECONDS).
@@ -115,11 +118,9 @@ public class ResponseQueryPage {
             textSeachQueryElement.sendKeys(responseQueryDTO.getQueryName());
         }
 
-        int sizeTableQueryElement = tableQueryElement.size();
-
         with().pollInterval(Duration.FIVE_SECONDS).
         await("Raise Query Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> sizeTableQueryElement > 2);
+                .until(() -> tableQueryElement.size() > 2);
 
         Utilities.captureScreenShot(_driver);
 
@@ -133,6 +134,7 @@ public class ResponseQueryPage {
             System.out.println("URLdownload: " + fromFile);
 
             String docName = responseQueryDTO.getDataDocument().getFileName();
+
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
             toFile += UUID.randomUUID().toString() + "_" + docName;
 
@@ -153,11 +155,11 @@ public class ResponseQueryPage {
 
         Utilities.captureScreenShot(_driver);
 
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("Button Submit Respone Error!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> divAppIdResponseElement.size() > 0);
-
-        Utilities.captureScreenShot(_driver);
+//        with().pollInterval(Duration.FIVE_SECONDS).
+//                await("Button Submit Respone Error!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> divAppIdResponseElement.size() > 0);
+//
+//        Utilities.captureScreenShot(_driver);
 
     }
 

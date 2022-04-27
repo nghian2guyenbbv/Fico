@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.deReturn;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -11,12 +12,14 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.*;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDocumentDTO;
+import vn.com.tpf.microservices.services.Automation.SearchMenu;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import org.awaitility.Duration;
 import java.time.Instant;
@@ -71,7 +74,7 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
     private WebElement menuApplicationElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input")
     @CacheLookup
     private WebElement applicationAssignedNumberElement;
 
@@ -92,7 +95,7 @@ public class DE_ReturnSaleQueuePage {
     private WebElement applicationBtnDocumentElement;
 
 
-    @FindBy(how = How.ID, using = "document")
+    @FindBy(how = How.ID, using = "document_neo")
     @CacheLookup
     private WebElement documentElement;
 
@@ -172,7 +175,7 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.ID, using = "taskTableDiv")
     private WebElement taskTableDivElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'edit_button0')]//input[@type='button']")
+    @FindBy(how = How.XPATH, using = "//*[@id='edit_button0']/input[1]")
     private WebElement editElement;
 
     @FindBy(how = How.ID, using = "Text_selected_user0")
@@ -181,7 +184,7 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.ID, using = "holder")
     private WebElement textSelectUserContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
+    @FindBy(how = How.XPATH, using = "//a[contains(@id,'listitem_selected_user0')]")
     private List<WebElement> textSelectUserOptionElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
@@ -201,14 +204,10 @@ public class DE_ReturnSaleQueuePage {
 
     @SneakyThrows
     public void setData(DESaleQueueDTO deSaleQueueDTO, String user, String downLoadFileURL) {
-        Instant start = Instant.now();
         String stage = "";
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-
-        menuApplicationElement.click();
-
-        applicationManagerElement.click();
-
+        SearchMenu searchMenu = new SearchMenu(_driver);
+        searchMenu.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
         // ========== APPLICATION MANAGER =================
         stage = "APPLICATION MANAGER";
 
@@ -244,9 +243,9 @@ public class DE_ReturnSaleQueuePage {
 
         editElement.click();
 
+
         await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserElement.isEnabled());
-
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
 
@@ -254,16 +253,12 @@ public class DE_ReturnSaleQueuePage {
         await("Select user visibale!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        int textSelectUserList = textSelectUserOptionElement.size();
-
         await("User Auto not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserList > 0);
+                .until(() -> textSelectUserOptionElement.size() > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
@@ -271,153 +266,162 @@ public class DE_ReturnSaleQueuePage {
 
 
         // ========== APPLICATION - SALE QUEUE =================
-        menuApplicationElement.click();
-
-        applicationElement.click();
+        SearchMenu searchMenuApp = new SearchMenu(_driver);
+        searchMenuApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
 
         stage = "ASSIGNED";
 
         await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
 
+        _driver.findElement(By.xpath("//*[@id='lead']/a")).click();
+
+
+        await("show list data assigned Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> _driver.findElement(By.xpath("//*[@id='contentwrapper']/div/div")).isDisplayed());
         applicationAssignedNumberElement.clear();
-
         applicationAssignedNumberElement.sendKeys(deSaleQueueDTO.getAppId());
-
+        applicationAssignedNumberElement.sendKeys(Keys.ENTER);
         await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tbApplicationAssignedElement.size() > 0);
+                .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
+        //check branch
+        WebElement divDisplayBranch = _driver.findElement(By.xpath("//*[@id='displayBranch']"));
+        WebElement branchUser = _driver.findElement(By.xpath("//*[@id='loggedInBranch']"));
+        WebElement branchAppl = _driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned']/tbody/tr/td[15]"));
+
+        if(!branchUser.getText().equals(branchAppl.getText())){
+            divDisplayBranch.click();
+
+            WebElement divIpxBrnch = _driver.findElement(By.xpath("//*[@id='Text_headerAutoCompBranchId']"));
+            await("Div input branch timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> divIpxBrnch.isDisplayed());
+            divIpxBrnch.clear();
+            divIpxBrnch.sendKeys(branchAppl.getText());
+            List<WebElement> listBranch = _driver.findElements(By.xpath("//a[contains(@id,'listitem_headerAutoCompBranchId')]"));
+            await("Div input branch timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listBranch.size() > 0);
+            for (WebElement e : listBranch){
+                e.click();
+                break;
+            }
+            Thread.sleep(3000);
+            await("Assigned timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() ->   _driver.findElement(By.xpath("//*[@id='lead']/a")).isDisplayed());
+
+            _driver.findElement(By.xpath("//*[@id='lead']/a")).click();
+            WebElement ipx = _driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
+            List<WebElement> divIpx = _driver.findElements(By.xpath("//table[@id='LoanApplication_Assigned']//tbody//tr//td"));
+            await("Input Application show timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> ipx.isDisplayed());
+            ipx.clear();
+            ipx.sendKeys(deSaleQueueDTO.getAppId());
+            ipx.sendKeys(Keys.ENTER);
+            with().pollInterval(Duration.FIVE_SECONDS).
+                    await("Application Id Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> divIpx.size() > 2);
+        }
+        //check branch end
+
+
+        WebElement applicationIdAssignedNumberElement = _driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a"));
 
         applicationIdAssignedNumberElement.click();
 
         System.out.println(stage + " => DONE");
 
         stage = "SALE QUEUE";
-        await("appChildTabsElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> appChildTabsElement.isDisplayed());
-
-        applicationBtnDocumentElement.click();
 
         await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentElement.isDisplayed());
 
-//        if(documentTableElement.size() == 0){
-
-        with().pollInterval(Duration.FIVE_SECONDS).
-        await("btnGetDocumentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnGetDocumentElement.isDisplayed());
-
-        btnGetDocumentElement.click();
-
-//        }
-
-        Thread.sleep(60000);
-
-        int listDocTableElemnet = documentTableElement.size();
-
-        await("documentTableElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> listDocTableElemnet > 2);
-
-        System.out.println("LOAD TABLE DOCUMENT" + " => DONE");
-
-        for (DESaleQueueDocumentDTO documentList : deSaleQueueDTO.getDataDocuments()) {
-
-            WebElement documentStatusElement2 = _driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + documentList.getDocumentName() + "')]//select[starts-with(@id,'applicationDocument_receiveState')]"));
-
-            documentStatusElement2.sendKeys("received");
-
-            WebElement documentBtnUploadElement2 = _driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + documentList.getDocumentName() + "')]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
-
-            String fromFile = downLoadFileURL;
-            System.out.println("URLdownload: " + fromFile);
-            String docName = documentList.getFileName();
+        List<String> requiredFiled = new ArrayList<>();
+        if(deSaleQueueDTO.getDataDocuments().size() > 0){
+            deSaleQueueDTO.getDataDocuments().stream().forEach(doc -> {
+                requiredFiled.add(doc.getDocumentName());
+            });
+        }
+        String fromFile = downLoadFileURL;
+        Thread.sleep(5000);
+        List<WebElement> listDocs = _driver.findElements(By.xpath("//*[contains(@data-type, 'docnode')]"));
+        for (WebElement element : listDocs){
+            String docName = element.getText();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-
-            if ("TPF_Transcript".equals(docName)){
-                docName = "TPF_Tran1";
-            }
-
-            toFile += UUID.randomUUID().toString() + "_" + docName;
-
-            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-            File file = new File(toFile);
-            if (file.exists()) {
-                String docUrl = file.getAbsolutePath();
-                System.out.println("PATH:" + docUrl);
+            if (requiredFiled.contains(docName)) {
+                await("Show document Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() ->  element.isDisplayed());
+                element.click();
                 Thread.sleep(2000);
+                String finalDocName = docName;
+                DESaleQueueDocumentDTO doc = deSaleQueueDTO.getDataDocuments().stream().filter(q -> q.getDocumentName().equals(finalDocName)).findAny().orElse(null);
+                if(doc!=null)
+                {
+                    String ext = FilenameUtils.getExtension(doc.getFileName());
+                    if ("TPF_Transcript".equals(docName)){
+                        docName = "TPF_Tran1";
+                    }
+                    toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFileName(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    File file = new File(toFile);
+                    if(file.exists()) {
+                        String photoUrl = file.getAbsolutePath();
+                        System.out.println("PATH:" + photoUrl);
+                        Thread.sleep(2000);
 
-                documentBtnUploadElement2.sendKeys(docUrl);
-                Utilities.captureScreenShot(_driver);
+                        _driver.findElement(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']")).click();
+                        List<WebElement> lendingPhotoContainerElement  = _driver.findElements(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']//option"));
+                        await("Load lendingPhotoContainerElement Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() ->  lendingPhotoContainerElement.size() != 0);
+                        for (WebElement e : lendingPhotoContainerElement){
+                            if(e.getText().equals("Received")){
+                                e.click();
+                            }
+                        }
+
+                        if(!_driver.findElement(By.xpath("//li[contains(@class,'imageBox add_more_box')]")).isDisplayed()){
+                            WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
+                            await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() ->  editViewDoc.isDisplayed());
+                            editViewDoc.click();
+                        }
+                        _driver.findElement(By.xpath("//*[@id='document_viewer_mp']//input[contains(@class,'input_images')]")).sendKeys(photoUrl);
+
+                        WebElement saveDoc = _driver.findElement(By.id("dv_documentSave"));
+                        saveDoc.click();
+                        await("dv_documentSave Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() ->  !saveDoc.isDisplayed());
+
+                        Utilities.captureScreenShot(_driver);
+                    }
+                }
             }
         }
-
+        _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]")).click();
         Utilities.captureScreenShot(_driver);
-        System.out.println("UPLOAD FILE" + " => DONE");
-
-        Utilities.captureScreenShot(_driver);
-
-        documentBtnSaveElement.click();
-
-        Utilities.captureScreenShot(_driver);
-
-        await("documentElement visibale Timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
-                .until(() -> documentElement.isDisplayed());
-
-//        await("document_table_body visibale Timeout!").atMost(Constant.ACCOUNT_AVAILABLE_TIMEOUT, TimeUnit.SECONDS)
-//                .until(() -> documentTableElement.size() > 2);
-
         System.out.println("SAVE DOCUMENT" + " => DONE");
 
-        Utilities.captureScreenShot(_driver);
-
         documentLoadActivityElement.click();
-
         await("documentBtnCommentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentBtnCommentElement.isDisplayed());
-
         Utilities.captureScreenShot(_driver);
-
         documentBtnCommentElement.click();
-
         Utilities.captureScreenShot(_driver);
-
         await("document_text_comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> documentTextCommentElement.isDisplayed());
 
         documentTextCommentElement.sendKeys(deSaleQueueDTO.getCommentText());
-
         documentBtnAddCommnetElement.click();
-
         Utilities.captureScreenShot(_driver);
-
         System.out.println("ADD COMMENT" + " => DONE");
-
         await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        // ==== Open headless ==== //
-//        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
-//        jse2.executeScript("arguments[0].click();", btnMoveToNextStageElement);
+        btnMoveToNextStageElement.click();
 
-//        WebElement pnotifyElement = _driver.findElement(By.xpath("//span[@class='ui-pnotify-history-pulldown icon-chevron-down']"));
-//
-//        pnotifyElement.click();
-//
-//        WebElement btnPnotifyElement = _driver.findElement(By.xpath("//button[@class='ui-pnotify-history-all btn']"));
-//
-//        btnPnotifyElement.click();
-//
-//        WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
-//
-//        divTimeRemaining.click();
-
-//        btnMoveToNextStageElement.click();
-
-        keyActionMoveNextStage();
-
+//        keyActionMoveNextStage();
+        await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("Application Grid"));
         Utilities.captureScreenShot(_driver);
-
         System.out.println(stage + " => DONE");
     }
 

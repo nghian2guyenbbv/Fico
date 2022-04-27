@@ -100,13 +100,8 @@ public class CRM_DocumentsPage {
                 requiredFiled.add(doc.getType());
             });
         }
-
-
         Utilities.captureScreenShot(_driver);
-        System.out.println(requiredFiled.toString());
-
         Thread.sleep(5000);
-
         for (WebElement element : docNameElement) {
             String docName = element.getText();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
@@ -123,13 +118,11 @@ public class CRM_DocumentsPage {
                 if(doc!=null)
                 {
                     String ext = FilenameUtils.getExtension(doc.getFilename());
-
                     if ("TPF_Transcript".equals(docName)){
                         docName = "TPF_Tran1";
                     }
-                    toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;;
-//                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-                    FileUtils.copyURLToFile(new URL(fromFile + doc.getFilename()), new File(toFile), 10000, 10000);
+                    toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();
@@ -150,24 +143,20 @@ public class CRM_DocumentsPage {
                             await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                     .until(() ->  editViewDoc.isDisplayed());
                             editViewDoc.click();
-                            System.out.println("EXISTS");
-                        }else{
-                            System.out.println("NEW");
                         }
-                        WebElement ipxUploadFile = _driver.findElement(By.xpath("//*[@id='document_viewer_mp']//input[contains(@class,'input_images')]"));
+                        _driver.findElement(By.xpath("//*[@id='document_viewer_mp']//input[contains(@class,'input_images')]")).sendKeys(photoUrl);
 
-                        ipxUploadFile.sendKeys(photoUrl);
                         WebElement saveDoc = _driver.findElement(By.id("dv_documentSave"));
                         saveDoc.click();
                         await("dv_documentSave Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() ->  !saveDoc.isDisplayed());
+
                         Utilities.captureScreenShot(_driver);
                     }
                 }
             }
         }
-        WebElement submitFile = _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]"));
-        submitFile.click();
+        _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]")).click();
         Utilities.captureScreenShot(_driver);
 
     }
