@@ -5057,47 +5057,45 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
 
-//            stage = "LOGIN FINONE";
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             //***************************//END LOGIN//***************************//
-
             System.out.println(stage + ": DONE");
-
             Utilities.captureScreenShot(driver);
-
             stage = "HOME PAGE";
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========== CHECK STAGE APPLICATIONS =================
             stage = "CHECK STAGE APPLICATION";
             FV_CheckStageApplicationManager fv_CheckStageApplicationManager = new FV_CheckStageApplicationManager(driver);
-            fv_CheckStageApplicationManager.getMenuApplicationElement().click();
-            fv_CheckStageApplicationManager.getApplicationManagerElement().click();
+            SearchMenu goToMn = new SearchMenu(driver);
+            goToMn.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
+
             await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
+
             await("Application Manager Form visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> fv_CheckStageApplicationManager.getApplicationManagerFormElement().isDisplayed());
+
             fv_CheckStageApplicationManager.getApplicationNumberElement().sendKeys(submitFieldDTO.getAppId());
             fv_CheckStageApplicationManager.getSearchApplicationElement().click();
+
             await("Table Application Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> fv_CheckStageApplicationManager.getTdApplicationElement().size() > 2);
 
-            String stageApplication = fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText();
 
+            String stageApplication = fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText();
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+
+
             if ("FII".equals(stageApplication)){
                 // ========== FIELD VERIFICATION =================
                 stage = "FIELD VERIFICATION";
@@ -5141,8 +5139,8 @@ public class AutomationHandlerService {
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("Field Investigation Details failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> fv_FieldInvestigationDetailsPage.getCheckMoveToNextStageElement().size() == 0);
+//                await("Field Investigation Details failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> fv_FieldInvestigationDetailsPage.getCheckMoveToNextStageElement().size() == 0);
 
                 await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Grid"));

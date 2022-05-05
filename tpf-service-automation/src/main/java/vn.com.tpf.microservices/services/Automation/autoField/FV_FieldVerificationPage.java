@@ -10,6 +10,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.services.Automation.SearchMenu;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -53,7 +54,7 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.ID, using = "taskTableDiv")
     private WebElement taskTableDivElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'edit_button0')]//input[@type='button']")
+    @FindBy(how = How.XPATH, using = "//*[@id='edit_button0']/input[1]")
     private WebElement editElement;
 
     @FindBy(how = How.ID, using = "Text_selected_user0")
@@ -62,7 +63,7 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//div[contains(@class,'one-col')][2]//li[1]//span[contains(text(),'Applications')]")
@@ -71,7 +72,7 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
     private WebElement applicationFormElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input")
     private WebElement applicationAssignedNumberElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
@@ -80,13 +81,13 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td")
     private List<WebElement> tbFieldInvestigationInitiationElement;
 
-    @FindBy(how = How.XPATH, using = "//button[contains(text(), 'Initiate Verification')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='fii_front']/tbody/tr/td[6]/button[1]")
     private WebElement btnInitiateVerificationElement;
 
     @FindBy(how = How.XPATH, using = "//table[contains(@id, 'initiate_Verification')]")
     private WebElement tbVerificationTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//table[contains(@id, 'initiate_Verification')]//select")
+    @FindBy(how = How.XPATH, using = "//*[@id='field_investigation_entry_verification_typeNO_0']")
     private WebElement selectVerificationTypeElement;
 
     @FindBy(how = How.XPATH, using = "//div[contains(@id,'initiateVerification')]//div[contains(@class,'modal-body')]//table[contains(@id, 'initiate_Verification')]//input[starts-with(@id, 'Text_field_investigation_entry_verification_agencyNO')]")
@@ -95,7 +96,7 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.ID, using = "holder")
     private WebElement textSelectUserContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO')]")
+    @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//a[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO')]")
     private List<WebElement> liAgencyElement;
 
     @FindBy(how = How.XPATH, using = "//div[starts-with(@id,'content_field_investigation_entry_verification_agencyNO')]//ul[@id = 'holder']//li[starts-with(@id, 'listitem_field_investigation_entry_verification_agencyNO')]//a")
@@ -113,10 +114,10 @@ public class FV_FieldVerificationPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td[5]")
     private WebElement tdCurrentVerificationStatus;
 
-    @FindBy(how = How.XPATH, using = "//table[contains(@id,'fii_front')]//tbody//tr//td//a[contains(text(), 'View Details')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='viewDetailsButton']")
     private WebElement btnViewDetails;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//table[@id = 'initiate_Verification']//tbody//tr//td")
+    @FindBy(how = How.XPATH, using = "//*[@id='initiateRow0']/td")
     private List<WebElement> tableInDialogElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@id = 'fi_modal_body']//form[@id = 'initiateVerificationForm']//input[starts-with(@class,'btn btn-inverse')]")
@@ -174,10 +175,8 @@ public class FV_FieldVerificationPage {
                 .until(() -> sizeTextSelectUserOptionElement > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
@@ -185,21 +184,21 @@ public class FV_FieldVerificationPage {
 
         // ========== INITIATE VERIFICATION =================
 
-        menuApplicationElement.click();
-
-        applicationElement.click();
+        SearchMenu goToApp = new SearchMenu(_driver);
+        goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
+        _driver.findElement(By.xpath("//*[@id='lead']/a")).click();
 
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
 
         applicationAssignedNumberElement.clear();
-
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
+        applicationAssignedNumberElement.sendKeys(Keys.ENTER);
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + submitFieldDTO.getAppId() +"')]"));
+        WebElement applicationIdAssignedNumberElement =_driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a"));
 
         applicationIdAssignedNumberElement.click();
 
@@ -238,10 +237,8 @@ public class FV_FieldVerificationPage {
                 .until(() -> sizeLiAgencyElement > 0);
 
         for (WebElement e : liAgencyTagAElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals("TPAgency")) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
 
         btnInitiateVerificationPopupElement.click();
@@ -251,8 +248,8 @@ public class FV_FieldVerificationPage {
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
-
-        keyActionMoveNextStage();
+        btnMoveToNextStageElement.click();
+//        keyActionMoveNextStage();
 
         Utilities.captureScreenShot(_driver);
     }

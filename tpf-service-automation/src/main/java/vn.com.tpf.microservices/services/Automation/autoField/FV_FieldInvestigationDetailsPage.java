@@ -11,6 +11,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.services.Automation.SearchMenu;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -62,7 +63,7 @@ public class FV_FieldInvestigationDetailsPage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.ID, using = "holder")
@@ -74,7 +75,7 @@ public class FV_FieldInvestigationDetailsPage {
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
     private WebElement applicationFormElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input")
     private WebElement applicationAssignedNumberElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
@@ -83,16 +84,16 @@ public class FV_FieldInvestigationDetailsPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'fieldInvestigationEntryTable_wrapper']//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
     private List<WebElement> tbFieldInvestigationEntryTable;
 
-    @FindBy(how = How.ID, using = "application_fi_verdict_decision_chzn")
+    @FindBy(how = How.ID, using = "application_fi_verdict_decision_chosen")
     private WebElement decisionOptionDivElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'application_fi_verdict_decision_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'application_fi_verdict_decision_chosen_o_')]")
     private List<WebElement> decisionOptionElement;
 
-    @FindBy(how = How.ID, using = "application_fi_verdict_reason0_chzn")
+    @FindBy(how = How.ID, using = "application_fi_verdict_reason0_chosen")
     private WebElement reasonOptionDivElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'application_fi_verdict_reason0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'application_fi_verdict_reason0_chosen_o_')]")
     private List<WebElement> reasonOptionElement;
 
     @FindBy(how = How.XPATH, using = "//textarea[@id = 'application_fi_verdict_decision_comments']")
@@ -119,9 +120,8 @@ public class FV_FieldInvestigationDetailsPage {
     public void setData(SubmitFieldDTO submitFieldDTO, String user) {
         String stage = "";
 
-        menuApplicationElement.click();
-
-        applicationManagerElement.click();
+        SearchMenu goToMn = new SearchMenu(_driver);
+        goToMn.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
 
         // ========== APPLICATION MANAGER =================
         stage = "APPLICATION MANAGER";
@@ -166,10 +166,8 @@ public class FV_FieldInvestigationDetailsPage {
                 .until(() -> sizeTextSelectUserOptionElement> 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
 
         Utilities.captureScreenShot(_driver);
@@ -178,26 +176,27 @@ public class FV_FieldInvestigationDetailsPage {
 
 
         // ========== FIELD INITIATION COMPLETION =================
-
-        menuApplicationElement.click();
-
-        applicationElement.click();
-
+        SearchMenu goToApp = new SearchMenu(_driver);
+        goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
+        _driver.findElement(By.xpath("//*[@id='lead']/a")).click();
+
 
         applicationAssignedNumberElement.clear();
 
         applicationAssignedNumberElement.sendKeys(submitFieldDTO.getAppId());
+        applicationAssignedNumberElement.sendKeys(Keys.ENTER);
 
         with().pollInterval(Duration.FIVE_SECONDS).await("ApplicationID Find not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
-        WebElement applicationIdAssignedNumberElement = _driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
+        WebElement applicationIdAssignedNumberElement = _driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a"));
 
         applicationIdAssignedNumberElement.click();
 
         System.out.println("Application Id Assigned" + ": DONE");
+
 
         await("tbFieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbFieldInvestigationEntryTable.size() > 2);
@@ -215,9 +214,8 @@ public class FV_FieldInvestigationDetailsPage {
 
         await("decisionSelectElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> reasonOptionElement.size() > 0);
-
-        Utilities.chooseDropdownValue(submitFieldDTO.getResonDecisionFic(), reasonOptionElement);
-
+        _driver.findElement(By.xpath("//*[@id='application_fi_verdict_reason0_chosen']/div/div/input")).sendKeys(submitFieldDTO.getResonDecisionFic());
+        _driver.findElement(By.xpath("//*[@id='application_fi_verdict_reason0_chosen']/div/div/input")).sendKeys(Keys.ENTER);
         System.out.println("Reason Option" + ": DONE");
 
         if(!Objects.isNull(submitFieldDTO.getRemarksDecisionFic())){
@@ -240,9 +238,12 @@ public class FV_FieldInvestigationDetailsPage {
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isEnabled());
 
-        keyActionMoveNextStage();
+        Actions actions = new Actions(_driver);
 
+        actions.moveToElement(btnMoveToNextStageElement).click().perform();
         Utilities.captureScreenShot(_driver);
 
     }

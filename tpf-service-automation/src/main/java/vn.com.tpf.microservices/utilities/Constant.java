@@ -25,6 +25,7 @@ public class Constant {
     public static String MENU_NAME_LINK_PERSONAL_LOAN = "Personal Loan";
     public static String MENU_NAME_LINK_APPLICATION_MANAGER = "Application Manager";
     public static String MENU_NAME_LINK_APPLICATIONS = "Applications";
+    public static String MENU_NAME_LINK_FIV = "Field Investigation Verification";
     //List MENU END
     //public static String FINNONE_LOGIN_URL = "http://10.1.66.20:4141/finnone-webapp/app/auth/login";
     //public static String FINNONE_LOGIN_URL_PRO = "http://10.1.64.22:4141/finnone-webapp/app/auth/login";
