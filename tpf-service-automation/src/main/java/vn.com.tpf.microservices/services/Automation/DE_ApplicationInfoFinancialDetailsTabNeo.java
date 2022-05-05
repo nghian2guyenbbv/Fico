@@ -56,13 +56,13 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
     @CacheLookup
     private WebElement childModalIncomeDetailInlineGridElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chzn')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chosen')]")
     private WebElement incomeDetailForm_incomeSourceElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chosen_o_')]")
     private List<WebElement> incomeDetailForm_incomeSourceOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chosen')]//input")
     private WebElement incomeDetailForm_incomeSourceInputElement;
 
     @FindBy(how = How.ID, using = "incomeDetailForm_paymentMode_chosen")
@@ -196,9 +196,9 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
             await("IncomeDetails Tr container not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> trElements.size() > _index);
 
-            WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chzn"));
+            WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chosen"));
             incomeHead.click();
-            List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + indexRow + "_chzn_o_')]"));
+            List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + indexRow + "_chosen_o_')]"));
             for (WebElement element : incomeHeads) {
                 if (element.getText().equals(data.getIncomeHead())) {
                     element.click();
@@ -206,9 +206,9 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
                 }
             }
 
-            WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + indexRow + "_chzn"));
+            WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + indexRow + "_chosen"));
             frequency.click();
-            List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + indexRow + "_chzn_o_')]"));
+            List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + indexRow + "_chosen_o_')]"));
             for (WebElement element : frequencys) {
                 if (element.getText().equals(data.getFrequency())) {
                     element.click();
@@ -225,14 +225,14 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
                         .until(() -> childModalIncomeDetailInlineGridElement.isDisplayed());
                 Actions actions = new Actions(_driver);
 
-                await("incomeDetailForm_incomeSourceElement not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> incomeDetailForm_incomeSourceElement.isEnabled());
-
-                actions.moveToElement(incomeDetailForm_incomeSourceElement).click().build().perform();
-                await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> incomeDetailForm_incomeSourceOptionElement.size() > 1);
-                incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
-                incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
+//                await("incomeDetailForm_incomeSourceElement not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> incomeDetailForm_incomeSourceElement.isEnabled());
+//
+//                actions.moveToElement(incomeDetailForm_incomeSourceElement).click().build().perform();
+//                await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> incomeDetailForm_incomeSourceOptionElement.size() > 1);
+//                incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
+//                incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
 
                 incomeDetailForm_paymentModeElement.click();
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

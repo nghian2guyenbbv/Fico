@@ -125,9 +125,9 @@ public class DE_ReferencesPageNeo {
             _driver.findElement(By.id("customer_references_name_"+ index)).clear();
             _driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
 
-            WebElement relationship = _driver.findElement(By.id("customer_references_relationship_" + index + "_chzn"));
+            WebElement relationship = _driver.findElement(By.id("customer_references_relationship_" + index + "_chosen"));
             relationship.click();
-            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chzn_o_')]"));
+            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chosen_o_')]"));
             await("relationships loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> relationships.size() > 0);
             Utilities.chooseDropdownValue(data.getRelationShip(), relationships);
@@ -166,7 +166,7 @@ public class DE_ReferencesPageNeo {
         int index = 0;
         for (ReferenceDTO data : datas) {
             Utilities.checkInput(mapValue, "References_FullName_" + index, data.getFullName(), fullNameElement.get(index));
-            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chzn_o_')]"));
+            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chosen_o_')]"));
             Utilities.checkInput(mapValue, "References_Relationship_" + index, data.getRelationShip(), relationships);
             WebElement mobilePhoneElement = _driver.findElement(By.id("mobilenumber_" + index + "_phoneNumber"));
             Utilities.checkInput(mapValue, "References_MobilePhone_" + index, data.getMobilePhoneNumber(), mobilePhoneElement);

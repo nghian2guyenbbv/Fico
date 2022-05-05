@@ -72,6 +72,12 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
         createNewBankDetails.click();
 
         int index = 1;
+        if (_driver.findElement(By.xpath("//*[@id=\"bank_details_Table_body\"]//tr")).getAttribute("id") != null) {
+            String id = _driver.findElement(By.xpath("//*[@id=\"bank_details_Table_body\"]//tr")).getAttribute("id");
+            System.out.println(_driver.findElement(By.xpath("//*[@id=\"bank_details_Table_body\"]//tr")).getAttribute("id"));
+            index = Integer.parseInt(id.split("_")[1]);
+            System.out.println(index);
+        }
 
         int sizeTableBanks = tableBankDetails.size();
 
@@ -204,7 +210,6 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
                 WebElement var = deleteBankDetailsElement.get(i);
                 var.click();
             }
-            index = 1;
         }
         if (bankCreditCardDetailsDTO == null || bankCreditCardDetailsDTO.size() < 1){
             return;
@@ -214,7 +219,12 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
                 .until(() -> createNewBankDetails.isDisplayed());
 
         createNewBankDetails.click();
-
+        if (_driver.findElement(By.xpath("//*[@id=\"bank_details_Table_body\"]//tr")).getAttribute("id") != null) {
+            String id = _driver.findElement(By.xpath("//*[@id=\"bank_details_Table_body\"]//tr")).getAttribute("id");
+            System.out.println(_driver.findElement(By.xpath("//*[@id=\"bank_details_Table_body\"]//tr")).getAttribute("id"));
+            index = Integer.parseInt(id.split("_")[1]);
+            System.out.println(index);
+        }
         int sizeTableBanks = tableBankDetails.size();
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Table create new bank details visible timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -249,9 +259,10 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
             await("List BankName Element displayed timeout!").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(() -> sizeSelectBankName > 0);
 
+            JavascriptExecutor js = (JavascriptExecutor)_driver;
             for (WebElement e : selectBankNameOptionElement) {
                 if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getBankName().toUpperCase())) {
-                    e.click();
+                    js.executeScript(e.findElement(By.xpath("//*[@id='"+e.getAttribute("id")+"']/a")).getAttribute("onclick"));
                     break;
                 }
             }
@@ -278,7 +289,7 @@ public class DE_ApplicationInfoBankCreditCardDetailsTabNeo {
 
             for (WebElement e : selectBranchNameOptionElement) {
                 if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getBranchName().toUpperCase())) {
-                    e.click();
+                    js.executeScript(e.findElement(By.xpath("//*[@id='"+e.getAttribute("id")+"']/a")).getAttribute("onclick"));
                     break;
                 }
             }

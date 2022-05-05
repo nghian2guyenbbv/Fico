@@ -249,7 +249,7 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
         applicationFormNumberElement.clear();
         applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
-        List<WebElement> deleteLoanType = _driver.findElements(By.xpath("//*[contains(@id, 'loanApplication_type_chzn')]//*[contains(@class, 'search-choice-close')]"));
+        List<WebElement> deleteLoanType = _driver.findElements(By.xpath("//*[contains(@id, 'loanApplication_type_chosen')]//*[contains(@class, 'search-choice-close')]"));
         if (deleteLoanType != null && deleteLoanType.size() > 0){
             deleteLoanType.get(0).click();
             try {
@@ -263,11 +263,28 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanApplicationTypeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getLoanAppType(), loanApplicationTypeOptionElement);
-
-        schemeElement.click();
+        productNameElement.clear();
+        productNameElement.sendKeys(data.getProductName());
+        await("productNameOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> productNameOptionElement.size() > 0);
+        for(WebElement e: productNameOptionElement) {
+            if(!Objects.isNull(e.getAttribute("username")) && e.getAttribute("username").toUpperCase().equals(data.getProductName().toUpperCase())) {
+                e.click();
+                Utilities.captureScreenShot(_driver);
+                break;
+            }
+        }
+        schemeElement.clear();
+        schemeElement.sendKeys(data.getScheme());
         await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> schemeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+//        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+        for (WebElement e : schemeOptionElement) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getScheme().toUpperCase())) {
+                e.click();
+                break;
+            }
+        }
 
 //        //update them scheme
 //        schemeElement.click();
@@ -306,9 +323,16 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
         loanDetailPurposeElement.sendKeys(data.getLoadPurpose());
 
         salesAgentCodeElement.click();
+        salesAgentCodeElement.clear();
+        salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
         await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> salesAgentCodeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getSaleAgentCode(), salesAgentCodeOptionElement);
+        for (WebElement e : salesAgentCodeOptionElement) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getSaleAgentCode().toUpperCase())) {
+                e.click();
+                break;
+            }
+        }
     }
 
     public void validInOutData(Map<String, String> mapValue, String branch, String channel, String applicationNumber, String loanAppType,

@@ -237,7 +237,7 @@ public class DE_ApplicationInfoEmploymentDetailsTabNeo {
             //upddate lai cho nay, moi checkbox theoname cua occupation
             WebElement eaCheckElement =_driver.findElement(By.id("uniform-employment_detail_" + data.getOccupationType().toLowerCase() +"_address_check"));
             eaCheckElement.click();
-
+            _driver.findElement(By.id("emp_selected_address_row-0")).click();
             Utilities.captureScreenShot(_driver);
         } else {
             //companyTaxCodeElement.sendKeys("%%%");
@@ -322,6 +322,7 @@ public class DE_ApplicationInfoEmploymentDetailsTabNeo {
             employerName.sendKeys(data.getRemarks());
 
             employerAddressCheckElement.click();
+            _driver.findElement(By.id("emp_selected_address_row-0")).click();
         }
     }
 
@@ -379,6 +380,8 @@ public class DE_ApplicationInfoEmploymentDetailsTabNeo {
         }
 
         industryElement.click();
+        industryElement.clear();
+        industryElement.sendKeys(data.getIndustry());
         await("industryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> industryOptionElement.size() > 0);
         for (WebElement element : industryOptionElement) {

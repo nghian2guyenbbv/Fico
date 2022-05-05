@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -76,7 +77,7 @@ public class DE_MiscFrmAppDtlPageNeo {
     private List<WebElement> loanPurposeOptionElement;
 
     //update loanpurpose PRO
-    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chosen')]//*[contains(@class,'search-choice-close')]")
     @CacheLookup
     private List<WebElement> loanPurposeCloseElement;
 

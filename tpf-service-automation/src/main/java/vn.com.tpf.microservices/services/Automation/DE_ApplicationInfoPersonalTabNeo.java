@@ -209,13 +209,13 @@ public class DE_ApplicationInfoPersonalTabNeo {
     @FindBy(how = How.ID, using = "create_new")
     private WebElement btnCreateAnotherElement;
 
-    @FindBy(how = How.CLASS_NAME, using = "DedupeButton")
+    @FindBy(how = How.XPATH, using = "//*[@id='dedupeCheckButton']/button")
     private WebElement btnCheckDuplicateElement;
 
     @FindBy(how = How.ID, using = "dedupeCheckButton")
     private WebElement btnCheckDuplicateUpdateElement;
 
-    @FindBy(how = How.ID, using = "intMatchesNone")
+    @FindBy(how = How.ID, using = "noOfIntMatchesFound")
     private WebElement numDuplicateElement;
 
     // Communication Details
@@ -424,7 +424,17 @@ public class DE_ApplicationInfoPersonalTabNeo {
         loadIdentificationSection();
         await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> identificationDivElement.isDisplayed());
-        setIdentificationValue(applicationInfoDTO.getIdentification());
+
+        await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> deleteIdDetailElement.size() > 0);
+
+        for (int i=0; i<deleteIdDetailElement.size()-1; i++)
+        {
+            WebElement var = deleteIdDetailElement.get(i);
+            var.click();
+        }
+        btnAddIdentElement.click();
+        updateIdentificationValue(applicationInfoDTO.getIdentification(),deleteIdDetailElement.size()-1);
 
         loadAddressSection();
         await("Load addressGridElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -487,8 +497,10 @@ public class DE_ApplicationInfoPersonalTabNeo {
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
-
-        actions.moveToElement( this.btnCheckDuplicateElement).click().build().perform();
+        JavascriptExecutor js = (JavascriptExecutor)_driver;
+        System.out.println(_driver.findElement(By.xpath("//*[@id='dedupeCheckButton']/button")).getAttribute("onclick"));
+        js.executeScript(_driver.findElement(By.xpath("//*[@id='dedupeCheckButton']/button")).getAttribute("onclick"));
+//        actions.moveToElement( this.btnCheckDuplicateElement).click().build().perform();
 
         await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
@@ -1184,11 +1196,16 @@ public class DE_ApplicationInfoPersonalTabNeo {
                 .until(() -> nationalOptionElement.size() > 0);
         Utilities.chooseDropdownValue(applicationInfoDTO.getNational(), nationalOptionElement);
 
-        this.educationElement.click();
+        this.educationElement.clear();
+        this.educationElement.sendKeys(applicationInfoDTO.getEducation());
         await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> educationOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(applicationInfoDTO.getEducation(), educationOptionElement);
-
+        for (WebElement e : educationOptionElement) {
+            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(applicationInfoDTO.getEducation().toUpperCase())) {
+                e.click();
+                break;
+            }
+        }
 
         //Update Identification
         loadIdentificationSection();

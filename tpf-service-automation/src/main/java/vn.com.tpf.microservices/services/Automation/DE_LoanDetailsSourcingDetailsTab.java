@@ -225,7 +225,7 @@ public class DE_LoanDetailsSourcingDetailsTab {
         applicationFormNumberElement.clear();
         applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
-        List<WebElement> deleteLoanType = _driver.findElements(By.xpath("//*[contains(@id, 'loanApplication_type_chzn')]//*[contains(@class, 'search-choice-close')]"));
+        List<WebElement> deleteLoanType = _driver.findElements(By.xpath("//*[contains(@id, 'loanApplication_type_chosen')]//*[contains(@class, 'search-choice-close')]"));
         if (deleteLoanType != null && deleteLoanType.size() > 0){
             deleteLoanType.get(0).click();
             try {

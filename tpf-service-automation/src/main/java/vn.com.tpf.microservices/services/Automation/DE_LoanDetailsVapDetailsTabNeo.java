@@ -171,7 +171,7 @@ public class DE_LoanDetailsVapDetailsTabNeo {
         await("vapTreatmentElementOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> vapTreatmentOptionElement.size() > 0);
         for (WebElement element : vapTreatmentOptionElement) {
-            if (element.getAttribute("username").equals(data.getVapTreatment())) {
+            if (element.getText().equals(data.getVapTreatment())) {
                 element.click();
                 Utilities.captureScreenShot(_driver);
                 break;
