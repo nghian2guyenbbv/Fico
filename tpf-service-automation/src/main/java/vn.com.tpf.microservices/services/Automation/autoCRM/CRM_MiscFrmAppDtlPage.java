@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -19,12 +20,14 @@ import vn.com.tpf.microservices.models.Automation.MiscFrmAppDtlDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 
+@Slf4j
 @Getter
 public class CRM_MiscFrmAppDtlPage {
 
@@ -71,12 +74,12 @@ public class CRM_MiscFrmAppDtlPage {
 
     //PRO
     //production khac id
-    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+    @FindBy(how = How.XPATH, using = "//*[@id='loanpurpose_frmAppDtl_0_chosen']/ul")
     @CacheLookup
     private WebElement loanPurposeElement;
 
     //production khac
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chosen_o_')]")
     @CacheLookup
     private List<WebElement> loanPurposeOptionElement;
 
@@ -85,7 +88,7 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private List<WebElement> loanPurposeCloseElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chosen')]//input")
     @CacheLookup
     private WebElement loanPurposeInputElement;
 
@@ -101,11 +104,11 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement numberOfDependentsElement;
 
-    @FindBy(how = How.ID, using = "house_ownership_frmAppDtl_1_chzn")
+    @FindBy(how = How.ID, using = "house_ownership_frmAppDtl_1_chosen")
     @CacheLookup
     private WebElement houseOwnerShipElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'house_ownership_frmAppDtl_1_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'house_ownership_frmAppDtl_1_chosen_o_')]")
     @CacheLookup
     private List<WebElement> houseOwnerShipOptionElement;
 
@@ -168,7 +171,7 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement communicationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-small btn-primary']")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-sm btn-primary']")
     @CacheLookup
     private WebElement addCommunicationElement;
 
@@ -180,15 +183,15 @@ public class CRM_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement webPortalElement;
 
-    @FindBy(how = How.ID, using = "comm_status_chzn")
+    @FindBy(how = How.ID, using = "comm_status_chosen")
     @CacheLookup
     private WebElement leadStatusElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen_o_')]")
     @CacheLookup
     private List<WebElement> leadStatusOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen')]//input")
     @CacheLookup
     private WebElement leadStatusInputElement;
 
@@ -231,25 +234,44 @@ public class CRM_MiscFrmAppDtlPage {
     }
 
     public void setData(CRM_DynamicFormDTO data) {
-        await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
-        loanPurposeElement.click();
-        await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> loanPurposeOptionElement.size() > 0);
-        String[] listPurpose= data.getLoanPurpose().split(";");
+//        await("loanPurposeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> loanPurposeElement.isDisplayed() && loanPurposeElement.isEnabled());
+        //target: add loan purpose if not exists
 
-        if(listPurpose.length>0)
-        {
+        String[] listPurpose;
+        // get list loan Purpose current
+        List<String> lNameCurPurpose = new ArrayList<>();
+        List<WebElement> getLoanCur = _driver.findElements(By.cssSelector("#loanpurpose_frmAppDtl_0_chosen > ul > li > span"));
+        if(!getLoanCur.isEmpty()){
+            for (WebElement e : getLoanCur){
+                lNameCurPurpose.add(e.getText());
+            }
+        }
 
-            for(String loanPurpose : listPurpose){
-                loanPurposeInputElement.sendKeys(loanPurpose);
-                loanPurposeInputElement.sendKeys(Keys.ENTER);
-                Utilities.captureScreenShot(_driver);
+        // get list customer input
+        if(data.getLoanPurpose().indexOf(";") > 0){
+            listPurpose = data.getLoanPurpose().split(";");
+        }else{
+            if(!data.getLoanPurpose().equals("")){
+                listPurpose = new String[]{data.getLoanPurpose()};
+            }else{
+                listPurpose = new String[]{};
             }
 
         }
-
-
+        if(listPurpose.length > 0){
+            for (String item : listPurpose){
+                if(!lNameCurPurpose.contains(item)){
+                    loanPurposeInputElement.click();
+                    await("loanPurposeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> loanPurposeOptionElement.size() > 0);
+                    loanPurposeInputElement.clear();
+                    loanPurposeInputElement.sendKeys(item.toUpperCase());
+                    loanPurposeInputElement.sendKeys(Keys.ENTER);
+                }
+            }
+        }
+        Utilities.captureScreenShot(_driver);
         numberOfDependentsElement.clear();
         numberOfDependentsElement.sendKeys(data.getNumberOfDependents());
 
@@ -369,17 +391,13 @@ public class CRM_MiscFrmAppDtlPage {
                 .until(() -> textSelectContactedByOptionElement.size() > 0);
 
         for (WebElement e : textSelectContactedByOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(addedByElement.getAttribute("value"))) {
-                e.click();
-                break;
-            }
+            e.click();
         }
 
         actions.moveToElement(leadStatusElement).click().build().perform();
         await("leadStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> leadStatusOptionElement.size() > 0);
-        leadStatusInputElement.sendKeys("NA");
-        leadStatusInputElement.sendKeys(Keys.ENTER);
+        Utilities.chooseDropdownValue("NA", leadStatusOptionElement);
         Utilities.captureScreenShot(_driver);
 
         leadResponseElement.sendKeys(communication);

@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 
+@Slf4j
 @Getter
 public class CRM_DocumentsPage {
     private WebDriver _driver;
@@ -37,7 +39,7 @@ public class CRM_DocumentsPage {
     @CacheLookup
     private WebElement tabDocumentsElement;
 
-    @FindBy(how = How.ID, using = "document")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'documentContent')]")
     @CacheLookup
     private WebElement documentsContainerElement;
 
@@ -53,11 +55,12 @@ public class CRM_DocumentsPage {
     @CacheLookup
     private List<WebElement> lendingTrElement;
 
-    @FindBy(how = How.XPATH, using = "//select[contains(@id, 'applicationDocument_receiveState')]")
+//    @FindBy(how = How.XPATH, using = "//select[contains(@id, 'applicationDocument_receiveState')]")
+    @FindBy(how = How.XPATH, using = "//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']")
     @CacheLookup
-    private List<WebElement> lendingStatusElement;
+    private WebElement lendingStatusElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'receivedapplicationDocument_receiveState')]")
+    @FindBy(how = How.XPATH, using = "//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']//option")
     @CacheLookup
     private List<WebElement> lendingPhotoContainerElement;
 
@@ -74,7 +77,7 @@ public class CRM_DocumentsPage {
     @CacheLookup
     private WebElement lendingDocumentsTable_wrapperElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'applicationDocument_name')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@data-type, 'docnode')]")
     @CacheLookup
     private List<WebElement> docNameElement;
 
@@ -88,70 +91,72 @@ public class CRM_DocumentsPage {
     }
 
     public void setData(List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL) throws IOException, InterruptedException {
-        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
-        await("lendingDocumentsTable_wrapperElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(()->lendingDocumentsTable_wrapperElement.isDisplayed());
-
         String fromFile = downLoadFileURL;
-        System.out.println("URLdownload: " + fromFile);
+        System.out.println("URL get File: " + fromFile);
 
-        int index = 0;
-        List<String> requiredFiled = Arrays.asList(
-                "TPF_Application cum Credit Contract (ACCA)","TPF_ID Card","TPF_Notarization of ID card","TPF_Family Book",
-                "TPF_Notarization of Family Book","TPF_Customer Photograph","TPF_Customer Signature",
-                "TPF_Health Insurance Card","TPF_Banking Statement","TPF_Employer Confirmation","TPF_Labor Contract",
-                "TPF_Salary slip","TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Electricity bills",
-                "TPF_Water bill","TPF_Map to Customer House","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
-                "TPF_Salary_SMS_Banking","TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card",
-                "TPF_Collab document","TPF_Internet bills","TPF_Phone bills","TPF_Cable TV bills","TPF_Credit contract documentations",
-                "TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac","TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon",
-                "TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
-                "TPF_ Confirm_student_Information","TPF_ Confirm_student_Infomation","TPF_Confirm_student_infomation",
-                "TPF_Confirm_student_Infomation","TPF_Confirm_student_information","TPF_Confirm_student_Information",
-                "TPF_Offer_Letter","TPF_Diploma","TPF_Transcript","TPF_Representatives","TPF_Representatives ",
-                "TPF_Student_Portal_Login_Photo","TPF_Insurance Bill","TPF_Insurance_Bill","TPF_Insurance Contract",
-                "TPF_Insurance_Contract","TPF_student_Card","TPF_School_Confirmation","TPF_student_ID_Card",
-                "TPF_Screenshot_Customer_Info_TPBank_Mobile_App"
-        );
+        List<String> requiredFiled = new ArrayList<>();
+        if(documentDTOS.size() > 0){
+            documentDTOS.stream().forEach(doc -> {
+                requiredFiled.add(doc.getType());
+            });
+        }
         Utilities.captureScreenShot(_driver);
-
+        Thread.sleep(5000);
         for (WebElement element : docNameElement) {
-            final int _tempIndex = index;
             String docName = element.getText();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+            log.info("docName: {}",docName);
             if (requiredFiled.contains(docName)) {
+                await("Show document Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() ->  element.isDisplayed());
+                element.click();
+                Thread.sleep(2000);
 
-                String finalDocName = docName;
-                CRM_DocumentsDTO doc=documentDTOS.stream().filter(q->q.getType().equals(finalDocName)).findAny().orElse(null);
+                String finalDocName  = docName;
+                CRM_DocumentsDTO doc = documentDTOS.stream().filter(q->q.getType().equals(finalDocName)).findAny().orElse(null);
 
                 if(doc!=null)
                 {
-                    //bo sung get ext file
-                    String ext=FilenameUtils.getExtension(doc.getFilename());
-
+                    String ext = FilenameUtils.getExtension(doc.getFilename());
                     if ("TPF_Transcript".equals(docName)){
                         docName = "TPF_Tran1";
                     }
-
                     toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
-
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if(file.exists()) {
                         String photoUrl = file.getAbsolutePath();
                         System.out.println("PATH:" + photoUrl);
                         Thread.sleep(2000);
-                        new Select(lendingStatusElement.get(index)).selectByVisibleText("Received");
+
+                        lendingStatusElement.click();
+
                         await("Load lendingPhotoContainerElement Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(() ->  lendingPhotoContainerElement.get(_tempIndex).isDisplayed());
-                        photoElement.get(_tempIndex).sendKeys(photoUrl);
+                                .until(() ->  lendingPhotoContainerElement.size() != 0);
+                        for (WebElement e : lendingPhotoContainerElement){
+                            if(e.getText().equals("Received")){
+                                e.click();
+                            }
+                        }
+                        if(!_driver.findElement(By.xpath("//li[contains(@class,'imageBox add_more_box')]")).isDisplayed()){
+                            WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
+                            await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() ->  editViewDoc.isDisplayed());
+                            editViewDoc.click();
+                        }
+                        _driver.findElement(By.xpath("//*[@id='document_viewer_mp']//input[contains(@class,'input_images')]")).sendKeys(photoUrl);
+
+                        WebElement saveDoc = _driver.findElement(By.id("dv_documentSave"));
+                        saveDoc.click();
+                        await("dv_documentSave Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() ->  !saveDoc.isDisplayed());
+
                         Utilities.captureScreenShot(_driver);
                     }
                 }
             }
-            index++;
         }
-
+        _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]")).click();
         Utilities.captureScreenShot(_driver);
 
     }

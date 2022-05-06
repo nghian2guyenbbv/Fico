@@ -41,7 +41,7 @@ public class CRM_ReferencesPage {
     @CacheLookup
     private WebElement btnCreateNewRowElement;
 
-    @FindBy(how = How.XPATH, using = "//button[@class='saveBtnHkeys btn btn-primary']")
+    @FindBy(how = How.XPATH, using = "//*[@id='container-no-tpl']/div/div[6]/button[1]")
     @CacheLookup
     private WebElement saveBtnElement;
 
@@ -63,41 +63,38 @@ public class CRM_ReferencesPage {
 
         await("tableReferencesElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tableReferencesElement.isDisplayed());
-
-        int index = 0;
-        for (CRM_ReferencesListDTO data : datas) {
-            _driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
-
-            WebElement relationship = _driver.findElement(By.id("customer_references_relationship_" + index + "_chzn"));
-            relationship.click();
-            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chzn_o_')]"));
-            await("relationships loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> relationships.size() > 0);
-            Utilities.chooseDropdownValue(data.getRelationShip(), relationships);
-
-            WebElement mobilePhone = _driver.findElement(By.id("mobilenumber_" + index + "_phoneNumber"));
-            mobilePhone.sendKeys(data.getMobilePhoneNumber());
-
-            //update them nhap primary phone
-//            if(data.getPriNumber()!=null&&!StringUtils.isEmpty(data.getPriNumber()))
-//            {
-//                WebElement priNumber = _driver.findElement(By.id("phoneNumber_phoneNumber_" + index));
-//                priNumber.sendKeys(data.getPriNumber());
-//
-//                WebElement stdNumber = _driver.findElement(By.id("stdCode_phoneNumber_" + index));
-//                stdNumber.sendKeys(data.getPriStd());
-//
-//                WebElement extNumber = _driver.findElement(By.id("extension_phoneNumber_" + index));
-//                extNumber.sendKeys(data.getPriExt());
-//            }
-
-            if (index < datas.size() - 1) {
+        int totalRows = _driver.findElements(By.xpath("//tbody[contains(@id,'referenceDetailList')]//tr")).size() > 0 ? _driver.findElements(By.xpath("//tbody[contains(@id,'referenceDetailList')]//tr")).size() : 0;
+        boolean isContinude = false;
+        if(totalRows < datas.size()){
+            for(int x = 0; x < datas.size() - totalRows; x++){
+                //add row if datas > totalRows current
                 await("Btn Add Reference not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> btnCreateNewRowElement.isEnabled());
                 btnCreateNewRowElement.click();
             }
-            index++;
+            isContinude = true;
         }
+        if(totalRows >= datas.size() || isContinude){
+            int index = 0;
+            for (CRM_ReferencesListDTO data : datas) {
+                _driver.findElement(By.id("customer_references_name_"+ index)).clear();
+                _driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
+
+                WebElement relationship = _driver.findElement(By.xpath("//div[@id='customer_references_relationship_" + index + "_chosen']"));
+                relationship.click();
+                List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chosen_o_')]"));
+
+                await("relationships loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> relationships.size() > 0);
+                Utilities.chooseDropdownValue(data.getRelationShip(), relationships);
+
+                WebElement mobilePhone = _driver.findElement(By.id("mobilenumber_" + index + "_phoneNumber"));
+                mobilePhone.clear();
+                mobilePhone.sendKeys(data.getMobilePhoneNumber());
+                index++;
+            }
+        }
+
     }
 
     public void updateData(List<CRM_ReferencesListDTO> datas) throws IOException {

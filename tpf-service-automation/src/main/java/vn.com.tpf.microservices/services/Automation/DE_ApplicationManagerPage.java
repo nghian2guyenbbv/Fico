@@ -50,7 +50,7 @@ public class DE_ApplicationManagerPage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//li[contains(@class,'application-column-loan')]//span[contains(text(),'Applications')]")
@@ -72,8 +72,6 @@ public class DE_ApplicationManagerPage {
     }
 
     public void setData(String appId,String user) {
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationManagerFormElement.isDisplayed());
 
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
@@ -105,10 +103,8 @@ public class DE_ApplicationManagerPage {
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserOptionElement.size() > 0);
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();

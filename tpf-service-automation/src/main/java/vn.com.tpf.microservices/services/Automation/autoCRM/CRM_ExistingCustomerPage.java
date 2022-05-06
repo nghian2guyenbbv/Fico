@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import lombok.Getter;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -120,7 +121,7 @@ public class CRM_ExistingCustomerPage {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
-    @FindBy(how = How.ID, using = "menuidsapplications")
+    @FindBy(how = How.ID, using = "menuClick")
     @CacheLookup
     private WebElement applicationMenu;
 
@@ -128,11 +129,15 @@ public class CRM_ExistingCustomerPage {
     @CacheLookup
     private WebElement applicationMenuGrid;
 
+    @FindBy(how = How.ID, using = "menuidsapplications")
+    @CacheLookup
+    private WebElement applicationMainMenu;
+
     @FindBy(how = How.ID, using = "menuidsapplicationGridView")
     @CacheLookup
     private WebElement applicationMenuGridView;
 
-    @FindBy(how = How.CLASS_NAME, using = "imageLinked")
+    @FindBy(how = How.CLASS_NAME, using = "innerMenuContainer")
     @CacheLookup
     private WebElement quickLead;
 
@@ -140,7 +145,7 @@ public class CRM_ExistingCustomerPage {
     @CacheLookup
     private WebElement createApplication;
 
-    @FindBy(how = How.ID, using = "menuidsPersonalloan")
+    @FindBy(how = How.XPATH, using = "//*[@id=\"menuidsPersonalloan  \"]")
     @CacheLookup
     private WebElement applicationMenuGridPersonalLoan;
 
@@ -150,10 +155,20 @@ public class CRM_ExistingCustomerPage {
 
     public void application_personal_Click() {
         this.applicationMenu.click();
-        await("quickLead visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> quickLead.isDisplayed());
+//        await("quickLead visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> quickLead.isDisplayed());
+        this.applicationMainMenu.click();
         this.applicationMenuGrid.click();
         this.applicationMenuGridPersonalLoan.click();
+
+    }
+    public void applications_Click() {
+        this.applicationMenu.click();
+//        await("quickLead visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> quickLead.isDisplayed());
+        this.applicationMainMenu.click();
+        this.applicationMenuGrid.click();
+        this.applicationMenuGridView.click();
 
     }
 

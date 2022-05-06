@@ -64,13 +64,13 @@ public class ApplicationManagerPage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//li[contains(@class,'application-column-loan')]//span[contains(text(),'Applications')]")
     private WebElement applicationElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input")
     private WebElement applicationAssignedNumberElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
@@ -96,9 +96,9 @@ public class ApplicationManagerPage {
                 .until(() -> showTaskElement.isDisplayed());
 
         await("Stage SALES_QUEUE wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> "SALES_QUEUE".equals(tdCheckStageApplicationElement.getText()));
+                .until(() -> "SALES QUEUE".equals(tdCheckStageApplicationElement.getText()));
 
-        if (!"SALES_QUEUE".equals(tdCheckStageApplicationElement.getText())){
+        if (!"SALES QUEUE".equals(tdCheckStageApplicationElement.getText())){
             return;
         }
 
@@ -122,16 +122,13 @@ public class ApplicationManagerPage {
         await("Select user visibale!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        int textSelectUserList = textSelectUserOptionElement.size();
 
         await("User Auto not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserList > 0);
+                .until(() -> textSelectUserOptionElement.size() > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
@@ -147,7 +144,6 @@ public class ApplicationManagerPage {
 
         applicationNumberElement.sendKeys(appId);
         searchApplicationElement.click();
-
         await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdApplicationElement.size() > 0);
 
@@ -173,16 +169,12 @@ public class ApplicationManagerPage {
         await("Select user visibale!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        int sizeSelectUserOptionElement = textSelectUserOptionElement.size();
-
         await("User Auto not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> sizeSelectUserOptionElement > 0);
+                .until(() -> textSelectUserOptionElement.size() > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
 
         Utilities.captureScreenShot(_driver);
@@ -213,16 +205,13 @@ public class ApplicationManagerPage {
         await("Select user visibale!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserContainerElement.isDisplayed());
 
-        int sizeSelectUserOptionElement = textSelectUserOptionElement.size();
 
         await("User Auto not found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> sizeSelectUserOptionElement > 0);
+                .until(() -> textSelectUserOptionElement.size() > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();

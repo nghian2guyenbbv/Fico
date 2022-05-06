@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -44,11 +45,11 @@ public class CRM_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private List<WebElement> branchOptionElement;
 
-    @FindBy(how = How.ID, using = "channelId_chzn")
+    @FindBy(how = How.ID, using = "channelId_chosen")
     @CacheLookup
     private WebElement channelElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'channelId_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'channelId_chosen_o_')]")
     @CacheLookup
     private List<WebElement> channelOptionElement;
 
@@ -56,27 +57,27 @@ public class CRM_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private WebElement applicationFormNumberElement;
 
-    @FindBy(how = How.ID, using = "loanApplication_type_chzn")
+    @FindBy(how = How.ID, using = "loanApplication_type_chosen")
     @CacheLookup
     private WebElement loanApplicationTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanApplication_type_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanApplication_type_chosen_o_')]")
     @CacheLookup
     private List<WebElement> loanApplicationTypeOptionElement;
 
-    @FindBy(how = How.ID, using = "loan_product_chzn")
+    @FindBy(how = How.ID, using = "Text_loan_product")
     @CacheLookup
     private WebElement productNameElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loan_product_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_loan_product0a')]")
     @CacheLookup
     private List<WebElement> productNameOptionElement;
 
-    @FindBy(how = How.ID, using = "scheme_chzn")
+    @FindBy(how = How.ID, using = "Text_scheme")
     @CacheLookup
     private WebElement schemeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'scheme_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_scheme0')]")
     @CacheLookup
     private List<WebElement> schemeOptionElement;
 
@@ -92,15 +93,15 @@ public class CRM_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private WebElement rateElement;
 
-    @FindBy(how = How.ID, using = "sourcingRM_chzn")
+    @FindBy(how = How.ID, using = "Text_sourcingRM")
     @CacheLookup
     private WebElement salesAgentCodeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'sourcingRM_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_sourcingRM0a')]")
     @CacheLookup
     private List<WebElement> salesAgentCodeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//button[@class='btn btn-mini btn-primary saveAndNextSourcingDetail']")
+    @FindBy(how = How.XPATH, using = "//button[@class='btn btn-xs btn-primary saveAndNextSourcingDetail']")
     @CacheLookup
     private WebElement btnSaveAndNextElement;
 
@@ -140,16 +141,16 @@ public class CRM_LoanDetailsSourcingDetailsTab {
             branchElement.clear();
             branchElement.sendKeys(data.getSourcingBranch());
 
-            await("branchContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> branchContainerElement.isDisplayed());
+//            await("branchContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> branchContainerElement.isDisplayed());
+
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchOptionElement.size() > 0);
+
             for(WebElement e: branchOptionElement) {
-                if(!Objects.isNull(e.getAttribute("title")) && e.getAttribute("title").equals(data.getSourcingBranch().toUpperCase())) {
-                    e.click();
-                    Utilities.captureScreenShot(_driver);
-                    break;
-                }
+                e.click();
+                Utilities.captureScreenShot(_driver);
+                break;
             }
         }
         channelElement.click();
@@ -165,15 +166,22 @@ public class CRM_LoanDetailsSourcingDetailsTab {
                 .until(() -> loanApplicationTypeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getLoanApplicationType(), loanApplicationTypeOptionElement);
 
-        productNameElement.click();
+        productNameElement.clear();
+        productNameElement.sendKeys(data.getProductCode().toUpperCase());
         await("productNameOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> productNameOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getProductCode().toUpperCase(), productNameOptionElement);
-
-        schemeElement.click();
+        for (WebElement e : productNameOptionElement) {
+            e.click();
+            break;
+        }
+        schemeElement.clear();
+        schemeElement.sendKeys(data.getSchemeCode().toUpperCase());
         await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> schemeOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(data.getSchemeCode().toUpperCase(), schemeOptionElement);
+        for (WebElement e : schemeOptionElement) {
+            e.click();
+            break;
+        }
 
         Utilities.checkValueSendkey(data.getLoanAmountRequested(),loanAmountElement);
 
@@ -185,31 +193,33 @@ public class CRM_LoanDetailsSourcingDetailsTab {
 
         // default value is 6
         //sua sang 60s , hay bi timeout cho nay
-        await("loanTermElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> StringUtils.isNotEmpty(loanTermElement.getAttribute("value")));
+//        await("loanTermElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> StringUtils.isNotEmpty(loanTermElement.getAttribute("value")));
 
-        loanTermElement.clear();
-
-        loanTermElement.sendKeys(data.getRequestedTenure());
-
-        Utilities.captureScreenShot(_driver);
+//        loanTermElement.clear();
+//
+//        loanTermElement.sendKeys(data.getRequestedTenure());
+//
+//        Utilities.captureScreenShot(_driver);
 
         //sua sang 60s , hay bi timeout cho nay
-        await("rateElement loading timeout").atMost(60, TimeUnit.SECONDS)
-                .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
+//        await("rateElement loading timeout").atMost(60, TimeUnit.SECONDS)
+//                .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
 
-        rateElement.clear();
 
-        rateElement.sendKeys(data.getInterestRate());
+//        rateElement.clear();
+//        rateElement.sendKeys(data.getInterestRate());
 
         Utilities.captureScreenShot(_driver);
 
-        salesAgentCodeElement.click();
-
+        salesAgentCodeElement.clear();
+        salesAgentCodeElement.sendKeys(data.getSaleAgentCode());
         await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> salesAgentCodeOptionElement.size() > 0);
-
-        Utilities.chooseDropdownValue(data.getSaleAgentCode(), salesAgentCodeOptionElement);
+        for (WebElement e : salesAgentCodeOptionElement) {
+            e.click();
+            break;
+        }
     }
 
     public void updateData(CRM_SourcingDetailsDTO data) {

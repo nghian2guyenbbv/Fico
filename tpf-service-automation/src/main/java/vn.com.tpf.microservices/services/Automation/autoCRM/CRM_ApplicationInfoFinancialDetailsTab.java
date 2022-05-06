@@ -54,19 +54,19 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
     @CacheLookup
     private WebElement childModalIncomeDetailInlineGridElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chzn')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chosen')]")
     private WebElement incomeDetailForm_incomeSourceElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chosen_o_')]")
     private List<WebElement> incomeDetailForm_incomeSourceOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_incomeSource_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chosen')]//input")
     private WebElement incomeDetailForm_incomeSourceInputElement;
 
-    @FindBy(how = How.ID, using = "incomeDetailForm_paymentMode_chzn")
+    @FindBy(how = How.ID, using = "incomeDetailForm_paymentMode_chosen")
     private WebElement incomeDetailForm_paymentModeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chosen_o_')]")
     private List<WebElement> incomeDetailForm_paymentModeOptionElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chzn')]//input")
@@ -97,13 +97,13 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
     public void setIncomeDetailsData(CRM_FinancialDetailsDTO data) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
         int index = 0;
         final int _index = index;
-        int size=trElements.size();
+        int size= trElements.size();
         await("IncomeDetails Tr container not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> trElements.size() > 2);
 
-        WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + index + "_chzn"));
+        WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + index + "_chosen"));
         incomeHead.click();
-        List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + index + "_chzn_o_')]"));
+        List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + index + "_chosen_o_')]"));
         for (WebElement element : incomeHeads) {
             if (element.getText().equals(data.getIncomeExpense())) {
                 element.click();
@@ -111,9 +111,9 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
             }
         }
 
-        WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + index + "_chzn"));
+        WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + index + "_chosen"));
         frequency.click();
-        List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + index + "_chzn_o_')]"));
+        List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + index + "_chosen_o_')]"));
         for (WebElement element : frequencys) {
             if (element.getText().equals(data.getFrequency())) {
                 element.click();
@@ -143,19 +143,20 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
             actions.moveToElement(incomeDetailForm_incomeSourceElement).click().build().perform();
             await("incomeDetailForm_incomeSourceOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> incomeDetailForm_incomeSourceOptionElement.size() > 1);
-            incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
-            incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
 
+            Utilities.chooseDropdownValue(data.getDayOfSalaryPayment(),incomeDetailForm_incomeSourceOptionElement);
+
+//            incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
+//            incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
             Utilities.captureScreenShot(_driver);
-            incomeDetailForm_paymentModeElement.click();
-
-            await("incomeDetailForm_paymentModeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-
-                    .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
-            incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
-            incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
-
-            Utilities.captureScreenShot(_driver);
+           // incomeDetailForm_paymentModeElement.click();
+//            await("incomeDetailForm_paymentModeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//
+//                    .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
+//            incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
+//            incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
+//
+//            Utilities.captureScreenShot(_driver);
 
             childModalWindowDoneButtonIncomeDetailInlineGridElement.click();
             Thread.sleep(3000);

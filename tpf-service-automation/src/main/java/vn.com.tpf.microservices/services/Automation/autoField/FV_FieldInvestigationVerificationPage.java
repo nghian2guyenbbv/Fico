@@ -14,8 +14,10 @@ import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.Select;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldAttachmentDTO;
 import vn.com.tpf.microservices.models.AutoField.SubmitFieldDTO;
+import vn.com.tpf.microservices.services.Automation.SearchMenu;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
@@ -100,40 +102,40 @@ public class FV_FieldInvestigationVerificationPage {
     @FindBy(how = How.XPATH, using = "//table[@id = 'fieldInvestigationEntryTable']//tbody//tr//td")
     private List<WebElement> fieldInvestigationEntryTable;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'fieldInvestigationEntryTable_filter']//input[@type = 'text']")
+    @FindBy(how = How.XPATH, using = "//*[@id='fieldInvestigationEntryTable_filter']/label/input")
     private WebElement appIdSearchInput;
 
     @FindBy(how = How.XPATH, using = "//table[@id ='fieldInvestigationEntryTable']//tbody//tr[1]//td[2]//a[contains(text(),'Residence Verification')]")
     private WebElement residenceVerificationTd;
 
-    @FindBy(how = How.XPATH, using = "//div[starts-with(@id, 'miscDynamicForm')]//div[starts-with(@id, 'loanInfo_miscDynamicForm_')]//div[@id = 'accordion_advSearch']")
+    @FindBy(how = How.XPATH, using = "//*[@id='neutrino-main-content']")
     private WebElement fieldVerificationElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_Residence_Verification_')]//div[@class = 'chzn-search']//input[@type = 'text']")
+    @FindBy(how = How.XPATH, using = "//*[@id='Result_home_visit_Residence_Verification_1_chosen']/div/div/input")
     private WebElement resultHomeVisitInput;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_Residence_Verification_')]//ul[@class = 'chzn-results']")
+    @FindBy(how = How.XPATH, using = "//*[@id='Result_home_visit_Residence_Verification_1_chosen']/div")
     private WebElement resultHomeVisitUl;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_Residence_Verification_')]//ul[@class = 'chzn-results']//li[starts-with(@id, 'Result_home_visit_Residence_Verification_1_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Result_home_visit_Residence_Verification_1_chosen_o_')]")
     private List<WebElement> resultHomeVisitSelect;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_office_visit_Residence_Verification_')]//div[@class = 'chzn-search']//input[@type = 'text']")
+    @FindBy(how = How.XPATH, using = "//*[@id='Result_office_visit_Residence_Verification_5_chosen']/div/div/input")
     private WebElement resultOfficeVisitInput;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_office_visit_Residence_Verification_')]//ul[@class = 'chzn-results']")
+    @FindBy(how = How.XPATH, using = "//*[@id='Result_office_visit_Residence_Verification_5_chosen']/div")
     private WebElement resultOfficeVisitUl;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_office_visit_Residence_Verification_')]//ul[@class = 'chzn-results']//li[starts-with(@id, 'Result_office_visit_Residence_Verification_2_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Result_office_visit_Residence_Verification_5_chosen_o_')]")
     private List<WebElement> resultOfficeVisitSelect;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_2_Residence_Verification_')]//div[@class = 'chzn-search']//input[@type = 'text']")
+    @FindBy(how = How.XPATH, using = "//*[@id='Result_home_visit_2_Residence_Verification_3_chosen']/div/div/input")
     private WebElement resultHomeVisit2Input;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_2_Residence_Verification_')]//ul[@class = 'chzn-results']")
+    @FindBy(how = How.XPATH, using = "//*[@id='Result_home_visit_2_Residence_Verification_3_chosen']/div")
     private WebElement resultHomeVisit2Ul;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'genericForm_Residence_Verification-field-form']//div[starts-with(@id, 'Result_home_visit_2_Residence_Verification_')]//ul[@class = 'chzn-results']//li[starts-with(@id, 'Result_home_visit_2_Residence_Verification_3_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Result_home_visit_2_Residence_Verification_3_chosen_o_')]")
     private List<WebElement> resultHomeVisit2Select;
 
     @FindBy(how = How.XPATH, using = "//a[@id = 'addAttachment']")
@@ -142,13 +144,13 @@ public class FV_FieldInvestigationVerificationPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'noOfAttempts-control-group']//input[@id = 'noOfAttempts']")
     private WebElement noOfAttemptsInput;
 
-    @FindBy(how = How.XPATH, using = "//form[@id = 'field_investigation_entry']//div[1]//div[2]//div[@id = 'field_investigation_entry_verification_agent-control-group']//div[@id = 'field_investigation_entry_verification_agent_chzn']//input[@type = 'text']")
+    @FindBy(how = How.XPATH, using = "//*[@id='field_investigation_entry_verification_agent_chosen']/div/div/input")
     private WebElement verificationAgentInputElement;
 
-    @FindBy(how = How.XPATH, using = "//div[@id='field_investigation_entry_verification_agent_chzn']//ul[@class='chzn-results']")
+    @FindBy(how = How.XPATH, using = "//*[@id='field_investigation_entry_verification_agent_chosen']/div")
     private WebElement verificationAgentUlElement;
 
-    @FindBy(how = How.XPATH, using = "//li[starts-with(@id, 'field_investigation_entry_verification_agent_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'field_investigation_entry_verification_agent_chosen_o_')]")
     private List<WebElement> verificationAgentLiElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'field_investigation_entry_verification_agent_chzn']//li[starts-with(@class, 'active-result')]")
@@ -160,7 +162,7 @@ public class FV_FieldInvestigationVerificationPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'field_investigation_entry_remarks-control-group']//textarea[@id = 'field_investigation_entry_remarks']")
     private WebElement remarksDescriptionTextArea;
 
-    @FindBy(how = How.XPATH, using = "//input[@id = 'move_to_next_stage']")
+    @FindBy(how = How.XPATH, using = "//*[@id='move_to_next_stage_fiv']")
     private WebElement buttonSaveAndProceed;
 
     @FindBy(how = How.XPATH, using = "//input[@name = 'timeOfVisit']")
@@ -183,63 +185,65 @@ public class FV_FieldInvestigationVerificationPage {
         ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         Actions actions = new Actions(_driver);
 
-        menuApplicationElement.click();
+//        menuApplicationElement.click();
+//
+//        fiAllocationGridElement.click();
+//
+//
+//        await("FI Entries Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(_driver::getTitle, is("FI Entries Grid"));
+//
+//        Utilities.captureScreenShot(_driver);
+//
+//        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> fiAllocationGridFormElement.isDisplayed());
+//
+//        fiAllocationGridApplicationNumberElement.sendKeys(submitFieldDTO.getAppId());
+//        searchFIAllocationGridElement.click();
+//
+//        await("Application FIAllocationGrid not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> fiAllocationGridTable.size() > 2);
+//
+//        Utilities.captureScreenShot(_driver);
+//
+//
+//        assignToFIAllocationGridElement.click();
+//
+//        await("Popup FIAllocationGrid visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> popupFIAllocationGridElement.isDisplayed());
+//
+//        inputSearchFIAllocationGridElement.sendKeys(accountAuto);
+//
+//        await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> tableSearchFIAllocationGridElement.size() > 2);
+//
+//        selectFIAllocationGridElement.click();
+//
+//        await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> spanSelectUserElement.isDisplayed());
+//
+//        with().pollInterval(Duration.FIVE_SECONDS).await("Button Done FI Allocation Grid Element visibale Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> doneButtonFIAllocationGridElement.isEnabled());
+//
+//        actions.moveToElement(doneButtonFIAllocationGridElement).click().build().perform();
+//
+//        System.out.println("Done Button FI Allocation Grid Click" + ": DONE");
+//
+//        System.out.println("FI ALLOCATION GRID Assigned" + ": DONE");
+//
+//        Utilities.captureScreenShot(_driver);
+//
+//        with().pollDelay(Duration.FIVE_SECONDS).await("FI ALLOCATION GRID Assigned Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> menuApplicationElement.isEnabled());
 
-        fiAllocationGridElement.click();
-
-
-        await("FI Entries Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("FI Entries Grid"));
-
-        Utilities.captureScreenShot(_driver);
-
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> fiAllocationGridFormElement.isDisplayed());
-
-        fiAllocationGridApplicationNumberElement.sendKeys(submitFieldDTO.getAppId());
-        searchFIAllocationGridElement.click();
-
-        await("Application FIAllocationGrid not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> fiAllocationGridTable.size() > 2);
-
-        Utilities.captureScreenShot(_driver);
-
-
-        assignToFIAllocationGridElement.click();
-
-        await("Popup FIAllocationGrid visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> popupFIAllocationGridElement.isDisplayed());
-
-        inputSearchFIAllocationGridElement.sendKeys(accountAuto);
-
-        await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> tableSearchFIAllocationGridElement.size() > 2);
-
-        selectFIAllocationGridElement.click();
-
-        await("Account not found!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> spanSelectUserElement.isDisplayed());
-
-        with().pollInterval(Duration.FIVE_SECONDS).await("Button Done FI Allocation Grid Element visibale Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> doneButtonFIAllocationGridElement.isEnabled());
-
-        actions.moveToElement(doneButtonFIAllocationGridElement).click().build().perform();
-
-        System.out.println("Done Button FI Allocation Grid Click" + ": DONE");
-
-        System.out.println("FI ALLOCATION GRID Assigned" + ": DONE");
-
-        Utilities.captureScreenShot(_driver);
-
-        with().pollDelay(Duration.FIVE_SECONDS).await("FI ALLOCATION GRID Assigned Timeout!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> menuApplicationElement.isEnabled());
-
-        menuApplicationElement.click();
-
-        fieldInvestigationVerificationElement.click();
+        SearchMenu goToFIV = new SearchMenu(_driver);
+        goToFIV.MoveToPage(Constant.MENU_NAME_LINK_FIV);
 
         await("fieldInvestigationEntryTable visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fieldInvestigationEntryElement.isDisplayed());
+
+        await("FI Entries Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("FI Entries Grid"));
 
         appIdSearchInput.clear();
         appIdSearchInput.sendKeys(submitFieldDTO.getAppId());
@@ -255,59 +259,64 @@ public class FV_FieldInvestigationVerificationPage {
             List<WebElement> residenceVerificationTds =_driver.findElements(new By.ByXPath("//table[@id='fieldInvestigationEntryTable']//tbody//tr//td[3][contains(text(),'" + submitFieldDTO.getAppId() + "')]"));
             await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> residenceVerificationTds.size() > 0);
-            if (residenceVerificationTds.size()!=0){
-                await("Residence Verification visibale timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> residenceVerificationTd.isDisplayed());
-                residenceVerificationTd.click();
-            }
+            await("Residence Verification visibale timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> residenceVerificationTd.isDisplayed());
+            residenceVerificationTd.click();
         }
 
         await("fieldVerificationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> fieldVerificationElement.isDisplayed());
 
-        WebElement radioPhoneConfirmedElement = _driver.findElement(new By.ByXPath("//div[@id = 'genericForm_Residence_Verification-field-form']//input[@value = '" + submitFieldDTO.getPhoneConfirmed() + "']"));
+        WebElement radioPhoneConfirmedElement = _driver.findElement(By.xpath("//*[@id='Cust_phone_conf_Residence_Verification_02']"));
         radioPhoneConfirmedElement.click();
 
-        resultHomeVisitInput.sendKeys(submitFieldDTO.getResultHomeVisit());
+        _driver.findElement(By.xpath("//*[@id='Result_home_visit_Residence_Verification_1_chosen']")).click();
 
         await("resultHomeVisitUl displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultHomeVisitUl.isDisplayed());
+
+        resultHomeVisitInput.sendKeys(submitFieldDTO.getResultHomeVisit());
+
 
         await("resultHomeVisitSelect loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultHomeVisitSelect.size() > 0);
 
         for (WebElement e : resultHomeVisitSelect) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResultHomeVisit())) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
 
-        resultOfficeVisitInput.sendKeys(submitFieldDTO.getResultOfficeVisit());
 
-        await("resultOfficeVisitUl displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> resultOfficeVisitUl.isDisplayed());
-
-        await("resultOfficeVisitSelect loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> resultOfficeVisitSelect.size() > 0);
-
-        for (WebElement e : resultOfficeVisitSelect) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResultOfficeVisit())) {
-                e.click();
-                break;
-            }
-        }
+        _driver.findElement(By.xpath("//*[@id='Result_home_visit_2_Residence_Verification_3_chosen']")).click();
+        await("resultHomeVisit2Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> resultHomeVisit2Ul.isDisplayed());
 
         resultHomeVisit2Input.sendKeys(submitFieldDTO.getResult2ndHomeVisit());
 
-        await("resultHomeVisit2Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> resultHomeVisit2Ul.isDisplayed());
 
         await("resultHomeVisit2Select loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultHomeVisit2Select.size() > 0);
 
         for (WebElement e : resultHomeVisit2Select) {
-            if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getResult2ndHomeVisit())) {
+            if(e.getText().equals(submitFieldDTO.getResult2ndHomeVisit())){
+                e.click();
+                break;
+            }
+        }
+        //done
+        _driver.findElement(By.xpath("//*[@id='Result_office_visit_Residence_Verification_5_chosen']")).click();
+        await("resultOfficeVisitUl displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> resultOfficeVisitUl.isDisplayed());
+
+        resultOfficeVisitInput.sendKeys(submitFieldDTO.getResultOfficeVisit());
+
+
+
+        await("resultOfficeVisitSelect loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> resultOfficeVisitSelect.size() > 0);
+
+        for (WebElement e : resultOfficeVisitSelect) {
+            if(e.getText().equals(submitFieldDTO.getResultOfficeVisit())){
                 e.click();
                 break;
             }
@@ -319,7 +328,6 @@ public class FV_FieldInvestigationVerificationPage {
         stage = "UPLOAD FILE";
         System.out.println(stage + ": START");
         for (SubmitFieldAttachmentDTO attachmentFileList : submitFieldDTO.getAttachmentField()) {
-
             attachmentsButtonUploadA.click();
 
             System.out.println("Click done attachments Button");
@@ -360,30 +368,28 @@ public class FV_FieldInvestigationVerificationPage {
         //========================
 
         noOfAttemptsInput.sendKeys("1");
-
         System.out.println("No Of Attempts Input" + ": DONE");
 
+
         if (StringUtils.isNotEmpty(submitFieldDTO.getVerificationAgent())){
-            verificationAgentInputElement.sendKeys(submitFieldDTO.getVerificationAgent());
+            _driver.findElement(By.xpath("//*[@id='field_investigation_entry_verification_agent_chosen']")).click();
 
             await("verificationAgentUlElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> verificationAgentUlElement.isDisplayed());
 
+            verificationAgentInputElement.sendKeys(submitFieldDTO.getVerificationAgent());
+
             await("verificationAgentLiElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> verificationAgentLiElement.size() > 0);
 
-            await("Find Verification Agent not found").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> verificationAgentLiAndElement.size() > 0);
-
             for (WebElement e : verificationAgentLiElement) {
-                if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals(submitFieldDTO.getVerificationAgent())) {
+                if(e.getText().equals(submitFieldDTO.getVerificationAgent())){
                     e.click();
                     break;
                 }
             }
         }
-
-        resultDescriptionSelect.sendKeys("Positive");
+        new Select(resultDescriptionSelect).selectByVisibleText("Positive");
 
         System.out.println("Result Description Select" + ": DONE");
 
@@ -401,11 +407,11 @@ public class FV_FieldInvestigationVerificationPage {
         with().pollInterval(Duration.FIVE_SECONDS).await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> buttonSaveAndProceed.isEnabled());
 
-        textareaRemarkElement.click();
+//        textareaRemarkElement.click();
 
         Thread.sleep(5000);
 
-        actions.moveToElement(buttonSaveAndProceed).sendKeys(buttonSaveAndProceed, Keys.ENTER).perform();
+        actions.moveToElement(buttonSaveAndProceed).click().perform();
 
         Utilities.captureScreenShot(_driver);
     }

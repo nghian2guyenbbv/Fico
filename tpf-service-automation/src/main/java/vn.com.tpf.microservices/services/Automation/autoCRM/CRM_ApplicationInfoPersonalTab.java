@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services.Automation.autoCRM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -17,8 +18,7 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -80,7 +80,7 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement educationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_category')]")
+    @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_category')]")
     @CacheLookup
     private List<WebElement> educationOptionElement;
 
@@ -234,7 +234,8 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement primaryEmailElement;
 
-    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
+//    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
+    @FindBy(how = How.ID, using = "customer_mobile_phonen1_phoneNumber")
     @CacheLookup
     private WebElement cusMobileElements;
 
@@ -445,16 +446,22 @@ public class CRM_ApplicationInfoPersonalTab {
         this.nationalElement.click();
         await("nationalOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> nationalOptionElement.size() > 0);
-        Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getNationality(), nationalOptionElement);
+        Utilities.chooseDropdownValue("Vietnamease", nationalOptionElement);
 
 
         if (applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode() != null) {
-            this.educationElement.click();
+            this.educationElement.clear();
+            this.educationElement.sendKeys(applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode());
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> educationOptionElement.size() > 0);
-            Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode(), educationOptionElement);
-        }
+            for (WebElement e : educationOptionElement) {
+                System.out.println("educationOptionElement: " + e.getAttribute("username"));
+                e.click();
+            }
 
+
+        }
         //Update Identification
         loadIdentificationSection();
         System.out.println("identification Tab Element");
@@ -469,64 +476,22 @@ public class CRM_ApplicationInfoPersonalTab {
 
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
+            List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
+            List<String> TypeIdentificationCur = new ArrayList<>();
+
+            // set type current into array
             for (CRM_IdentificationsListDTO data : applicationInfoDTO.getIdentification()) {
-                if ("Current National ID".equals(data.getIdentificationType())){
-                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
-                    for(WebElement idCardHiden: listHidenIdCard){
-                        String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
-                        String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
-                        WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
-                        if (idCardTypeSelect.equals("Current National ID")){
-                            if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
-                                actions.moveToElement(idCardButtonDelete).click().build().perform();
-                                break;
-                            }else{
-                                List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
-                                if (listDeleteIdCard.size() != 0) {
-                                    for (WebElement deleteIdCard : listDeleteIdCard) {
-                                        String idCardTypeOtherSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
-                                        if (idCardTypeOtherSelect.equals("Other National ID")){
-                                            WebElement idCardButtonOtherDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
-                                            actions.moveToElement(idCardButtonOtherDelete).click().build().perform();
-                                            break;
-                                        }
-                                    }
-                                }
-                                WebElement idCardTypeSelectElement = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-                                new Select(idCardTypeSelectElement).selectByVisibleText("Other National ID");
-                                break;
-                            }
-                        }
-                    }
+                TypeIdentificationCur.add(data.getIdentificationType());
+            }
+
+            for(WebElement idCardHiden: listHidenIdCard){
+                String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
+                if(!TypeIdentificationCur.contains("Family Book Number") && idCardTypeSelect.equals("Family Book Number")){
+                    actions.moveToElement(idCardButtonDelete).click().build().perform();
                 }
-                if ("Spouse Current National ID".equals(data.getIdentificationType())){
-                    List<WebElement> listHidenIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
-                    for(WebElement idCardHiden: listHidenIdCard){
-                        String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
-                        String idCardInputDocument = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//input[contains(@id,'idDetail_identificationNumber')]")).getAttribute("value");
-                        WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
-                        if (idCardTypeSelect.equals("Spouse Current National ID")){
-                            if (idCardInputDocument != null && idCardInputDocument.equals(data.getIdentificationNumber())) {
-                                actions.moveToElement(idCardButtonDelete).click().build().perform();
-                                break;
-                            }else{
-                                List<WebElement> listDeleteIdCard = _driver.findElements(By.xpath("//table[@id = 'customer_identificationDetails']//tr//td[1]//*[contains(@id, 'idDetail_id')]"));
-                                if (listDeleteIdCard.size() != 0) {
-                                    for (WebElement deleteIdCard : listDeleteIdCard) {
-                                        String idCardTypeOtherSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
-                                        if (idCardTypeOtherSelect.equals("Spouse Other National ID")){
-                                            WebElement idCardButtonOtherDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + deleteIdCard.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
-                                            actions.moveToElement(idCardButtonOtherDelete).click().build().perform();
-                                            break;
-                                        }
-                                    }
-                                }
-                                WebElement idCardTypeSelectElement = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
-                                new Select(idCardTypeSelectElement).selectByVisibleText("Spouse Other National ID");
-                                break;
-                            }
-                        }
-                    }
+                if(TypeIdentificationCur.contains(idCardTypeSelect)){
+                    actions.moveToElement(idCardButtonDelete).click().build().perform();
                 }
             }
 
@@ -539,12 +504,12 @@ public class CRM_ApplicationInfoPersonalTab {
 
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnAddIdentElement.isEnabled());
-
             btnAddIdentElement.click();
             updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
         }
-
         //end update identification
+
+        //todo next 8.4
 
         //update address: ko xoa dc do anh huong cac employment detail nen chi edit
         loadAddressSection();
@@ -565,25 +530,28 @@ public class CRM_ApplicationInfoPersonalTab {
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> communicationDetailDivElement.isDisplayed());
+
         selectPrimaryAddress(applicationInfoDTO.getCommunicationDetail().getPrimaryAddress());//default la Current Address
         await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> primaryEmailElement.isDisplayed());
 
         //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
+        //check again
         if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null) {
+            _driver.findElement(By.id("customer_mobile_phonen1select_chosen")).click();
+            _driver.findElement(By.xpath("//*[@id=\"customer_mobile_phonen1select_chosen\"]/div/div/input")).sendKeys("VN" + Keys.ENTER);
             cusMobileElements.clear();
             cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
         }
-
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
 
-        btnCheckDuplicateElement.click();
+        actions.moveToElement(btnCheckDuplicateElement).click();
 
-        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
-                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
+//        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
+//                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
 
         saveAndNext();
     }
@@ -839,6 +807,7 @@ public class CRM_ApplicationInfoPersonalTab {
 
             btnAddIdentElement.click();
             updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
+            loadIdentificationSection();
         }
 
         //end update identification
@@ -848,7 +817,7 @@ public class CRM_ApplicationInfoPersonalTab {
         await("Load addressGridElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> addressGridElement.isDisplayed());
 
-        //click edit
+        //click edit or add address
         updateAddressValue(applicationInfoDTO.getAddress());
         loadAddressSection();
 
@@ -857,6 +826,7 @@ public class CRM_ApplicationInfoPersonalTab {
             await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> familyDivElement.isDisplayed());
             updateFamilyValue(applicationInfoDTO.getFamily());
+            loadFamilySection();
         }
 
         loadCommunicationSection();
@@ -1082,7 +1052,7 @@ public class CRM_ApplicationInfoPersonalTab {
     public void updateAddressValue(List<CRM_AddressListDTO> datas) throws JsonParseException, JsonMappingException, Exception {
         Actions actions = new Actions(_driver);
 
-        //check xem co address nao empty type ko
+        //check xem co address nao empty type kh neu co thi xoa
 
         if(viewTagElement.size()!=0)
         {
@@ -1098,10 +1068,10 @@ public class CRM_ApplicationInfoPersonalTab {
 
         Utilities.captureScreenShot(_driver);
 
-        await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnCreateAnotherElement.isDisplayed());
-
-        btnCreateAnotherElement.click();
+//        await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> btnCreateAnotherElement.isDisplayed());
+//
+//        btnCreateAnotherElement.click();
 
         for (CRM_AddressListDTO data : datas) {
 
@@ -1116,9 +1086,9 @@ public class CRM_ApplicationInfoPersonalTab {
 
             if(_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]")).size()!=0)
             {
-
+                // ext address
                 int count=_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'deleteTag')]")).size();
-
+                //if have many row the save value, we will delete, only keep 1 row
                 if(count>1)
                 {
                     List<WebElement> list=_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'deleteTag')]"));
@@ -1128,7 +1098,7 @@ public class CRM_ApplicationInfoPersonalTab {
                     }
                 }
 
-
+                //click edit row
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
                 we.click();
 
@@ -1145,22 +1115,24 @@ public class CRM_ApplicationInfoPersonalTab {
                 actions.moveToElement(addressTypeElement).click().build().perform();
                 await("addressTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeOptionElement.size() > 1);
-                for (WebElement element : addressTypeOptionElement) {
-                    if (element.getText().equals(data.getAddressType())) {
-                        element.click();
-                        break;
-                    }
-                }
+                Utilities.chooseDropdownValue(data.getAddressType(), addressTypeOptionElement);
+//                for (WebElement element : addressTypeOptionElement) {
+//                    if (element.getText().equals(data.getAddressType())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
 
                 actions.moveToElement(textCountryElement).click().build().perform();
                 await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> textCountryOptionElement.size() > 1);
-                for (WebElement element : textCountryOptionElement) {
-                    if (element.getText().equals(data.getCountry())) {
-                        element.click();
-                        break;
-                    }
-                }
+                Utilities.chooseDropdownValue(data.getCountry(), textCountryOptionElement);
+//                for (WebElement element : textCountryOptionElement) {
+//                    if (element.getText().equals(data.getCountry())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
 
                 actions.moveToElement(regionElement).click().build().perform();
                 await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -1192,7 +1164,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 areaInputElement.sendKeys(Keys.ENTER);
 
                 address1Element.clear();
-                address1Element.sendKeys(data.getBuilding());
+                address1Element.sendKeys(".");
                 System.out.println("Address Building");
                 address2Element.clear();
                 address2Element.sendKeys(data.getHouse());
@@ -1223,6 +1195,8 @@ public class CRM_ApplicationInfoPersonalTab {
                 actions.moveToElement(btnSaveAddressElement).click().build().perform();
             }
             else {
+                //new address
+
                 await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> btnCreateAnotherElement.isEnabled());
                 btnCreateAnotherElement.click();
@@ -1241,32 +1215,36 @@ public class CRM_ApplicationInfoPersonalTab {
                 actions.moveToElement(addressTypeElement).click().build().perform();
                 await("addressTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeOptionElement.size() > 1);
-                for (WebElement element : addressTypeOptionElement) {
-                    if (element.getText().equals(data.getAddressType())) {
-                        element.click();
-                        break;
-                    }
-                }
+                Utilities.chooseDropdownValue(data.getAddressType(),addressTypeOptionElement);
+//                for (WebElement element : addressTypeOptionElement) {
+//                    if (element.getText().equals(data.getAddressType())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
 
                 actions.moveToElement(textCountryElement).click().build().perform();
+                with().pollInterval(Duration.FIVE_SECONDS).
                 await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
                         .until(() -> textCountryOptionElement.size() > 1);
-                for (WebElement element : textCountryOptionElement) {
-                    if (element.getText().equals(data.getCountry())) {
-                        element.click();
-                        break;
-                    }
-                }
+//                for (WebElement element : textCountryOptionElement) {
+//                    if (element.getText().equals(data.getCountry())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
+                Utilities.chooseDropdownValue(data.getCountry(),textCountryOptionElement);
 
                 actions.moveToElement(regionElement).click().build().perform();
+
                 await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> regionOptionElement.size() > 1);
 
-                regionInputElement.sendKeys("Select");
-                regionInputElement.sendKeys(Keys.ENTER);
-                actions.moveToElement(regionElement).click().build().perform();
-
-                regionInputElement.sendKeys(data.getRegion());
+//                regionInputElement.sendKeys("Select");
+//                regionInputElement.sendKeys(Keys.ENTER);
+//                actions.moveToElement(regionElement).click().build().perform();
+                //regionInputElement.sendKeys(data.getRegion());
+                regionInputElement.sendKeys("ALL");
                 regionInputElement.sendKeys(Keys.ENTER);
 
 
@@ -1274,7 +1252,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> cityOptionElement.size() > 1);
 
-                cityInputElement.sendKeys(data.getCity().toUpperCase());
+                cityInputElement.sendKeys(data.getCity());
                 cityInputElement.sendKeys(Keys.ENTER);
 
                 pinCodeElement.clear();
@@ -1290,7 +1268,8 @@ public class CRM_ApplicationInfoPersonalTab {
                 areaInputElement.sendKeys(Keys.ENTER);
 
                 address1Element.clear();
-                address1Element.sendKeys(data.getBuilding());
+                //address1Element.sendKeys(data.getBuilding());
+                address1Element.sendKeys(".");
                 System.out.println("Address Building");
                 address2Element.clear();
                 address2Element.sendKeys(data.getHouse());

@@ -246,6 +246,7 @@ public class AutomationHandlerService {
                     accountDTO = pollAccountFromQueue(accounts, project);
                     setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
                     driver = setupTestDriver.getDriver();
+                    System.out.println("run runAutomation_UpdateInfo");
                     runAutomation_UpdateInfo(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_UpdateAppError":
@@ -3586,20 +3587,14 @@ public class AutomationHandlerService {
             driver = setupTestDriver.getDriver();
             //get account run
             stage = "LOGIN FINONE";
-            HashMap<String, String> dataControl = new HashMap<>();
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
-
-//            //check da login
-//            if(driver.findElements(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]")).size()!=0){
-//                WebElement we=driver.findElement(By.xpath("//*[contains(@id,'userConfirmation')]//*[contains(text(),'Sign In')]"));
-//                we.click();
-//            }
-
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
+
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
             Utilities.captureScreenShot(driver);
 
             AutoAssignDTO autoAssignDTO = null;
@@ -3629,25 +3624,20 @@ public class AutomationHandlerService {
 
                         System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
-                        stage = "HOME PAGE";
-                        HomePage homePage = new HomePage(driver);
-                        //System.out.println("Acc: " + accountDTO.getUserName() + "-" + stage + ": DONE");
-                        // ========== APPLICATIONS =================
                         String appID = autoAssignDTO.getAppid();
-                        homePage.getMenuApplicationElement().click();
-
-                        stage = "APPLICATION MANAGER";
+                        SearchMenu goToMn = new SearchMenu(driver);
+                        goToMn.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
                         // ========== APPLICATION MANAGER =================
-                        homePage.getApplicationManagerElement().click();
+                        stage = "APPLICATION MANAGER";
                         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(driver::getTitle, is("Application Manager"));
 
                         DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+
                         await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+
                         de_applicationManagerPage.setData(appID, autoAssignDTO.getUsername().toLowerCase());
-                        //System.out.println(stage + ": DONE");
-                        //Utilities.captureScreenShot(driver);
 
                         System.out.println("Auto: " + accountDTO.getUserName() + " - FINISH " + " - " + " App: " + autoAssignDTO.getAppid() + " - User: " + autoAssignDTO.getUsername() + " - Time: " + Duration.between(startIn, Instant.now()).toSeconds());
 
@@ -3742,18 +3732,11 @@ public class AutomationHandlerService {
 
             //***************************//LOGIN PAGE//***************************//
 
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             //***************************//END LOGIN//***************************//
 
@@ -3763,14 +3746,13 @@ public class AutomationHandlerService {
             System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            SearchMenu searchMenu = new SearchMenu(driver);
+            searchMenu.MoveToPage(Constant.MENU_NAME_LINK_RESPONSE_QUERY);
             // ========== APPLICATIONS =================
-            homePage.getMenuApplicationElement().click();
             stage = "RESPONSE QUERY";
 
             // ========== RESPONSE QUERY =================
             DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
-            de_ReturnRaiseQueryPage.getResponseQueryElement().click();
             de_ReturnRaiseQueryPage.setData(deResponseQueryDTO, downdloadFileURL);
             System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
@@ -3846,37 +3828,20 @@ public class AutomationHandlerService {
             stage = "LOGIN FINONE";
 
             //***************************//LOGIN PAGE//***************************//
-
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             //***************************//END LOGIN//***************************//
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-
-            stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
-            // ========== APPLICATIONS =================
-            homePage.getMenuApplicationElement().click();
 
             // ========== SALE QUEUE =================
             stage = "SALE QUEUE";
             DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
             de_ReturnSaleQueuePage.setData(deSaleQueueDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL);
-
-            await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Grid"));
 
             System.out.println("Auto - FINISH: " + stage + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
@@ -3885,9 +3850,8 @@ public class AutomationHandlerService {
                 AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
                 //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
                 if (!deSaleQueueDTO.getDataDocuments().stream().filter(c -> c.getDocumentName().contains("(ACCA)")).findAny().isPresent()) {
-                    de_applicationManagerPage.getMenuApplicationElement().click();
-
-                    de_applicationManagerPage.getApplicationManagerElement().click();
+                    SearchMenu searchMenuMN = new SearchMenu(driver);
+                    searchMenuMN.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
 
                     // ========== APPLICATION MANAGER =================
                     stage = "APPLICATION MANAGER";
@@ -3896,22 +3860,20 @@ public class AutomationHandlerService {
                             .until(driver::getTitle, is("Application Manager"));
 
                     de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), accountDTO.getUserName());
-
-                    de_applicationManagerPage.getMenuApplicationElement().click();
-
-                    de_applicationManagerPage.getApplicationElement().click();
+                    SearchMenu searchMenuApp = new SearchMenu(driver);
+                    searchMenuApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
 
                     await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Grid"));
 
                     de_applicationManagerPage.getApplicationAssignedNumberElement().clear();
-
                     de_applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(deSaleQueueDTO.getAppId());
+                    de_applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(Keys.ENTER);
 
                     await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> de_applicationManagerPage.getTbApplicationAssignedElement().size() > 2);
 
-                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + deSaleQueueDTO.getAppId() + "')]"));
+                    WebElement applicationIdAssignedNumberElement = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a"));
 
                     await("webAssignElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> applicationIdAssignedNumberElement.isDisplayed());
@@ -3920,9 +3882,13 @@ public class AutomationHandlerService {
 
                     de_applicationManagerPage.getBtnMoveToNextStageElement().click();
 
-                    de_applicationManagerPage.getMenuApplicationElement().click();
+                    await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Grid"));
+//                    de_applicationManagerPage.getMenuApplicationElement().click();
+//                    de_applicationManagerPage.getApplicationManagerElement().click();
 
-                    de_applicationManagerPage.getApplicationManagerElement().click();
+                    SearchMenu searchMenuMN_1 = new SearchMenu(driver);
+                    searchMenuMN_1.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
 
                     // ========== APPLICATION MANAGER =================
                     stage = "APPLICATION MANAGER";
@@ -3949,13 +3915,12 @@ public class AutomationHandlerService {
                 }
             } else {
                 AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
-                de_applicationManagerPage.getMenuApplicationElement().click();
 
-                de_applicationManagerPage.getApplicationManagerElement().click();
+                SearchMenu searchMenuMN_2 = new SearchMenu(driver);
+                searchMenuMN_2.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
 
                 // ========== APPLICATION MANAGER =================
                 stage = "APPLICATION MANAGER";
-
                 await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Manager"));
                 //Service Acc đang lấy cho team DE tại ngày 04/09/2020
@@ -4482,35 +4447,22 @@ public class AutomationHandlerService {
             SeleniumGridDriver setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
             driver = setupTestDriver.getDriver();
             SessionId session = ((RemoteWebDriver)driver).getSessionId();
-            //get account run
-
-//            stage = "LOGIN FINONE";
-//
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
 
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             //***************************//END LOGIN//***************************//
-
             System.out.println(stage + ": DONE");
-
             Utilities.captureScreenShot(driver);
-
 
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-            Utilities.captureScreenShot(driver);
 
             WaiveFieldDTO waiveFieldDTO = null;
 
@@ -4545,15 +4497,20 @@ public class AutomationHandlerService {
 
                         // ========== CHECK STAGE APPLICATIONS =================
                         stage = "CHECK STAGE APPLICATION";
+
                         FV_CheckStageApplicationManager fv_CheckStageApplicationManager = new FV_CheckStageApplicationManager(driver);
-                        fv_CheckStageApplicationManager.getMenuApplicationElement().click();
-                        fv_CheckStageApplicationManager.getApplicationManagerElement().click();
+                        SearchMenu gotoAppMn = new SearchMenu(driver);
+                        gotoAppMn.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
+
                         await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(driver::getTitle, is("Application Manager"));
+
                         await("Application Manager Form visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> fv_CheckStageApplicationManager.getApplicationManagerFormElement().isDisplayed());
+
                         fv_CheckStageApplicationManager.getApplicationNumberElement().sendKeys(waiveFieldDTO.getAppId());
                         fv_CheckStageApplicationManager.getSearchApplicationElement().click();
+
                         await("Table Application Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                 .until(() -> fv_CheckStageApplicationManager.getTdApplicationElement().size() > 2);
 
@@ -4856,47 +4813,45 @@ public class AutomationHandlerService {
 
             System.out.println(stage + ": DONE");
 
-//            stage = "LOGIN FINONE";
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
 
             //***************************//END LOGIN//***************************//
-
             System.out.println(stage + ": DONE");
-
             Utilities.captureScreenShot(driver);
-
             stage = "HOME PAGE";
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
 
             // ========== CHECK STAGE APPLICATIONS =================
             stage = "CHECK STAGE APPLICATION";
             FV_CheckStageApplicationManager fv_CheckStageApplicationManager = new FV_CheckStageApplicationManager(driver);
-            fv_CheckStageApplicationManager.getMenuApplicationElement().click();
-            fv_CheckStageApplicationManager.getApplicationManagerElement().click();
+            SearchMenu goToMn = new SearchMenu(driver);
+            goToMn.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
+
             await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
+
             await("Application Manager Form visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> fv_CheckStageApplicationManager.getApplicationManagerFormElement().isDisplayed());
+
             fv_CheckStageApplicationManager.getApplicationNumberElement().sendKeys(submitFieldDTO.getAppId());
             fv_CheckStageApplicationManager.getSearchApplicationElement().click();
+
             await("Table Application Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> fv_CheckStageApplicationManager.getTdApplicationElement().size() > 2);
 
-            String stageApplication = fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText();
 
+            String stageApplication = fv_CheckStageApplicationManager.getTdCheckStageApplicationElement().getText();
             System.out.println(stage + ": DONE" + " - Time " + Duration.between(start, Instant.now()).toSeconds());
+
+
             if ("FII".equals(stageApplication)){
                 // ========== FIELD VERIFICATION =================
                 stage = "FIELD VERIFICATION";
@@ -4940,8 +4895,8 @@ public class AutomationHandlerService {
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("Field Investigation Details failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> fv_FieldInvestigationDetailsPage.getCheckMoveToNextStageElement().size() == 0);
+//                await("Field Investigation Details failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> fv_FieldInvestigationDetailsPage.getCheckMoveToNextStageElement().size() == 0);
 
                 await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Grid"));
@@ -5432,16 +5387,6 @@ public class AutomationHandlerService {
             stage = "LOGIN FINONE";
 
             //***************************//LOGIN PAGE//***************************//
-
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
             LoginPageNeo loginPage = new LoginPageNeo(driver);
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
@@ -5454,7 +5399,8 @@ public class AutomationHandlerService {
             // ========== EXISTING CUSTOMER =================
             stage = "EXISTING CUSTOMER";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
-            crm_ExistingCustomerPage.application_personal_Click();
+            /*crm_ExistingCustomerPage.application_personal_Click();
+
             await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getCustomerPersonal().isDisplayed());
             crm_ExistingCustomerPage.getCustomerPersonal().click();
@@ -5484,7 +5430,7 @@ public class AutomationHandlerService {
 
             }
 
-            if (!Objects.isNull(existingCustomerDTO.getIdNumber())) {
+            if (!StringUtils.isEmpty(existingCustomerDTO.getIdNumber())) {
 
                 crm_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
 
@@ -5513,6 +5459,7 @@ public class AutomationHandlerService {
 
             crm_ExistingCustomerPage.getSearchCustomerButtonElement().click();
 
+
             await("Not Existing Customer!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getSearchCustomerTableElement().size() > 2);
 
@@ -5535,6 +5482,7 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
 
+            System.out.println("Check _v1");
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
 
@@ -5546,8 +5494,28 @@ public class AutomationHandlerService {
             cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
             System.out.println("CIF Number => " + cifNo);
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
-            System.out.println("APPID => " + applicationId);
+            System.out.println("APPID => " + applicationId);*/
+            //switch test flow
+//            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+//            System.out.println("APPID => " + applicationId);
+            SearchMenu goToApp = new SearchMenu(driver);
+            goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
 
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+            ((RemoteWebDriver) driver).findElementById("lead").click();
+            WebElement inputApp = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
+            inputApp.sendKeys("APPL01384178");
+            inputApp.sendKeys(Keys.ENTER);
+            Thread.sleep(3000);
+            driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a")).click();
+
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+
+            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
+
+            //switch test flow end
             // ========== VIEW/EDIT DETAILED INFORMATION =================
             stage = "VIEW/EDIT DETAILED INFORMATION";
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
@@ -5555,7 +5523,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             // ========== APPLICANT INFORMATION =================
-            // ========== PERSONAL INFORMATION =================
+             //========== PERSONAL INFORMATION =================
             stage = "PERSONAL INFORMATION";
             CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
             CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
@@ -5584,6 +5552,8 @@ public class AutomationHandlerService {
 
             employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetail());
             employmentDetailsTab.getDoneBtnElement().click();
+
+
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetail());
@@ -5601,6 +5571,7 @@ public class AutomationHandlerService {
                 financialDetailsTab.openIncomeDetailSection();
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
+
                 financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
                 financialDetailsTab.saveAndNext();
             }
@@ -5634,7 +5605,7 @@ public class AutomationHandlerService {
                     var.click();
                 }
             }
-
+            // CHECK BANK/CREDIT CARD
             bankDetailsTab.saveAndNext();
 
             System.out.println(stage + ": DONE");
@@ -5659,17 +5630,6 @@ public class AutomationHandlerService {
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
 
             Thread.sleep(5000);
-
-//            try {
-//
-//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(15, TimeUnit.SECONDS)
-//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
-//
-//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
-//            } catch (Exception e) {
-//                System.out.println("Confirm Delete Vap Next Visibale!!!");
-//            }
 
             boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
 
@@ -5702,7 +5662,6 @@ public class AutomationHandlerService {
                 Utilities.captureScreenShot(driver);
 
             }
-
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
@@ -5712,17 +5671,10 @@ public class AutomationHandlerService {
                 documentsPage.getTabDocumentsElement().click();
                 await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-                documentsPage.getBtnGetDocumentElement().click();
-                await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentsPage.getLendingTrElement().size() > 0);
-
                 documentsPage.setData(documentDTOS, downdloadFileURL);
-                Utilities.captureScreenShot(driver);
-                documentsPage.getBtnSubmitElement().click();
             }
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
 
             stage = "REFERENCES";
             // ==========REFERENCES=================
@@ -5731,6 +5683,7 @@ public class AutomationHandlerService {
             await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
             referencesPage.getTabReferencesElement().click();
+            Thread.sleep(2000);
             referencesPage.setData(referenceDTO);
             referencesPage.getSaveBtnElement().click();
 
@@ -6522,12 +6475,13 @@ public class AutomationHandlerService {
             with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
             await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
 
             Utilities.captureScreenShot(driver);
 
             Thread.sleep(15000);
 
-            miscFrmAppDtlPage.keyActionMoveNextStage();
+//            miscFrmAppDtlPage.keyActionMoveNextStage(); check again 14.4
 
 //            actions.moveToElement(keyActionMoveNextStage.getBtnMoveToNextStageElement()).click().perform();
 //            actions.click(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).perform();
@@ -6896,23 +6850,20 @@ public class AutomationHandlerService {
             SessionId session = ((RemoteWebDriver)driver).getSessionId();
             //get account run
             stage = "LOGIN FINONE";
-            LoginPage loginPage = new LoginPage(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
+
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
 
             await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("DashBoard"));
+
             System.out.println("Auto: " + accountDTO.getUserName() + " - " + stage + ": LOGIN DONE" + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
             Utilities.captureScreenShot(driver);
-
-            stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
-            // ========== APPLICATIONS =================
-            homePage.getMenuApplicationElement().click();
-
+            SearchMenu goToMN = new SearchMenu(driver);
+            goToMN.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getApplicationManagerElement().click();
             await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
@@ -7840,10 +7791,9 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
             //***************************//LOGIN PAGE//***************************//
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
             System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + responseQueryDTO.getApplicationId());
             //***************************//END LOGIN//***************************//
 
@@ -7865,12 +7815,9 @@ public class AutomationHandlerService {
             //*************************** END UPDATE STATUS DATA *********************//
 
             stage = "RESPONSE QUERY";
-            HomePage homePage = new HomePage(driver);
-            homePage.getMenuApplicationElement().click();
-
             ResponseQueryPage returnRaiseQueryPage = new ResponseQueryPage(driver);
-            returnRaiseQueryPage.getMenuApplicationElement().click();
-            returnRaiseQueryPage.getResponseQueryElement().click();
+            SearchMenu searchMenu = new SearchMenu(driver);
+            searchMenu.MoveToPage(Constant.MENU_NAME_LINK_RESPONSE_QUERY);
 
             await("Response Query Page loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Response Query"));
@@ -7887,7 +7834,7 @@ public class AutomationHandlerService {
             updatePass.set("userAuto", accountDTO.getUserName());
             updatePass.set("status", 1);
             mongoTemplate.findAndModify(queryPass, updatePass, ResponseQueryDTO.class);
-            System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + "DONE" + " - AppId: " + responseQueryDTO.getApplicationId());
+            System.out.println("Func try: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + "DONE" + " - AppId: " + responseQueryDTO.getApplicationId());
             //***************************//END UPDATE DB//***************************//
 
             responseModel.setProject(responseQueryDTO.getProject());
@@ -7918,7 +7865,7 @@ public class AutomationHandlerService {
             updateFaild.set("userAuto", accountDTO.getUserName());
             updateFaild.set("status", 3);
             mongoTemplate.findAndModify(queryFaild, updateFaild, ResponseQueryDTO.class);
-            System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + "DONE" + " - AppId: " + responseQueryDTO.getApplicationId());
+            System.out.println("Func catch: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + "DONE" + " - AppId: " + responseQueryDTO.getApplicationId());
             //***************************//END UPDATE DB//***************************//
 
             //region //*****Update Automation Monitor*****//
@@ -7949,7 +7896,7 @@ public class AutomationHandlerService {
 
             logout(driver, accountDTO.getUserName());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
-            System.out.println("Func: responseQuery" + " - AppId: " + responseModel.getApp_id() + " - DONE: " + responseModel.getAutomation_result() + "- Project " + responseModel.getProject());
+            System.out.println("Func finally: responseQuery" + " - AppId: " + responseModel.getApp_id() + " - DONE: " + responseModel.getAutomation_result() + "- Project " + responseModel.getProject());
         }
     }
     //endregion
@@ -7994,9 +7941,12 @@ public class AutomationHandlerService {
             stage = "LOGIN FINONE";
 
             //***************************//LOGIN PAGE//***************************//
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
-            System.out.println(stage + ": DONE");
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
             Utilities.captureScreenShot(driver);
             System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getApplicationId());
             //***************************//END LOGIN//***************************//
@@ -8004,77 +7954,75 @@ public class AutomationHandlerService {
             // ========== SALE QUEUE =================
             stage = "APPLICATION MANAGER";
             ApplicationManagerPage applicationManagerPage = new ApplicationManagerPage(driver);
-            applicationManagerPage.getMenuApplicationElement().click();
-            applicationManagerPage.getApplicationManagerElement().click();
+            SearchMenu searchMenuMN = new SearchMenu(driver);
+            searchMenuMN.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
 
             await("Application Manager Page loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
+            // Assigned Application with user login
             applicationManagerPage.setData(saleQueueDTO.getApplicationId(), accountDTO.getUserName());
 
             System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getApplicationId());
 
             stage = "SALE QUEUE";
             SaleQueuePage saleQueuePage = new SaleQueuePage(driver);
-            saleQueuePage.getMenuApplicationElement().click();
-            saleQueuePage.getApplicationElement().click();
+            SearchMenu searchMenuSQ = new SearchMenu(driver);
+            searchMenuSQ.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
 
             await("Application Grid Page loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
 
+            driver.findElement(By.xpath("//*[@id='lead']/a")).click();
+
+
             saleQueuePage.setData(saleQueueDTO, downdloadFileURL);
-
-            int checkMoveNextStage = saleQueuePage.getCheckButtonMoveNextStageElement().size();
-
-            await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> checkMoveNextStage > 0);
-
             System.out.println("Func: saleQueue" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + saleQueueDTO.getApplicationId());
+
 
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(saleQueueDTO.getUserCreatedSalesQueue())) {
-//                ApplicationManagerPage de_applicationManagerPage = new ApplicationManagerPage(driver);
                 //update code, nếu không có up ACCA thì chuyen thang len DC nên reassing là user da raise saleQUEUE
                 if (!saleQueueDTO.getDocuments().stream().filter(c -> c.getDocumentName().contains("(ACCA)")).findAny().isPresent()) {
-                    applicationManagerPage.getMenuApplicationElement().click();
-
-                    applicationManagerPage.getApplicationManagerElement().click();
-
+                    SearchMenu searchMenuMN_1 = new SearchMenu(driver);
+                    searchMenuMN_1.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
                     // ========== APPLICATION MANAGER =================
                     stage = "APPLICATION MANAGER";
-
                     await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Manager"));
 
+
                     applicationManagerPage.assignNotACCA(saleQueueDTO.getApplicationId(), accountDTO.getUserName());
-
-                    applicationManagerPage.getMenuApplicationElement().click();
-
-                    applicationManagerPage.getApplicationElement().click();
-
+                    SearchMenu searchMenuApp = new SearchMenu(driver);
+                    searchMenuApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
                     await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(driver::getTitle, is("Application Grid"));
 
-                    applicationManagerPage.getApplicationAssignedNumberElement().clear();
+                    driver.findElement(By.xpath("//*[@id='lead']/a")).click();
 
+                    await("Input Application Assigned timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> applicationManagerPage.getApplicationAssignedNumberElement().isDisplayed());
+
+                    applicationManagerPage.getApplicationAssignedNumberElement().clear();
                     applicationManagerPage.getApplicationAssignedNumberElement().sendKeys(saleQueueDTO.getApplicationId());
 
                     await("tbApplicationAssignedElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> applicationManagerPage.getTbApplicationAssignedElement().size() > 2);
 
-                    WebElement applicationIdAssignedNumberElement = driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + saleQueueDTO.getApplicationId() + "')]"));
+                    WebElement applicationIdAssignedNumberElement = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a"));
 
                     await("webAssignElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> applicationIdAssignedNumberElement.isDisplayed());
-
                     applicationIdAssignedNumberElement.click();
 
-                    applicationManagerPage.keyActionMoveNextStage();
+                    //MoveTo next step
+                    driver.findElement(By.xpath("//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")).click();
 
-                    applicationManagerPage.getMenuApplicationElement().click();
+                    await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(driver::getTitle, is("Application Grid"));
 
-                    applicationManagerPage.getApplicationManagerElement().click();
-
+                    SearchMenu searchMenuMN_2 = new SearchMenu(driver);
+                    searchMenuMN_2.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
                     // ========== APPLICATION MANAGER =================
                     stage = "APPLICATION MANAGER";
 
@@ -8091,21 +8039,21 @@ public class AutomationHandlerService {
                     await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> applicationManagerPage.getShowTaskElement().isDisplayed());
 
-                    if ("LOGIN_ACCEPTANCE".equals(applicationManagerPage.getTdCheckStageApplicationElement().getText())) {
+                    if ("runAutomationDE_SaleQueueLOGIN_ACCEPTANCE".equals(applicationManagerPage.getTdCheckStageApplicationElement().getText())) {
                         applicationManagerPage.setDataACCA(saleQueueDTO.getUserCreatedSalesQueue());
                     }
                 }
             } else {
                 AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
-                de_applicationManagerPage.getMenuApplicationElement().click();
-
-                de_applicationManagerPage.getApplicationManagerElement().click();
+                SearchMenu searchMenuMN_3 = new SearchMenu(driver);
+                searchMenuMN_3.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
 
                 // ========== APPLICATION MANAGER =================
                 stage = "APPLICATION MANAGER";
-
                 await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Manager"));
+                //waitting sale queue success
+                Thread.sleep(10000);
                 //Service Acc đang lấy cho team DE tại ngày 04/09/2020
                 de_applicationManagerPage.setData(saleQueueDTO.getApplicationId(), "serviceacc_ldl");
             }

@@ -12,9 +12,11 @@ import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
+import vn.com.tpf.microservices.services.Automation.SearchMenu;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -63,7 +65,7 @@ public class FV_WaiveFieldPage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.ID, using = "holder")
@@ -75,7 +77,7 @@ public class FV_WaiveFieldPage {
     @FindBy(how = How.ID, using = "LoanApplication_Assigned_wrapper")
     private WebElement applicationFormElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id,'LoanApplication_Assigned_wrapper')]//div[contains(@id,'LoanApplication_Assigned_filter')]//input[contains(@type,'text')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input")
     private WebElement applicationAssignedNumberElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']//tbody//tr//td")
@@ -102,7 +104,7 @@ public class FV_WaiveFieldPage {
     @FindBy(how = How.XPATH, using = "//div[@id = 'fii_front_wrapper']//table[@id = 'fii_front']//tbody//tr//td[5]")
     private WebElement tdCurrentVerificationStatus;
 
-    @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr//td")
+    @FindBy(how = How.XPATH, using = "//*[@id='waiveOffRow0']/td")
     private List<WebElement> tableInDialogElement;
 
     @FindBy(how = How.XPATH, using = "//div[@id = 'dialog'][@class = 'modal-dialog']//div[@class = 'modal-body']//form[@id = 'waiveOffVerificationForm']//table[@id = 'fii_waiveOff']//tbody//tr//td")
@@ -147,50 +149,64 @@ public class FV_WaiveFieldPage {
 
         editElement.click();
 
+        WebElement textSelectTeamNameElement = _driver.findElement(By.id("Text_team_Branch0"));
+
+        await("Textbox select Team enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectTeamNameElement.isEnabled());
+        textSelectTeamNameElement.clear();
+        textSelectTeamNameElement.sendKeys("TPF DATA ENTRY");
+
+        List<WebElement> listTeams = _driver.findElements(By.xpath("//a[contains(@id, 'listitem_team_Branch')]"));
+        await("listTeams Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> listTeams.size() > 0);
+
+        for (WebElement e : listTeams) {
+            e.click();
+            break;
+        }
+
+
         await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> textSelectUserElement.isEnabled());
 
         textSelectUserElement.clear();
         textSelectUserElement.sendKeys(user);
 
-        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> textSelectUserContainerElement.isDisplayed());
-
-        int sizeTextSelectUserOptionElement = textSelectUserOptionElement.size();
+//        await("textSelectUserContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> textSelectUserContainerElement.isDisplayed());
 
         await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> sizeTextSelectUserOptionElement > 0);
+                .until(() -> textSelectUserOptionElement.size() > 0);
 
         for (WebElement e : textSelectUserOptionElement) {
-            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         Utilities.captureScreenShot(_driver);
 
         saveTaskElement.click();
+
         System.out.println(stage + ": DONE");
 
         // ========== WAIVE OFF ALL =================
+        SearchMenu goToApp = new SearchMenu(_driver);
+        goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
 
-        menuApplicationElement.click();
-
-        applicationElement.click();
-
-        await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+        await("Applications timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
 
-        applicationAssignedNumberElement.clear();
+        _driver.findElement(By.xpath("//*[@id='lead']/a")).click();
 
+        applicationAssignedNumberElement.clear();
         applicationAssignedNumberElement.sendKeys(waiveFieldDTO.getAppId());
+        applicationAssignedNumberElement.sendKeys(Keys.ENTER);
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Find not found AppId!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbApplicationAssignedElement.size() > 2);
 
         Utilities.captureScreenShot(_driver);
 
-        WebElement applicationIdAssignedNumberElement =_driver.findElement(new By.ByXPath("//table[@id='LoanApplication_Assigned']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + waiveFieldDTO.getAppId() +"')]"));
+        WebElement applicationIdAssignedNumberElement = _driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a"));
 
         applicationIdAssignedNumberElement.click();
 
@@ -213,13 +229,21 @@ public class FV_WaiveFieldPage {
 
         await("selectReasonCodeElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> selectReasonCodeElement.isDisplayed());
+        selectReasonCodeElement.click();
+        List<WebElement> listSel = _driver.findElements(By.xpath("//*[@id='field_investigation_waiveOff_reasonCodeNO0']/option"));
 
-        selectReasonCodeElement.sendKeys("F.1.1 Bỏ qua bước FI");
-
-        await("btnWaiveOffVerificationPopupElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnWaiveOffVerificationPopupElement.isDisplayed());
-
-        actions.moveToElement(btnWaiveOffVerificationPopupElement).sendKeys(btnWaiveOffVerificationPopupElement, Keys.ENTER).perform();
+        with().pollInterval(Duration.FIVE_SECONDS).await("List option is null -> Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> listSel.size() > 1);
+        for (WebElement e : listSel){
+            if(e.getText().equals("F.1.1 Bỏ qua bước FI")){
+                e.click();
+                break;
+            }
+        }
+        WebElement submitForm = _driver.findElement(By.id("waiveOffConfirm"));
+        with().pollInterval(Duration.FIVE_SECONDS).await("submitForm visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> submitForm.isDisplayed());
+        submitForm.click();
 
         Utilities.captureScreenShot(_driver);
 
@@ -228,9 +252,10 @@ public class FV_WaiveFieldPage {
 
         with().pollInterval(Duration.FIVE_SECONDS).await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isEnabled());
+        btnMoveToNextStageElement.click();
 
-        keyActionMoveNextStage();
-
+        await("Applications timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("Application Grid"));
         Utilities.captureScreenShot(_driver);
 
     }
