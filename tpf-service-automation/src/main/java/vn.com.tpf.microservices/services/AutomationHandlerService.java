@@ -5399,7 +5399,7 @@ public class AutomationHandlerService {
             // ========== EXISTING CUSTOMER =================
             stage = "EXISTING CUSTOMER";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
-            /*crm_ExistingCustomerPage.application_personal_Click();
+            crm_ExistingCustomerPage.application_personal_Click();
 
             await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getCustomerPersonal().isDisplayed());
@@ -5494,26 +5494,28 @@ public class AutomationHandlerService {
             cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
             System.out.println("CIF Number => " + cifNo);
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
-            System.out.println("APPID => " + applicationId);*/
+            System.out.println("APPID => " + applicationId);
+
+
             //switch test flow
 //            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
 //            System.out.println("APPID => " + applicationId);
-            SearchMenu goToApp = new SearchMenu(driver);
-            goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
-
-            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Grid"));
-            ((RemoteWebDriver) driver).findElementById("lead").click();
-            WebElement inputApp = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
-            inputApp.sendKeys("APPL01384178");
-            inputApp.sendKeys(Keys.ENTER);
-            Thread.sleep(3000);
-            driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a")).click();
-
-            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Grid"));
-
-            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
+//            SearchMenu goToApp = new SearchMenu(driver);
+//            goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
+//
+//            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//            ((RemoteWebDriver) driver).findElementById("lead").click();
+//            WebElement inputApp = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
+//            inputApp.sendKeys("APPL01384178");
+//            inputApp.sendKeys(Keys.ENTER);
+//            Thread.sleep(3000);
+//            driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a")).click();
+//
+//            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
 
             //switch test flow end
             // ========== VIEW/EDIT DETAILED INFORMATION =================
