@@ -1,5 +1,5 @@
 server:
-  port: 5000
+  port: 4052
 spring:
   cloud:
     config:
@@ -8,9 +8,9 @@ spring:
   rabbitmq:
     host: 10.1.66.27
     port: 5672
-    username: tpf-service-automation-test
-    password: tpf-service-automation-test
-    app-id: tpf-service-automation-test1
+    username: tpf-service-automation
+    password: tpf-service-automation
+    app-id: tpf-service-automation-v6
     logstash: tpf-service-logstash-automation
   data:
     mongodb:
