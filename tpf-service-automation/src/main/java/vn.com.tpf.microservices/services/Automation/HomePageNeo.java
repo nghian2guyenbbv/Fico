@@ -24,7 +24,7 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement personalLoan;
 
-	@FindBy(how = How.CLASS_NAME, using = "imageLinked")
+	@FindBy(how = How.CLASS_NAME, using = "linkfunIcoLink")
 	@CacheLookup
 	private WebElement quickLead;
 

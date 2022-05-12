@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -128,8 +129,9 @@ public class DE_ApplicationManagerPage {
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
 
-        showTaskElement.click();
-
+//        showTaskElement.click();
+        JavascriptExecutor js= (JavascriptExecutor)_driver;
+        js.executeScript(showTaskElement.getAttribute("onclick"));
         await("applicationTableAppIDElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationTableAppIDElement.isDisplayed());
 

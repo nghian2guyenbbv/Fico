@@ -10,7 +10,7 @@ spring:
     port: 5672
     username: tpf-service-automation
     password: tpf-service-automation
-    app-id: tpf-service-automation-v6
+    app-id: tpf-service-automation-test1
     logstash: tpf-service-logstash-automation
   data:
     mongodb:

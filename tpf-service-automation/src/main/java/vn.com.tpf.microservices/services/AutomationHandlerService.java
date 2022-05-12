@@ -8711,7 +8711,9 @@ public class AutomationHandlerService {
         Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
         await("showTasks displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> homePageNeo.getShowTasks().isDisplayed());
-        homePageNeo.getShowTasks().click();
+//        homePageNeo.getShowTasks().click();
+        JavascriptExecutor js= (JavascriptExecutor)driver;
+        js.executeScript(homePageNeo.getShowTasks().getAttribute("onclick"));
         homePageNeo.getEditAssigned().click();
         homePageNeo.getTeamName().clear();
         homePageNeo.getTeamName().sendKeys(teamName);
