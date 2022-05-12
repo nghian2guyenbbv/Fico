@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import vn.com.tpf.microservices.models.Comment;
+//import vn.com.tpf.microservices.models.Comment;
 import vn.com.tpf.microservices.models.DocPostApproved;
 import vn.com.tpf.microservices.models.Fpt;
 

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Utilities {
-    public static HashMap<String, Object> createMqObject(String userName, String password) {
+        public static HashMap<String, Object> createMqObject(String userName, String password) {
         return new HashMap<String, Object>() {
             {
                 put("userName", userName);

@@ -131,7 +131,6 @@ public class AutomationHandlerService {
 
         while (Objects.isNull(accountDTO)) {
             System.out.println("Wait to get account...");
-
             //get list account finone available
             Query query = new Query();
             query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
