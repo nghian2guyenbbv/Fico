@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
@@ -505,7 +506,8 @@ public class CRM_ApplicationInfoPersonalTab {
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnAddIdentElement.isEnabled());
             btnAddIdentElement.click();
-            updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
+            var applicationInfoList = applicationInfoDTO.getIdentification().stream().filter(identification -> !identification.getIdentificationType().equals("Family Book Number")).collect(Collectors.toList());
+            updateIdentificationValue(applicationInfoList,documentType.size()-1);
         }
         //end update identification
 
