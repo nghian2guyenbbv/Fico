@@ -205,7 +205,7 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "create_new")
     private WebElement btnCreateAnotherElement;
 
-    @FindBy(how = How.CLASS_NAME, using = "DedupeButton")
+    @FindBy(how = How.XPATH, using = "//*[@id='dedupeCheckButton']/button")
     private WebElement btnCheckDuplicateElement;
 
     @FindBy(how = How.ID, using = "dedupeCheckButton")
@@ -412,7 +412,6 @@ public class CRM_ApplicationInfoPersonalTab {
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
-
         btnCheckDuplicateElement.click();
 
         await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
@@ -423,6 +422,11 @@ public class CRM_ApplicationInfoPersonalTab {
 
     public void setValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
         Actions actions = new Actions(_driver);
+        this.genderSelectElement.click();
+        await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> genderSelectOptionElement.size() > 0);
+        Utilities.chooseDropdownValue("Select One Option", genderSelectOptionElement);
+
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -467,13 +471,12 @@ public class CRM_ApplicationInfoPersonalTab {
         loadIdentificationSection();
         System.out.println("identification Tab Element");
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> identificationDivElement.isDisplayed());
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> deleteIdDetailElement.size() > 0);
-
 
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
@@ -489,9 +492,11 @@ public class CRM_ApplicationInfoPersonalTab {
                 String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
                 WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
                 if(!TypeIdentificationCur.contains("Family Book Number") && idCardTypeSelect.equals("Family Book Number")){
+                    System.out.println("Identification delete: 1 " + idCardTypeSelect);
                     actions.moveToElement(idCardButtonDelete).click().build().perform();
                 }
                 if(TypeIdentificationCur.contains(idCardTypeSelect)){
+                    System.out.println("Identification delete: 2 " + idCardTypeSelect);
                     actions.moveToElement(idCardButtonDelete).click().build().perform();
                 }
             }
@@ -509,9 +514,8 @@ public class CRM_ApplicationInfoPersonalTab {
             var applicationInfoList = applicationInfoDTO.getIdentification().stream().filter(identification -> !identification.getIdentificationType().equals("Family Book Number")).collect(Collectors.toList());
             updateIdentificationValue(applicationInfoList,documentType.size()-1);
         }
-        //end update identification
 
-        //todo next 8.4
+        //end update identification
 
         //update address: ko xoa dc do anh huong cac employment detail nen chi edit
         loadAddressSection();
@@ -550,10 +554,11 @@ public class CRM_ApplicationInfoPersonalTab {
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
 
-        actions.moveToElement(btnCheckDuplicateElement).click();
+        btnCheckDuplicateElement.click();
 
 //        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
 //                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
+        Thread.sleep(2000);
 
         saveAndNext();
     }

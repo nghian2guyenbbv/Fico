@@ -5633,7 +5633,7 @@ public class AutomationHandlerService {
 
             //***************************//LOGIN PAGE//***************************//
             LoginPageNeo loginPage = new LoginPageNeo(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.setLoginValue("huynn8v2", "Tpf@2022","CAS");
             loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
@@ -5644,123 +5644,123 @@ public class AutomationHandlerService {
             // ========== EXISTING CUSTOMER =================
             stage = "EXISTING CUSTOMER";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
-            crm_ExistingCustomerPage.application_personal_Click();
-
-            await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getCustomerPersonal().isDisplayed());
-            crm_ExistingCustomerPage.getCustomerPersonal().click();
-            await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getCreateCustomerElement().isDisplayed());
-
-            System.out.println("PERSONAL LOAN PAGE");
-
-            crm_ExistingCustomerPage.getIsExistCustomerRadioElement().click();
-
-            await("Search Existing Individual Customers With displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getExistingCustomerSearchFormElement().isDisplayed());
-
-            if (!Objects.isNull(existingCustomerDTO.getNeoCustID())) {
-                await("Neo Cust ID Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getNeoCustIDInputElement().isDisplayed());
-
-                crm_ExistingCustomerPage.getNeoCustIDInputElement().sendKeys(existingCustomerDTO.getNeoCustID());
-
-            }
-
-            if (!Objects.isNull(existingCustomerDTO.getCifNumber())) {
-                await("CIF Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getCifNumberInputElement().isDisplayed());
-
-                crm_ExistingCustomerPage.getCifNumberInputElement().sendKeys(existingCustomerDTO.getCifNumber());
-
-            }
-
-            if (!StringUtils.isEmpty(existingCustomerDTO.getIdNumber())) {
-
-                crm_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
-
-                await("Identification Type Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getIdentificationTypeUlElement().isDisplayed());
-
-                await("Identification Type Li loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getIdentificationTypeLiElement().size() > 0);
-
-                for (WebElement e : crm_ExistingCustomerPage.getIdentificationTypeLiElement()) {
-                    if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Current National ID")) {
-                        e.click();
-                        break;
-                    }
-                }
-
-                await("ID Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> crm_ExistingCustomerPage.getIdNumberInputElement().isDisplayed());
-
-                crm_ExistingCustomerPage.getIdNumberInputElement().sendKeys(existingCustomerDTO.getIdNumber());
-
-            }
-
-            await("Search displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getSearchCustomerButtonElement().isDisplayed());
-
-            crm_ExistingCustomerPage.getSearchCustomerButtonElement().click();
-
-
-            await("Not Existing Customer!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getSearchCustomerTableElement().size() > 2);
-
-            int tableSize = crm_ExistingCustomerPage.getSearchCustomerTableSizeElement().size();
-
-            WebElement searchCustomerSelectElement = driver.findElement(new By.ByXPath("//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'example']//table[@id = 'searchData_IndividualCustomerTable']//tbody//tr[" + tableSize + "]//td[contains(@class, 'select_individual')]//input[contains(@value,'Select')]"));
-
-            await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> searchCustomerSelectElement.isDisplayed());
-
-            searchCustomerSelectElement.click();
-
-            await("Customer Information displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getCustomerInformationFormElement().isDisplayed());
-
-            await("Customer Information Save button displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getCustomerInformationSaveElement().isDisplayed());
-
-            crm_ExistingCustomerPage.getCustomerInformationSaveElement().click();
-
-            Utilities.captureScreenShot(driver);
-
-            System.out.println("Check _v1");
-            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
-
-            neoCustNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCustIDInputElement().getAttribute("value");
-            System.out.println("NEO CUST ID => " + neoCustNo);
-            idNo = crm_ExistingCustomerPage.getPrimaryApplicantIdNumberInputElement().getAttribute("value");
-            String idNoo = idNo.substring(idNo.indexOf(":") + 1).trim();
-            System.out.println("ID Number => " + idNoo);
-            cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
-            System.out.println("CIF Number => " + cifNo);
-            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
-            System.out.println("APPID => " + applicationId);
-
-
-            //switch test flow
+//            crm_ExistingCustomerPage.application_personal_Click();
+//
+//            await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getCustomerPersonal().isDisplayed());
+//            crm_ExistingCustomerPage.getCustomerPersonal().click();
+//            await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getCreateCustomerElement().isDisplayed());
+//
+//            System.out.println("PERSONAL LOAN PAGE");
+//
+//            crm_ExistingCustomerPage.getIsExistCustomerRadioElement().click();
+//
+//            await("Search Existing Individual Customers With displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getExistingCustomerSearchFormElement().isDisplayed());
+//
+//            if (!Objects.isNull(existingCustomerDTO.getNeoCustID())) {
+//                await("Neo Cust ID Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> crm_ExistingCustomerPage.getNeoCustIDInputElement().isDisplayed());
+//
+//                crm_ExistingCustomerPage.getNeoCustIDInputElement().sendKeys(existingCustomerDTO.getNeoCustID());
+//
+//            }
+//
+//            if (!Objects.isNull(existingCustomerDTO.getCifNumber())) {
+//                await("CIF Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> crm_ExistingCustomerPage.getCifNumberInputElement().isDisplayed());
+//
+//                crm_ExistingCustomerPage.getCifNumberInputElement().sendKeys(existingCustomerDTO.getCifNumber());
+//
+//            }
+//
+//            if (!StringUtils.isEmpty(existingCustomerDTO.getIdNumber())) {
+//
+//                crm_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
+//
+//                await("Identification Type Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> crm_ExistingCustomerPage.getIdentificationTypeUlElement().isDisplayed());
+//
+//                await("Identification Type Li loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> crm_ExistingCustomerPage.getIdentificationTypeLiElement().size() > 0);
+//
+//                for (WebElement e : crm_ExistingCustomerPage.getIdentificationTypeLiElement()) {
+//                    if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Current National ID")) {
+//                        e.click();
+//                        break;
+//                    }
+//                }
+//
+//                await("ID Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> crm_ExistingCustomerPage.getIdNumberInputElement().isDisplayed());
+//
+//                crm_ExistingCustomerPage.getIdNumberInputElement().sendKeys(existingCustomerDTO.getIdNumber());
+//
+//            }
+//
+//            await("Search displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getSearchCustomerButtonElement().isDisplayed());
+//
+//            crm_ExistingCustomerPage.getSearchCustomerButtonElement().click();
+//
+//
+//            await("Not Existing Customer!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getSearchCustomerTableElement().size() > 2);
+//
+//            int tableSize = crm_ExistingCustomerPage.getSearchCustomerTableSizeElement().size();
+//
+//            WebElement searchCustomerSelectElement = driver.findElement(new By.ByXPath("//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'example']//table[@id = 'searchData_IndividualCustomerTable']//tbody//tr[" + tableSize + "]//td[contains(@class, 'select_individual')]//input[contains(@value,'Select')]"));
+//
+//            await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> searchCustomerSelectElement.isDisplayed());
+//
+//            searchCustomerSelectElement.click();
+//
+//            await("Customer Information displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getCustomerInformationFormElement().isDisplayed());
+//
+//            await("Customer Information Save button displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getCustomerInformationSaveElement().isDisplayed());
+//
+//            crm_ExistingCustomerPage.getCustomerInformationSaveElement().click();
+//
+//            Utilities.captureScreenShot(driver);
+//
+//            System.out.println("Check _v1");
+//            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
+//
+//            neoCustNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCustIDInputElement().getAttribute("value");
+//            System.out.println("NEO CUST ID => " + neoCustNo);
+//            idNo = crm_ExistingCustomerPage.getPrimaryApplicantIdNumberInputElement().getAttribute("value");
+//            String idNoo = idNo.substring(idNo.indexOf(":") + 1).trim();
+//            System.out.println("ID Number => " + idNoo);
+//            cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
+//            System.out.println("CIF Number => " + cifNo);
 //            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
 //            System.out.println("APPID => " + applicationId);
-//            SearchMenu goToApp = new SearchMenu(driver);
-//            goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
 //
-//            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("Application Grid"));
-//            ((RemoteWebDriver) driver).findElementById("lead").click();
-//            WebElement inputApp = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
-//            inputApp.sendKeys("APPL01384178");
-//            inputApp.sendKeys(Keys.ENTER);
-//            Thread.sleep(3000);
-//            driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a")).click();
 //
-//            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("Application Grid"));
-//
-//            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
+//            //switch test flow
+//            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+//            System.out.println("APPID => " + applicationId);
+            SearchMenu goToApp = new SearchMenu(driver);
+            goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
+
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+            ((RemoteWebDriver) driver).findElementById("lead").click();
+            WebElement inputApp = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
+            inputApp.sendKeys("APPL01379375");
+            inputApp.sendKeys(Keys.ENTER);
+            Thread.sleep(3000);
+            driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a")).click();
+
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+
+            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
 
             //switch test flow end
             // ========== VIEW/EDIT DETAILED INFORMATION =================
