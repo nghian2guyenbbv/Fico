@@ -181,7 +181,11 @@ public class FV_FieldVerificationPage {
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
         System.out.println(stage + ": DONE");
-
+        try {
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         // ========== INITIATE VERIFICATION =================
 
         SearchMenu goToApp = new SearchMenu(_driver);
@@ -248,6 +252,14 @@ public class FV_FieldVerificationPage {
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Button Move To Next Stage Element visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isDisplayed());
+
+        with().pollInterval(Duration.FIVE_SECONDS).await("Button Move To Next Stage Element enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> btnMoveToNextStageElement.isEnabled());
+        try {
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         btnMoveToNextStageElement.click();
 //        keyActionMoveNextStage();
 
