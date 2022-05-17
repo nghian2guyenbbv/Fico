@@ -4,10 +4,7 @@ import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -91,9 +88,9 @@ public class SaleQueuePage {
     @CacheLookup
     private WebElement documentBtnAddCommnetElement;
 
-    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
-    @CacheLookup
-    private WebElement btnMoveToNextStageElement;
+//    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")
+//    @CacheLookup
+//    private WebElement btnMoveToNextStageElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='LoanApplication_Assigned']")
     @CacheLookup
@@ -250,12 +247,7 @@ public class SaleQueuePage {
         Utilities.captureScreenShot(_driver);
 
         System.out.println("ADD COMMENT" + " => DONE");
-
-        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> _driver.findElement(By.xpath("//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]")).isDisplayed());
-        Actions actions = new Actions(_driver);
-        actions.moveToElement(_driver.findElement(By.xpath("//div[contains(@id, 'move_to_next_stage_div')]//button[contains(@id, 'move_to_next_stage')]"))).click().build().perform();
-
+        keyActionMoveNextStage();
         await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
         Utilities.captureScreenShot(_driver);
@@ -265,9 +257,11 @@ public class SaleQueuePage {
         Actions actionKey = new Actions(_driver);
         WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
 
-        actionKey.moveToElement(divTimeRemaining).click();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.ENTER).build().perform();
+        actionKey.moveToElement(divTimeRemaining).perform();
+        divTimeRemaining.click();
+        WebElement movoToStep = _driver.findElement(By.id("move_to_next_stage"));
+        JavascriptExecutor js = (JavascriptExecutor)_driver;
+        js.executeScript("arguments[0].click();",movoToStep);
+
     }
 }
