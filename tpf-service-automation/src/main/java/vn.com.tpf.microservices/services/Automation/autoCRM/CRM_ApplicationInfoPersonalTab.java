@@ -236,7 +236,7 @@ public class CRM_ApplicationInfoPersonalTab {
     private WebElement primaryEmailElement;
 
 //    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
-    @FindBy(how = How.ID, using = "customer_mobile_phonen1_phoneNumber")
+    @FindBy(how = How.ID, using = "customer_mobile_phonen3_phoneNumber")
     @CacheLookup
     private WebElement cusMobileElements;
 
@@ -489,7 +489,9 @@ public class CRM_ApplicationInfoPersonalTab {
             }
 
             for(WebElement idCardHiden: listHidenIdCard){
+
                 String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                System.out.println("idCardTypeSelect: " + idCardTypeSelect.trim());
                 WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
                 if(!TypeIdentificationCur.contains("Family Book Number") && idCardTypeSelect.equals("Family Book Number")){
                     System.out.println("Identification delete: 1 " + idCardTypeSelect);
@@ -497,6 +499,10 @@ public class CRM_ApplicationInfoPersonalTab {
                 }
                 if(TypeIdentificationCur.contains(idCardTypeSelect)){
                     System.out.println("Identification delete: 2 " + idCardTypeSelect);
+                    actions.moveToElement(idCardButtonDelete).click().build().perform();
+                }
+                if(idCardTypeSelect.trim().equals("Select")){
+                    System.out.println("Identification delete select: 3 " + idCardTypeSelect);
                     actions.moveToElement(idCardButtonDelete).click().build().perform();
                 }
             }
@@ -513,6 +519,8 @@ public class CRM_ApplicationInfoPersonalTab {
             btnAddIdentElement.click();
             var applicationInfoList = applicationInfoDTO.getIdentification().stream().filter(identification -> !identification.getIdentificationType().equals("Family Book Number")).collect(Collectors.toList());
             updateIdentificationValue(applicationInfoList,documentType.size()-1);
+
+
         }
 
         //end update identification
@@ -544,8 +552,11 @@ public class CRM_ApplicationInfoPersonalTab {
         //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
         //check again
         if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null) {
-            _driver.findElement(By.id("customer_mobile_phonen1select_chosen")).click();
-            _driver.findElement(By.xpath("//*[@id=\"customer_mobile_phonen1select_chosen\"]/div/div/input")).sendKeys("VN" + Keys.ENTER);
+            await("cusMobileElements loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> cusMobileElements.isDisplayed());
+            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen3select_chosen']")).click();
+            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen3select_chosen']/div/div/input")).sendKeys("VN" + Keys.ENTER);
+
             cusMobileElements.clear();
             cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
         }
@@ -556,8 +567,6 @@ public class CRM_ApplicationInfoPersonalTab {
 
         btnCheckDuplicateElement.click();
 
-//        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
-//                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
         Thread.sleep(2000);
 
         saveAndNext();
