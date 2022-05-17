@@ -657,8 +657,7 @@ public class AutomationHandlerService {
             await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
 ////// comment delete
-//            personalTab.setValue(applicationInfoDTO);
-            personalTab.updateValue(applicationInfoDTO);
+//            personalTab.updateValue(applicationInfoDTO);
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "EMPLOYMENT DETAILS";
@@ -715,9 +714,9 @@ public class AutomationHandlerService {
                 financialDetailsTab.openIncomeDetailSection();
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
-                financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getIncomeDetails());
+                financialDetailsTab.updateIncomeDetailsData(applicationInfoDTO.getIncomeDetails());
                 actions.moveToElement(financialDetailsTab.getBtnSaveAndNextElement()).click().build().perform();
-                financialDetailsTab.saveAndNext();
+//                financialDetailsTab.saveAndNext();
             }
 
             System.out.println(stage + ": DONE");
@@ -7063,7 +7062,6 @@ public class AutomationHandlerService {
             //*************************** END GET DATA *********************//
             Actions actions = new Actions(driver);
             System.out.println(stage + ": DONE");
-            stage = "LOGIN FINONE";
 
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";

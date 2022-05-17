@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
@@ -131,7 +128,9 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
 
             if(data.getIncomeHead().equals("Main Personal Income")) {
                 //add income detail
-                _driver.findElement(By.xpath("//*[contains(@id, 'rowIncDetails" + index + "')]//a[contains(@class,'fs-10')]")).click();
+                String onlickMoreDetail = _driver.findElement(By.xpath("//*[contains(@id, 'rowIncDetails" + index + "')]//a[contains(@class,'fs-10')]")).getAttribute("onclick");
+                JavascriptExecutor js= (JavascriptExecutor)_driver;
+                js.executeScript(onlickMoreDetail);
                 await("childModalIncomeDetailInlineGridElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> childModalIncomeDetailInlineGridElement.isDisplayed());
                 Actions actions = new Actions(_driver);
@@ -161,7 +160,7 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
                 Thread.sleep(3000);
             }
 
-            Thread.sleep(5000);
+//            Thread.sleep(5000);
 
             if (index < datas.size() - 1) {
                 await("Btn Add IncomeDetail not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -220,7 +219,10 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
 
             if(data.getIncomeHead().equals("Main Personal Income")) {
                 //add income detail
-                _driver.findElement(By.xpath("//*[contains(@id, 'rowIncDetails" + indexRow + "')]//a[contains(@class,'fs-10')]")).click();
+//                _driver.findElement(By.xpath("//*[contains(@id, 'rowIncDetails" + indexRow + "')]//a[contains(@class,'fs-10')]")).click();
+                String onlickMoreDetail = _driver.findElement(By.xpath("//*[contains(@id, 'rowIncDetails" + indexRow + "')]//a[contains(@class,'fs-10')]")).getAttribute("onclick");
+                JavascriptExecutor js= (JavascriptExecutor)_driver;
+                js.executeScript(onlickMoreDetail);
                 await("childModalIncomeDetailInlineGridElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> childModalIncomeDetailInlineGridElement.isDisplayed());
                 Actions actions = new Actions(_driver);

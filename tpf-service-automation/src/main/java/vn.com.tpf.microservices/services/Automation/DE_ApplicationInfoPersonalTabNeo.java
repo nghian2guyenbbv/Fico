@@ -513,7 +513,9 @@ public class DE_ApplicationInfoPersonalTabNeo {
     }
 
     public void loadIdentificationSection() {
-        this.btnLoadIdentificationElement.click();
+//        this.btnLoadIdentificationElement.click();
+        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
+        jse2.executeScript("arguments[0].click();", btnLoadIdentificationElement);
     }
 
     public void UpdateLoadIdentificationSection() {
@@ -1289,8 +1291,10 @@ public class DE_ApplicationInfoPersonalTabNeo {
 
 
          //actions.moveToElement(btnCheckDuplicateUpdateElement).click().build().perform();
-        btnCheckDuplicateElement.click();
+//        btnCheckDuplicateElement.click();
 
+        JavascriptExecutor js= (JavascriptExecutor)_driver;
+        js.executeScript(btnCheckDuplicateElement.getAttribute("onclick"));
          //ko hien thi
          await("numDuplicateElement text not enabled").atMost(60, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
