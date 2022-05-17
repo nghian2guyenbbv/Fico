@@ -187,7 +187,7 @@ public class DE_ReturnSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id,'listitem_selected_user0')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'backSaveBtns')]//input[@type='button']")
@@ -226,10 +226,10 @@ public class DE_ReturnSaleQueuePage {
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
 
-        await("Stage SALES_QUEUE wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> "SALES_QUEUE".equals(tdCheckStageApplicationElement.getText()));
+        await("Stage SALES QUEUE wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> "SALES QUEUE".equals(tdCheckStageApplicationElement.getText()));
 
-        if (!"SALES_QUEUE".equals(tdCheckStageApplicationElement.getText())){
+        if (!"SALES QUEUE".equals(tdCheckStageApplicationElement.getText())){
             return;
         }
 
@@ -263,7 +263,7 @@ public class DE_ReturnSaleQueuePage {
         Utilities.captureScreenShot(_driver);
         saveTaskElement.click();
         System.out.println(stage + " => DONE");
-
+        Thread.sleep(15000);
 
         // ========== APPLICATION - SALE QUEUE =================
         SearchMenu searchMenuApp = new SearchMenu(_driver);
@@ -413,12 +413,8 @@ public class DE_ReturnSaleQueuePage {
         documentBtnAddCommnetElement.click();
         Utilities.captureScreenShot(_driver);
         System.out.println("ADD COMMENT" + " => DONE");
-        await("btnMoveToNextStageElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> btnMoveToNextStageElement.isDisplayed());
 
-        btnMoveToNextStageElement.click();
-
-//        keyActionMoveNextStage();
+        keyActionMoveNextStage();
         await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
         Utilities.captureScreenShot(_driver);
@@ -429,10 +425,11 @@ public class DE_ReturnSaleQueuePage {
         Actions actionKey = new Actions(_driver);
         WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
 
-        actionKey.moveToElement(divTimeRemaining).click();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.ENTER).build().perform();
+        actionKey.moveToElement(divTimeRemaining).perform();
+        divTimeRemaining.click();
+        WebElement movoToStep = _driver.findElement(By.id("move_to_next_stage"));
+        JavascriptExecutor js = (JavascriptExecutor)_driver;
+        js.executeScript("arguments[0].click();",movoToStep);
     }
 
 }
