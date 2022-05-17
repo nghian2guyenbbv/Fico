@@ -55,7 +55,7 @@ public class AssignManagerSaleQueuePage {
     @FindBy(how = How.XPATH, using = "//a[contains(@id, 'listitem_selected_user')]")
     private List<WebElement> textSelectUserOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'with_branch')]//input[@type='submit']")
+    @FindBy(how = How.XPATH, using = "//*[@id='with_branch']/input")
     private WebElement saveTaskElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]//li[contains(@class,'application-column-loan')]//span[contains(text(),'Applications')]")
