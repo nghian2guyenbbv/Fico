@@ -248,10 +248,6 @@ public class SaleQueuePage {
 
         System.out.println("ADD COMMENT" + " => DONE");
         keyActionMoveNextStage();
-//        Actions actions = new Actions(_driver);
-//        actions.moveToElement(btnMoveToNextStageElement);
-//
-
         await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(_driver::getTitle, is("Application Grid"));
         Utilities.captureScreenShot(_driver);
