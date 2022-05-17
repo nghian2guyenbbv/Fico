@@ -187,7 +187,12 @@ public class FV_WaiveFieldPage {
         saveTaskElement.click();
 
         System.out.println(stage + ": DONE");
-
+        //waiting save task
+        try {
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         // ========== WAIVE OFF ALL =================
         SearchMenu goToApp = new SearchMenu(_driver);
         goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
