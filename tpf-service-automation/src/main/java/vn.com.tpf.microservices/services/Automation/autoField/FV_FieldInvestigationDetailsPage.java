@@ -119,7 +119,7 @@ public class FV_FieldInvestigationDetailsPage {
 
     public void setData(SubmitFieldDTO submitFieldDTO, String user) {
         String stage = "";
-
+        Actions actions = new Actions(_driver);
         SearchMenu goToMn = new SearchMenu(_driver);
         goToMn.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
 
@@ -140,7 +140,11 @@ public class FV_FieldInvestigationDetailsPage {
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
-
+        try {
+            Thread.sleep(20000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         showTaskElement.click();
 
         await("taskTableDivElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -241,7 +245,7 @@ public class FV_FieldInvestigationDetailsPage {
         with().pollInterval(Duration.FIVE_SECONDS).await("Button Move Next Stage loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnMoveToNextStageElement.isEnabled());
 
-        Actions actions = new Actions(_driver);
+
 
         actions.moveToElement(btnMoveToNextStageElement).click().perform();
         Utilities.captureScreenShot(_driver);
