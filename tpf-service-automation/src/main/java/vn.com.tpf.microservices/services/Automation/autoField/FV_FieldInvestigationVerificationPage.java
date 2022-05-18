@@ -280,12 +280,12 @@ public class FV_FieldInvestigationVerificationPage {
 
         await("resultHomeVisitSelect loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultHomeVisitSelect.size() > 0);
-
-        for (WebElement e : resultHomeVisitSelect) {
-            e.click();
-            break;
-        }
-
+        resultHomeVisitInput.sendKeys(Keys.ENTER);
+//        for (WebElement e : resultHomeVisitSelect) {
+//            e.click();
+//            break;
+//        }
+//
 
         _driver.findElement(By.xpath("//*[@id='Result_home_visit_2_Residence_Verification_3_chosen']")).click();
         await("resultHomeVisit2Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -326,6 +326,7 @@ public class FV_FieldInvestigationVerificationPage {
         System.setProperty("java.awt.headless", "false");
         int i = 0;
         stage = "UPLOAD FILE";
+        Actions action = new Actions(_driver);
         System.out.println(stage + ": START");
         for (SubmitFieldAttachmentDTO attachmentFileList : submitFieldDTO.getAttachmentField()) {
             attachmentsButtonUploadA.click();
@@ -333,7 +334,7 @@ public class FV_FieldInvestigationVerificationPage {
             System.out.println("Click done attachments Button");
 
             Thread.sleep(5000);
-            Actions action = new Actions(_driver);
+
             action.sendKeys(Keys.ESCAPE).build().perform();
 
             System.out.println("Click done Escape Key");
@@ -383,10 +384,8 @@ public class FV_FieldInvestigationVerificationPage {
                     .until(() -> verificationAgentLiElement.size() > 0);
 
             for (WebElement e : verificationAgentLiElement) {
-                if(e.getText().equals(submitFieldDTO.getVerificationAgent())){
-                    e.click();
-                    break;
-                }
+                e.click();
+                break;
             }
         }
         new Select(resultDescriptionSelect).selectByVisibleText("Positive");
@@ -396,8 +395,7 @@ public class FV_FieldInvestigationVerificationPage {
         if(!Objects.isNull(submitFieldDTO.getRemarksDecisionFiv())){
             remarksDescriptionTextArea.sendKeys(submitFieldDTO.getRemarksDecisionFiv());
         }
-        timeOfVisitElement.clear();
-        timeOfVisitElement.sendKeys(submitFieldDTO.getTimeOfVisit());
+
         verificationDateElement.clear();
         verificationDateElement.sendKeys(submitFieldDTO.getVerificationDate());
 
@@ -411,7 +409,8 @@ public class FV_FieldInvestigationVerificationPage {
 
         Thread.sleep(5000);
 
-        actions.moveToElement(buttonSaveAndProceed).click().perform();
+        JavascriptExecutor js = (JavascriptExecutor)_driver;
+        js.executeScript("arguments[0].click();",buttonSaveAndProceed);
 
         Utilities.captureScreenShot(_driver);
     }

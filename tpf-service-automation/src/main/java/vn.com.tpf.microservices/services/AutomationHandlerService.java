@@ -4893,9 +4893,6 @@ public class AutomationHandlerService {
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-//                await("Field Investigation Details failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> fv_FieldInvestigationDetailsPage.getCheckMoveToNextStageElement().size() == 0);
-
                 await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Grid"));
 
