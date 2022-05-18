@@ -793,6 +793,7 @@ public class DataInitial {
                     .remarksDecisionFic(submitField.getResonDecisionFic())
                     .resonDecisionFic(submitField.getResonDecisionFic())
                     .attachmentField(submitField.getAttachmentField())
+                    .verificationAgent(submitField.getVerificationAgent())
                     .build();
             submitFieldDTOs.add(submitFieldDTO);
         }
