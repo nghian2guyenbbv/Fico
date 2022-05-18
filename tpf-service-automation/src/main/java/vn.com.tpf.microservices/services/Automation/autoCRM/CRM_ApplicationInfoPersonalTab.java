@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
@@ -204,7 +205,7 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "create_new")
     private WebElement btnCreateAnotherElement;
 
-    @FindBy(how = How.CLASS_NAME, using = "DedupeButton")
+    @FindBy(how = How.XPATH, using = "//*[@id='dedupeCheckButton']/button")
     private WebElement btnCheckDuplicateElement;
 
     @FindBy(how = How.ID, using = "dedupeCheckButton")
@@ -235,7 +236,7 @@ public class CRM_ApplicationInfoPersonalTab {
     private WebElement primaryEmailElement;
 
 //    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
-    @FindBy(how = How.ID, using = "customer_mobile_phonen1_phoneNumber")
+    @FindBy(how = How.ID, using = "customer_mobile_phonen3_phoneNumber")
     @CacheLookup
     private WebElement cusMobileElements;
 
@@ -411,7 +412,6 @@ public class CRM_ApplicationInfoPersonalTab {
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
-
         btnCheckDuplicateElement.click();
 
         await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
@@ -422,6 +422,11 @@ public class CRM_ApplicationInfoPersonalTab {
 
     public void setValue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
         Actions actions = new Actions(_driver);
+        this.genderSelectElement.click();
+        await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> genderSelectOptionElement.size() > 0);
+        Utilities.chooseDropdownValue("Select One Option", genderSelectOptionElement);
+
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -466,13 +471,12 @@ public class CRM_ApplicationInfoPersonalTab {
         loadIdentificationSection();
         System.out.println("identification Tab Element");
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("Load identificationDivElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> identificationDivElement.isDisplayed());
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> deleteIdDetailElement.size() > 0);
-
 
         if (applicationInfoDTO.getIdentification().size() > 0){
             List<WebElement> documentType = _driver.findElements(By.xpath("//*[contains(@id,'customer_identificationDetails')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"));
@@ -485,12 +489,20 @@ public class CRM_ApplicationInfoPersonalTab {
             }
 
             for(WebElement idCardHiden: listHidenIdCard){
+
                 String idCardTypeSelect = new Select(_driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("value") + "')]//ancestor::tr//*[contains(@id,'idDetail_identificationType')]"))).getFirstSelectedOption().getText();
+                System.out.println("idCardTypeSelect: " + idCardTypeSelect.trim());
                 WebElement idCardButtonDelete = _driver.findElement(By.xpath("//*[contains(@id,'customer_identificationDetails')]//*[contains(@value,'" + idCardHiden.getAttribute("Value") + "')]//ancestor::tr//*[contains(@id,'DeleteIdDetails')]"));
                 if(!TypeIdentificationCur.contains("Family Book Number") && idCardTypeSelect.equals("Family Book Number")){
+                    System.out.println("Identification delete: 1 " + idCardTypeSelect);
                     actions.moveToElement(idCardButtonDelete).click().build().perform();
                 }
                 if(TypeIdentificationCur.contains(idCardTypeSelect)){
+                    System.out.println("Identification delete: 2 " + idCardTypeSelect);
+                    actions.moveToElement(idCardButtonDelete).click().build().perform();
+                }
+                if(idCardTypeSelect.trim().equals("Select")){
+                    System.out.println("Identification delete select: 3 " + idCardTypeSelect);
                     actions.moveToElement(idCardButtonDelete).click().build().perform();
                 }
             }
@@ -505,11 +517,13 @@ public class CRM_ApplicationInfoPersonalTab {
             await("Btn Add Element not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> btnAddIdentElement.isEnabled());
             btnAddIdentElement.click();
-            updateIdentificationValue(applicationInfoDTO.getIdentification(),documentType.size()-1);
-        }
-        //end update identification
+            var applicationInfoList = applicationInfoDTO.getIdentification().stream().filter(identification -> !identification.getIdentificationType().equals("Family Book Number")).collect(Collectors.toList());
+            updateIdentificationValue(applicationInfoList,documentType.size()-1);
 
-        //todo next 8.4
+
+        }
+
+        //end update identification
 
         //update address: ko xoa dc do anh huong cac employment detail nen chi edit
         loadAddressSection();
@@ -538,8 +552,11 @@ public class CRM_ApplicationInfoPersonalTab {
         //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
         //check again
         if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null) {
-            _driver.findElement(By.id("customer_mobile_phonen1select_chosen")).click();
-            _driver.findElement(By.xpath("//*[@id=\"customer_mobile_phonen1select_chosen\"]/div/div/input")).sendKeys("VN" + Keys.ENTER);
+            await("cusMobileElements loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> cusMobileElements.isDisplayed());
+            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen3select_chosen']")).click();
+            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen3select_chosen']/div/div/input")).sendKeys("VN" + Keys.ENTER);
+
             cusMobileElements.clear();
             cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
         }
@@ -548,10 +565,9 @@ public class CRM_ApplicationInfoPersonalTab {
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
 
-        actions.moveToElement(btnCheckDuplicateElement).click();
+        btnCheckDuplicateElement.click();
 
-//        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
-//                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
+        Thread.sleep(2000);
 
         saveAndNext();
     }
@@ -1172,7 +1188,12 @@ public class CRM_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
                 System.out.println("Address Ward");
-
+                WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
+                WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
+                fromDate.clear();
+                fromDate.sendKeys(data.getResidentDurationMonth());
+                toDate.clear();
+                toDate.sendKeys(data.getResidentDurationYear());
                 if(!data.getMobilePhone().isEmpty()){
                     boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
                     if (checkMobilephoneNumber){

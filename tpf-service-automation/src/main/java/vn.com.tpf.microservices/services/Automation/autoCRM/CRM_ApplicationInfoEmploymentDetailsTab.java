@@ -174,7 +174,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
                         await("Confirm Delete visibale!!!").atMost(Duration.TEN_MINUTES)
                                 .until(() -> modalMajorChangeElement.isDisplayed());
                         Utilities.captureScreenShot(_driver);
-                        btnMajorChangeElement.get(0).click();
+                        btnMajorChangeElement.get(1).click();
                     }
 
                     break;

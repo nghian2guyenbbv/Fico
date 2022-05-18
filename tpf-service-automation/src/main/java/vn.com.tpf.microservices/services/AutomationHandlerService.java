@@ -131,7 +131,6 @@ public class AutomationHandlerService {
 
         while (Objects.isNull(accountDTO)) {
             System.out.println("Wait to get account...");
-
             //get list account finone available
             Query query = new Query();
             query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
@@ -5480,23 +5479,24 @@ public class AutomationHandlerService {
             crm_ExistingCustomerPage.getCustomerInformationSaveElement().click();
 
             Utilities.captureScreenShot(driver);
-
-            System.out.println("Check _v1");
-            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
-
-            neoCustNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCustIDInputElement().getAttribute("value");
-            System.out.println("NEO CUST ID => " + neoCustNo);
-            idNo = crm_ExistingCustomerPage.getPrimaryApplicantIdNumberInputElement().getAttribute("value");
-            String idNoo = idNo.substring(idNo.indexOf(":") + 1).trim();
-            System.out.println("ID Number => " + idNoo);
-            cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
-            System.out.println("CIF Number => " + cifNo);
             applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
             System.out.println("APPID => " + applicationId);
 
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
 
-            //switch test flow
+//            neoCustNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCustIDInputElement().getAttribute("value");
+//            System.out.println("NEO CUST ID => " + neoCustNo);
+//            idNo = crm_ExistingCustomerPage.getPrimaryApplicantIdNumberInputElement().getAttribute("value");
+//            String idNoo = idNo.substring(idNo.indexOf(":") + 1).trim();
+//            System.out.println("ID Number => " + idNoo);
+//            cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
+//            System.out.println("CIF Number => " + cifNo);
+//            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+//            System.out.println("APPID => " + applicationId);
+
+
+//            //switch test flow
 //            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
 //            System.out.println("APPID => " + applicationId);
 //            SearchMenu goToApp = new SearchMenu(driver);
@@ -5506,7 +5506,7 @@ public class AutomationHandlerService {
 //                    .until(driver::getTitle, is("Application Grid"));
 //            ((RemoteWebDriver) driver).findElementById("lead").click();
 //            WebElement inputApp = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
-//            inputApp.sendKeys("APPL01384178");
+//            inputApp.sendKeys("APPL01379375");
 //            inputApp.sendKeys(Keys.ENTER);
 //            Thread.sleep(3000);
 //            driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a")).click();
@@ -5515,8 +5515,8 @@ public class AutomationHandlerService {
 //                    .until(driver::getTitle, is("Application Grid"));
 //
 //            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
-
-            //switch test flow end
+//
+//            //switch test flow end
             // ========== VIEW/EDIT DETAILED INFORMATION =================
             stage = "VIEW/EDIT DETAILED INFORMATION";
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();

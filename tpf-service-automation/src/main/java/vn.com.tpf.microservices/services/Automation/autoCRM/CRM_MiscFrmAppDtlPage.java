@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
@@ -410,11 +407,11 @@ public class CRM_MiscFrmAppDtlPage {
         Actions actionKey = new Actions(_driver);
         WebElement divTimeRemaining = _driver.findElement(By.xpath("//div[@id = 'heading']//div[@id = 'timer_containerappTat']"));
 
-        actionKey.moveToElement(divTimeRemaining).click();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.TAB).build().perform();
-        actionKey.sendKeys(Keys.ENTER).build().perform();
+        actionKey.moveToElement(divTimeRemaining).perform();
+        divTimeRemaining.click();
+        WebElement movoToStep = _driver.findElement(By.id("move_to_next_stage"));
+        JavascriptExecutor js = (JavascriptExecutor)_driver;
+        js.executeScript("arguments[0].click();",movoToStep);
     }
 
 
