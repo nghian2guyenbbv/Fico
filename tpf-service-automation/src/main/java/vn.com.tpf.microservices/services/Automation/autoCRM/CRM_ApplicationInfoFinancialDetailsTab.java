@@ -146,17 +146,17 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
 
             Utilities.chooseDropdownValue(data.getDayOfSalaryPayment(),incomeDetailForm_incomeSourceOptionElement);
 
-//            incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
-//            incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
+            incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
+            incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
             Utilities.captureScreenShot(_driver);
-           // incomeDetailForm_paymentModeElement.click();
-//            await("incomeDetailForm_paymentModeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//
-//                    .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
-//            incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
-//            incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
-//
-//            Utilities.captureScreenShot(_driver);
+            incomeDetailForm_paymentModeElement.click();
+            await("incomeDetailForm_paymentModeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+
+                    .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
+            incomeDetailForm_paymentModeInputElement.sendKeys(data.getModeOfPayment());
+            incomeDetailForm_paymentModeInputElement.sendKeys(Keys.ENTER);
+
+            Utilities.captureScreenShot(_driver);
 
             childModalWindowDoneButtonIncomeDetailInlineGridElement.click();
             Thread.sleep(3000);

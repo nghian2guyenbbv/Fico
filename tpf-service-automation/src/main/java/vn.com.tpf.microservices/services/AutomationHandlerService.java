@@ -5633,7 +5633,7 @@ public class AutomationHandlerService {
 
             //***************************//LOGIN PAGE//***************************//
             LoginPageNeo loginPage = new LoginPageNeo(driver);
-            loginPage.setLoginValue("huynn8v2", "Tpf@2022","CAS");
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
@@ -5726,7 +5726,8 @@ public class AutomationHandlerService {
             crm_ExistingCustomerPage.getCustomerInformationSaveElement().click();
 
             Utilities.captureScreenShot(driver);
-
+            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+            System.out.println("APPID => " + applicationId);
 
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
