@@ -280,12 +280,12 @@ public class FV_FieldInvestigationVerificationPage {
 
         await("resultHomeVisitSelect loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> resultHomeVisitSelect.size() > 0);
-
-        for (WebElement e : resultHomeVisitSelect) {
-            e.click();
-            break;
-        }
-
+        resultHomeVisitInput.sendKeys(Keys.ENTER);
+//        for (WebElement e : resultHomeVisitSelect) {
+//            e.click();
+//            break;
+//        }
+//
 
         _driver.findElement(By.xpath("//*[@id='Result_home_visit_2_Residence_Verification_3_chosen']")).click();
         await("resultHomeVisit2Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
