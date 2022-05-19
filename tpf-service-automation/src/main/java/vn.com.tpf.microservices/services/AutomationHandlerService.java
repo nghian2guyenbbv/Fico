@@ -7331,9 +7331,11 @@ public class AutomationHandlerService {
             //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            LoginV2Page loginPage = new LoginV2Page(driver);
-            loginPage.loginValue(accountDTO);
-
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
+            loginPage.clickLogin();
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
             //***************************//END LOGIN//***************************//
 
             System.out.println(stage + ": DONE");
@@ -7341,10 +7343,6 @@ public class AutomationHandlerService {
 
             stage = "HOME PAGE";
             HomePage homePage = new HomePage(driver);
-
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
-
             stage = "QUICK LEAD";
             // ========== QUICK LEAD =================
             homePage.menuClick();
@@ -7403,22 +7401,20 @@ public class AutomationHandlerService {
             await("Lead Page timeout").atMost(Constant.TIME_OUT_5_M, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Lead Grid"));
 
-            leadGridPage.getSpanAllNotifyElement().click();
-            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadGridPage.getDivAllNotifyElement().isEnabled() && leadGridPage.getDivAllNotifyElement().isDisplayed());
-
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadGridPage.getBtnAllNotifyElement().isEnabled() && leadGridPage.getBtnAllNotifyElement().isDisplayed());
-            leadGridPage.getBtnAllNotifyElement().click();
-
-            Utilities.captureScreenShot(driver);
-            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> leadGridPage.getNotifyTextSuccessElement().size() > 0);
+//            leadGridPage.getSpanAllNotifyElement().click();
+//            await("getDivAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> leadGridPage.getDivAllNotifyElement().isEnabled() && leadGridPage.getDivAllNotifyElement().isDisplayed());
+//
+//            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> leadGridPage.getBtnAllNotifyElement().isEnabled() && leadGridPage.getBtnAllNotifyElement().isDisplayed());
+//            leadGridPage.getBtnAllNotifyElement().click();
+//            await("getBtnAllNotifyElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> leadGridPage.getNotifyTextSuccessElement().size() > 0);
 
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getMenuApplicationElement().click();
-            homePage.getApplicationManagerElement().click();
+            SearchMenu goToMN = new SearchMenu(driver);
+            goToMN.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
             await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
@@ -7500,7 +7496,8 @@ public class AutomationHandlerService {
                 System.out.println(e.toString());
             }
             updateSaveDB(quickLeadDTO);
-            logoutFinOne(driver, accountDTO);
+
+            logout(driver, accountDTO.getUserName());
             updateAccountFromMongoDB(accountDTO, quickLeadDTO.getProject().toUpperCase());
         }
     }

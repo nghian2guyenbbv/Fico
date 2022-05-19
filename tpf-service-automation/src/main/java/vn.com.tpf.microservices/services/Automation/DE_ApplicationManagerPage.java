@@ -112,9 +112,6 @@ public class DE_ApplicationManagerPage {
 
     public String getAppID(String leadApp) {
         String appID="";
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationManagerFormElement.isDisplayed());
-
         applicationNumberElement.sendKeys(leadApp);
         searchApplicationElement.click();
 
@@ -123,8 +120,6 @@ public class DE_ApplicationManagerPage {
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
-
-        showTaskElement.click();
 
         await("applicationTableAppIDElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationTableAppIDElement.isDisplayed());
