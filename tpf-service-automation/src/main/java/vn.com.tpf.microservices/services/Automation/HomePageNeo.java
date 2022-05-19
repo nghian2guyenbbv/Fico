@@ -24,7 +24,7 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement personalLoan;
 
-	@FindBy(how = How.CLASS_NAME, using = "linkfunIcoLink")
+	@FindBy(how = How.XPATH, using = "//*[@id='mainMenuList']/ul/li[2]/ul/li[1]/div/div[2]/a")
 	@CacheLookup
 	private WebElement quickLead;
 
@@ -60,11 +60,7 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement assigned;
 
-	@FindBy(how = How.ID, using = "lead")
-	@CacheLookup
-	private WebElement assignedApp;
-
-	@FindBy(how = How.XPATH, using = "//div[contains(@class,'DTFC_LeftHeadWrapper')]//input[@data-id='applicationNumber']")
+	@FindBy(how = How.XPATH, using = "//input[@data-id='applicationNumber']")
 	@CacheLookup
 	private WebElement applicationNumber;
 
@@ -76,7 +72,7 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement LeadQueryElement;
 
-	@FindBy(how = How.XPATH, using = "//*[contains(@class, 'DTFC_LeftBodyWrapper')]//a[contains(@class,'IDnumber')]")
+	@FindBy(how = How.XPATH, using = "//*[contains(@id, 'LoanApplication_Assigned')]//a[contains(@class,'IDnumber')]")
 	@CacheLookup
 	private WebElement appQueryElement;
 
@@ -108,11 +104,11 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement nameAccount;
 
-	@FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_team_Branch0')]")
+	@FindBy(how = How.XPATH, using = "//*[@id='listitem_team_Branch00a']")
 	@CacheLookup
 	private List<WebElement> teamOptionElement;
 
-	@FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_selected_user0')]")
+	@FindBy(how = How.XPATH, using = "//*[@id='listitem_selected_user00a']")
 	@CacheLookup
 	private List<WebElement> accountOptionElement;
 
@@ -123,14 +119,17 @@ public class HomePageNeo {
 	@FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
 	private WebElement applicationTableAppIDElement;
 
+	@FindBy(how = How.ID, using = "lead")
+	@CacheLookup
+	private WebElement assignedApp;
 	public HomePageNeo(WebDriver driver) {
-        PageFactory.initElements(driver, this);
-    }
-	
+		PageFactory.initElements(driver, this);
+	}
+
 	public void menuClick() {
 		this.menuApplication.click();
 	}
-	
+
 	public void menuChildClick() {
 		this.personalLoan.click();
 	}
