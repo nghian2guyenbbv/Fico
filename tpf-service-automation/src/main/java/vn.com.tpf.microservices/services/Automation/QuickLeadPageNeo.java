@@ -80,11 +80,11 @@ public class QuickLeadPageNeo {
     @CacheLookup
     private WebElement cityContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_city')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='listitem_city0a']")
     @CacheLookup
     private List<WebElement> cityOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_loan_product')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='listitem_loan_product0a']")
     @CacheLookup
     private List<WebElement> loanOptionElement;
 
@@ -145,10 +145,8 @@ public class QuickLeadPageNeo {
                 .until(() -> loanOptionElement.size() > 0);
 
         for(WebElement e: loanOptionElement) {
-            if(!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals(quickLead.getProductCode())) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
 
         amountLoanElement.sendKeys(quickLead.getLoanAmountRequested());
@@ -164,28 +162,30 @@ public class QuickLeadPageNeo {
                 .until(() -> cityOptionElement.size() > 0);
 
         for(WebElement e: cityOptionElement) {
-            if(!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals(Utilities.convertToTitleCaseSplitting(quickLead.getCity()))) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
 
         actions.moveToElement(sourcingChannelElement).click().build().perform();
 
         await("sourcingChannelElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> sourcingChannelOptionElement.size() >0);
-
-        sourcingChanneInputElement.sendKeys(quickLead.getSourcingChannel());
-        sourcingChanneInputElement.sendKeys(Keys.ENTER);
+        for(WebElement e: sourcingChannelOptionElement) {
+           if(e.getText().equals(quickLead.getSourcingChannel())){
+               e.click();
+           }
+        }
 
         if ("ALTERNATE_CHANNEL".equals(quickLead.getSourcingChannel())){
             actions.moveToElement(alternateChannelModeElement).click().build().perform();
 
             await("alternateChannelModeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> alternateChannelModeOptionElement.size() >0);
-
-            alternateChannelModeInputElement.sendKeys(quickLead.getAlternateChannelMode());
-            alternateChannelModeInputElement.sendKeys(Keys.ENTER);
+            for(WebElement e: alternateChannelModeOptionElement) {
+                if(e.getText().equals(quickLead.getAlternateChannelMode())){
+                    e.click();
+                }
+            }
         }
 
         saveButtonleadElement.click();

@@ -6,10 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -53,11 +50,11 @@ public class LeadDetailPage {
     @CacheLookup
     private WebElement branchContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_nearestCityInd0')]")
+    @FindBy(how = How.XPATH, using = "//a[contains(@id,'listitem_nearestCityInd0')]")
     @CacheLookup
     private List<WebElement> branchOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_loanSchemeList')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='listitem_loanSchemeList0a']")
     @CacheLookup
     private List<WebElement> loanOptionElement;
 
@@ -204,19 +201,19 @@ public class LeadDetailPage {
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchOptionElement.size() > 0);
             for (WebElement e : branchOptionElement) {
-                if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals(quickLead.getSourcingBranch())) {
-                    e.click();
-                    break;
-                }
+                e.click();
+                break;
             }
 
             actions.moveToElement(occupationTypeElement).click().build().perform();
 
             await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> occupationTypeOptionElement.size() > 0);
-
-            occupationTypeInputElement.sendKeys(quickLead.getNatureOfOccupation());
-            occupationTypeInputElement.sendKeys(Keys.ENTER);
+            for (WebElement e : occupationTypeOptionElement) {
+               if(e.getText().equals(quickLead.getNatureOfOccupation())){
+                   e.click();
+               }
+            }
 
 //            actions.moveToElement(schemeElement).click().build().perform();
 //
@@ -230,10 +227,8 @@ public class LeadDetailPage {
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanOptionElement.size() > 0);
             for (WebElement e : loanOptionElement) {
-                if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(quickLead.getSchemeCode())) {
-                    e.click();
-                    break;
-                }
+                e.click();
+                break;
             }
             Utilities.captureScreenShot(_driver);
 
@@ -264,8 +259,12 @@ public class LeadDetailPage {
             actions.moveToElement(leadStatusElement).click().build().perform();
             await("leadStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadStatusOptionElement.size() > 0);
-            leadStatusInputElement.sendKeys(quickLead.getLeadStatus());
-            leadStatusInputElement.sendKeys(Keys.ENTER);
+            for (WebElement e : leadStatusOptionElement){
+                if(e.getText().equals(quickLead.getLeadStatus())){
+                    e.click();
+                }
+            }
+
             Utilities.captureScreenShot(_driver);
 
             leadResponseElement.sendKeys(quickLead.getCommunicationTranscript());
@@ -293,13 +292,8 @@ public class LeadDetailPage {
             await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> listButtonDoc > 0);
 
-            //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
-            //String toFile = SCREENSHOT_PRE_PATH_DOC;
-
            String fromFile = downLoadFileURL;
-            //"http://192.168.0.203:3001/v1/file/"
-            //String fromFile = "http://tpf-service-file:3001/v1/file/";
-            //String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER_DOWNLOAD;
+
             System.out.println("URLdownload: " + fromFile);
 
             int index = 0;
@@ -346,7 +340,6 @@ public class LeadDetailPage {
                         toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
                         FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-//                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile));
                         File file = new File(toFile);
                         if(file.exists()) {
                             //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
@@ -369,9 +362,9 @@ public class LeadDetailPage {
                 index++;
             }
 
-//            Thread.sleep(5000);
-            actions.moveToElement(saveDocBtnElement).click().build().perform();
-            //saveDocBtnElement.click();
+            JavascriptExecutor js = (JavascriptExecutor)_driver;
+            js.executeScript(saveDocBtnElement.getAttribute("onclick"));
+
 
             await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> moveAppBtnElement.isDisplayed());
@@ -387,43 +380,10 @@ public class LeadDetailPage {
                 return flag;
             }
 
-//            //TH thieu file
-//            while(listCheckBoxUpload.size()!=listIndexDoc.size())
-//            {
-//                for (FileUploadDoc i: listIndexDoc) {
-//                    if(checkBoxFileElement.get(i.getIndex()).getAttribute("value").equals("0"))
-//                    {
-//                        photoElement.get(i.getIndex()).sendKeys(i.getUrlPhoto());
-//                        Thread.sleep(2000);
-//                    }
-//                }
-//                saveDocBtnElement.click();
-//                await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> moveAppBtnElement.isDisplayed());
-//
-//                listCheckBoxUpload=_driver.findElements(By.xpath("//*[contains(@id, 'c_docStatus') and contains(@value,'2')]"));
-//                Utilities.captureScreenShot(_driver);
-//            }
-            //------------------- End update
-//            moveAppBtnElement.sendKeys(Keys.HOME);
             Thread.sleep(20000);
             actions.moveToElement(moveAppBtnElement).click().build().perform();
             Utilities.captureScreenShot(_driver);
 
-//            try {
-//                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
-//                modalBtnConfirmElement.click();
-//            } catch (Exception e) {
-//                System.out.println("modalConfirmElement visibale Timeout!");
-//            }
-
-//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(() -> modalConfirmElement.isDisplayed());
-//
-//            modalBtnConfirmElement.click();
-
-            Utilities.captureScreenShot(_driver);
         } catch (Exception e) {
             e.printStackTrace();
         }

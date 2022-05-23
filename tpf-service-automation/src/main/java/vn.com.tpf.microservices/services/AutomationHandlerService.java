@@ -533,11 +533,7 @@ public class AutomationHandlerService {
             application.setStatus("OK");
             application.setDescription("Thanh cong");
 
-//            homePage.getMenuApplicationElement().click();
-//            homePage.getApplicationElement().click();
             Utilities.captureScreenShot(driver);
-            //logout(driver);
-
         } catch (Exception e) {
             //UPDATE STATUS
             application.setStatus("ERROR");
@@ -8715,20 +8711,16 @@ public class AutomationHandlerService {
         await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> homePageNeo.getTeamOptionElement().size() > 0);
         for (WebElement e : homePageNeo.getTeamOptionElement()) {
-            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(teamName)) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         homePageNeo.getNameAccount().clear();
         homePageNeo.getNameAccount().sendKeys(accountName);
         await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> homePageNeo.getAccountOptionElement().size() > 0);
         for (WebElement e : homePageNeo.getAccountOptionElement()) {
-            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username").toUpperCase()).equals(accountName.toUpperCase())) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
         homePageNeo.getSaveAssigned().click();
         return homePageNeo.getApplicationTableAppIDElement().getText();
