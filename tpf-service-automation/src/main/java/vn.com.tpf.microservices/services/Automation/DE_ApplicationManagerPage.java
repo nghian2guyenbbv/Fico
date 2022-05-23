@@ -60,7 +60,7 @@ public class DE_ApplicationManagerPage {
     private WebElement menuApplicationElement;
 
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'backSaveBtns')]//input[@type='button']")
+    @FindBy(how = How.XPATH, using = "//*[@id='appManagerContent']/div[3]/div[2]/input")
     private WebElement backBtnElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
