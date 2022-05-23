@@ -22,15 +22,15 @@ import static org.awaitility.Awaitility.await;
 public class QuickLeadEntryPage {
     private WebDriver _driver;
 
-    @FindBy(how = How.ID, using = "productTypeIdd1_chzn")
+    @FindBy(how = How.ID, using = "productTypeIdd1_chosen")
     @CacheLookup
     private WebElement productTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'productTypeIdd1_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'productTypeIdd1_chosen_')]")
     @CacheLookup
     private List<WebElement> productTypeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'productTypeIdd1_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'productTypeIdd1_chosen')]//input")
     private WebElement productTypeInputElement;
 
     @FindBy(how = How.ID, using = "individual")
@@ -46,15 +46,15 @@ public class QuickLeadEntryPage {
     private WebElement quickLeadDefailsFormElement;
 
 
-    @FindBy(how = How.ID, using = "loan_product_chzn")
+    @FindBy(how = How.ID, using = "Text_loan_product")
     @CacheLookup
     private WebElement loanProductElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loan_product_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='listitem_loan_product0a']")
     @CacheLookup
     private List<WebElement> loanProductOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loan_product_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loan_product_chosen')]//input")
     @CacheLookup
     private WebElement loanProductInputElement;
 
@@ -78,27 +78,27 @@ public class QuickLeadEntryPage {
     @CacheLookup
     private WebElement cityContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_city')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='listitem_city0a']")
     @CacheLookup
     private List<WebElement> cityOptionElement;
 
-    @FindBy(how = How.ID, using = "sorcingChannel_chzn")
+    @FindBy(how = How.ID, using = "sorcingChannel_chosen")
     @CacheLookup
     private WebElement sourcingChannelElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'sorcingChannel_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'sorcingChannel_chosen_o_')]")
     @CacheLookup
     private List<WebElement> sourcingChannelOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'sorcingChannel_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'sorcingChannel_chosen')]//input")
     @CacheLookup
     private WebElement sourcingChanneInputElement;
 
-    @FindBy(how = How.ID, using = "alternateChannelMode_chzn")
+    @FindBy(how = How.ID, using = "alternateChannelMode_chosen")
     @CacheLookup
     private WebElement alternateChannelModeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'alternateChannelMode_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'alternateChannelMode_chosen_o_')]")
     @CacheLookup
     private List<WebElement> alternateChannelModeOptionElement;
 
@@ -110,9 +110,17 @@ public class QuickLeadEntryPage {
     @CacheLookup
     private WebElement employeeNameElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Text_employeeName_chosen_o_')]")
+    @CacheLookup
+    private List<WebElement> employeeNameOptionElement;
+
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Text_employeeNumber')]")
     @CacheLookup
     private WebElement employeeNumberElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Text_employeeNumber_chosen_o_')]")
+    @CacheLookup
+    private List<WebElement> employeeNumberOptionElement;
 
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'alternateChannelMode_chzn')]//input")
@@ -145,40 +153,39 @@ public class QuickLeadEntryPage {
         await("quickLeadDefailsFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> quickLeadDefailsFormElement.isDisplayed());
 
-        actions.moveToElement(loanProductElement).click().build().perform();
+        loanProductElement.clear();
+        loanProductElement.sendKeys(quickLead.getProductCode());
 
         await("productTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanProductOptionElement.size() >0);
 
-        loanProductInputElement.sendKeys(quickLead.getProductCode());
-        loanProductInputElement.sendKeys(Keys.ENTER);
-
+        for (WebElement e: loanProductOptionElement){
+            e.click();
+            break;
+        }
         amountLoanElement.sendKeys(quickLead.getLoanAmountRequested());
         firstNameElement.sendKeys(quickLead.getFirstName());
         lastNameElement.sendKeys(quickLead.getLastName());
 
 
         cityElement.sendKeys(quickLead.getCity());
-        await("cityContainerElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> cityContainerElement.isDisplayed());
-
         await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> cityOptionElement.size() > 0);
 
         for(WebElement e: cityOptionElement) {
-            if(!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals(Utilities.convertToTitleCaseSplitting(quickLead.getCity()))) {
-                e.click();
-                break;
-            }
+            e.click();
+            break;
         }
 
         actions.moveToElement(sourcingChannelElement).click().build().perform();
 
         await("sourcingChannelElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> sourcingChannelOptionElement.size() >0);
-
-        sourcingChanneInputElement.sendKeys(quickLead.getSourcingChannel());
-        sourcingChanneInputElement.sendKeys(Keys.ENTER);
+        for(WebElement e: sourcingChannelOptionElement) {
+            if(e.getText().equals(quickLead.getSourcingChannel())){
+                e.click();
+            }
+        }
 
         if ("ALTERNATE_CHANNEL".equals(quickLead.getSourcingChannel())){
             actions.moveToElement(alternateChannelModeElement).click().build().perform();
@@ -186,8 +193,11 @@ public class QuickLeadEntryPage {
             await("alternateChannelModeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> alternateChannelModeOptionElement.size() >0);
 
-            alternateChannelModeInputElement.sendKeys(quickLead.getAlternateChannelMode());
-            alternateChannelModeInputElement.sendKeys(Keys.ENTER);
+            for(WebElement e: alternateChannelModeOptionElement) {
+                if(e.getText().equals(quickLead.getAlternateChannelMode())){
+                    e.click();
+                }
+            }
         }
         if ("CALL_CENTER".equals(quickLead.getSourcingChannel())){
 
@@ -197,8 +207,26 @@ public class QuickLeadEntryPage {
             employeeNameElement.clear();
             employeeNameElement.sendKeys(quickLead.getEmemployeeName());
 
+            await("employeeNameElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employeeNameOptionElement.size() >0);
+
+            for(WebElement e: employeeNameOptionElement) {
+                if(e.getText().equals(quickLead.getEmemployeeName())){
+                    e.click();
+                }
+            }
             employeeNumberElement.clear();
             employeeNumberElement.sendKeys(quickLead.getEmemployeeNumber());
+
+            await("employeeNumberOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> employeeNumberOptionElement.size() >0);
+
+            for(WebElement e: employeeNumberOptionElement) {
+                if(e.getText().equals(quickLead.getEmemployeeNumber())){
+                    e.click();
+                }
+            }
+
         }
 
         saveButtonleadElement.click();

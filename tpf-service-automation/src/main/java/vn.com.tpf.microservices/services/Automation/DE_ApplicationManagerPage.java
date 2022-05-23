@@ -60,7 +60,7 @@ public class DE_ApplicationManagerPage {
     private WebElement menuApplicationElement;
 
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@class,'backSaveBtns')]//input[@type='button']")
+    @FindBy(how = How.XPATH, using = "//*[@id='appManagerContent']/div[3]/div[2]/input")
     private WebElement backBtnElement;
 
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
@@ -112,9 +112,6 @@ public class DE_ApplicationManagerPage {
 
     public String getAppID(String leadApp) {
         String appID="";
-        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> applicationManagerFormElement.isDisplayed());
-
         applicationNumberElement.sendKeys(leadApp);
         searchApplicationElement.click();
 
@@ -123,8 +120,6 @@ public class DE_ApplicationManagerPage {
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
-
-        showTaskElement.click();
 
         await("applicationTableAppIDElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> applicationTableAppIDElement.isDisplayed());

@@ -49,31 +49,31 @@ public class LeadPage {
     @CacheLookup
     private WebElement branchContainerElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'listitem_nearestCityInd0')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='listitem_nearestCityInd00a']")
     @CacheLookup
     private List<WebElement> branchOptionElement;
 
-    @FindBy(how = How.ID, using = "occupationType0_chzn")
+    @FindBy(how = How.ID, using = "occupationType0_chosen")
     @CacheLookup
     private WebElement occupationTypeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chosen_')]")
     @CacheLookup
     private List<WebElement> occupationTypeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType0_chosen')]//input")
     @CacheLookup
     private WebElement occupationTypeInputElement;
 
-    @FindBy(how = How.ID, using = "loanSchemeList_chzn")
+    @FindBy(how = How.ID, using = "Text_loanSchemeList")
     @CacheLookup
     private WebElement schemeElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanSchemeList_chzn_o')]")
+    @FindBy(how = How.XPATH, using = "//*[@id='listitem_loanSchemeList0a']")
     @CacheLookup
     private List<WebElement> schemeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanSchemeList_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[@id='Text_loanSchemeList']")
     @CacheLookup
     private WebElement schemeInputElement;
 
@@ -97,7 +97,7 @@ public class LeadPage {
     @CacheLookup
     private WebElement communicationElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-small btn-primary']")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'collapseOnee_lead_comm')]//button[@class='btn btn-sm btn-primary']")
     @CacheLookup
     private WebElement addCommunicationElement;
 
@@ -113,15 +113,15 @@ public class LeadPage {
     @CacheLookup
     private WebElement leadResponseElement;
 
-    @FindBy(how = How.ID, using = "comm_status_chzn")
+    @FindBy(how = How.ID, using = "comm_status_chosen")
     @CacheLookup
     private WebElement leadStatusElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn_o_')]")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen_o_')]")
     @CacheLookup
     private List<WebElement> leadStatusOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'comm_status_chosen')]//input")
     @CacheLookup
     private WebElement leadStatusInputElement;
 
@@ -137,7 +137,7 @@ public class LeadPage {
     @CacheLookup
     private WebElement leadDocElement;
 
-    @FindBy(how = How.ID, using = "getDocumentQucikLead")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'lead_comm_modal_docu')]//input[contains(@value,'Get Documents')]")
     @CacheLookup
     private WebElement getDocBtnElement;
 
@@ -197,10 +197,8 @@ public class LeadPage {
             await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> branchOptionElement.size() > 0);
             for (WebElement e : branchOptionElement) {
-                if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).equals(quickLead.getSourcingBranch())) {
-                    e.click();
-                    break;
-                }
+                e.click();
+                break;
             }
 
             actions.moveToElement(occupationTypeElement).click().build().perform();
@@ -208,16 +206,22 @@ public class LeadPage {
             await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> occupationTypeOptionElement.size() > 0);
 
-            occupationTypeInputElement.sendKeys(quickLead.getNatureOfOccupation());
-            occupationTypeInputElement.sendKeys(Keys.ENTER);
-
-            actions.moveToElement(schemeElement).click().build().perform();
+            for (WebElement e : occupationTypeOptionElement) {
+                if(e.getText().equals(quickLead.getNatureOfOccupation())){
+                    e.click();
+                    break;
+                }
+            }
+            schemeInputElement.clear();
+            schemeInputElement.sendKeys(quickLead.getSchemeCode());
 
             await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> schemeOptionElement.size() > 0);
 
-            schemeInputElement.sendKeys(quickLead.getSchemeCode());
-            schemeInputElement.sendKeys(Keys.ENTER);
+            for (WebElement e : schemeOptionElement) {
+                e.click();
+                break;
+            }
             Utilities.captureScreenShot(_driver);
 
             //ACTIVITY
@@ -247,8 +251,13 @@ public class LeadPage {
             actions.moveToElement(leadStatusElement).click().build().perform();
             await("leadStatusOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadStatusOptionElement.size() > 0);
-            leadStatusInputElement.sendKeys(quickLead.getLeadStatus());
-            leadStatusInputElement.sendKeys(Keys.ENTER);
+
+            for (WebElement e : leadStatusOptionElement) {
+                if(e.getText().equals(quickLead.getLeadStatus())){
+                    e.click();
+                    break;
+                }
+            }
             Utilities.captureScreenShot(_driver);
 
             leadResponseElement.sendKeys(quickLead.getCommunicationTranscript());
@@ -258,10 +267,9 @@ public class LeadPage {
 
             await("leadDocElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> leadDocElement.isDisplayed());
-
-            getDocBtnElement.click();
-
             Thread.sleep(30000);
+            actions.moveToElement(getDocBtnElement).click().build().perform();
+
 
             Utilities.captureScreenShot(_driver);
 
@@ -319,7 +327,6 @@ public class LeadPage {
 
                         toFile+= UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
-//                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                         FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile));
                         File file = new File(toFile);
                         if(file.exists()) {
@@ -336,13 +343,12 @@ public class LeadPage {
             }
 
             Thread.sleep(5000);
-            saveDocBtnElement.click();
+            JavascriptExecutor submitDocument = (JavascriptExecutor)_driver;
+            submitDocument.executeScript(saveDocBtnElement.getAttribute("onclick"));
 
-            await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> moveAppBtnElement.isDisplayed());
-
+//            await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> moveAppBtnElement.isDisplayed());
             Utilities.captureScreenShot(_driver);
-
             // -------------------- update count, get nhung file da duoc upload
             List<WebElement> listCheckBoxUpload=_driver.findElements(By.xpath("//*[contains(@id, 'c_docStatus') and contains(@value,'2')]"));
 
@@ -355,20 +361,15 @@ public class LeadPage {
 
             String moveToApplicationBtnElement = _driver.findElement(By.id("moveToApplication1")).getAttribute("onclick");
             js.executeScript(moveToApplicationBtnElement);
-
-//            moveAppBtnElement.click();
-
             Utilities.captureScreenShot(_driver);
+//            try {
+//                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
+//                modalBtnConfirmElement.click();
+//            } catch (Exception e) {
+//                System.out.println("modalConfirmElement visibale Timeout!");
+//            }
 
-            try {
-                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
-                modalBtnConfirmElement.click();
-            } catch (Exception e) {
-                System.out.println("modalConfirmElement visibale Timeout!");
-            }
-
-            Utilities.captureScreenShot(_driver);
         } catch (Exception e) {
             e.printStackTrace();
         }

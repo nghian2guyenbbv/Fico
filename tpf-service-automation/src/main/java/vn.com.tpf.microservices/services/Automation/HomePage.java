@@ -15,7 +15,7 @@ import static org.awaitility.Awaitility.await;
 
 @Getter
 public class HomePage {
-	@FindBy(how = How.ID, using = "applications-li")
+	@FindBy(how = How.ID, using = "menuClick")
 	@CacheLookup
 	private WebElement menuApplication;
 	
@@ -23,7 +23,7 @@ public class HomePage {
 	@CacheLookup
 	private WebElement personalLoan;
 
-	@FindBy(how = How.XPATH, using = "//*[contains(@id,'addImageId')]")
+	@FindBy(how = How.XPATH, using = "//*[@id='mainMenuList']/ul/li[2]/ul/li[1]/div/div[2]/a")
 	@CacheLookup
 	private WebElement quickLead;
 
@@ -39,6 +39,10 @@ public class HomePage {
 	@CacheLookup
 	private WebElement applicationManagerElement;
 
+	@FindBy(how = How.ID, using = "menuidsapplications")
+	@CacheLookup
+	private WebElement applicationMenu;
+
 	public HomePage(WebDriver driver) {
         PageFactory.initElements(driver, this);
     }
@@ -52,6 +56,7 @@ public class HomePage {
 	}
 
 	public void leadQuickClick() {
+		this.applicationMenu.click();
 		await("quickLead visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 				.until(() -> quickLead.isDisplayed());
 		this.quickLead.click();
