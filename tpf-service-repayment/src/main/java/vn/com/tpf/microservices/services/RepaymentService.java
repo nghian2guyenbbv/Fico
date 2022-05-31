@@ -99,6 +99,9 @@ public class RepaymentService {
 	private FicoCustomerDAO ficoCustomerDAO;
 
 	@Autowired
+	private FicoCustomerLiveBankDAO ficoCustomerLiveBankDAO;
+
+	@Autowired
 	private FicoTransPayDAO ficoTransPayDAO;
 
 	@Autowired
@@ -1757,10 +1760,11 @@ public class RepaymentService {
 	@Transactional(readOnly = true)
 	public Map<String, Object> repayment_get(JsonNode request) throws JsonProcessingException {
 		String sLogs= "request: " + mapper.writeValueAsString(request);
-		ResponseModel responseModel = new ResponseModel();
+ 		ResponseModel responseModel = new ResponseModel();
 		String request_id = null;
 		try{
 			List<FicoCustomer> ficoCustomerList = null;
+			List<FicoCustomerLiveBank> ficoCustomerLiveBankList = null;
 
 			Assert.notNull(request.get("body"), "no body");
 			RequestModel requestModel = mapper.treeToValue(request.get("body"), RequestModel.class);
@@ -1783,34 +1787,65 @@ public class RepaymentService {
 
 			OffsetDateTime.parse(requestModel.getDate_time());
 			String inputValue = requestModel.getData().getSearch_value();
+			if(33 == ficoPartner.getId()){
+				if (isValidIdNumer(inputValue)) {
+					ficoCustomerLiveBankList = ficoCustomerLiveBankDAO.findByIdentificationNumber(inputValue);
+				} else {
+					ficoCustomerLiveBankList = ficoCustomerLiveBankDAO.findByLoanAccountNo(inputValue);
+				}
 
-			if(isValidIdNumer(inputValue)) {
-				ficoCustomerList = ficoCustomerDAO.findByIdentificationNumber(inputValue);
-			}else{
-				ficoCustomerList = ficoCustomerDAO.findByLoanAccountNo(inputValue);
-			}
-			if(ficoCustomerList.size() == 0) {
-				responseModel.setRequest_id(requestModel.getRequest_id());
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(1);
-				responseModel.setMessage("not exist");
-				responseModel.setData(ficoCustomerList);
-			}else {
-				//cộng phí
-				ficoCustomerList.forEach(a -> {
-					if (a.getInstallmentAmount() > 0){
-						a.setInstallmentAmount(a.getInstallmentAmount() + ficoPartner.getFee());
-					}
-					if (a.getNetAmount() > 0){
-						a.setNetAmount(a.getNetAmount() + ficoPartner.getFee());
-					}
-				});
-				responseModel.setRequest_id(requestModel.getRequest_id());
-				responseModel.setReference_id(UUID.randomUUID().toString());
-				responseModel.setDate_time(new Timestamp(new Date().getTime()));
-				responseModel.setResult_code(0);
-				responseModel.setData(ficoCustomerList);
+				if(ficoCustomerLiveBankList.size() == 0) {
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(1);
+					responseModel.setMessage("not exist");
+					responseModel.setData(ficoCustomerLiveBankList);
+				}else {
+					//cộng phí
+					ficoCustomerLiveBankList.forEach(a -> {
+						if (a.getInstallmentAmount() > 0){
+							a.setInstallmentAmount(a.getInstallmentAmount() + ficoPartner.getFee());
+						}
+						if (a.getNetAmount() > 0){
+							a.setNetAmount(a.getNetAmount() + ficoPartner.getFee());
+						}
+					});
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
+					responseModel.setData(ficoCustomerLiveBankList);
+				}
+			} else {
+				if (isValidIdNumer(inputValue)) {
+					ficoCustomerList = ficoCustomerDAO.findByIdentificationNumber(inputValue);
+				} else {
+					ficoCustomerList = ficoCustomerDAO.findByLoanAccountNo(inputValue);
+				}
+				if(ficoCustomerList.size() == 0) {
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(1);
+					responseModel.setMessage("not exist");
+					responseModel.setData(ficoCustomerList);
+				}else {
+					//cộng phí
+					ficoCustomerList.forEach(a -> {
+						if (a.getInstallmentAmount() > 0){
+							a.setInstallmentAmount(a.getInstallmentAmount() + ficoPartner.getFee());
+						}
+						if (a.getNetAmount() > 0){
+							a.setNetAmount(a.getNetAmount() + ficoPartner.getFee());
+						}
+					});
+					responseModel.setRequest_id(requestModel.getRequest_id());
+					responseModel.setReference_id(UUID.randomUUID().toString());
+					responseModel.setDate_time(new Timestamp(new Date().getTime()));
+					responseModel.setResult_code(0);
+					responseModel.setData(ficoCustomerList);
+				}
 			}
 		}
 		catch (Exception e) {
