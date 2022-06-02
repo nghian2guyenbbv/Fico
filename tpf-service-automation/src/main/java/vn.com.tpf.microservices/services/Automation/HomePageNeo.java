@@ -24,7 +24,7 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement personalLoan;
 
-	@FindBy(how = How.XPATH, using = "//*[@id='mainMenuList']/ul/li[2]/ul/li[1]/div/div[2]/a")
+	@FindBy(how = How.CLASS_NAME, using = "linkfunIcoLink")
 	@CacheLookup
 	private WebElement quickLead;
 
