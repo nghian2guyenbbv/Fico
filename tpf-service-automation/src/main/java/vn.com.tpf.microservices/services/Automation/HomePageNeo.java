@@ -104,11 +104,11 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement nameAccount;
 
-	@FindBy(how = How.XPATH, using = "//*[@id='listitem_team_Branch00a']")
+	@FindBy(how = How.XPATH, using = "//*[@id='listitem_team_Branch00']")
 	@CacheLookup
 	private List<WebElement> teamOptionElement;
 
-	@FindBy(how = How.XPATH, using = "//*[@id='listitem_selected_user00a']")
+	@FindBy(how = How.XPATH, using = "//*[@id='listitem_selected_user00']")
 	@CacheLookup
 	private List<WebElement> accountOptionElement;
 

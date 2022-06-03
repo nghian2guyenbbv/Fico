@@ -624,7 +624,7 @@ public class AutomationHandlerService {
 //
             stage = "APPLICATION MANAGER";
 //            // ========== APPLICATION MANAGER =================
-//            this.assignManger(driver, leadAppID, "TPF DATA ENTRY", accountDTO.getUserName());
+            this.assignManger(driver, leadAppID, "TPF DATA ENTRY", accountDTO.getUserName());
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 //
