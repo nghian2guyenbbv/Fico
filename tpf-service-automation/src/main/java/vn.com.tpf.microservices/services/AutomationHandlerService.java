@@ -652,7 +652,7 @@ public class AutomationHandlerService {
             await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
 ////// comment delete
-//            personalTab.updateValue(applicationInfoDTO);
+            personalTab.updateValue(applicationInfoDTO);
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             stage = "EMPLOYMENT DETAILS";
