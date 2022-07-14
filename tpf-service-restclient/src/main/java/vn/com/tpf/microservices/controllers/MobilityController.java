@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,7 @@ public class MobilityController {
 
 	@Autowired
 	private RabbitMQService rabbitMQService;
-	
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	@Value("${spring.url.uploadfile}")
 	private String urlUploadfile;
 	
@@ -121,6 +123,18 @@ public class MobilityController {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "submitField");
 		request.put("body", body);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-mobility", request);
+		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
+	}
+
+	@PostMapping("/mobility/returnQueryMultiDoc")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-root','tpf-service-mobility')")
+	public ResponseEntity<?> returnQueueMulti(@RequestBody ObjectNode body) throws Exception {
+		body.put("reference_id", UUID.randomUUID().toString());
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "returnQueryMultiDoc");
+		request.put("body", body);
+		log.info("returnQueueMulti rest mobility controller request: {}",request );
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-mobility", request);
 		return ResponseEntity.status(response.path("status").asInt(500)).body(response.path("data"));
 	}

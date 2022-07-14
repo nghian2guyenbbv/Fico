@@ -97,7 +97,9 @@ public class RabbitMQService {
 				case "addDocuments":
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.addDocuments((request))));		
 				case "updateAutomation":
-					return response(message, payload, Map.of("status", 200, "data", mobilityService.updateAutomation((request))));	
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.updateAutomation((request))));
+				case "updateAutomationRQ51":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.updateAutomationRQ51((request))));
 				case "createField":
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.createField((request))));	
 				case "submitField": 
@@ -108,6 +110,8 @@ public class RabbitMQService {
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.commentApp((request))));
 				case "convertToLeadF1":
 					return response(message, payload, Map.of("status", 200, "data", mobilityService.convertAndCallAPIF1((request))));
+				case "returnQueryMultiDoc":
+					return response(message, payload, Map.of("status", 200, "data", mobilityService.returnQueryMultiDoc(request)));
 				default:
 					return response(message, payload, Map.of("status", 200, "data", utils.getJsonNodeResponse(500, request,
 							mapper.createObjectNode().put("message", "function not found"))));
