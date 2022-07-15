@@ -2056,10 +2056,14 @@ public class MobilityService {
 
 						JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
 						JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
-
-						if (uploadResult.path("resultCode").asInt() != 200)
-							return utils.getJsonNodeResponse(499, body,
+						log.info("listDocuments uploadResult: {}",uploadResult );
+						if (uploadResult.path("resultCode").asInt() != 200){
+							res = utils.getJsonNodeResponse(499, body,
 									mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+							return  utils.getJsonNodeResponse(499, body,
+									mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+						}
+
 						if (!uploadResult.path("data").path("md5").asText().toLowerCase()
 								.equals(document.path("documentMd5").asText().toLowerCase())){
 							res =utils.getJsonNodeResponse(499, body,
@@ -2079,7 +2083,7 @@ public class MobilityService {
 						listDocuments.add(mapper.convertValue(docUpload, JsonNode.class));
 					}
 				}
-
+				log.info("listDocuments has: {} documents",listDocuments.size() );
 				//build request send automation mobility
 				if (listDocuments != null && listDocuments.size() > 1) {
 					app.put("project", "mobility_rq51".toUpperCase());
