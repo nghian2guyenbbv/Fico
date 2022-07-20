@@ -6201,25 +6201,14 @@ public class AutomationHandlerService {
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
+            //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
-            //***************************//LOGIN PAGE//***************************//
-
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+            loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
