@@ -6224,16 +6224,17 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
-
+            //NghiaNVT Begin New Homepage for v6
+            HomePageNeo homePage = new HomePageNeo(driver);
+            homePage.menuClick();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
             // ========== APPLICATIONS =================
-            homePage.getMenuApplicationElement().click();
             stage = "APPLICATION MANAGER";
             // ========== APPLICATION MANAGER =================
-            homePage.getApplicationManagerElement().click();
+            homePage.applicationManagerClick();
+            // NghiaNVT End
             await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Manager"));
 
