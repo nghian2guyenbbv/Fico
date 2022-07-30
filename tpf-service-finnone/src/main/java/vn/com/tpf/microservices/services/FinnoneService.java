@@ -69,7 +69,7 @@ public class FinnoneService {
 	public JsonNode getAppInfo(JsonNode request) {
 
 		try {
-			String query = String.format("SELECT * FROM  V_APP_INFO WHERE APPLICATION_NUMBER = '%s'",
+			String query = String.format("SELECT * FROM  V_APP_INFO_V2 WHERE APPLICATION_NUMBER = '%s'",
 					request.path("body").path("data").path("appId").asText());
 			Object rowObjectNode = jdbcTemplateFicocen.queryForObject(query, new Object[] {}, (rs, rowNum) -> {
 				ObjectNode row = mapper.createObjectNode();

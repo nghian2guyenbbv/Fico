@@ -1,21 +1,11 @@
 package vn.com.tpf.microservices.services;
 
-import java.io.Console;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.springframework.http.*;
-import java.util.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +15,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import vn.com.tpf.microservices.models.*;
@@ -41,6 +24,8 @@ import vn.com.tpf.microservices.utils.Utils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import java.sql.Timestamp;
+import java.util.*;
 
 @Service
 public class MobilityService {
@@ -97,6 +82,9 @@ public class MobilityService {
 	private final int At_Company = 1;
 	private final int At_House = 2;
 	private final int ALL = 3;
+	private final String AUTOMATION_RETURNQUERY_RQ51_PASS = "RESPONSEQUERY_PASS_RQ51";
+
+	private final String urlRq51 = "https://fico-portaltest.tpb.vn/newmsales/api/app/listen-response-raise-query";
 	@Value("${document-code-acca:tpf_application_cum_credit_contract_(acca)}")
 	private String DOCUMENT_CODE_ACCA;
 
@@ -516,7 +504,15 @@ public class MobilityService {
 
 		return utils.getJsonNodeResponse(0, body, null);
 	}
-
+	public JsonNode updateAutomationRQ51(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		if (!request.hasNonNull("body"))
+			return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "body not null"));
+		if (body.path("transaction_id").asText().isBlank())
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.transaction_id not null"));
+		return updateAutomationMobilityRQ51(request);
+	}
 	public JsonNode updateAutomation(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
 		if (!request.hasNonNull("body"))
@@ -636,6 +632,45 @@ public class MobilityService {
 
 		return utils.getJsonNodeResponse(0, request, null);
 	}
+	public JsonNode updateAutomationMobilityRQ51(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		JsonNode res = mapper.createObjectNode();
+		if (body.path("app_id").asText().isBlank()){
+			res = utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.app_id not null"));
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.app_id not null"));
+		}
+
+		if (body.path("automation_result").asText().isBlank()){
+			res =  utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.automation_result not null"));
+			return utils.getJsonNodeResponse(499, body,
+					mapper.createObjectNode().put("message", "body.automation_result not null"));
+		}
+
+		String automationResult = body.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
+		ResponseEntity<?> response = null;
+		try {
+			if (automationResult.contains(AUTOMATION_RETURNQUERY_RQ51_PASS)) {
+				try {
+					HttpHeaders headers = new HttpHeaders();
+					headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+					log.info("callMSaleUpdate RQ51 payload {}", request);
+					HttpEntity entity = new HttpEntity(request, headers);
+					response = restTemplate.exchange(urlRq51, HttpMethod.POST, entity, Object.class);
+				} catch (Exception e) {
+					log.info("callMSaleUpdate RQ51 e.getMessage  error {}", e.getMessage());
+				}
+			}
+
+		}catch (Exception e){
+			log.info("callMSaleUpdate RQ51 catch Exception {}", e.getMessage());
+		}finally {
+			log.info("callMSaleUpdate RQ51 finally response {}", response);
+			return mapper.createObjectNode().put("resultCode", 0).put("response",response.toString());
+		}
+	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JsonNode updateAutomationMobility(JsonNode request) throws Exception {
@@ -647,6 +682,22 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "body.automation_result not null"));
 		String automationResult = body.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
+		if(automationResult.contains(AUTOMATION_RETURNQUERY_RQ51_PASS)){
+			ResponseEntity<?> response = null;
+			try {
+				HttpHeaders headers = new HttpHeaders();
+				headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+				log.info("callMSaleUpdate RQ51 payload {}", request);
+				HttpEntity entity = new HttpEntity(request,headers);
+				response = restTemplate.exchange(urlRq51, HttpMethod.POST, entity, Object.class);
+			}catch (Exception e){
+				log.info("callMSaleUpdate RQ51 e.getMessage  error {}", e.getMessage());
+			}finally {
+				log.info("callMSaleUpdate RQ51 finally response {}", response);
+				return utils.getJsonNodeResponse(0, request, null);
+			}
+
+		}
 		boolean updateStatus = false;
 
 		Query query = Query.query(Criteria.where("_id").is(body.path("transaction_id").asText()));
@@ -1903,6 +1954,166 @@ public class MobilityService {
 			log.info("{}",slog);
 		}
 		return Map.of("status", 200, "data", responseModel);
+	}
+
+	public JsonNode returnQueryMultiDoc(JsonNode request) {
+
+		// TODO: 6/22/2022
+		//1.validate request (appId,comment,hasDocuments...)
+		//2.get document, compare document
+		//3.build app request send automation
+		log.info("returnQueryMultiDoc mobility request: {}",request);
+		JsonNode body = request.path("body");
+		ObjectNode app = mapper.createObjectNode();
+		JsonNode res = mapper.createObjectNode() ;
+		final String project = "mobility";
+		final String queue_automation = "tpf-service-automation".concat(project.isBlank()?"":"-"+project.toLowerCase().trim());
+		try {
+			if (body.path("data").isNull()){
+				res = utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message", "data not null"));
+			}
+
+			ObjectNode data = (ObjectNode) request.path("body").path("data");
+			final String appId = data.path("appId").asText();
+			final String productCode = data.path("productCode").asText();
+			final String schemeCode = data.path("schemeCode").asText();
+			final boolean hasDocuments = data.hasNonNull("documents");
+
+			if (appId.isBlank()){
+				res = utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.appId not null"));
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.appId not null"));
+			}
+
+
+			if (data.path("comment").asText().isBlank()){
+				res = utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.comment not null"));
+				return utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.comment not null"));
+			}
+
+			if(productCode.isBlank()){
+				res = utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.productCode not null"));
+				return  utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.productCode not null"));
+			}
+			if(schemeCode.isBlank()){
+				res = utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.schemeCode not null"));
+				return  res = utils.getJsonNodeResponse(499, body,
+						mapper.createObjectNode().put("message", "data.schemeCode not null"));
+			}
+			//get document from finnOne
+			JsonNode documentFinnOne = rabbitMQService.sendAndReceive("tpf-service-assets",
+					Map.of("func", "getListDocuments", "reference_id", body.path("reference_id"), "body",
+							Map.of("productCode", productCode, "schemeCode", schemeCode)));
+
+			if (documentFinnOne.path("status").asInt() != 200){
+				res = utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+						String.format("%s %s not found", productCode, schemeCode)));
+				return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+						String.format("%s %s not found", productCode, schemeCode)));
+			}
+
+			if(hasDocuments){
+				//parse documents input from msale
+				ArrayNode documents = (ArrayNode) data.path("documents");
+				List<Object> listDocuments = new ArrayList<>();
+
+				for (var i = 0; i < documents.size();i++){
+					if(
+							documents.get(i).get("documentCode").asText().isBlank()
+									|| documents.get(i).get("documentFileExtension").asText().isBlank()
+									|| documents.get(i).get("documentMd5").asText().isBlank()
+					){
+						res = utils.getJsonNodeResponse(499, body,
+								mapper.createObjectNode().put("message", "data.document not valid"));
+						return utils.getJsonNodeResponse(499, body,
+								mapper.createObjectNode().put("message", "data.document not valid"));
+					}
+					if (!documents.get(i).get("documentUrlDownload").asText().matches(
+							"^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*(:[0-9]{1,5})?(\\/.*)?$")){
+						res = utils.getJsonNodeResponse(499, body,
+								mapper.createObjectNode().put("message", "data.document.documentUrlDownload not valid"));
+						return utils.getJsonNodeResponse(499, body,
+								mapper.createObjectNode().put("message", "data.document.documentUrlDownload not valid"));
+					}
+					//compare document msale >< finnone
+					JsonNode document = documents.get(i);
+					if (document != null) {
+						ObjectNode documentsDb = mapper.convertValue(documentFinnOne.path("data").path("documents"),
+								ObjectNode.class);
+						if (!documentsDb.hasNonNull(document.path("documentCode").asText())){
+							res = utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+									String.format("%s not found", document.path("documentCode").asText())));
+							return utils.getJsonNodeResponse(499, body, mapper.createObjectNode().put("message",
+									String.format("%s not found", document.path("documentCode").asText())));
+						}
+
+						JsonNode documentDbInfo = documentsDb.path(document.path("documentCode").asText());
+						JsonNode uploadResult = apiService.uploadDocumentInternal(document, documentDbInfo);
+						log.info("listDocuments uploadResult: {}",uploadResult );
+						if (uploadResult.path("resultCode").asInt() != 200){
+							res = utils.getJsonNodeResponse(499, body,
+									mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+							return  utils.getJsonNodeResponse(499, body,
+									mapper.createObjectNode().put("message", uploadResult.path("message").asText()));
+						}
+
+						if (!uploadResult.path("data").path("md5").asText().toLowerCase()
+								.equals(document.path("documentMd5").asText().toLowerCase())){
+							res =utils.getJsonNodeResponse(499, body,
+									mapper.createObjectNode().put("message",
+											String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+													uploadResult.path("md5").asText().toLowerCase())));
+							return utils.getJsonNodeResponse(499, body,
+									mapper.createObjectNode().put("message",
+											String.format("document %s md5 %s not valid", document.path("documentCode").asText(),
+													uploadResult.path("md5").asText().toLowerCase())));
+						}
+
+
+						HashMap<String, String> docUpload = new HashMap<>();
+						docUpload.put("documentName", documentDbInfo.path("valueFinnOne").asText());
+						docUpload.put("fileName", uploadResult.path("data").path("filename").asText());
+						listDocuments.add(mapper.convertValue(docUpload, JsonNode.class));
+					}
+				}
+				log.info("listDocuments has: {} documents",listDocuments.size() );
+				//build request send automation mobility
+				if (listDocuments != null && listDocuments.size() > 1) {
+					app.put("project", "mobility_rq51".toUpperCase());
+					app.put("transaction_id", body.path("reference_id").asText());
+					app.put("appId", appId);
+					app.put("commentText", data.path("comment").asText());
+					app.set("dataDocuments",mapper.readTree(listDocuments.toString()));
+					log.info("returnQueueMulti send request to queue: {} request: {}",queue_automation,app );
+					res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "deResponseQueryMultiDoc", "reference_id",
+							body.path("reference_id"), "body", app));
+				} else {
+					app.put("project", "mobility");
+					app.put("transaction_id", body.path("reference_id").asText());
+					app.put("appId", appId);
+					app.put("commentText", data.path("comment").asText());
+					app.set("dataDocument",mapper.readTree(listDocuments.get(0).toString()));
+					log.info("returnQueue send request to queue: {} request: {}",queue_automation,app );
+					res = rabbitMQService.sendAndReceive(queue_automation, Map.of("func", "deResponseQuery", "reference_id",
+							body.path("reference_id"), "body", app));
+				}
+
+			}
+
+
+		}catch (Exception e){
+			log.info("returnQueueMulti Exception: {}",e.getMessage() );
+		}finally {
+			log.info("returnQueueMulti response: {} - appId: {}",res,request.path("body").path("data").path("appId").toString() );
+			return utils.getJsonNodeResponse(0, res, null);
+		}
 	}
 
 }

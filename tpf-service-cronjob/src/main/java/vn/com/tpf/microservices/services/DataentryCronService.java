@@ -1,7 +1,12 @@
 package vn.com.tpf.microservices.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,6 +22,8 @@ public class DataentryCronService {
 
     @Autowired
     private RabbitMQService rabbitMQService;
+    @Autowired
+    private ObjectMapper mapper;
 
     @Scheduled(cron = "${spring.cron.dataentrySyncStatusIH}")
     public void job_dataentrySyncStatusIH()
@@ -29,6 +36,23 @@ public class DataentryCronService {
         {
             slog += " - exception: " + e.toString();
 
+        }finally {
+            log.info("{}", slog);
+        }
+    }
+
+    @Scheduled(cron = "0 0 1 * * *")
+    public void job_sendMessageToWarmLeadQueue() {
+        String slog = "func: job_sendMessageToWarmLeadQueue";
+        try {
+
+            ObjectNode request = mapper.createObjectNode();
+            request.put("func", "job_callJobWarmLead");
+            request.put("reference_id", UUID.randomUUID().toString());
+            log.info("sendMessageToWarmLeadQueue request: {}", request);
+            rabbitMQService.send("fico-sp-warm-lead-queue", request);
+        } catch (Exception e) {
+            log.info("job_sendMessageToWarmLeadQueue Exception: {}", e.toString());
         }finally {
             log.info("{}", slog);
         }
