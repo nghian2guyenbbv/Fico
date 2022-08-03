@@ -664,7 +664,7 @@ public class RepaymentService {
 				@Override
 				public void execute(Connection connection) throws SQLException {
 					//connection, finally!
-					String storeProc = String.format("CALL payoo.sp_ora_data_net_amount_by_user();");
+					String storeProc = String.format("CALL payoo.sp_ora_data_net_amount_by_user_f1v6();");
 					try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
 						int resuk=stmt.executeUpdate();
 						log.info("Found : " + resuk + "result");
@@ -1185,7 +1185,7 @@ public class RepaymentService {
 		try {
 			SqlParameterSource namedParameters = new MapSqlParameterSource()
 					.addValue("transactionid",instrumentReferenceNumber);
-			String sql="Update payoo.fico_trans_pay_settle " +
+			String sql="Update payoo.fico_trans_pay_settle_2 " +
 					"set flag_settle = 1 " +
 					"where flag_settle = 0 and transaction_id =:transactionid";
 
@@ -1304,7 +1304,7 @@ public class RepaymentService {
 						@Override
 						public void execute(Connection connection) throws SQLException {
 							//connection, finally!
-							String storeProc = String.format("CALL payoo.sp_ora_data_net_amount_by_user();");
+							String storeProc = String.format("CALL payoo.sp_ora_data_net_amount_by_user_f1v6();");
 							try (PreparedStatement stmt = connection.prepareStatement(storeProc)) {
 								int resuk = stmt.executeUpdate();
 								log.info("cronjob syncdata: Found : " + resuk + "result");
@@ -1466,7 +1466,7 @@ public class RepaymentService {
 					"syncdate", new Timestamp(new Date().getTime()),
 					"loanstatus", listParam[7],
 					"loanAccount", loanAccount));
-			String sql = "Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
+			String sql = "Update payoo.TEMP_SOURCE_ORA_NETAMOUNT_F1V6 " +
 					"set net_amount=:netamount, installment_amount=:installmentamount, syncdate=:syncdate, loan_status=:loanstatus " +
 					"where loan_account_no=:loanAccount";
 
@@ -1481,7 +1481,7 @@ public class RepaymentService {
 				"syncdate", new Timestamp(new Date().getTime()),
 				"loanstatus", listParam[7],
 				"loanAccount", loanAccount));
-		String sql = "Update payoo.TEMP_SOURCE_ORA_NETAMOUNT " +
+		String sql = "Update payoo.TEMP_SOURCE_ORA_NETAMOUNT_F1V6 " +
 				"set net_amount=:netamount, installment_amount=:installmentamount, duedate=:duedate, syncdate=:syncdate, loan_status=:loanstatus " +
 				"where loan_account_no=:loanAccount";
 
