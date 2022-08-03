@@ -14,7 +14,7 @@ import java.util.Date;
 
 @Data
 @Builder
-@Table(name = "fico_trans_pay_settle", schema = "payoo")
+@Table(name = "fico_trans_pay_settle_2", schema = "payoo")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor

@@ -8,13 +8,11 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 @Entity
-@Table(name = "fico_customer_current_amount_2", schema = "payoo")
-public class FicoCustomer {
+@Table(name = "fico_customer_current_amount_live_bank", schema = "payoo")
+public class FicoCustomerLiveBank {
     @Id
     //@GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name="loanid", nullable = false, unique = true)
@@ -49,7 +47,55 @@ public class FicoCustomer {
     @JsonProperty("loan_active")
     private boolean loanActive;
 
-    public FicoCustomer() {
+    @Column(name = "final_due_flag")
+    @JsonProperty("final_due_flag")
+    private String finalDueFlag;
+
+    @Column(name = "early_closure_flag")
+    @JsonProperty("early_closure_flag")
+    private String early_closure_flag;
+
+    @Column(name = "early_closure_date")
+    @JsonProperty("early_closure_date")
+    private Timestamp early_closure_date;
+
+    @Column(name = "early_closure_amt",nullable = true)
+    @JsonProperty("early_closure_amt")
+    private long earlyClosureAmt;
+
+    public long getEarlyClosureAmt() {
+        return earlyClosureAmt;
+    }
+
+    public void setEarlyClosureAmt(long earlyClosureAmt) {
+        this.earlyClosureAmt = earlyClosureAmt;
+    }
+
+    public String getEarly_closure_flag() {
+        return early_closure_flag;
+    }
+
+    public void setEarly_closure_flag(String early_closure_flag) {
+        this.early_closure_flag = early_closure_flag;
+    }
+
+    public Timestamp getEarly_closure_date() {
+        return early_closure_date;
+    }
+
+    public void setEarly_closure_date(Timestamp early_closure_date) {
+        this.early_closure_date = early_closure_date;
+    }
+
+    public String getFinalDueFlag() {
+        return finalDueFlag;
+    }
+
+    public void setFinalDueFlag(String finalDueFlag) {
+        this.finalDueFlag = finalDueFlag;
+    }
+
+    public FicoCustomerLiveBank() {
     }
 
     public boolean isLoanActive() {
