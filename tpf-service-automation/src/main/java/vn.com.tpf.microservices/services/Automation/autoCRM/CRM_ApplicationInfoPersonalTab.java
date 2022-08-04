@@ -734,10 +734,17 @@ public class CRM_ApplicationInfoPersonalTab {
 
 
         if (applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode() != null) {
-            this.educationElement.click();
-            await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            //NghiaNVT Begin - update for v6 education field is not drop down
+            this.educationElement.clear();
+            this.educationElement.sendKeys(applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode());
+            with().pollInterval(Duration.FIVE_SECONDS).
+                    await("educationOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> educationOptionElement.size() > 0);
-            Utilities.chooseDropdownValue(applicationInfoDTO.getPersonalInfo().getCustomerCategoryCode(), educationOptionElement);
+            for (WebElement e : educationOptionElement) {
+                System.out.println("educationOptionElement: " + e.getAttribute("username"));
+                e.click();
+            }
+            //NghiaNVT End - update for v6 education field is not drop down
         }
 
         //Update Identification
@@ -913,6 +920,8 @@ public class CRM_ApplicationInfoPersonalTab {
             _driver.findElement(By.id("idDetail_identificationNumber" + indexRow)).sendKeys(data.getIdentificationNumber());
             _driver.findElement(By.id("idDetail_issueDate" + indexRow)).sendKeys(data.getIssueDate());
             _driver.findElement(By.id("idDetail_expiryDate" + indexRow)).sendKeys(data.getExpiryDate());
+            //NghiaNVT
+            _driver.findElement(By.id("idDetail_expiryDate" + indexRow)).sendKeys(Keys.ENTER);
             country = _driver.findElement(By.id("idDetail_country" + indexRow));
             new Select(country).selectByVisibleText(data.getIssuingCountry());
             if (index < datas.size() - 1) {
@@ -1116,7 +1125,8 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 //click edit row
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
-                we.click();
+                actions.moveToElement(we).click().perform();
+                //we.click();
 
                 //Đợi load Address Type
 //                Thread.sleep(15000);
@@ -1312,6 +1322,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 Utilities.captureScreenShot(_driver);
                 actions.moveToElement(btnSaveAddressElement).click().build().perform();
             }
+            Thread.sleep(20000);//waiting notification
         }
     }
 

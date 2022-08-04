@@ -46,7 +46,8 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'rowIncDetails')]//td")
     private List<WebElement> trElements;
 
-    @FindBy(how = How.ID, using = "financialSaveAndNextButton2")
+    // @FindBy(how = How.ID, using = "financialSaveAndNextButton2")
+    @FindBy(how = How.ID, using = "financialSaveAndNextButton1")
     @CacheLookup
     private WebElement btnSaveAndNextElement;
 

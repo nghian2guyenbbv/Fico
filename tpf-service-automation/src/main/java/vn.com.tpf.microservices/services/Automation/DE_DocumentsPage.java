@@ -1,10 +1,11 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.awaitility.Duration;
+import org.openqa.selenium.*;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.CacheLookup;
@@ -27,15 +28,39 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
+@Slf4j
 @Getter
 public class DE_DocumentsPage {
     private WebDriver _driver;
+
+    @FindBy(how = How.ID, using = "comment_add_button")
+    @CacheLookup
+    private WebElement documentBtnAddCommnetElement;
+
+    @FindBy(how = How.ID, using = "comment_textarea")
+    @CacheLookup
+    private WebElement documentTextCommentElement;
+
+    @FindBy(how = How.ID, using = "comment_button")
+    @CacheLookup
+    private WebElement documentBtnCommentElement;
+
+    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'activityDiv')]//a[contains(@id, 'loadApplicantInfo')]")
+    @CacheLookup
+    private WebElement documentLoadActivityElement;
+
+    @FindBy(how = How.ID, using = "document_neo")
+    private WebElement loadTabDocumentElement;
+
     @FindBy(how = How.ID, using = "applicationChildTabs_document")
     @CacheLookup
     private WebElement tabDocumentsElement;
 
-    @FindBy(how = How.ID, using = "document")
+    //@FindBy(how = How.ID, using = "document")
+    //NghiaNVT Update document container
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'documentContent')]")
     @CacheLookup
     private WebElement documentsContainerElement;
 
@@ -51,6 +76,11 @@ public class DE_DocumentsPage {
     @CacheLookup
     private List<WebElement> lendingTrElement;
 
+    //@FindBy(how = How.XPATH, using = "//select[contains(@id, 'applicationDocument_receiveState')]")
+    @FindBy(how = How.XPATH, using = "//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']")
+    @CacheLookup
+    private WebElement lendingStatusElement2;
+
     @FindBy(how = How.XPATH, using = "//select[contains(@id, 'applicationDocument_receiveState')]")
     @CacheLookup
     private List<WebElement> lendingStatusElement;
@@ -63,7 +93,8 @@ public class DE_DocumentsPage {
 //    @CacheLookup
     private List<WebElement> lendingPhotoElement;
 
-    @FindBy(how = How.ID, using = "submitDocuments")
+    //@FindBy(how = How.ID, using = "submitDocuments")
+    @FindBy(how = How.XPATH, using = "//ul[@class='mainActions clearfix ng-scope']//button[1]")
     @CacheLookup
     private WebElement btnSubmitElement;
 
@@ -83,6 +114,150 @@ public class DE_DocumentsPage {
     public DE_DocumentsPage(WebDriver driver) {
         this._driver = driver;
         PageFactory.initElements(driver, this);
+    }
+    private String checkCurrrentStatus(){
+        WebElement editViewDoc = _driver.findElement(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']"));
+        Select selectStatus = new Select(editViewDoc);
+        WebElement e = selectStatus.getFirstSelectedOption();
+        System.out.println("checkCurrrentStatus: "+e.getText());
+        return e.getText();
+    }
+
+    private void changeDocumentStatus(String status) throws InterruptedException {
+        _driver.findElement(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']")).click();
+        List<WebElement> lendingPhotoContainerElement = _driver.findElements(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']//option"));
+        await("Load lendingPhotoContainerElement Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> lendingPhotoContainerElement.size() != 0);
+
+        {
+            Utilities.chooseDropdownValue(status, lendingPhotoContainerElement);
+            System.out.println("change Status to: " + status);
+        }
+
+
+    }
+
+    public void setData2(List<DocumentDTO> documentDTOS, String downLoadFileURL, String documentComment) throws IOException, InterruptedException {
+        boolean saveDocumentOrNotFlag = true;
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("Tab Document loading Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> loadTabDocumentElement.isDisplayed());
+
+        List<String> requiredFiled = new ArrayList<>();
+        if (documentDTOS.size() > 0) {
+            documentDTOS.stream().forEach(doc -> {
+                requiredFiled.add(doc.getOriginalname());
+            });
+        }
+        String fromFile = downLoadFileURL;
+        Thread.sleep(5000);
+        List<WebElement> listDocs = _driver.findElements(By.xpath("//*[contains(@data-type, 'docnode')]"));
+        System.out.println("requiredFiled: " + requiredFiled);
+        JavascriptExecutor executor = (JavascriptExecutor)_driver;
+        for (WebElement element : listDocs) {
+            String docName = element.getText();
+            String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+            if (requiredFiled.contains(docName)) {
+                await("Show document Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> element.isDisplayed());
+                //actions.moveToElement(element).click().build().perform();
+                executor.executeScript("arguments[0].click();",element);
+                System.out.println("element.click(): "+docName);
+                Thread.sleep(2000);
+                String finalDocName = docName;
+                DocumentDTO doc = documentDTOS.stream().filter(q -> q.getOriginalname().equals(finalDocName)).findAny().orElse(null);
+                if (doc != null) {
+                    String ext = FilenameUtils.getExtension(doc.getFilename());
+                    if ("TPF_Transcript".equals(docName)) {
+                        docName = "TPF_Tran1";
+                    }
+                    toFile += UUID.randomUUID().toString() + "_" + docName + "." + ext;
+                    FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                    File file = new File(toFile);
+                    if (file.exists() && !"Received".equals(checkCurrrentStatus())) {
+                        String photoUrl = file.getAbsolutePath();
+                        System.out.println("PATH:" + photoUrl);
+                        changeDocumentStatus("Received");
+                        /*_driver.findElement(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']")).click();
+                        List<WebElement> lendingPhotoContainerElement = _driver.findElements(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']//option"));
+                        await("Load lendingPhotoContainerElement Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> lendingPhotoContainerElement.size() != 0);
+                        for (WebElement e : lendingPhotoContainerElement) {
+                            if (e.getText().equals("Received")) {
+                                e.click();
+                                System.out.println("click Received");
+                            }
+                        }
+
+*/
+                        try {
+                         /*WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
+                                                await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                                        .until(() -> editViewDoc.isDisplayed());
+                                                editViewDoc.click();
+                                                actions.moveToElement(editViewDoc).click().perform();*/
+
+
+                            Thread.sleep(10000);
+                            WebElement inputDocElement = _driver.findElement(By.xpath("//*[@id='document_viewer_mp']//input[contains(@class,'input_images')]"));
+                            WebElement imageAddMore = _driver.findElement(By.xpath("//li[contains(@class, 'imageBox add_more_box')]"));
+                            await("Load imageAddMore Timeout!").atMost(300, TimeUnit.SECONDS)
+                                    .until(() -> imageAddMore.isDisplayed());
+                            inputDocElement.sendKeys(photoUrl);
+                            Thread.sleep(2000);//waiting upload image
+                            //go to the top page
+                            _driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+                            WebElement saveDoc = _driver.findElement(By.id("dv_documentSave"));
+
+                            executor.executeScript("arguments[0].click();",saveDoc);
+                            /*await("dv_documentSave Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() -> !saveDoc.isDisplayed());*/
+                            Thread.sleep(2000);
+                            WebElement newImageActive = _driver.findElement(By.xpath("//*[@class='new_img active']"));
+                            await("newImageActive Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() -> newImageActive.isDisplayed());
+                            System.out.println("Click save document button");
+
+                        } catch (NoSuchElementException ex) {
+                            changeDocumentStatus("Select");
+                            saveDocumentOrNotFlag = false;
+                        }
+                        Utilities.captureScreenShot(_driver);
+                    }
+                }
+            }
+        }
+        if (saveDocumentOrNotFlag) {
+            _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]")).click();
+            Utilities.captureScreenShot(_driver);
+            System.out.println("SAVE DOCUMENT" + " => DONE");
+
+            documentLoadActivityElement.click();
+
+            await("documentBtnCommentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentBtnCommentElement.isDisplayed());
+
+            Utilities.captureScreenShot(_driver);
+
+            documentBtnCommentElement.click();
+
+            Utilities.captureScreenShot(_driver);
+
+            await("Document Text Comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> documentTextCommentElement.isDisplayed());
+
+            documentTextCommentElement.sendKeys(documentComment);
+
+            documentBtnAddCommnetElement.click();
+            Utilities.captureScreenShot(_driver);
+            System.out.println("ADD COMMENT" + " => DONE");
+        }
+        Utilities.captureScreenShot(_driver);
+       /* keyActionMoveNextStage();
+        await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(_driver::getTitle, is("Application Grid"));
+        Utilities.captureScreenShot(_driver);*/
+        executor.executeScript("arguments[0].click();",btnSubmitElement);
     }
 
     public void setData(String photoUrl) throws IOException {

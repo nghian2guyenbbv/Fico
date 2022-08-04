@@ -25,4 +25,6 @@ public class QuickLead {
     public String leadStatus;
     public String communicationTranscript;
     public List<Document> documents = null;
+    //NghiaNVT add document comment for Document tab in FinOne v6
+    private String documentsComment;
 }

@@ -630,7 +630,16 @@ public class AutomationHandlerService {
 //
             stage = "APPLICATION GRID";
             // ========== APPLICATION GRID =================
-            this.getApplicationAppId(driver, leadAppID);
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(leadAppID);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 //
@@ -1220,7 +1229,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage= new HomePageNeo(driver);
 
             //DATA INPUT UPDATE
             //String leadAppID="APPL00086527";
@@ -1235,7 +1244,16 @@ public class AutomationHandlerService {
 
             stage = "APPLICATION GRID";
             // ========== APPLICATION GRID =================
-            this.getApplicationAppId(driver, leadAppID);
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(leadAppID);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 //
@@ -1510,7 +1528,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage= new HomePageNeo(driver);
 
             //DATA INPUT UPDATE
             //String leadAppID="APPL00086527";
@@ -1530,7 +1548,16 @@ public class AutomationHandlerService {
 
             stage = "APPLICATION GRID";
             // ========== APPLICATION GRID =================
-            this.getApplicationAppId(driver, leadAppID);
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(leadAppID);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 //
@@ -1554,7 +1581,8 @@ public class AutomationHandlerService {
             personalTab.updateValue(applicationInfoDTO);
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+            Utilities.captureScreenShot(driver);
+            await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
 
             DE_ApplicationInfoEmploymentDetailsTabNeo employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTabNeo();
@@ -1804,7 +1832,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage= new HomePageNeo(driver);
 
             //DATA INPUT UPDATE
             //String leadAppID="APPL00086527";
@@ -1819,7 +1847,16 @@ public class AutomationHandlerService {
 
             stage = "APPLICATION GRID";
             // ========== APPLICATION GRID =================
-            this.getApplicationAppId(driver, leadAppID);
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(leadAppID);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 //
@@ -2023,6 +2060,7 @@ public class AutomationHandlerService {
 
     private void updateAppError_Full(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
         Application application = Application.builder().build();
+        Actions actions = new Actions(driver);
 
         try {
             stage = "INIT DATA";
@@ -2057,7 +2095,7 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
 
             stage = "HOME PAGE";
-            HomePage homePage = new HomePage(driver);
+            HomePageNeo homePage= new HomePageNeo(driver);
 
             //DATA INPUT UPDATE
             //String leadAppID="APPL00086527";
@@ -2077,7 +2115,16 @@ public class AutomationHandlerService {
 
             stage = "APPLICATION GRID";
             // ========== APPLICATION GRID =================
-            this.getApplicationAppId(driver, leadAppID);
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(leadAppID);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 //
@@ -2104,6 +2151,13 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             stage = "EMPLOYMENT DETAILS";
 //             ========== EMPLOYMENT DETAILS =================
+            //driver.findElement(By.id("customerMainChildTabs_employment_tab")).click();
+
+            WebElement web = driver.findElement(By.id("customerMainChildTabs_employment_tab"));
+            actions.moveToElement(web).click().build().perform();
+            appInfoPage.loadEmloymentTab();
+            System.out.println("click load Employment tab");
+            Thread.sleep(2000);
             await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
 
@@ -2148,6 +2202,8 @@ public class AutomationHandlerService {
             // ==========FINANCIAL DETAILS =================
             if (applicationInfoDTO.getIncomeDetails() != null && applicationInfoDTO.getIncomeDetails().size() > 0) {
                 DE_ApplicationInfoFinancialDetailsTabNeo financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTabNeo();
+                //NghiaNVT Update to Click Financial Tab
+                financialDetailsTab.getCustomerMainChildTabs_income_tabElement().click();
                 financialDetailsTab.openIncomeDetailSection();
                 await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
@@ -2174,8 +2230,9 @@ public class AutomationHandlerService {
             stage = "LOAN DETAIL - SOURCING DETAIL TAB";
             DE_LoanDetailsPage loanDetailsPage = new DE_LoanDetailsPage(driver);
             Utilities.captureScreenShot(driver);
-            loanDetailsPage.getTabLoanDetailsElement().click();
-
+            //loanDetailsPage.getTabLoanDetailsElement().click();
+            WebElement loanDetailPage = loanDetailsPage.getTabLoanDetailsElement();
+            actions.moveToElement(loanDetailPage).click().build().perform();
             DE_LoanDetailsSourcingDetailsTabNeo loanDetailsSourcingDetailsTab = new DE_LoanDetailsSourcingDetailsTabNeo(driver);
             await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
@@ -2183,7 +2240,6 @@ public class AutomationHandlerService {
                     .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
             loanDetailsSourcingDetailsTab.updateData(loanDetailsDTO);
             Utilities.captureScreenShot(driver);
-            Actions actions=new Actions(driver);
             actions.moveToElement(loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement()).click().build().perform();
 
             try {
@@ -2227,31 +2283,54 @@ public class AutomationHandlerService {
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
-//                DE_DocumentsPage documentsPage = new DE_DocumentsPage(driver);
-//                await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());
-//                documentsPage.getTabDocumentsElement().click();
-//                await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-//                documentsPage.getBtnGetDocumentElement().click();
-//                await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                        .until(() -> documentsPage.getLendingTrElement().size() > 0);
-//
-//                documentsPage.updateData(documentDTOS, downdloadFileURL);
-//                Utilities.captureScreenShot(driver);
-//                documentsPage.getBtnSubmitElement().click();
-//                Thread.sleep(10000);
+                String docComment = "no comment";
+                DE_DocumentsPage documentsPage = new DE_DocumentsPage(driver);
+                //go to the top page
+                driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+                await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());
+                documentsPage.getTabDocumentsElement().click();
+                await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
+
+                docComment = application.getQuickLead().getDocumentsComment();
+
+                documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
+
+                Utilities.captureScreenShot(driver);
+
             }
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+                /*DE_DocumentsPage documentsPage = new DE_DocumentsPage(driver);
+                await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());documentsPage.getTabDocumentsElement().click();
+                await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
+                documentsPage.getBtnGetDocumentElement().click();
+                await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> documentsPage.getLendingTrElement().size() > 0);
+
+                documentsPage.updateData(documentDTOS, downdloadFileURL);
+                Utilities.captureScreenShot(driver);
+                documentsPage.getBtnSubmitElement().click();
+                Thread.sleep(10000);
+            } */
 
 
             // ==========REFERENCES=================
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
             stage = "REFERENCES";
+            //go to the top page
+            driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
             DE_ReferencesPageNeo referencesPage = new DE_ReferencesPageNeo(driver);
+            //NghiaNVT
+            WebElement referenceTab = referencesPage.getTabReferencesElement();
+            actions.moveToElement(referenceTab).click().build().perform();
+            System.out.println("click referrence tab");
             await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
-            referencesPage.getTabReferencesElement().click();
 
             referencesPage.updateData(referenceDTO);
             Utilities.captureScreenShot(driver);
@@ -2264,6 +2343,8 @@ public class AutomationHandlerService {
 
             // ==========MISC FRM APP DTL=================
             stage = "MISC FRM APPDTL";
+            //go to the top page
+            driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
             DE_MiscFrmAppDtlPageNeo miscFrmAppDtlPage = new DE_MiscFrmAppDtlPageNeo(driver);
             miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
 
@@ -2324,7 +2405,8 @@ public class AutomationHandlerService {
                 }
             }
         } finally {
-            String function = mapValue.getOrDefault("func", "updateAppError").toString();
+            String function = mapValue.get("func").toString();
+            //String function = mapValue.getOrDefault("func", "updateAppError").toString();
             updateStatusRabbit(application, function);
             System.out.println(stage);
             logout(driver, accountDTO.getUserName());
@@ -5567,7 +5649,11 @@ public class AutomationHandlerService {
                         .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
 
                 financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
-                financialDetailsTab.saveAndNext();
+                //financialDetailsTab.saveAndNext();
+                //NghiaNVT go to top page
+                driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+                WebElement saveAndNext = financialDetailsTab.getBtnSaveAndNextElement();
+                actions.moveToElement(saveAndNext).click().perform();
             }
 
             System.out.println(stage + ": DONE");
@@ -5607,13 +5693,16 @@ public class AutomationHandlerService {
 
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
+            Thread.sleep(10000);//waiting for notification
+            //go to the top page
+            driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
             CRM_LoanDetailsPage loanDetailsPage = new CRM_LoanDetailsPage(driver);
             Utilities.captureScreenShot(driver);
             loanDetailsPage.getTabLoanDetailsElement().click();
 
             CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
             with().pollInterval(5, TimeUnit.SECONDS).
-            await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
@@ -5627,7 +5716,7 @@ public class AutomationHandlerService {
 
             boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
 
-            if (confirmDeleteVap){
+            if (confirmDeleteVap) {
 
                 await("Confirm Delete Vap Next Visibale!!!").atMost(15, TimeUnit.SECONDS)
                         .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
@@ -5659,13 +5748,19 @@ public class AutomationHandlerService {
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
+                String docComment = "no comment";
                 CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
+                //go to the top page
+                driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
                 await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());
                 documentsPage.getTabDocumentsElement().click();
                 await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-                documentsPage.setData(documentDTOS, downdloadFileURL);
+                //documentsPage.setData(documentDTOS, downdloadFileURL);
+                documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
+                Utilities.captureScreenShot(driver);
+                documentsPage.getBtnSubmitElement().click();
             }
 
             System.out.println(stage + ": DONE");
@@ -5871,7 +5966,16 @@ public class AutomationHandlerService {
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_applicationManagerPage.getMenuApplicationElement().isDisplayed());
 
-            getApplicationAppId(driver, applicationId);
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(applicationId);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -6213,10 +6317,10 @@ public class AutomationHandlerService {
 //
 //            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                    .until(driver::getTitle, is("DashBoard"));
-
-            LoginV2Page loginPage = new LoginV2Page(driver);
-
-            loginPage.loginValue(accountDTO);
+            //NghiaNVT - update for FinOne v6
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
+            loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
 
@@ -6251,7 +6355,21 @@ public class AutomationHandlerService {
             // ========== APPLICATION GRID =================
             await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_applicationManagerPage.getMenuApplicationElement().isDisplayed());
-
+            // NghiaNVT begin
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(applicationId);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            //NghiaNVT end
+/*
             crm_applicationManagerPage.getMenuApplicationElement().click();
             Utilities.captureScreenShot(driver);
             crm_applicationManagerPage.getApplicationElement().click();
@@ -6261,12 +6379,13 @@ public class AutomationHandlerService {
             Utilities.captureScreenShot(driver);
             crm_applicationManagerPage.applicationGrid(applicationId);
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureScreenShot(driver);*/
 
             // ========== APPLICANT INFORMATION =================
             // ========== PERSONAL INFORMATION =================
             stage = "VIEW/EDIT DETAILED INFORMATION";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
+            crm_ExistingCustomerPage.getCustomerPersonal().click();
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -8678,20 +8797,6 @@ public class AutomationHandlerService {
         homePage.getSearchQueryElement().sendKeys(Keys.ENTER);
         Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
         homePage.getLeadQueryElement().click();
-    }
-
-    private void getApplicationAppId(WebDriver driver, String leadApp) throws InterruptedException {
-        HomePageNeo homePage= new HomePageNeo(driver);
-        homePage.menuClick();
-        homePage.applicationClick();
-        Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
-        homePage.getAssignedApp().click();
-        await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> homePage.getApplicationNumber().isDisplayed());
-        homePage.getApplicationNumber().sendKeys(leadApp);
-        homePage.getApplicationNumber().sendKeys(Keys.ENTER);
-        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
-        homePage.getAppQueryElement().click();
     }
 
     private String assignManger2(WebDriver driver, String leadApp, String teamName, String accountName) throws InterruptedException {

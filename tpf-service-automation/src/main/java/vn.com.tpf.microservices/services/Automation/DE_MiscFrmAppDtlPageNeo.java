@@ -303,9 +303,9 @@ public class DE_MiscFrmAppDtlPageNeo {
         monthlyFeeElement.clear();
         monthlyFeeElement.sendKeys(data.getMonthlyFee());
         //
-
-        remarkElement.clear();
-        remarkElement.sendKeys(data.getRemark());
+        //Nghia NVT Remark was delete
+       /* remarkElement.clear();
+        remarkElement.sendKeys(data.getRemark());*/
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
 

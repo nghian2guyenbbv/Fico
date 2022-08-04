@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -10,6 +11,7 @@ import org.openqa.selenium.support.PageFactory;
 
 @Getter
 public class DE_ApplicationInfoPage {
+    private WebDriver _driver;
 
     private DE_ApplicationInfoPersonalTab applicationInfoPersonalTab;
     private DE_ApplicationInfoPersonalTabNeo applicationInfoPersonalTabNeo;
@@ -38,6 +40,7 @@ public class DE_ApplicationInfoPage {
     private WebElement bankCreditCardDetailsDetailsTabElement;
 
     public DE_ApplicationInfoPage(WebDriver driver) {
+        _driver = driver;
         PageFactory.initElements(driver, this);
         applicationInfoPersonalTab = new DE_ApplicationInfoPersonalTab(driver);
         applicationInfoPersonalTabNeo = new DE_ApplicationInfoPersonalTabNeo(driver);
@@ -80,5 +83,8 @@ public class DE_ApplicationInfoPage {
     public DE_ApplicationInfoBankCreditCardDetailsTabNeo getApplicationInfoBankCreditCardDetailsTabNeo() {
         return applicationInfoBankCreditCardDetailsTabNeo;
     }
-
+    public void loadEmloymentTab() {
+        JavascriptExecutor jse2 = (JavascriptExecutor) _driver;
+        jse2.executeScript("arguments[0].click();", employmentDetailsTabElement);
+    }
 }

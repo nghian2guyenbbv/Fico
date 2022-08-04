@@ -171,6 +171,17 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
         }
     }
 
+    private List<IncomeDetailDTO> switchMainIncometoLast(List<IncomeDetailDTO> datas) {
+        List<IncomeDetailDTO> newDatas = datas;
+        if ("Main Personal Income".equals(datas.get(0).getIncomeHead()) && datas.size() > 1) {
+            IncomeDetailDTO mainDeatailIncome = datas.get(0);
+            newDatas.set(0, datas.get(datas.size() - 1));
+            newDatas.set(datas.size() - 1, mainDeatailIncome);
+
+        }
+        return newDatas;
+    }
+
     public void updateIncomeDetailsData(List<IncomeDetailDTO> datas) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
 
         await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -186,7 +197,8 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
 
         int indexRow=deleteIncDetailsElement.size();
         int index = 0;
-        for (IncomeDetailDTO data : datas) {
+        List<IncomeDetailDTO> newDatas = switchMainIncometoLast(datas);
+        for (IncomeDetailDTO data : newDatas) {
 
             System.out.println(data.getIncomeHead());
 
@@ -197,7 +209,11 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
 
             WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chosen"));
             incomeHead.click();
+            Thread.sleep(5000);//wait to show income list
+            System.out.println("click incomeHead: " + indexRow);
             List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + indexRow + "_chosen_o_')]"));
+            await("IncomeList is not display - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> incomeHeads.size() > 0);
             for (WebElement element : incomeHeads) {
                 if (element.getText().equals(data.getIncomeHead())) {
                     element.click();

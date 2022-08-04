@@ -802,21 +802,16 @@ public class DE_ApplicationInfoPersonalTabNeo {
 
                 //check xem có nhiều type bị trùng ko
 
-                int count=_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'deleteTag')]")).size();
+                int count = _driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() + "')]//ancestor::tr//*[contains(@id,'deleteTag')]")).size();
 
-                if(count>1)
-                {
-                    List<WebElement> list=_driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'deleteTag')]"));
-                    for(WebElement we : list.subList(1,list.size()))
-                    {
+                if (count > 1) {
+                    List<WebElement> list = _driver.findElements(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() + "')]//ancestor::tr//*[contains(@id,'deleteTag')]"));
+                    for (WebElement we : list.subList(1, list.size())) {
                         we.click();
                     }
                 }
-
-
-                WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
-                we.click();
-
+                WebElement addressEditIcon = _driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() + "')]//ancestor::tr//*[contains(@id,'editTag')]"));
+                actions.moveToElement(addressEditIcon).click().build().perform();
                 //Sleep Wait Address Type
 //                Thread.sleep(15000);
 
@@ -857,13 +852,13 @@ public class DE_ApplicationInfoPersonalTabNeo {
 //                    }
 //                }
 
-                regionInputElement.sendKeys("Select");
-                regionInputElement.sendKeys(Keys.ENTER);
+                /*regionInputElement.sendKeys("Select");
+                regionInputElement.sendKeys(Keys.ENTER);*/
                 actions.moveToElement(regionElement).click().build().perform();
 
                 regionInputElement.sendKeys(data.getRegion());
                 regionInputElement.sendKeys(Keys.ENTER);
-
+                Thread.sleep(2000);
                 actions.moveToElement(cityElement).click().build().perform();
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> cityOptionElement.size() > 1);
@@ -1023,6 +1018,7 @@ public class DE_ApplicationInfoPersonalTabNeo {
                 Utilities.captureScreenShot(_driver);
                 actions.moveToElement(btnSaveAddressElement).click().build().perform();
             }
+            Thread.sleep(2000);
         }
     }
 
@@ -1075,8 +1071,10 @@ public class DE_ApplicationInfoPersonalTabNeo {
                 this.phoneNumberElement.sendKeys(data.getPhoneNumber());
                 if (StringUtils.isNotBlank(data.getEducationStatus()))
                     new Select(this.educationStatusElement).selectByVisibleText(data.getEducationStatus());
+                //NghiaNVT company name was hidden
+                /*
                 this.comNameElement.clear();
-                this.comNameElement.sendKeys(data.getComName());
+                this.comNameElement.sendKeys(data.getComName());*/
                 if (StringUtils.isNotBlank(data.getIsDependent()) && Integer.parseInt(data.getIsDependent()) == 1)
                     this.IsDependentElement.click();
 
@@ -1295,9 +1293,13 @@ public class DE_ApplicationInfoPersonalTabNeo {
 
         JavascriptExecutor js= (JavascriptExecutor)_driver;
         js.executeScript(btnCheckDuplicateElement.getAttribute("onclick"));
-         //ko hien thi
-         await("numDuplicateElement text not enabled").atMost(60, TimeUnit.SECONDS)
-                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
+        //ko hien thi
+        /* await("numDuplicateElement text not enabled").atMost(60, TimeUnit.SECONDS)
+                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));*/
+        //NghiaNVT update to get the numDuplicateElement
+        await("numDuplicateElement text not enabled").atMost(60, TimeUnit.SECONDS)
+                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getAttribute("innerHTML")));
+
 
         saveAndNext();
     }
