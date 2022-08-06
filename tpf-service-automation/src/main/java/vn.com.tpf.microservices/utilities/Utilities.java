@@ -8,10 +8,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 
@@ -29,6 +26,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Utilities {
+
     public static HashMap<String, Object> createMqObject(String userName, String password) {
         return new HashMap<String, Object>() {
             {
@@ -176,4 +174,8 @@ public class Utilities {
                         .toLowerCase())
                 .collect(Collectors.joining(WORD_SEPARATOR));
     }
+    public static void gotoTopPage(WebDriver driver){
+        driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+    }
 }
+

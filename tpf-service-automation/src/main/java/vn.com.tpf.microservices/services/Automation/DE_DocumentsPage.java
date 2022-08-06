@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.awaitility.Duration;
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.CacheLookup;
@@ -139,6 +140,7 @@ public class DE_DocumentsPage {
 
     public void setData2(List<DocumentDTO> documentDTOS, String downLoadFileURL, String documentComment) throws IOException, InterruptedException {
         boolean saveDocumentOrNotFlag = true;
+        Actions actions = new Actions(_driver);
         with().pollInterval(Duration.FIVE_SECONDS).
                 await("Tab Document loading Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loadTabDocumentElement.isDisplayed());
@@ -174,7 +176,17 @@ public class DE_DocumentsPage {
                     toFile += UUID.randomUUID().toString() + "_" + docName + "." + ext;
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
+                    /*if("Received".equals(checkCurrrentStatus())){
+                        System.out.println("Edit document");
+                        WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
+                        await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                                        .until(() -> editViewDoc.isDisplayed());
+                                                //editViewDoc.click();
+                        actions.moveToElement(editViewDoc).click().perform();
+
+                    }*/
                     if (file.exists() && !"Received".equals(checkCurrrentStatus())) {
+                    /*if (file.exists()) {*/
                         String photoUrl = file.getAbsolutePath();
                         System.out.println("PATH:" + photoUrl);
                         changeDocumentStatus("Received");

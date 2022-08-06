@@ -70,7 +70,7 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chosen_o_')]")
     private List<WebElement> incomeDetailForm_paymentModeOptionElement;
 
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chzn')]//input")
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'incomeDetailForm_paymentMode_chosen')]//input")
     private WebElement incomeDetailForm_paymentModeInputElement;
 
     @FindBy(how = How.ID, using = "childModalWindowDoneButtonIncomeDetailInlineGrid")

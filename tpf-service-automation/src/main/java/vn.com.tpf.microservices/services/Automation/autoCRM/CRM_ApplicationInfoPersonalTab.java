@@ -236,7 +236,8 @@ public class CRM_ApplicationInfoPersonalTab {
     private WebElement primaryEmailElement;
 
 //    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
-    @FindBy(how = How.ID, using = "customer_mobile_phonen3_phoneNumber")
+   // @FindBy(how = How.ID, using = "customer_mobile_phonen3_phoneNumber")
+    @FindBy(how = How.ID, using = "customer_mobile_phonen1_phoneNumber")
     @CacheLookup
     private WebElement cusMobileElements;
 
@@ -863,6 +864,7 @@ public class CRM_ApplicationInfoPersonalTab {
         if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null) {
             cusMobileElements.clear();
             cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
+            cusMobileElements.sendKeys(Keys.ENTER);
         }
 
         loadCommunicationSection(); // close section after complete input
@@ -941,7 +943,9 @@ public class CRM_ApplicationInfoPersonalTab {
     }
 
     public void loadCommunicationSection() {
-        this.loadCommunicationDetailElement.click();
+       // this.loadCommunicationDetailElement.click();
+        Actions actions = new Actions(_driver);
+        actions.moveToElement(loadCommunicationDetailElement).click().perform();
     }
 
     public void loadFamilySection() {
@@ -1125,7 +1129,9 @@ public class CRM_ApplicationInfoPersonalTab {
 
                 //click edit row
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
-                actions.moveToElement(we).click().perform();
+                JavascriptExecutor jsExecutor = (JavascriptExecutor)_driver;
+                jsExecutor.executeScript("arguments[0].click();", we);
+                //actions.moveToElement(we).click().perform();
                 //we.click();
 
                 //Đợi load Address Type

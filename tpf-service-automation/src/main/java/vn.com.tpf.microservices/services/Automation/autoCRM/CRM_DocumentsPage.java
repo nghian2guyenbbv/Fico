@@ -89,7 +89,8 @@ public class CRM_DocumentsPage extends DocumentPage {
 //    @CacheLookup
     private List<WebElement> lendingPhotoElement;
 
-    @FindBy(how = How.ID, using = "submitDocuments")
+    //@FindBy(how = How.ID, using = "submitDocuments")
+    @FindBy(how = How.XPATH, using = "//ul[@class='mainActions clearfix ng-scope']//button[1]")
     @CacheLookup
     private WebElement btnSubmitElement;
 

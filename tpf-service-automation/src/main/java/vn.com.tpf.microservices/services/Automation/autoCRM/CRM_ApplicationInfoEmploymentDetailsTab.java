@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
@@ -27,14 +28,18 @@ import static org.awaitility.Awaitility.with;
 public class CRM_ApplicationInfoEmploymentDetailsTab {
     private WebDriver _driver;
 
-    @FindBy(how = How.ID, using = "occupationType_chosen")
+    //@FindBy(how = How.ID, using = "occupationType_chosen")
+    @FindBy(how = How.XPATH, using = "//*[contains(@class, 'chosen-container chosen-container-single chosen-container-single-nosearch')]")
+    @CacheLookup
     private WebElement occupationTypeElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType_chosen_o_')]")
+    @CacheLookup
+    private List<WebElement> occupationTypeOptionElement;
+
 
     @FindBy(how = How.ID, using = "occupationType_chznss")
     private WebElement occupationTypeElements;
-
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'occupationType_chosen_o_')]")
-    private List<WebElement> occupationTypeOptionElement;
 
     @FindBy(how = How.ID, using = "listitem_employerName0")
     private WebElement occupationTypeOthersElement;
@@ -58,6 +63,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
     private List<WebElement> employmentTypeOptionElement;
 
     @FindBy(how = How.ID, using = "natOfOccId_chosen")
+    //@FindBy(how = How.ID, using = "occupationType_chosen")
     private WebElement natureOfOccupationElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'natOfOccId_chosen_o_')]")
@@ -152,13 +158,14 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
         for (WebElement e: listOccupationDelete){
             listStringOccupationDelete.add(e.getAttribute("innerHTML").trim());
         }
+        Thread.sleep(5000);
 
         boolean checkListOccupationDelete = listOccupationDelete.size() != 0;
 
         if(checkListOccupationDelete && deleteIdDetailElement.size() > 2){
             for (String OccupationDeleteButton: listStringOccupationDelete){
-                String occupationTypeElement = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[4]/a[@id = 'viewOccupation']")).getAttribute("innerHTML").trim();
-                if ("Salaried".equals(occupationTypeElement)){
+                String occupationTypeElementText = _driver.findElement(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + OccupationDeleteButton + "')]//ancestor::tr//td[4]/a[@id = 'viewOccupation']")).getAttribute("innerHTML").trim();
+                if ("Salaried".equals(occupationTypeElementText)){
 
                     Thread.sleep(5000);
 
@@ -166,7 +173,7 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
 
                     actions.moveToElement(occupationDelete).click().build().perform();
 
-                    Thread.sleep(5000);
+                    Thread.sleep(2000);
 
                     boolean checkModalMajorChange = _driver.findElements(By.xpath("//*[contains(@id, 'MajorChange')][contains(@style,'block')]")).size() != 0;
 
@@ -182,8 +189,6 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             }
         }
 
-        Thread.sleep(10000);
-
         boolean occupationEditChange = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() != 0;
 
         if(occupationEditChange) {
@@ -191,18 +196,27 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
             actions.moveToElement(occupationEdit).click().build().perform();
         }
 
-        with().pollInterval(Duration.FIVE_SECONDS).
+        /*with().pollInterval(Duration.FIVE_SECONDS).
         await("occupationTypeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeElement.isDisplayed() && occupationTypeElement.isEnabled());
 
-        occupationTypeElement.click();
+        actions.moveToElement(occupationTypeElement).click().perform();*/
+        Thread.sleep(15000);
+        WebElement we = _driver.findElement(By.xpath("//*[contains(@id,'occupationType_chosen')]//*[contains(text(),'Select One Option')]"));
+        we.click();
+        /*actions.moveToElement(occupationTypeElement).click().perform();
+        JavascriptExecutor executor = (JavascriptExecutor)_driver;
+        executor.executeScript("arguments[0].click();",occupationTypeElement);*/
 
+        System.out.println("occupationTypeElement click");
         await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeOptionElement.size() > 0);
 
         for (WebElement element : occupationTypeOptionElement) {
             if (element.getText().equals(data.getOccupationType())) {
-                element.click();
+                //element.click();
+                actions.moveToElement(element).click().perform();
+
                 break;
             }
         }
@@ -221,14 +235,14 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
                 break;
             }
         }
-
+        // remark was remove in v6
         employerName.clear();
         employerName.sendKeys(data.getRemarks());
 
         WebElement eaCheckElement =_driver.findElement(By.id("employment_detail_" + data.getOccupationType().toLowerCase() +"_address_check"));
         eaCheckElement.click();
 
-        Utilities.captureScreenShot(_driver);
+        //Utilities.captureScreenShot(_driver);
 
     }
 

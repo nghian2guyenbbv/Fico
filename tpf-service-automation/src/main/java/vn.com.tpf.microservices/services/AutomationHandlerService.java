@@ -8,16 +8,12 @@ import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.interactions.Keyboard;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -341,7 +337,7 @@ public class AutomationHandlerService {
                     accountDTO = pollAccountFromQueue(accounts, project);
                     setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
                     driver = setupTestDriver.getDriver();
-                    runAutomation_SendBack(driver, mapValue, accountDTO);
+                    runAutomation_Sale_Queue_With_FullInfo(driver, mapValue, accountDTO);
                     break;
                 case "runAutomation_AutoAssign_Allocation":
                     runAutomation_autoAssignAllocation(mapValue, project, browser);
@@ -2156,7 +2152,6 @@ public class AutomationHandlerService {
             WebElement web = driver.findElement(By.id("customerMainChildTabs_employment_tab"));
             actions.moveToElement(web).click().build().perform();
             appInfoPage.loadEmloymentTab();
-            System.out.println("click load Employment tab");
             Thread.sleep(2000);
             await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
@@ -2292,8 +2287,9 @@ public class AutomationHandlerService {
                 documentsPage.getTabDocumentsElement().click();
                 await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-
-                docComment = application.getQuickLead().getDocumentsComment();
+                if(application.getQuickLead().getDocumentsComment()!= null && !application.getQuickLead().getDocumentsComment().isEmpty()){
+                    docComment = application.getQuickLead().getDocumentsComment();
+                }
 
                 documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
 
@@ -5432,7 +5428,533 @@ public class AutomationHandlerService {
         }
     }
 
+    private void checkExistingCustomer(CRM_ExistingCustomerPage crm_ExistingCustomerPage, CRM_ExistingCustomerDTO existingCustomerDTO, String applicationId,  WebDriver driver){
+
+        crm_ExistingCustomerPage.application_personal_Click();
+
+        await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getCustomerPersonal().isDisplayed());
+        crm_ExistingCustomerPage.getCustomerPersonal().click();
+        await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getCreateCustomerElement().isDisplayed());
+
+        System.out.println("PERSONAL LOAN PAGE");
+
+        crm_ExistingCustomerPage.getIsExistCustomerRadioElement().click();
+
+        await("Search Existing Individual Customers With displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getExistingCustomerSearchFormElement().isDisplayed());
+
+        // Check box Both before search customers
+        await("Both check box displayed timeout").atMost(Constant.TIME_OUT_S,TimeUnit.SECONDS)
+                .until(()->crm_ExistingCustomerPage.getBothCheckBoxElement().isDisplayed());
+        crm_ExistingCustomerPage.getBothCheckBoxElement().click();
+        System.out.println("Click both box");
+
+        if (!Objects.isNull(existingCustomerDTO.getNeoCustID())) {
+            await("Neo Cust ID Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> crm_ExistingCustomerPage.getNeoCustIDInputElement().isDisplayed());
+
+            crm_ExistingCustomerPage.getNeoCustIDInputElement().sendKeys(existingCustomerDTO.getNeoCustID());
+
+        }
+
+        if (!Objects.isNull(existingCustomerDTO.getCifNumber())) {
+            await("CIF Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> crm_ExistingCustomerPage.getCifNumberInputElement().isDisplayed());
+
+            crm_ExistingCustomerPage.getCifNumberInputElement().sendKeys(existingCustomerDTO.getCifNumber());
+
+        }
+
+        if (!StringUtils.isEmpty(existingCustomerDTO.getIdNumber())) {
+
+            crm_ExistingCustomerPage.getIdentificationTypeInputElement().sendKeys("Current National ID");
+
+            await("Identification Type Ul displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> crm_ExistingCustomerPage.getIdentificationTypeUlElement().isDisplayed());
+
+            await("Identification Type Li loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> crm_ExistingCustomerPage.getIdentificationTypeLiElement().size() > 0);
+
+            for (WebElement e : crm_ExistingCustomerPage.getIdentificationTypeLiElement()) {
+                if (!Objects.isNull(e.getText()) && StringEscapeUtils.unescapeJava(e.getText()).equals("Current National ID")) {
+                    e.click();
+                    break;
+                }
+            }
+
+
+            await("ID Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> crm_ExistingCustomerPage.getIdNumberInputElement().isDisplayed());
+
+            crm_ExistingCustomerPage.getIdNumberInputElement().sendKeys(existingCustomerDTO.getIdNumber());
+
+        }
+
+        await("Search displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getSearchCustomerButtonElement().isDisplayed());
+
+        crm_ExistingCustomerPage.getSearchCustomerButtonElement().click();
+
+
+        await("Not Existing Customer!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getSearchCustomerTableElement().size() > 2);
+
+        int tableSize = crm_ExistingCustomerPage.getSearchCustomerTableSizeElement().size();
+
+        WebElement searchCustomerSelectElement = driver.findElement(new By.ByXPath("//div[@id = 'existingCustomerSearch']//form[starts-with(@id, 'applicantSearchVoForm')]//div[@id = 'example']//table[@id = 'searchData_IndividualCustomerTable']//tbody//tr[" + tableSize + "]//td[contains(@class, 'select_individual')]//input[contains(@value,'Select')]"));
+
+        await("Button Select displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> searchCustomerSelectElement.isDisplayed());
+
+        searchCustomerSelectElement.click();
+
+        await("Customer Information displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getCustomerInformationFormElement().isDisplayed());
+
+        await("Customer Information Save button displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getCustomerInformationSaveElement().isDisplayed());
+
+        crm_ExistingCustomerPage.getCustomerInformationSaveElement().click();
+
+        Utilities.captureScreenShot(driver);
+        applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+        System.out.println("APPID => " + applicationId);
+
+        await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
+
+//            neoCustNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCustIDInputElement().getAttribute("value");
+//            System.out.println("NEO CUST ID => " + neoCustNo);
+//            idNo = crm_ExistingCustomerPage.getPrimaryApplicantIdNumberInputElement().getAttribute("value");
+//            String idNoo = idNo.substring(idNo.indexOf(":") + 1).trim();
+//            System.out.println("ID Number => " + idNoo);
+//            cifNo = crm_ExistingCustomerPage.getPrimaryApplicantNeoCifNumberInputElement().getAttribute("value");
+//            System.out.println("CIF Number => " + cifNo);
+//            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+//            System.out.println("APPID => " + applicationId);
+
+
+//            //switch test flow
+//            applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+//            System.out.println("APPID => " + applicationId);
+//            SearchMenu goToApp = new SearchMenu(driver);
+//            goToApp.MoveToPage(Constant.MENU_NAME_LINK_APPLICATIONS);
+//
+//            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//            ((RemoteWebDriver) driver).findElementById("lead").click();
+//            WebElement inputApp = driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[1]/table/thead[1]/tr/th/input"));
+//            inputApp.sendKeys("APPL01379375");
+//            inputApp.sendKeys(Keys.ENTER);
+//            Thread.sleep(3000);
+//            driver.findElement(By.xpath("//*[@id='LoanApplication_Assigned_wrapper']/div[1]/div/div[2]/div[2]/div/table/tbody/tr/td/a")).click();
+//
+//            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(driver::getTitle, is("Application Grid"));
+//
+//            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
+//
+//            //switch test flow end
+
+    }
+    private void handleForExistingEmployeePersonalTab(String stage, CRM_ApplicationInfoPage appInfoPage,CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver) throws Exception{
+
+        CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
+
+        await("Load Personal Info tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> appInfoPage.getPersonalInfoTabElement().getAttribute("class").contains("active"));
+
+        Utilities.captureScreenShot(driver);
+
+        await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
+
+        personalTab.setValue(applicationInfoDTO);
+
+        System.out.println(stage + ": DONE");
+        Utilities.captureScreenShot(driver);
+
+    }
+
+    private void handleForEmploymentDetailTab(String stage, CRM_ApplicationInfoPage appInfoPage, CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver, Actions actions) throws Exception{
+        Utilities.gotoTopPage(driver);
+        WebElement web = driver.findElement(By.id("customerMainChildTabs_employment_tab"));
+        actions.moveToElement(web).click().build().perform();
+
+        await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
+        CRM_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
+        await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
+
+        employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetail());
+        //employmentDetailsTab.getDoneBtnElement().click();
+        WebElement we = employmentDetailsTab.getDoneBtnElement();
+        JavascriptExecutor jsExec = (JavascriptExecutor)driver;
+        jsExec.executeScript("arguments[0].click();",we);
+        //actions.moveToElement(we).click().perform();
+        System.out.println("click employmentDetailsTab.getDoneBtnElement");
+
+
+        await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
+        employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetail());
+        employmentDetailsTab.getSaveAndNextBtnElement().click();
+
+        System.out.println(stage + ": DONE");
+        Utilities.captureScreenShot(driver);
+    }
+    private void handleForFinancialDetailTab(String stage, CRM_ApplicationInfoPage appInfoPage, CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver,  Actions actions ) throws  Exception{
+        if (applicationInfoDTO.getFinancialDetail() != null) {
+            Thread.sleep(5000);
+            CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
+            financialDetailsTab.openFinancialDetailsTabSection();
+            financialDetailsTab.openIncomeDetailSection();
+            await("Load financial details - income details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> financialDetailsTab.getIncomeDetailDivElement().isDisplayed());
+
+            financialDetailsTab.setIncomeDetailsData(applicationInfoDTO.getFinancialDetail());
+            //financialDetailsTab.saveAndNext();
+            //NghiaNVT go to top page
+            driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+            WebElement saveAndNext = financialDetailsTab.getBtnSaveAndNextElement();
+            actions.moveToElement(saveAndNext).click().perform();
+        }
+
+        System.out.println(stage + ": DONE");
+        Utilities.captureScreenShot(driver);
+
+    }
+    private void handleForExistingCustomerBankCreditTab(String stage, CRM_ApplicationInfoPage appInfoPage, WebDriver driver){
+        await("Load Bank details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> appInfoPage.getBankDetailsTabElement().getAttribute("class").contains("active"));
+
+        CRM_ApplicationInfoBankDetailsTab bankDetailsTab = appInfoPage.getApplicationInfoBankDetailsTab();
+
+        await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> bankDetailsTab.getApplicationId().isEnabled());
+
+        await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> bankDetailsTab.getBankDetailsGridElement().isEnabled());
+
+        if (bankDetailsTab.getBankDetailsTableElement().size() > 2) {
+
+            await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankDetailsTab.getBankDetailsTableElement().size() > 2);
+
+            await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> bankDetailsTab.getDeleteIdDetailElement().size() > 0);
+
+            for (int i = 0; i < bankDetailsTab.getDeleteIdDetailElement().size(); i++) {
+                WebElement var = bankDetailsTab.getDeleteIdDetailElement().get(i);
+                var.click();
+            }
+        }
+        // CHECK BANK/CREDIT CARD
+        bankDetailsTab.saveAndNext();
+
+        System.out.println(stage + ": DONE");
+        Utilities.captureScreenShot(driver);
+
+    }
+    private void handleForExistingCustomerSourcingDetailTab(String stage, CRM_LoanDetailsDTO loanDetailsDTO, WebDriver driver) throws Exception{
+
+        CRM_LoanDetailsSourcingDetailsTab loanDetailsSourcingDetailsTab = new CRM_LoanDetailsSourcingDetailsTab(driver);
+        with().pollInterval(5, TimeUnit.SECONDS).
+                await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
+        await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
+
+        loanDetailsSourcingDetailsTab.setData(loanDetailsDTO.getSourcingDetails());
+
+        Utilities.captureScreenShot(driver);
+        loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
+
+        Thread.sleep(5000);
+
+        boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
+
+        if (confirmDeleteVap) {
+
+            await("Confirm Delete Vap Next Visibale!!!").atMost(15, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().isDisplayed());
+
+            Utilities.captureScreenShot(driver);
+
+            loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
+        }
+
+        System.out.println(stage + ": DONE");
+        Utilities.captureScreenShot(driver);
+
+    }
+
+    private void handleForExistingCustomerVAPdetailTab(String stage, CRM_LoanDetailsDTO loanDetailsDTO, WebDriver driver){
+        if (loanDetailsDTO.getVapDetails() != null && loanDetailsDTO.getVapDetails().getVapProduct() != null && !loanDetailsDTO.getVapDetails().getVapProduct().equals("")) {
+
+            Utilities.captureScreenShot(driver);
+            CRM_LoanDetailsVapDetailsTab loanDetailsVapDetailsTab = new CRM_LoanDetailsVapDetailsTab(driver);
+
+            await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> loanDetailsVapDetailsTab.getVapDetailsDivContainerElement().isDisplayed());
+            loanDetailsVapDetailsTab.setData(loanDetailsDTO.getVapDetails());
+            Utilities.captureScreenShot(driver);
+            loanDetailsVapDetailsTab.getBtnSaveAndNextElement().click();
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+        }
+
+    }
+
     public void runAutomation_Existing_Customer_Full(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO) throws Exception {
+        {
+            ResponseAutomationModel responseModel = new ResponseAutomationModel();
+            Instant start = Instant.now();
+            String stage = "";
+            String applicationId = "UNKNOWN";
+            String neoCustNo = "";
+            String cifNo = "";
+            String idNo = "";
+            CRM_ExistingCustomerDTO existingCustomerDTO = CRM_ExistingCustomerDTO.builder().build();
+            SessionId session = ((RemoteWebDriver) driver).getSessionId();
+            Actions actions = new Actions(driver);
+            try {
+                stage = "INIT DATA";
+                //*************************** GET DATA *********************//
+                existingCustomerDTO = (CRM_ExistingCustomerDTO) mapValue.get("ExistingCustomerList");
+                CRM_ApplicationInformationsListDTO applicationInfoDTO = (CRM_ApplicationInformationsListDTO) mapValue.get("ApplicationInfoDTO");
+                CRM_LoanDetailsDTO  loanDetailsDTO = (CRM_LoanDetailsDTO) mapValue.get("VapDetailsDTO");
+                List<CRM_DocumentsDTO> documentDTOS = (List<CRM_DocumentsDTO>) mapValue.get("DocumentDTO");
+                List<CRM_ReferencesListDTO> referenceDTO = (List<CRM_ReferencesListDTO>) mapValue.get("ReferenceDTO");
+                CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
+                log.info("{}", existingCustomerDTO);
+                mongoTemplate.save(existingCustomerDTO);
+                //*************************** END GET DATA *********************//
+                System.out.println(stage + ": DONE");
+
+                stage = "LOGIN FINONE";
+                //***************************//LOGIN PAGE//***************************//
+                LoginPageNeo loginPage = new LoginPageNeo(driver);
+                loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+                loginPage.clickLogin();
+
+                //***************************//END LOGIN//***************************//
+
+                System.out.println(stage + ": DONE");
+                Utilities.captureScreenShot(driver);
+
+                // ========== EXISTING CUSTOMER =================
+                stage = "EXISTING CUSTOMER";
+                CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
+                checkExistingCustomer(crm_ExistingCustomerPage,existingCustomerDTO,applicationId, driver);
+
+                // ========== VIEW/EDIT DETAILED INFORMATION =================
+                stage = "VIEW/EDIT DETAILED INFORMATION";
+                crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
+                System.out.println(stage + ": DONE");
+                Utilities.captureScreenShot(driver);
+
+                // ========== APPLICANT INFORMATION =================
+                //========== PERSONAL INFORMATION =================
+                stage = "PERSONAL INFORMATION";
+                CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
+                //handleForExistingEmployeePersonalTab(stage, appInfoPage, applicationInfoDTO, driver);
+
+                stage = "EMPLOYMENT DETAILS";
+                // ========== EMPLOYMENT DETAILS =================
+                //handleForEmploymentDetailTab(stage, appInfoPage,applicationInfoDTO,driver,actions);
+
+                stage = "FINANCIAL";
+                // ==========FINANCIAL DETAILS =================
+                //handleForFinancialDetailTab(stage, appInfoPage, applicationInfoDTO, driver, actions);
+
+
+                stage = "BANK / CREDIT CARD DETAILS";
+                // ==========BANK DETAILS =================
+                //handleForExistingCustomerBankCreditTab(stage, appInfoPage,driver);
+
+                // ==========LOAN DETAILS=================
+                stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
+                Thread.sleep(10000);//waiting for notification
+                //go to the top page
+                driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+                CRM_LoanDetailsPage loanDetailsPage = new CRM_LoanDetailsPage(driver);
+                Utilities.captureScreenShot(driver);
+                loanDetailsPage.getTabLoanDetailsElement().click();
+
+                handleForExistingCustomerSourcingDetailTab(stage, loanDetailsDTO,driver);
+
+                // ==========VAP DETAILS=======================
+                stage = "LOAN DETAIL PAGE - VAP DETAIL TAB";
+
+                handleForExistingCustomerVAPdetailTab(stage, loanDetailsDTO, driver);
+
+                stage = "DOCUMENTS";
+                // ==========DOCUMENTS=================
+                if (documentDTOS.size() > 0) {
+                    String docComment = "no comment";
+                    CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
+                    //go to the top page
+                    driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+                    await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());
+                    documentsPage.getTabDocumentsElement().click();
+                    await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
+                    //documentsPage.setData(documentDTOS, downdloadFileURL);
+                    Thread.sleep(5000);//wating to load the document page
+                    documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
+                    Utilities.captureScreenShot(driver);
+                    //documentsPage.getBtnSubmitElement().click();
+                    WebElement submitButton = documentsPage.getBtnSubmitElement();
+                    JavascriptExecutor exec = (JavascriptExecutor)driver;
+                    exec.executeScript("arguments[0].click();",submitButton);
+
+                }
+
+                System.out.println(stage + ": DONE");
+
+                stage = "REFERENCES";
+                // ==========REFERENCES=================
+                stage = "REFERENCES PAGE";
+                CRM_ReferencesPage referencesPage = new CRM_ReferencesPage(driver);
+                await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
+                referencesPage.getTabReferencesElement().click();
+                Thread.sleep(2000);
+                referencesPage.setData(referenceDTO);
+                referencesPage.getSaveBtnElement().click();
+
+                System.out.println(stage + ": DONE");
+                Utilities.captureScreenShot(driver);
+
+
+                // ==========MISC FRM APP DTL=================
+                stage = "MISC FRM APPDTL PAGE";
+                CRM_MiscFrmAppDtlPage miscFrmAppDtlPage = new CRM_MiscFrmAppDtlPage(driver);
+                miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
+                miscFrmAppDtlPage.setData(miscFrmAppDtlDTO);
+                Utilities.captureScreenShot(driver);
+
+                await("getBtnSaveElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
+
+                miscFrmAppDtlPage._getBtnSaveElement().click();
+
+                Utilities.captureScreenShot(driver);
+
+                miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
+
+                with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
+                        await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
+
+                Utilities.captureScreenShot(driver);
+
+                Thread.sleep(15000);
+
+                miscFrmAppDtlPage.keyActionMoveNextStage();
+
+//            actions.moveToElement(keyActionMoveNextStage.getBtnMoveToNextStageElement()).click().perform();
+//            actions.click(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).perform();
+
+                Utilities.captureScreenShot(driver);
+
+                System.out.println(stage + ": DONE");
+
+                await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Grid"));
+
+                Utilities.captureScreenShot(driver);
+                stage = "COMPLETE";
+                System.out.println("AUTO QUICKLEAD OK: user run auto: " + accountDTO.getUserName());
+
+                System.out.println("AUTO QUICKLEAD - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
+                Utilities.captureScreenShot(driver);
+
+                responseModel.setProject(existingCustomerDTO.getProject());
+                responseModel.setReference_id(existingCustomerDTO.getReference_id());
+                responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
+                responseModel.setApp_id(applicationId);
+                responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
+
+                Utilities.captureScreenShot(driver);
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+                Update update = new Update();
+                update.set("automationAcc", accountDTO.getUserName());
+                update.set("applicationId", applicationId);
+                update.set("status", "QUICKLEAD PASS");
+                update.set("description", "Success");
+                mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
+            } catch (Exception e) {
+
+                responseModel.setProject(existingCustomerDTO.getProject());
+                responseModel.setReference_id(existingCustomerDTO.getReference_id());
+                responseModel.setTransaction_id(existingCustomerDTO.getQuickLeadId());
+                responseModel.setApp_id(applicationId);
+                responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - " + "Error: " + e.getMessage());
+
+                System.out.println("Auto Error: " + stage + "\n => MESSAGE " + e.getMessage() + " => TRACE: " + e.toString());
+                e.printStackTrace();
+
+                if (e.getMessage().contains("Work flow failed!!!")) {
+                    stage = "END OF LEAD DETAIL";
+                    existingCustomerDTO.setStage(stage);
+                    await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+                    int errorMessage = driver.findElements(By.xpath("//div[@id = 'rule-error-block-application-completion'][contains(@class, 'block-no')]")).size();
+                    if(errorMessage == 0) {
+                        if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                            String error = "Error: ";
+                            for (WebElement we : driver.findElements(By.id("error-message"))) {
+                                error += we.getText();
+                            }
+                            existingCustomerDTO.setError(error);
+                            responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
+                            System.out.println(stage + "=>" + error);
+                        }
+                    }else{
+                        existingCustomerDTO.setError("Cannot click Move next stage");
+                        responseModel.setAutomation_result("QUICKLEAD FAILED" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName() + " - Error: " + existingCustomerDTO.getError());
+                        System.out.println(stage + "=>" + existingCustomerDTO.getError());
+                    }
+                }
+
+                Utilities.captureScreenShot(driver);
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
+                Update update = new Update();
+                update.set("automationAcc", accountDTO.getUserName());
+                update.set("applicationId", applicationId);
+                update.set("status", "QUICKLEAD FAILED");
+                update.set("description", "Error: " + existingCustomerDTO.getError());
+                mongoTemplate.findAndModify(queryUpdate, update, CRM_ExistingCustomerDTO.class);
+
+            } finally {
+                Instant finish = Instant.now();
+                System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+                System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
+                logoutV2(driver, accountDTO);
+                autoUpdateStatusRabbit(responseModel, "updateAutomation");
+            }
+        }
+    }
+
+
+
+
+
+
+    public void runAutomation_Existing_Customer_Full2(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -5487,6 +6009,12 @@ public class AutomationHandlerService {
             await("Search Existing Individual Customers With displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> crm_ExistingCustomerPage.getExistingCustomerSearchFormElement().isDisplayed());
 
+            // Check box Both before search customers
+            await("Both check box displayed timeout").atMost(Constant.TIME_OUT_S,TimeUnit.SECONDS)
+                    .until(()->crm_ExistingCustomerPage.getBothCheckBoxElement().isDisplayed());
+            crm_ExistingCustomerPage.getBothCheckBoxElement().click();
+            System.out.println("Click both box");
+
             if (!Objects.isNull(existingCustomerDTO.getNeoCustID())) {
                 await("Neo Cust ID Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> crm_ExistingCustomerPage.getNeoCustIDInputElement().isDisplayed());
@@ -5519,6 +6047,7 @@ public class AutomationHandlerService {
                         break;
                     }
                 }
+
 
                 await("ID Number Text Box displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> crm_ExistingCustomerPage.getIdNumberInputElement().isDisplayed());
@@ -5619,15 +6148,23 @@ public class AutomationHandlerService {
 
             stage = "EMPLOYMENT DETAILS";
             // ========== EMPLOYMENT DETAILS =================
+            Utilities.gotoTopPage(driver);
+            WebElement web = driver.findElement(By.id("customerMainChildTabs_employment_tab"));
+            actions.moveToElement(web).click().build().perform();
+
             await("Load employment details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getEmploymentDetailsTabElement().getAttribute("class").contains("active"));
-
             CRM_ApplicationInfoEmploymentDetailsTab employmentDetailsTab = appInfoPage.getApplicationInfoEmploymentDetailsTab();
             await("Span Application Id not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getApplicationId().isEnabled());
 
             employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetail());
-            employmentDetailsTab.getDoneBtnElement().click();
+            //employmentDetailsTab.getDoneBtnElement().click();
+            WebElement we = employmentDetailsTab.getDoneBtnElement();
+            JavascriptExecutor jsExec = (JavascriptExecutor)driver;
+            jsExec.executeScript("arguments[0].click();",we);
+            //actions.moveToElement(we).click().perform();
+          
 
 
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -5760,7 +6297,11 @@ public class AutomationHandlerService {
                 //documentsPage.setData(documentDTOS, downdloadFileURL);
                 documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
                 Utilities.captureScreenShot(driver);
-                documentsPage.getBtnSubmitElement().click();
+                //documentsPage.getBtnSubmitElement().click();
+                WebElement submitButton = documentsPage.getBtnSubmitElement();
+                JavascriptExecutor exec = (JavascriptExecutor)driver;
+                exec.executeScript("arguments[0].click();",submitButton);
+
             }
 
             System.out.println(stage + ": DONE");
@@ -6282,7 +6823,7 @@ public class AutomationHandlerService {
         }
     }
 
-    public void runAutomation_SendBack(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+    public void runAutomation_Sale_Queue_With_FullInfo(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -6540,7 +7081,25 @@ public class AutomationHandlerService {
             stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
-                CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
+                {
+                    String docComment = "no comment";
+                    CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
+                    //go to the top page
+                    driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+                    await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());
+                    documentsPage.getTabDocumentsElement().click();
+                    await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                            .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
+
+                    //docComment = application.getQuickLead().getDocumentsComment();
+
+                    documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
+
+                    Utilities.captureScreenShot(driver);
+
+                }
+                /*CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
                 await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());
                 documentsPage.getTabDocumentsElement().click();
@@ -6552,7 +7111,7 @@ public class AutomationHandlerService {
 
                 documentsPage.setData(documentDTOS, downdloadFileURL);
                 Utilities.captureScreenShot(driver);
-                documentsPage.getBtnSubmitElement().click();
+                documentsPage.getBtnSubmitElement().click();*/
             }
 
             System.out.println(stage + ": DONE");

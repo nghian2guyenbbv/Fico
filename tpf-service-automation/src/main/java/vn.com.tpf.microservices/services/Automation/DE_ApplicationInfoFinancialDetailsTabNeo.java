@@ -183,7 +183,7 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
     }
 
     public void updateIncomeDetailsData(List<IncomeDetailDTO> datas) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
-
+        Actions actions = new Actions(_driver);
         await("Load deleteIdDetailElement Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> deleteIncDetailsElement.size() > 0);
 
@@ -194,7 +194,6 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
         }
 
         btnAddMoreIncomeDtlElement.click();
-
         int indexRow=deleteIncDetailsElement.size();
         int index = 0;
         List<IncomeDetailDTO> newDatas = switchMainIncometoLast(datas);
@@ -203,12 +202,12 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
             System.out.println(data.getIncomeHead());
 
             final int _index = index;
-            int size=trElements.size();
             await("IncomeDetails Tr container not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> trElements.size() > _index);
-
+            Thread.sleep(5000);//wait to insert income row
             WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chosen"));
-            incomeHead.click();
+            //incomeHead.click();
+            actions.moveToElement(incomeHead).click().perform();
             Thread.sleep(5000);//wait to show income list
             System.out.println("click incomeHead: " + indexRow);
             List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + indexRow + "_chosen_o_')]"));
@@ -216,7 +215,8 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
                     .until(() -> incomeHeads.size() > 0);
             for (WebElement element : incomeHeads) {
                 if (element.getText().equals(data.getIncomeHead())) {
-                    element.click();
+                    actions.moveToElement(element).click().perform();
+                    //element.click();
                     break;
                 }
             }
@@ -241,7 +241,6 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
                 js.executeScript(onlickMoreDetail);
                 await("childModalIncomeDetailInlineGridElement not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> childModalIncomeDetailInlineGridElement.isDisplayed());
-                Actions actions = new Actions(_driver);
 
 //                await("incomeDetailForm_incomeSourceElement not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                        .until(() -> incomeDetailForm_incomeSourceElement.isEnabled());
@@ -251,7 +250,7 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
 //                        .until(() -> incomeDetailForm_incomeSourceOptionElement.size() > 1);
 //                incomeDetailForm_incomeSourceInputElement.sendKeys(data.getDayOfSalaryPayment());
 //                incomeDetailForm_incomeSourceInputElement.sendKeys(Keys.ENTER);
-
+                Thread.sleep(2000);//wait to load income mode
                 incomeDetailForm_paymentModeElement.click();
                 await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> incomeDetailForm_paymentModeOptionElement.size() > 1);
