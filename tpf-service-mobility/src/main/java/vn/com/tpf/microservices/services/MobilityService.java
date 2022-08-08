@@ -84,7 +84,6 @@ public class MobilityService {
 	private final int ALL = 3;
 	private final String AUTOMATION_RETURNQUERY_RQ51_PASS = "RESPONSEQUERY_PASS_RQ51";
 
-	private final String urlRq51 = "https://fico-portaltest.tpb.vn/newmsales/api/app/listen-response-raise-query";
 	@Value("${document-code-acca:tpf_application_cum_credit_contract_(acca)}")
 	private String DOCUMENT_CODE_ACCA;
 
@@ -123,6 +122,9 @@ public class MobilityService {
 
 	@Value("${spring.url.urlResponseQuery}")
 	private String urlResponseQuery;
+
+	@Value("${spring.url.msale-update-response-query}")
+	private String msaleUpdateStatusRQ;
 
 	public JsonNode getPreCheck1(JsonNode request) throws Exception {
 
@@ -652,23 +654,16 @@ public class MobilityService {
 		String automationResult = body.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
 		ResponseEntity<?> response = null;
 		try {
-			if (automationResult.contains(AUTOMATION_RETURNQUERY_RQ51_PASS)) {
-				try {
-					HttpHeaders headers = new HttpHeaders();
-					headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-					log.info("callMSaleUpdate RQ51 payload {}", request);
-					HttpEntity entity = new HttpEntity(request, headers);
-					response = restTemplate.exchange(urlRq51, HttpMethod.POST, entity, Object.class);
-				} catch (Exception e) {
-					log.info("callMSaleUpdate RQ51 e.getMessage  error {}", e.getMessage());
-				}
-			}
-
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+			log.info("callMSaleUpdate RQ51 payload {}", request);
+			HttpEntity entity = new HttpEntity(request, headers);
+			response = restTemplate.exchange(msaleUpdateStatusRQ, HttpMethod.POST, entity, Object.class);
 		}catch (Exception e){
 			log.info("callMSaleUpdate RQ51 catch Exception {}", e.getMessage());
 		}finally {
 			log.info("callMSaleUpdate RQ51 finally response {}", response);
-			return mapper.createObjectNode().put("resultCode", 0).put("response",response.toString());
+			return mapper.createObjectNode().put("resultCode", 0).put("response","callMSaleUpdate RQ51 done");
 		}
 	}
 
@@ -682,22 +677,6 @@ public class MobilityService {
 			return utils.getJsonNodeResponse(499, body,
 					mapper.createObjectNode().put("message", "body.automation_result not null"));
 		String automationResult = body.path("automation_result").asText().toUpperCase().replace(" ", "_").trim();
-		if(automationResult.contains(AUTOMATION_RETURNQUERY_RQ51_PASS)){
-			ResponseEntity<?> response = null;
-			try {
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-				log.info("callMSaleUpdate RQ51 payload {}", request);
-				HttpEntity entity = new HttpEntity(request,headers);
-				response = restTemplate.exchange(urlRq51, HttpMethod.POST, entity, Object.class);
-			}catch (Exception e){
-				log.info("callMSaleUpdate RQ51 e.getMessage  error {}", e.getMessage());
-			}finally {
-				log.info("callMSaleUpdate RQ51 finally response {}", response);
-				return utils.getJsonNodeResponse(0, request, null);
-			}
-
-		}
 		boolean updateStatus = false;
 
 		Query query = Query.query(Criteria.where("_id").is(body.path("transaction_id").asText()));
