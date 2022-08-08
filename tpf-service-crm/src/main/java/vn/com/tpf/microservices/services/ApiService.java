@@ -316,5 +316,19 @@ public class ApiService {
 //			return response;
 //		}
 //	}
+	public void callMSaleUpdate(String url,HttpMethod method,HttpEntity payload){
+		ResponseEntity<?> response = null;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+			log.info("callMSaleUpdate payload{}", payload);
+			HttpEntity entity = new HttpEntity(payload,headers);
+			response = restTemplate.exchange(url, method, entity, Object.class);
+		}catch (Exception e){
+			log.info("callMSaleUpdate e.getMessage  error {}", e.getMessage());
+		}finally {
+			log.info("callMSaleUpdate finally response {}", response);
+		}
+	}
 
 }

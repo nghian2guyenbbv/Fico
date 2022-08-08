@@ -19,6 +19,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -82,6 +84,9 @@ public class CrmService {
 	private final int ALL = 3;
 	@Value("${document-code-acca:tpf_application_cum_credit_contract_(acca)}")
 	private String DOCUMENT_CODE_ACCA;
+
+	@Value("${spring.url.msale-update-status-sendback}")
+	private String API_UAT_UPDATE_STATUS_MSALE;
 
 	@Autowired
 	private Utils utils;
@@ -3216,6 +3221,20 @@ public class CrmService {
 
 	public JsonNode returnSimpleProduct(JsonNode request) throws Exception {
 		JsonNode body = request.path("body");
+		String application = body.path("applicationId").asText("null");
+		String status = body.path("status").asText();
+		String reference_id = body.path("reference_id").asText();
+		log.info("returnSimpleProduct request: {}" ,request);
+		// call m-sale update sale queue 13.6.2022 m-sale request
+		ObjectNode bodyRequest = mapper.createObjectNode();
+		bodyRequest.put("transaction_id",reference_id);
+		bodyRequest.put("automation_result", status);
+		bodyRequest.put("reference_id", reference_id);
+		bodyRequest.put("project", "crm");
+		bodyRequest.put("app_id", application);
+		HttpEntity<?> entity = new HttpEntity<>(bodyRequest);
+		apiService.callMSaleUpdate(API_UAT_UPDATE_STATUS_MSALE, HttpMethod.POST,entity);
+		// call m-sale update sale queue 13.6.2022 m-sale request end
 
 		return utils.getJsonNodeResponse(0, request, null);
 	}
