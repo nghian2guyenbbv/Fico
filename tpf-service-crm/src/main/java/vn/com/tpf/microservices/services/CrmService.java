@@ -716,7 +716,11 @@ public class CrmService {
 		if (customerCategoryCode.path("status").asInt(0) != 200) {
 			return utils.getJsonNodeResponse(500, body, customerCategoryCode.path("data"));
 		}
-
+		//HuyNN8 change source UAT 10/08/2022
+		String customerCategoryCodeStr = customerCategoryCode.path("data").path("description").asText();
+		if (customerCategoryCodeStr.equals("Other") || customerCategoryCodeStr.equals("Others")) {
+			customerCategoryCodeStr = "Highschool";
+		}
 		Update update = new Update().set("updatedAt", new Date()).set("stage", STAGE_UPLOADED)
 				.set("status", STATUS_PRE_APPROVAL).set("scheme", data.path("schemeCode").asText())
 				.set("product", data.path("productCode").asText()).set("chanel", data.path("chanel").asText()).set("branch", data.path("branch").asText())
@@ -761,7 +765,7 @@ public class CrmService {
 				.set("maximumInterestedRate", data.path("fullInfoApp").path("maximumInterestedRate").asText())
 				.set("addresses", addressesUpload)
 				.set("references", referencesUpload)
-				.set("customerCategoryCode", customerCategoryCode.path("data").path("description").asText())
+				.set("customerCategoryCode", customerCategoryCodeStr)
 				;
 		crm = crmTemplate.findAndModify(query, update, new FindAndModifyOptions().returnNew(true),
 				Crm.class);
