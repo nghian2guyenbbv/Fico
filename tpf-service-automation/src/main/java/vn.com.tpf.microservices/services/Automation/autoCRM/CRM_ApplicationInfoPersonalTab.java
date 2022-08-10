@@ -235,7 +235,6 @@ public class CRM_ApplicationInfoPersonalTab {
     @CacheLookup
     private WebElement primaryEmailElement;
 
-//    @FindBy(how = How.ID, using = "phoneNumber_customer_primary_phonen2")
    // @FindBy(how = How.ID, using = "customer_mobile_phonen3_phoneNumber")
     @FindBy(how = How.ID, using = "customer_mobile_phonen1_phoneNumber")
     @CacheLookup
@@ -465,8 +464,6 @@ public class CRM_ApplicationInfoPersonalTab {
                 System.out.println("educationOptionElement: " + e.getAttribute("username"));
                 e.click();
             }
-
-
         }
         //Update Identification
         loadIdentificationSection();
@@ -521,7 +518,6 @@ public class CRM_ApplicationInfoPersonalTab {
             var applicationInfoList = applicationInfoDTO.getIdentification().stream().filter(identification -> !identification.getIdentificationType().equals("Family Book Number")).collect(Collectors.toList());
             updateIdentificationValue(applicationInfoList,documentType.size()-1);
 
-
         }
 
         //end update identification
@@ -555,8 +551,8 @@ public class CRM_ApplicationInfoPersonalTab {
         if(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers()!=null) {
             await("cusMobileElements loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> cusMobileElements.isDisplayed());
-            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen3select_chosen']")).click();
-            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen3select_chosen']/div/div/input")).sendKeys("VN" + Keys.ENTER);
+            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen1select_chosen']")).click();
+            _driver.findElement(By.xpath("//*[@id='customer_mobile_phonen1select_chosen']/div/div/input")).sendKeys("VN" + Keys.ENTER);
 
             cusMobileElements.clear();
             cusMobileElements.sendKeys(applicationInfoDTO.getCommunicationDetail().getPhoneNumbers());
@@ -567,6 +563,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 .until(() -> btnCheckDuplicateElement.isEnabled());
 
         btnCheckDuplicateElement.click();
+       
 
         Thread.sleep(2000);
 
@@ -1131,9 +1128,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
                 JavascriptExecutor jsExecutor = (JavascriptExecutor)_driver;
                 jsExecutor.executeScript("arguments[0].click();", we);
-                //actions.moveToElement(we).click().perform();
-                //we.click();
-
+                Utilities.scrollToView(_driver, we);
                 //Đợi load Address Type
 //                Thread.sleep(15000);
                 with().pollInterval(Duration.FIVE_SECONDS).
@@ -1204,12 +1199,22 @@ public class CRM_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
                 System.out.println("Address Ward");
-                WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
-                WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
-                fromDate.clear();
-                fromDate.sendKeys(data.getResidentDurationMonth());
-                toDate.clear();
-                toDate.sendKeys(data.getResidentDurationYear());
+                if(data.getResidentDurationMonth()!= null && !data.getResidentDurationMonth().isEmpty()&& data.getResidentDurationYear()!=null && !data.getResidentDurationYear().isEmpty()){
+                    WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
+                    WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
+                    fromDate.clear();
+                    fromDate.sendKeys(data.getResidentDurationMonth());
+                    toDate.clear();
+                    toDate.sendKeys(data.getResidentDurationYear());
+                }else{
+                    WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
+                    WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
+                    fromDate.clear();
+                    fromDate.sendKeys(Utilities.getFromDuration().get(0));
+                    toDate.clear();
+                    toDate.sendKeys(Utilities.getFromDuration().get(1));
+                }
+
                 if(!data.getMobilePhone().isEmpty()){
                     boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
                     if (checkMobilephoneNumber){

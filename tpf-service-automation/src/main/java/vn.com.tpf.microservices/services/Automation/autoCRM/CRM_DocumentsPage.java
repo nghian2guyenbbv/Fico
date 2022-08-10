@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -125,7 +126,7 @@ public class CRM_DocumentsPage extends DocumentPage {
         PageFactory.initElements(driver, this);
     }
 
-    public void setData2(List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL, String documentComment) throws IOException, InterruptedException {
+    public void setData2(String func, List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL, String documentComment)throws IOException, InterruptedException {
         boolean saveDocumentOrNotFlag = true;
         Actions actions = new Actions(_driver);
         with().pollInterval(Duration.FIVE_SECONDS).
@@ -133,15 +134,29 @@ public class CRM_DocumentsPage extends DocumentPage {
                 .until(() -> loadTabDocumentElement.isDisplayed());
 
         List<String> requiredFiled = new ArrayList<>();
-        if (documentDTOS.size() > 0) {
+       /* if (documentDTOS.size() > 0) {
             documentDTOS.stream().forEach(doc -> {
-                requiredFiled.add(doc.getOriginalname());
+                requiredFiled.add(doc.getType());
             });
+        }*/
+
+        if (documentDTOS.size() > 0 ) {
+            if("runAutomation_Existing_Customer_Full".equals(func)){
+                documentDTOS.stream().forEach(doc -> {
+                    requiredFiled.add(doc.getType()); });
+            }else{
+                documentDTOS.stream().forEach(doc -> {
+                    requiredFiled.add(doc.getOriginalname());
+                });
+            }
+
         }
+
         String fromFile = downLoadFileURL;
         Thread.sleep(5000);
         List<WebElement> listDocs = _driver.findElements(By.xpath("//*[contains(@data-type, 'docnode')]"));
         System.out.println("requiredFiled: " + requiredFiled);
+        System.out.println("listDocs: "+listDocs);
         JavascriptExecutor executor = (JavascriptExecutor)_driver;
         for (WebElement element : listDocs) {
             String docName = element.getText();
@@ -149,11 +164,19 @@ public class CRM_DocumentsPage extends DocumentPage {
             if (requiredFiled.contains(docName)) {
                 await("Show document Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> element.isDisplayed());
+                //actions.moveToElement(element).click().build().perform();
                 executor.executeScript("arguments[0].click();",element);
                 System.out.println("element.click(): "+docName);
-                Thread.sleep(2000);//Waiting load new Tabs
+                Thread.sleep(2000);
                 String finalDocName = docName;
-                CRM_DocumentsDTO doc = documentDTOS.stream().filter(q -> q.getOriginalname().equals(finalDocName)).findAny().orElse(null);
+                CRM_DocumentsDTO doc;
+                if ("runAutomation_Existing_Customer_Full".equals(func)) {
+                    doc = documentDTOS.stream().filter(q -> q.getType().equals(finalDocName)).findAny().orElse(null);
+
+                } else {
+                    doc = documentDTOS.stream().filter(q -> q.getOriginalname().equals(finalDocName)).findAny().orElse(null);
+
+                }
                 if (doc != null) {
                     String ext = FilenameUtils.getExtension(doc.getFilename());
                     if ("TPF_Transcript".equals(docName)) {
@@ -162,10 +185,28 @@ public class CRM_DocumentsPage extends DocumentPage {
                     toFile += UUID.randomUUID().toString() + "_" + docName + "." + ext;
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
-                    if (file.exists() && !"Received".equals(checkCurrrentStatus())) {
+                    if("Received".equals(checkCurrrentStatus(_driver))){
+                        try {
+                            WebElement uploadedDocument = _driver.findElement(By.xpath("//*[contain(@class,'image-thumbs ecm-clearfix')]"));
+                            // Click Edit if document was existed
+                            WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
+                            await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() -> editViewDoc.isDisplayed());
+                            editViewDoc.click();
+                            actions.moveToElement(editViewDoc).click().perform();
+                            saveDocumentOrNotFlag = false;
+                            System.out.println("Click Edit document");
+                        }catch(NoSuchElementException ex){
+                            // No document was uploaded
+                            changeDocumentStatus(_driver,"Select");
+                            saveDocumentOrNotFlag = true;
+                        }
+                    }
+                    System.out.println("file.exists(): "+file.exists());
+                    if (file.exists()) {
                         String photoUrl = file.getAbsolutePath();
                         System.out.println("PATH:" + photoUrl);
-                        changeDocumentStatus("Received");
+                        changeDocumentStatus(_driver,"Received");
                         try {
                          /*WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
                                                 await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -184,7 +225,10 @@ public class CRM_DocumentsPage extends DocumentPage {
                             //go to the top page
                             _driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
                             WebElement saveDoc = _driver.findElement(By.id("dv_documentSave"));
+
                             executor.executeScript("arguments[0].click();",saveDoc);
+                            /*await("dv_documentSave Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() -> !saveDoc.isDisplayed());*/
                             Thread.sleep(2000);
                             WebElement newImageActive = _driver.findElement(By.xpath("//*[@class='new_img active']"));
                             await("newImageActive Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -192,7 +236,7 @@ public class CRM_DocumentsPage extends DocumentPage {
                             System.out.println("Click save document button");
 
                         } catch (NoSuchElementException ex) {
-                            changeDocumentStatus("Select");
+                            changeDocumentStatus(_driver,"Select");
                             saveDocumentOrNotFlag = false;
                         }
                         Utilities.captureScreenShot(_driver);
@@ -200,7 +244,7 @@ public class CRM_DocumentsPage extends DocumentPage {
                 }
             }
         }
-        if (saveDocumentOrNotFlag) {
+        if (saveDocumentOrNotFlag && !"runAutomation_Existing_Customer_Full".equals(func)) { //quickLead - Existing customer doesn't have Active and Document tab
             _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]")).click();
             Utilities.captureScreenShot(_driver);
             System.out.println("SAVE DOCUMENT" + " => DONE");
@@ -226,10 +270,6 @@ public class CRM_DocumentsPage extends DocumentPage {
             System.out.println("ADD COMMENT" + " => DONE");
         }
         Utilities.captureScreenShot(_driver);
-       /* keyActionMoveNextStage();
-        await("Move next stage failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(_driver::getTitle, is("Application Grid"));
-        Utilities.captureScreenShot(_driver);*/
         executor.executeScript("arguments[0].click();",btnSubmitElement);
     }
 

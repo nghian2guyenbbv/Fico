@@ -185,23 +185,24 @@ public class DE_DocumentsPage {
                         actions.moveToElement(editViewDoc).click().perform();
 
                     }*/
-                    if (file.exists() && !"Received".equals(checkCurrrentStatus())) {
+                    if("Received".equals(checkCurrrentStatus())){
+                        try {
+                            WebElement uploadedDocument = _driver.findElement(By.xpath("//*[contain(@class,'image-thumbs ecm-clearfix')]"));
+                            WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
+                            await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() -> editViewDoc.isDisplayed());
+                            editViewDoc.click();
+                            actions.moveToElement(editViewDoc).click().perform();
+                        }catch(NoSuchElementException ex){
+                            // No document was uploaded
+                            changeDocumentStatus("Select");
+                        }
+                    }
+                    if (file.exists()) {
                     /*if (file.exists()) {*/
                         String photoUrl = file.getAbsolutePath();
                         System.out.println("PATH:" + photoUrl);
                         changeDocumentStatus("Received");
-                        /*_driver.findElement(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']")).click();
-                        List<WebElement> lendingPhotoContainerElement = _driver.findElements(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']//option"));
-                        await("Load lendingPhotoContainerElement Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(() -> lendingPhotoContainerElement.size() != 0);
-                        for (WebElement e : lendingPhotoContainerElement) {
-                            if (e.getText().equals("Received")) {
-                                e.click();
-                                System.out.println("click Received");
-                            }
-                        }
-
-*/
                         try {
                          /*WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
                                                 await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

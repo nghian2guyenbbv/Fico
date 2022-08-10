@@ -14,8 +14,7 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 
 public class DocumentPage {
-    private WebDriver _driver;
-    public String checkCurrrentStatus(){
+    public String checkCurrrentStatus(WebDriver _driver){
         WebElement editViewDoc = _driver.findElement(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']"));
         Select selectStatus = new Select(editViewDoc);
         WebElement e = selectStatus.getFirstSelectedOption();
@@ -23,7 +22,7 @@ public class DocumentPage {
         return e.getText();
     }
 
-    public void changeDocumentStatus(String status) throws InterruptedException {
+    public void changeDocumentStatus(WebDriver _driver, String status) throws InterruptedException {
         Actions actions = new Actions(_driver);
         _driver.findElement(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']")).click();
         List<WebElement> lendingPhotoContainerElement = _driver.findElements(By.xpath("//div[contains(@class,'inputBox clearfix ng-scope')]//select[@title='Status']//option"));

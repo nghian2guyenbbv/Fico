@@ -205,10 +205,21 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
             await("IncomeDetails Tr container not displayed - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> trElements.size() > _index);
             Thread.sleep(5000);//wait to insert income row
-            WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chosen"));
-            //incomeHead.click();
+            WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + indexRow + "_chosen"));
+            frequency.click();
+            List<WebElement> frequencies = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + indexRow + "_chosen_o_')]"));
+            for (WebElement element : frequencies) {
+                if (element.getText().equals(data.getFrequency())) {
+                    element.click();
+                    break;
+                }
+            }
+
+
+            //WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chosen"));
+            WebElement incomeHead = _driver.findElement(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_"+indexRow+"_chosen')]//*[contains(text(),'Select')]"));
             actions.moveToElement(incomeHead).click().perform();
-            Thread.sleep(5000);//wait to show income list
+            //Thread.sleep(5000);//wait to show income list
             System.out.println("click incomeHead: " + indexRow);
             List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + indexRow + "_chosen_o_')]"));
             await("IncomeList is not display - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -221,15 +232,6 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
                 }
             }
 
-            WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + indexRow + "_chosen"));
-            frequency.click();
-            List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + indexRow + "_chosen_o_')]"));
-            for (WebElement element : frequencys) {
-                if (element.getText().equals(data.getFrequency())) {
-                    element.click();
-                    break;
-                }
-            }
             _driver.findElement(By.id("amount_incomeDetailForm_amount_" + indexRow)).clear();
             _driver.findElement(By.id("amount_incomeDetailForm_amount_" + indexRow)).sendKeys(data.getAmount());
 

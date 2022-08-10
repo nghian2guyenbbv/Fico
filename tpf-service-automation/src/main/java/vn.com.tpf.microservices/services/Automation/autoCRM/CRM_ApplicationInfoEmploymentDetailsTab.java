@@ -188,6 +188,9 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
                 }
             }
         }
+        Thread.sleep(5000);
+        WebElement we = _driver.findElement(By.xpath("//div[contains(@id,'occupationType_chosen')]//a//span[contains(text(),'Select One Option')]"));
+        we.click();
 
         boolean occupationEditChange = _driver.findElements(By.xpath("//*[contains(@id,'occupation_Info_Table')]//*[contains(text(),'" + data.getOccupationType() +"')]//ancestor::tr//*[contains(@id,'edit')]")).size() != 0;
 
@@ -201,14 +204,9 @@ public class CRM_ApplicationInfoEmploymentDetailsTab {
                 .until(() -> occupationTypeElement.isDisplayed() && occupationTypeElement.isEnabled());
 
         actions.moveToElement(occupationTypeElement).click().perform();*/
-        Thread.sleep(15000);
-        WebElement we = _driver.findElement(By.xpath("//*[contains(@id,'occupationType_chosen')]//*[contains(text(),'Select One Option')]"));
-        we.click();
-        /*actions.moveToElement(occupationTypeElement).click().perform();
-        JavascriptExecutor executor = (JavascriptExecutor)_driver;
-        executor.executeScript("arguments[0].click();",occupationTypeElement);*/
 
-        System.out.println("occupationTypeElement click");
+
+
         await("occupationTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> occupationTypeOptionElement.size() > 0);
 

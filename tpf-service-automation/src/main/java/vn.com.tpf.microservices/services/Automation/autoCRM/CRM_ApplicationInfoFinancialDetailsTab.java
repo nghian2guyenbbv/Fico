@@ -112,25 +112,6 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
             }
         }
 
-        WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + index + "_chosen"));
-        frequency.click();
-        List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + index + "_chosen_o_')]"));
-        for (WebElement element : frequencys) {
-            if (element.getText().equals(data.getFrequency())) {
-                element.click();
-                break;
-            }
-        }
-
-        Utilities.captureScreenShot(_driver);
-
-        WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
-        Utilities.checkValueSendkeyAmount(data.getAmount(),we);
-
-        Utilities.captureScreenShot(_driver);
-
-        System.out.println("amoutn salary: " + data.getAmount());
-
         if(data.getIncomeExpense().equals("Main Personal Income")) {
             //add income detail
             _driver.findElement(By.xpath("//*[contains(@id, 'rowIncDetails" + index + "')]//a[contains(@class,'fs-10')]")).click();
@@ -162,6 +143,25 @@ public class CRM_ApplicationInfoFinancialDetailsTab {
             childModalWindowDoneButtonIncomeDetailInlineGridElement.click();
             Thread.sleep(3000);
         }
+
+        WebElement frequency = _driver.findElement(By.id("incomeDetailForm_frequency_" + index + "_chosen"));
+        frequency.click();
+        List<WebElement> frequencys = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_frequency_" + index + "_chosen_o_')]"));
+        for (WebElement element : frequencys) {
+            if (element.getText().equals(data.getFrequency())) {
+                element.click();
+                break;
+            }
+        }
+
+        Utilities.captureScreenShot(_driver);
+
+        WebElement we =_driver.findElement(By.id("amount_incomeDetailForm_amount_" + index));
+        Utilities.checkValueSendkeyAmount(data.getAmount(),we);
+
+        Utilities.captureScreenShot(_driver);
+
+
 
 //        if (index < datas.size() - 1) {
 //            await("Btn Add IncomeDetail not enabled - Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

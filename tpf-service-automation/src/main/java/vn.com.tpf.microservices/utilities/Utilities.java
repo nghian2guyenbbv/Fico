@@ -9,6 +9,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.openqa.selenium.*;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 
@@ -19,11 +20,13 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.security.Key;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.awaitility.Awaitility.await;
 
 public class Utilities {
 
@@ -176,6 +179,59 @@ public class Utilities {
     }
     public static void gotoTopPage(WebDriver driver){
         driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
+    }
+    public static void gotoEndPage(WebDriver driver){
+        driver.findElement(By.tagName("Body")).sendKeys(Keys.END);
+    }
+    public static void scrollToView(WebDriver driver, WebElement element){
+        JavascriptExecutor exec = (JavascriptExecutor)driver;
+        exec.executeScript("arguments[0].scrollIntoView();",element);
+
+    }
+    public static void clickButtonWithJSExecutor(WebDriver driver, WebElement element){
+        JavascriptExecutor exec = (JavascriptExecutor)driver;
+        exec.executeScript("arguments[0].scrollIntoView();",element);
+    }
+    public static void changeBranch(WebDriver driver, String branchText){
+        WebElement branchButton = driver.findElement(By.xpath("//*[contains(@id, 'loggedInBranch')]"));
+        branchButton.click();
+        WebElement branchInput = driver.findElement(By.xpath("//*[contains(@id, 'Text_headerAutoCompBranchId')]"));
+        await("branchInput is time out").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(()->branchInput.isDisplayed());
+        branchInput.clear();
+        branchInput.sendKeys(branchText);
+        List<WebElement> branchOptions = driver.findElements(By.xpath("//*[contains(@id, 'listitem_headerAutoCompBranchId')]"));
+        await("branchOptions is timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS).until(()->branchOptions.size()>0);
+        Utilities.chooseDropdownValue(branchText,branchOptions);
+        //branchInput.sendKeys(Keys.ENTER);
+        System.out.println("branch: "+branchText);
+
+    }
+    public static void pressOkOnWarning(WebDriver driver){
+        try{
+            WebElement okButton = driver.findElement(By.xpath("//*[contains(@id,'submitRequestToFunctionCall')}"));
+            okButton.click();
+        }catch(NoSuchElementException ex){
+            System.out.println("Not warning");
+            ;
+        }
+    }
+
+    public static List<String> getFromDuration(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.YEAR, -1);
+        Date dateInPreviousYear = calendar.getTime();
+        String patter = "MM/yyyy";
+        Date today = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(patter);
+        String currentDateFormat = simpleDateFormat.format(today);
+        String dateInPreviousYearFormat = simpleDateFormat.format(dateInPreviousYear);
+        ArrayList fromDurationAddress = new ArrayList();
+        //fromDurationAddress.add(dateInPreviousYearFormat);
+        //fromDurationAddress.add(currentDateFormat);
+        fromDurationAddress.add("08/2021");
+        fromDurationAddress.add("08/2022");
+        return fromDurationAddress;
+
     }
 }
 

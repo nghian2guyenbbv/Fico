@@ -245,7 +245,6 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
     }
 
     public void updateData(LoanDetailsDTO data) {
-
         applicationFormNumberElement.clear();
         applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
@@ -263,6 +262,13 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanApplicationTypeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getLoanAppType(), loanApplicationTypeOptionElement);
+
+        if (data.getChannel() != null && !data.getChannel().isEmpty()) {
+            channelElement.click();
+            await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> channelOptionElement.size() > 0);
+            Utilities.chooseDropdownValue(data.getChannel(), channelOptionElement);
+        }
         productNameElement.clear();
         productNameElement.sendKeys(data.getProductName());
         await("productNameOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
