@@ -91,9 +91,10 @@ public class CRM_DocumentsPage extends DocumentPage {
     private List<WebElement> lendingPhotoElement;
 
     //@FindBy(how = How.ID, using = "submitDocuments")
-    @FindBy(how = How.XPATH, using = "//ul[@class='mainActions clearfix ng-scope']//button[1]")
+    @FindBy(how= How.XPATH, using="//*[contains(@id, 'topActionBar')]//button[1]")
     @CacheLookup
     private WebElement btnSubmitElement;
+
 
     //------------------- UPDATE-----------------------
     @FindBy(how = How.ID, using = "lendingDocumentsTable_wrapper")

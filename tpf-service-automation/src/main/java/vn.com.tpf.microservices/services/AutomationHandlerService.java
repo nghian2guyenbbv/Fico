@@ -9,6 +9,7 @@ import org.bson.types.ObjectId;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 import org.slf4j.Logger;
@@ -2200,6 +2201,7 @@ public class AutomationHandlerService {
 
     }
     private void handleUpdateAppErrorFullDocumentPage(String stage, List<DocumentDTO> documentDTOS, Application application , WebDriver driver) throws InterruptedException, IOException {
+        ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
         if (documentDTOS.size() > 0) {
             String docComment = "no comment";
             DE_DocumentsPage documentsPage = new DE_DocumentsPage(driver);
@@ -5748,6 +5750,7 @@ public class AutomationHandlerService {
     }
 
     private void handleForExistingCustomerDocumentPage(String stage, List<CRM_DocumentsDTO> documentDTOS, WebDriver driver ) throws Exception{
+        ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
         if (documentDTOS.size() > 0) {
             String docComment = "no comment";
             CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
@@ -5846,7 +5849,7 @@ public class AutomationHandlerService {
 
                 stage = "FINANCIAL";
                 // ==========FINANCIAL DETAILS =================
-                //handleForExistingEmployeeFinancialDetailTab(stage, appInfoPage, applicationInfoDTO, driver, actions);
+                handleForExistingEmployeeFinancialDetailTab(stage, appInfoPage, applicationInfoDTO, driver, actions);
 
                 stage = "BANK / CREDIT CARD DETAILS";
                 // ==========BANK DETAILS =================
