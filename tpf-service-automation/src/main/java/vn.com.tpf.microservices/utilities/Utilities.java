@@ -10,6 +10,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 
@@ -188,10 +189,31 @@ public class Utilities {
         exec.executeScript("arguments[0].scrollIntoView();",element);
 
     }
+
+    /**
+     * Move to element and click
+     * @param actions
+     * @param element
+     */
+    public static void moveToElementAndClick(Actions actions, WebElement element){
+        actions.moveToElement(element).click().build().perform();
+    }
+
+    /**
+     * Click button with JavaScriptExcutor
+     * @param driver
+     * @param element
+     */
     public static void clickButtonWithJSExecutor(WebDriver driver, WebElement element){
         JavascriptExecutor exec = (JavascriptExecutor)driver;
         exec.executeScript("arguments[0].scrollIntoView();",element);
     }
+
+    /**
+     * Change branch after login
+     * @param driver
+     * @param branchText
+     */
     public static void changeBranch(WebDriver driver, String branchText){
         WebElement branchButton = driver.findElement(By.xpath("//*[contains(@id, 'loggedInBranch')]"));
         branchButton.click();
@@ -206,6 +228,11 @@ public class Utilities {
         System.out.println("branch: "+branchText);
 
     }
+
+    /**
+     * After complete Personal tab soometime we got a warning
+     * @param driver
+     */
     public static void pressOkOnWarning(WebDriver driver){
         try{
             WebElement okButton = driver.findElement(By.xpath("//*[contains(@id,'submitRequestToFunctionCall')}"));
@@ -215,6 +242,11 @@ public class Utilities {
             ;
         }
     }
+
+    /**
+     * Duration time in address tab in Personal Info (1 year)
+     * @return
+     */
 
     public static List<String> getFromDuration(){
         Calendar calendar = Calendar.getInstance();
@@ -232,6 +264,28 @@ public class Utilities {
         fromDurationAddress.add("08/2022");
         return fromDurationAddress;
 
+    }
+
+    /**
+     * Check element exist or not
+     * @param by
+     * @param element
+     * @param driver
+     * @return
+     */
+
+    public static boolean checkElementExistOrNot(String by, String element, WebDriver driver){
+        boolean result = false;
+        try{
+            if("id".equals(by)){
+                driver.findElement(By.id(element));
+            }
+
+        }catch(NoSuchElementException ex){
+            System.out.println("ex: "+ex);
+            ;
+        }
+        return result;
     }
 }
 

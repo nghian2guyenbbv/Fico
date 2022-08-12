@@ -702,7 +702,7 @@ public class CRM_ApplicationInfoPersonalTab {
         saveAndNext();
     }
 
-    public void setValueSendBack(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
+    public void setValueSaleQueue(CRM_ApplicationInformationsListDTO applicationInfoDTO) throws Exception {
         Actions actions = new Actions(_driver);
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -840,6 +840,7 @@ public class CRM_ApplicationInfoPersonalTab {
 
         //click edit or add address
         updateAddressValue(applicationInfoDTO.getAddress());
+
         loadAddressSection();
 
         if (applicationInfoDTO.getFamily().size() > 0) {
@@ -868,19 +869,32 @@ public class CRM_ApplicationInfoPersonalTab {
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateElement.isEnabled());
+        Utilities.moveToElementAndClick(actions,btnCheckDuplicateElement);
 
-        btnCheckDuplicateElement.click();
-
-        await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
-                .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
+        //btnCheckDuplicateElement.click();
+        /**
+         *  Check Duplicate wasn't return value with sale queue
+         */
+       if(Utilities.checkElementExistOrNot("id","intMatchesNone" ,_driver)){
+           await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
+                   .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
+       }
 
         saveAndNext();
     }
+
 
     public void loadIdentificationSection() {
         this.btnLoadIdentificationElement.click();
     }
 
+    /**
+     * set Identification in Personal Info Tab
+     * @param datas
+     * @throws JsonParseException
+     * @throws JsonMappingException
+     * @throws IOException
+     */
     public void setIdentificationValue(List<CRM_IdentificationsListDTO> datas) throws JsonParseException, JsonMappingException, IOException {
         int index = 0;
         WebElement type;

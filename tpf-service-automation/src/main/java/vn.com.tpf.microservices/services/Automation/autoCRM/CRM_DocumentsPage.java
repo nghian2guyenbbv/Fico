@@ -157,7 +157,7 @@ public class CRM_DocumentsPage extends DocumentPage {
         Thread.sleep(5000);
         List<WebElement> listDocs = _driver.findElements(By.xpath("//*[contains(@data-type, 'docnode')]"));
         System.out.println("requiredFiled: " + requiredFiled);
-        System.out.println("listDocs: "+listDocs);
+        //System.out.println("listDocs: "+listDocs);
         JavascriptExecutor executor = (JavascriptExecutor)_driver;
         for (WebElement element : listDocs) {
             String docName = element.getText();
