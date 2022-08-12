@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -35,6 +36,7 @@ import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDTO;
 import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
 import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.AutomationMonitor.AutomationMonitorDTO;
+import vn.com.tpf.microservices.models.DERaiseQuery.DERaiseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
@@ -900,6 +902,13 @@ public class AutomationHandlerService {
         }
     }
 
+    /**
+     * Update app for DATA ENTRY
+     * @param driver
+     * @param mapValue
+     * @param accountDTO
+     * @throws Exception
+     */
     public void runAutomation_UpdateAppError(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
         String stage = "";
@@ -2289,7 +2298,17 @@ public class AutomationHandlerService {
 
     }
 
-    private void updateAppError_Full(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
+    /**
+     * Update app error for CRM
+     * Assign to team name is TPF DE TOPUP XSELL
+     * @param driver
+     * @param stage
+     * @param accountDTO
+     * @param leadAppID
+     * @param mapValue
+     * @throws Exception
+     */
+    private void updateAppError_Full_CRM(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
         Application application = Application.builder().build();
         Actions actions = new Actions(driver);
         try {
@@ -2333,6 +2352,174 @@ public class AutomationHandlerService {
             stage = "APPLICATION MANAGER";
 //            // ========== APPLICATION MANAGER =================
             this.assignManger(driver, leadAppID, "TPF DE TOPUP_XSELL", accountDTO.getUserName());
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+
+            stage = "APPLICATION GRID";
+            // ========== APPLICATION GRID =================
+            homePage.menuClick();
+            homePage.applicationClick();
+            Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+            homePage.getAssignedApp().click();
+            await("branchOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> homePage.getApplicationNumber().isDisplayed());
+            homePage.getApplicationNumber().sendKeys(leadAppID);
+            homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+            Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+            homePage.getAppQueryElement().click();
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+//
+            stage = "LEAD DETAILS (DATA ENTRY)";
+//            // ========== LEAD DETAILS (DATA ENTRY) =================
+            LeadDetailDEPage leadDetailDEPage = new LeadDetailDEPage(driver);
+            leadDetailDEPage.applicationInformation();
+            DE_ApplicationInfoPage appInfoPage = new DE_ApplicationInfoPage(driver);
+            Utilities.captureScreenShot(driver);
+//
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+//
+            stage = "PERSONAL INFORMATION";
+            // ========== PERSONAL INFORMATION =================
+            handleUpdateAppErrorFullPersonalTab(stage, appInfoPage,applicationInfoDTO, driver);
+
+            stage = "EMPLOYMENT DETAILS";
+//          ========== EMPLOYMENT DETAILS =================
+            handleUpdateAppErrorFullEmploymentTab(stage, application, appInfoPage, applicationInfoDTO, driver, actions );
+
+            stage = "FINANCIAL DETAILS";
+            // ==========FINANCIAL DETAILS =================
+            handleUpdateAppErrorFullFinancialTab(stage, appInfoPage, applicationInfoDTO, driver);
+
+            stage = "BANK/CREDIT CARD DETAILS";
+            // ==========BANK/CREDIT CARD DETAILS=================
+            handleUpdateAppErrorFullBankCreditCardDetailsTab(stage, appInfoPage, applicationInfoDTO, driver);
+
+            // ==========LOAN DETAILS=================
+            stage = "LOAN DETAIL - SOURCING DETAIL TAB";
+            handleupdateAppErrorFullSourcingDetailsTab(stage, loanDetailsDTO, actions, driver);
+
+            // ========== VAP DETAILS =======================
+            stage = "LOAN DETAIL - VAP DETAIL TAB";
+            handleUpdateAppErrorFullVapDetailsTab(stage, loanDetailsVapDTO, driver);
+
+            // ==========DOCUMENTS=================
+            stage = "DOCUMENTS";
+            handleUpdateAppErrorFullDocumentPage(stage, documentDTOS, application, driver);
+
+            // ==========REFERENCES=================
+            stage = "REFERENCES";
+            handleUpdateAppErrorFullReferencePage(stage, referenceDTO, driver, actions);
+
+            // ==========MISC FRM APP DTL=================
+            stage = "MISC FRM APPDTL";
+            handleUpdateAppErrorFullMISCPage(miscFrmAppDtlDTO, driver);
+
+
+            await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("Application Grid"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+            stage = "COMPLETE";
+            System.out.println("AUTO OK: user =>" + accountDTO.getUserName());
+
+
+            //UPDATE STATUS
+            application.setStatus("OK");
+            application.setDescription("Thanh cong");
+            application.setStage(stage);
+        } catch (Exception e) {
+            //UPDATE STATUS
+            application.setStatus("ERROR");
+            application.setStage(stage);
+            application.setDescription(e.getMessage());
+
+            System.out.println(stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+
+            if (e.getMessage().contains("Work flow failed!!!")) {
+                stage = "END OF LEAD DETAIL";
+                application.setStage(stage);
+                await("Get error fail!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> driver.findElements(By.id("error-message")).size() > 0);
+
+                if (driver.findElements(By.id("error-message")) != null && driver.findElements(By.id("error-message")).size() > 0) {
+                    String error = "Error: ";
+                    for (WebElement we : driver.findElements(By.id("error-message"))) {
+                        error += " - " + we.getText();
+                    }
+                    application.setError(error);
+                    System.out.println(stage + "=>" + error);
+                }
+            }
+        } finally {
+            String function = mapValue.get("func").toString();
+            //String function = mapValue.getOrDefault("func", "updateAppError").toString();
+            updateStatusRabbit(application, function);
+            System.out.println(stage);
+            logout(driver, accountDTO.getUserName());
+        }
+    }
+
+    /**
+     * Update App for Data Entry
+     * Assigne to DATA ENTRY team
+     * @param driver
+     * @param stage
+     * @param accountDTO
+     * @param leadAppID
+     * @param mapValue
+     * @throws Exception
+     */
+    private void updateAppError_Full(WebDriver driver, String stage, LoginDTO accountDTO, String leadAppID, Map<String, Object> mapValue) throws Exception {
+        Application application = Application.builder().build();
+        Actions actions = new Actions(driver);
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            application = (Application) mapValue.get("ApplicationDTO");
+            ApplicationInfoDTO applicationInfoDTO = (ApplicationInfoDTO) mapValue.get("ApplicationInfoDTO");
+            LoanDetailsDTO loanDetailsDTO = (LoanDetailsDTO) mapValue.get("LoanDetailsDTO");
+            LoanDetailsVapDTO loanDetailsVapDTO = (LoanDetailsVapDTO) mapValue.get("LoanDetailsVapDTO");
+            List<ReferenceDTO> referenceDTO = (List<ReferenceDTO>) mapValue.get("ReferenceDTO");
+            List<DocumentDTO> documentDTOS = (List<DocumentDTO>) mapValue.get("DocumentDTO");
+            MiscFptDTO miscFptDTO = (MiscFptDTO) mapValue.get("MiscFptDTO");
+            MiscFrmAppDtlDTO miscFrmAppDtlDTO = (MiscFrmAppDtlDTO) mapValue.get("MiscFrmAppDtlDTO");
+            MiscVinIdDTO miscVinIdDTO = (MiscVinIdDTO) mapValue.get("MiscVinIdDTO");
+            application.setAutomationAcc(accountDTO.getUserName());
+            System.out.println(stage + ": DONE");
+            stage = "LOGIN FINONE";
+            HashMap<String, String> dataControl = new HashMap<>();
+            LoginPageNeo loginPage = new LoginPageNeo(driver);
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
+            loginPage.clickLogin();
+            Utilities.captureScreenShot(driver);
+            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(driver::getTitle, is("DashBoard"));
+
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            stage = "HOME PAGE";
+            HomePageNeo homePage= new HomePageNeo(driver);
+
+            //DATA INPUT UPDATE
+            //String leadAppID="APPL00086527";
+            System.out.println(stage + ": DONE");
+            Utilities.captureScreenShot(driver);
+
+            // ========== APPLICATIONS =================
+//            String leadAppID = application.getApplicationId();
+//            homePage.getMenuApplicationElement().click();
+//
+            stage = "APPLICATION MANAGER";
+//            // ========== APPLICATION MANAGER =================
+            this.assignManger(driver, leadAppID, "TPF DATA ENTRY", accountDTO.getUserName());
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
@@ -3784,7 +3971,13 @@ public class AutomationHandlerService {
         }
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
-
+    private String checkApplicationStatus(DERaiseQueryDTO deRaiseQueryDTO){
+        String queryStatus = null;
+        if(!Objects.isNull(deRaiseQueryDTO)){
+            queryStatus =  deRaiseQueryDTO.getQueryStatus();
+        }
+        return queryStatus;
+    }
     //region PROJECT: AUTO SMARTNET
     //------------------------ RESPONSE_QUERY-----------------------------------------------------
     private LoginDTO return_pollAccountFromQueue(Queue<LoginDTO> accounts, String project, Map<String, Object> mapValue) throws Exception {
@@ -3794,13 +3987,19 @@ public class AutomationHandlerService {
             System.out.println("Wait to get account...");
             DEResponseQueryDTO deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
             Query query = new Query();
-            query.addCriteria(Criteria.where("applicationId").is(deResponseQueryDTO.getAppId()));
-            Application applicationDTO = mongoTemplate.findOne(query, Application.class);
+            query.addCriteria(Criteria.where("applicationId").is(deResponseQueryDTO.getAppId()).and("stage")
+                    .in("KYC","LEAD_DETAILS","CREDIT_APPROVAL","LOGIN_ACCEPTANCE")).with(new Sort(Sort.Direction.DESC,"createdDate"));
+            DERaiseQueryDTO applicationDTO = mongoTemplate.findOne(query, DERaiseQueryDTO.class);
+            if (!"Raise".equals(checkApplicationStatus(applicationDTO))) {
+                return accountDTO;
+            }
+
             AccountFinOneDTO accountFinOneDTO = null;
             if (!Objects.isNull(applicationDTO)) {
                 query = new Query();
-                query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getAutomationAcc()));
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
                 accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                return accountDTO;
             }
             if (!Objects.isNull(accountFinOneDTO)) {
                 accountDTO = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
@@ -3831,6 +4030,21 @@ public class AutomationHandlerService {
         String stage = "";
         DEResponseQueryDTO deResponseQueryDTO = DEResponseQueryDTO.builder().build();
         log.info("{}", deResponseQueryDTO);
+        if(Objects.isNull(accountDTO) ){
+            deResponseQueryDTO.setStatus("ERROR");
+            deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
+
+            responseModel.setProject(deResponseQueryDTO.getProject());
+            responseModel.setReference_id(deResponseQueryDTO.getReference_id());
+            responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+            responseModel.setApp_id(deResponseQueryDTO.getAppId());
+            responseModel.setAutomation_result("RESPONSEQUERY FAILED" + " - " + "ACCOUNT IS NOT CORRECT");
+
+            System.out.println("Auto Error:" + deResponseQueryDTO.getAppId() +"ACCOUNT IS NOT CORRECT");
+
+
+
+        }
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -9231,7 +9445,7 @@ public class AutomationHandlerService {
             sb.append("START: runAutomation_return APP: ").append(leadAppID)
                     .append(" - TIME: ").append(new Date().toString());
 
-            updateAppError_Full(driver, stage, accountDTO, leadAppID, mapValue);
+            updateAppError_Full_CRM(driver, stage, accountDTO, leadAppID, mapValue);
 
             sb.append(" - END runAutomation_return").append(" - TIME: ").append(new Date().toString());
         }catch (Exception e) {
