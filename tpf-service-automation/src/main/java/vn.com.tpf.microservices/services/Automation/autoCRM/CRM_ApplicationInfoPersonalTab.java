@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.awaitility.Duration;
+import org.bouncycastle.crypto.prng.ThreadedSeedGenerator;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -337,7 +338,8 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'dynamic_addedPNO')]//input[contains(@placeholder,'Mobile Phone')]")
     private List<WebElement> listMobileAlternateElement;
 
-    @FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList0_phoneNumber']")
+    /*@FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList0_phoneNumber']")*/
+    @FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList1_phoneNumber']")
     private WebElement mobilePhoneNumberCurrentAddressElement;
 
 
@@ -528,7 +530,7 @@ public class CRM_ApplicationInfoPersonalTab {
                 .until(() -> addressGridElement.isDisplayed());
 
         //click edit
-        updateAddressValue(applicationInfoDTO.getAddress());
+        updateAddressValue_ExistingCustomer(applicationInfoDTO.getAddress());
         loadAddressSection();
 
         if (applicationInfoDTO.getFamily().size() > 0) {
@@ -1025,7 +1027,8 @@ public class CRM_ApplicationInfoPersonalTab {
                 regionInputElement.sendKeys(Keys.ENTER);
 
                 actions.moveToElement(regionElement).click().build().perform();
-                regionInputElement.sendKeys(data.getRegion());
+                /*regionInputElement.sendKeys(data.getRegion());*/
+                regionInputElement.sendKeys("ALL");
                 regionInputElement.sendKeys(Keys.ENTER);
             }
 
@@ -1057,9 +1060,22 @@ public class CRM_ApplicationInfoPersonalTab {
             address3Element.clear();
             address3Element.sendKeys(data.getWard());
 
+            if(data.getPriStd()!= null && data.getPriNumber()!= null && data.getPriExt()!= null){
+                updatePrimarySTDElement.clear();
+                updatePrimarySTDElement.sendKeys(data.getPriStd());
+                updatePrimaryNumberElement.clear();
+                updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+                updatePrimaryExtElement.clear();
+                updatePrimaryExtElement.sendKeys(data.getPriExt());
+            }
 
+            if(data.getMobilePhone()!= null){
+                updateMobilePhoneNumberElement.clear();
+                updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+            }
+/*
             if(!data.getMobilePhone().isEmpty()){
-                boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
+                boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList1_phoneNumber']")).size() != 0;
                 if (checkMobilephoneNumber){
                     mobilePhoneNumberCurrentAddressElement.clear();
                     mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
@@ -1074,7 +1090,7 @@ public class CRM_ApplicationInfoPersonalTab {
 //                    mobilePhoneNumberElement.clear();
 //                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
 //                }
-            }
+            }*/
 
             Utilities.captureScreenShot(_driver);
             actions.moveToElement(btnSaveAddressElement).click().build().perform();
@@ -1086,6 +1102,138 @@ public class CRM_ApplicationInfoPersonalTab {
             }
             index++;
             Utilities.captureScreenShot(_driver);
+        }
+    }
+
+    public void updateAddressValue_ExistingCustomer(List<CRM_AddressListDTO> datas) throws JsonParseException, JsonMappingException, Exception {
+        Actions actions = new Actions(_driver);
+
+        //check xem co address nao empty type kh neu co thi xoa
+
+        if (viewTagElement.size() != 0) {
+            for (WebElement e : viewTagElement) {
+
+                WebElement weDel = _driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'')]//ancestor::tr//*[contains(@id,'deleteTag')]"));
+                weDel.click();
+                Thread.sleep(4000);//waiting FinnOne delete address
+
+            }
+        }
+
+        Utilities.captureScreenShot(_driver);
+
+//        await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> btnCreateAnotherElement.isDisplayed());
+//
+//        btnCreateAnotherElement.click();
+
+        for (CRM_AddressListDTO data : datas) {
+
+            System.out.println("data => " + data.getAddressType());
+
+            with().pollInterval(Duration.FIVE_SECONDS).
+                    await("trAddressListElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> trAddressListElement.size() > 0);
+
+            Utilities.captureScreenShot(_driver);
+
+            //new address
+
+            await("btnCreateAnotherElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
+                    .until(() -> btnCreateAnotherElement.isEnabled());
+            btnCreateAnotherElement.click();
+
+            //Đợi load Address Type
+//                Thread.sleep(15000);
+
+            with().pollInterval(Duration.FIVE_SECONDS).
+                    await("Address Div display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> addressDivElement.isDisplayed());
+
+            with().pollInterval(Duration.FIVE_SECONDS).
+                    await("Address Type not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> addressTypeElement.isDisplayed());
+
+            actions.moveToElement(addressTypeElement).click().build().perform();
+            await("addressTypeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> addressTypeOptionElement.size() > 1);
+            Utilities.chooseDropdownValue(data.getAddressType(), addressTypeOptionElement);
+//                for (WebElement element : addressTypeOptionElement) {
+//                    if (element.getText().equals(data.getAddressType())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
+
+            actions.moveToElement(textCountryElement).click().build().perform();
+            with().pollInterval(Duration.FIVE_SECONDS).
+                    await("textCountryOptionElement loading timeout").atMost(Constant.TIME_OUT_2_M, TimeUnit.SECONDS)
+                    .until(() -> textCountryOptionElement.size() > 1);
+//                for (WebElement element : textCountryOptionElement) {
+//                    if (element.getText().equals(data.getCountry())) {
+//                        element.click();
+//                        break;
+//                    }
+//                }
+            Utilities.chooseDropdownValue(data.getCountry(), textCountryOptionElement);
+
+            actions.moveToElement(regionElement).click().build().perform();
+
+            await("regionOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> regionOptionElement.size() > 1);
+
+//                regionInputElement.sendKeys("Select");
+//                regionInputElement.sendKeys(Keys.ENTER);
+//                actions.moveToElement(regionElement).click().build().perform();
+            //regionInputElement.sendKeys(data.getRegion());
+            regionInputElement.sendKeys("ALL");
+            regionInputElement.sendKeys(Keys.ENTER);
+
+
+            actions.moveToElement(cityElement).click().build().perform();
+            await("cityOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> cityOptionElement.size() > 1);
+
+            cityInputElement.sendKeys(data.getCity());
+            cityInputElement.sendKeys(Keys.ENTER);
+
+            pinCodeElement.clear();
+            pinCodeElement.sendKeys("%%%");
+            await("Pincode loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> pinCodeValueElement.isDisplayed());
+            actions.moveToElement(pinCodeValueElement).click().build().perform();
+
+            actions.moveToElement(areaElement).click().build().perform();
+            await("areaOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> areaOptionElement.size() > 1);
+            areaInputElement.sendKeys(data.getArea().toUpperCase());
+            areaInputElement.sendKeys(Keys.ENTER);
+
+            address1Element.clear();
+            //address1Element.sendKeys(data.getBuilding());
+            address1Element.sendKeys(".");
+            System.out.println("Address Building");
+            address2Element.clear();
+            address2Element.sendKeys(data.getHouse());
+            System.out.println("Address House");
+            address3Element.clear();
+            address3Element.sendKeys(data.getWard());
+            System.out.println("Address Ward");
+
+            if (!data.getMobilePhone().isEmpty()) {
+                if ("Current Address".equals(data.getAddressType())) {
+                    mobilePhoneNumberCurrentAddressElement.clear();
+                    mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+                } else {
+                    mobilePhoneNumberElement.clear();
+                    mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
+                }
+            }
+
+            Utilities.captureScreenShot(_driver);
+            actions.moveToElement(btnSaveAddressElement).click().build().perform();
+
+            Thread.sleep(20000);//waiting notification
         }
     }
 
@@ -1213,7 +1361,17 @@ public class CRM_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
                 System.out.println("Address Ward");
-                if(data.getResidentDurationMonth()!= null && !data.getResidentDurationMonth().isEmpty()&& data.getResidentDurationYear()!=null && !data.getResidentDurationYear().isEmpty()){
+
+                WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
+                WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
+                fromDate.clear();
+                fromDate.sendKeys(Utilities.getFromDuration().get(0));
+                fromDate.sendKeys(Keys.ENTER);
+                toDate.clear();
+                toDate.sendKeys(Utilities.getFromDuration().get(1));
+                toDate.sendKeys(Keys.ENTER);
+                System.out.println("from date: "+Utilities.getFromDuration().get(0)+"to date: "+Utilities.getFromDuration().get(1));
+                /*if(data.getResidentDurationMonth()!= null && !data.getResidentDurationMonth().isEmpty()&& data.getResidentDurationYear()!=null && !data.getResidentDurationYear().isEmpty()){
                     WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
                     WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
                     fromDate.clear();
@@ -1227,7 +1385,7 @@ public class CRM_ApplicationInfoPersonalTab {
                     fromDate.sendKeys(Utilities.getFromDuration().get(0));
                     toDate.clear();
                     toDate.sendKeys(Utilities.getFromDuration().get(1));
-                }
+                }*/
 
                 if(!data.getMobilePhone().isEmpty()){
                     boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
