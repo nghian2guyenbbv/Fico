@@ -2067,6 +2067,7 @@ public class AutomationHandlerService {
 
         System.out.println(stage + ": DONE");
         Utilities.captureScreenShot(driver);
+
     }
 
     private void handleUpdateAppErrorFullEmploymentTab(String stage, Application application, DE_ApplicationInfoPage appInfoPage, ApplicationInfoDTO applicationInfoDTO, WebDriver driver, Actions actions)throws Exception{
@@ -2203,6 +2204,7 @@ public class AutomationHandlerService {
         ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
         if (documentDTOS.size() > 0) {
             String docComment = "no comment";
+
             DE_DocumentsPage documentsPage = new DE_DocumentsPage(driver);
             //go to the top page
             driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
@@ -2211,11 +2213,8 @@ public class AutomationHandlerService {
             documentsPage.getTabDocumentsElement().click();
             await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-            if(application.getQuickLead().getDocumentsComment()!= null && !application.getQuickLead().getDocumentsComment().isEmpty()){
-                docComment = application.getQuickLead().getDocumentsComment();
-            }
 
-            documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
+            documentsPage.setData2( documentDTOS, downdloadFileURL, docComment);
 
             Utilities.captureScreenShot(driver);
 
@@ -5466,8 +5465,8 @@ public class AutomationHandlerService {
         }
     }
 
-    private void checkExistingCustomer(CRM_ExistingCustomerPage crm_ExistingCustomerPage, CRM_ExistingCustomerDTO existingCustomerDTO, String applicationId,  WebDriver driver){
-
+    private String checkExistingCustomer(CRM_ExistingCustomerPage crm_ExistingCustomerPage, CRM_ExistingCustomerDTO existingCustomerDTO,  WebDriver driver){
+        String applicationID = null;
         crm_ExistingCustomerPage.application_personal_Click();
 
         await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -5557,8 +5556,8 @@ public class AutomationHandlerService {
         crm_ExistingCustomerPage.getCustomerInformationSaveElement().click();
 
         Utilities.captureScreenShot(driver);
-        applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
-        System.out.println("APPID => " + applicationId);
+        applicationID = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+        System.out.println("APPID => " + applicationID);
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
@@ -5595,6 +5594,7 @@ public class AutomationHandlerService {
 //            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
 //
 //            //switch test flow end
+        return applicationID;
 
     }
     private void handleForExistingEmployeePersonalTab( String stage, CRM_ApplicationInfoPage appInfoPage,CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver) throws Exception{
@@ -5827,7 +5827,7 @@ public class AutomationHandlerService {
                 // ========== EXISTING CUSTOMER =================
                 stage = "EXISTING CUSTOMER";
                 CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
-                checkExistingCustomer(crm_ExistingCustomerPage,existingCustomerDTO,applicationId, driver);
+                applicationId = checkExistingCustomer(crm_ExistingCustomerPage,existingCustomerDTO, driver);
 
                 // ========== VIEW/EDIT DETAILED INFORMATION =================
                 stage = "VIEW/EDIT DETAILED INFORMATION";

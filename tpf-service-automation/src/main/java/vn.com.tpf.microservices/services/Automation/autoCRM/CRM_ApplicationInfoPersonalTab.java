@@ -1220,6 +1220,16 @@ public class CRM_ApplicationInfoPersonalTab {
             address3Element.sendKeys(data.getWard());
             System.out.println("Address Ward");
 
+            WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
+            WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
+            fromDate.clear();
+            fromDate.sendKeys(Utilities.getFromDuration().get(0));
+            fromDate.sendKeys(Keys.ENTER);
+            toDate.clear();
+            toDate.sendKeys(Utilities.getFromDuration().get(1));
+            toDate.sendKeys(Keys.ENTER);
+            System.out.println("from date: "+Utilities.getFromDuration().get(0)+"to date: "+Utilities.getFromDuration().get(1));
+
             if (!data.getMobilePhone().isEmpty()) {
                 if ("Current Address".equals(data.getAddressType())) {
                     mobilePhoneNumberCurrentAddressElement.clear();

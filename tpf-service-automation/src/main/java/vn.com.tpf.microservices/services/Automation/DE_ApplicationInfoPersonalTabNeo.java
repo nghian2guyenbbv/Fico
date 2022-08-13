@@ -890,6 +890,17 @@ public class DE_ApplicationInfoPersonalTabNeo {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
 
+                WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
+                WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
+                fromDate.clear();
+                fromDate.sendKeys(Utilities.getFromDuration().get(0));
+                fromDate.sendKeys(Keys.ENTER);
+                toDate.clear();
+                toDate.sendKeys(Utilities.getFromDuration().get(1));
+                toDate.sendKeys(Keys.ENTER);
+                System.out.println("from date: "+Utilities.getFromDuration().get(0)+"to date: "+Utilities.getFromDuration().get(1));
+
+
                 //update them landmard
                 addressLandmark.clear();
                 addressLandmark.sendKeys(data.getAddressLandmark());
@@ -996,6 +1007,16 @@ public class DE_ApplicationInfoPersonalTabNeo {
                 address2Element.sendKeys(data.getHouse());
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
+
+                WebElement fromDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressFrom']"));
+                WebElement toDate = _driver.findElement(By.xpath("//*[@id='address_currentAddressTo']"));
+                fromDate.clear();
+                fromDate.sendKeys(Utilities.getFromDuration().get(0));
+                fromDate.sendKeys(Keys.ENTER);
+                toDate.clear();
+                toDate.sendKeys(Utilities.getFromDuration().get(1));
+                toDate.sendKeys(Keys.ENTER);
+                System.out.println("from date: "+Utilities.getFromDuration().get(0)+"to date: "+Utilities.getFromDuration().get(1));
 
                 //update them landmard
                 addressLandmark.clear();
