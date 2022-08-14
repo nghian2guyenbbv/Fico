@@ -286,8 +286,11 @@ public class DE_LoanDetailsSourcingDetailsTabNeo {
                 .until(() -> schemeOptionElement.size() > 0);
 //        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
         for (WebElement e : schemeOptionElement) {
-            if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getScheme().toUpperCase())) {
+            //if (!Objects.isNull(e.getAttribute("username")) && StringEscapeUtils.unescapeJava(e.getAttribute("username")).toUpperCase().equals(data.getScheme().toUpperCase())) {
+            if (!Objects.isNull(e.getAttribute("username")) && e.getAttribute("username").toUpperCase().equals(data.getScheme().toUpperCase())) {
                 e.click();
+                Utilities.captureSreenShotWithStage("SOURCING TAB","Click Scheme",_driver);
+                
                 break;
             }
         }

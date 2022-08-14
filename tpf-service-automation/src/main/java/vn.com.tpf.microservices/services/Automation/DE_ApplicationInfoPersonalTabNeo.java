@@ -898,17 +898,17 @@ public class DE_ApplicationInfoPersonalTabNeo {
                 toDate.clear();
                 toDate.sendKeys(Utilities.getFromDuration().get(1));
                 toDate.sendKeys(Keys.ENTER);
-                System.out.println("from date: "+Utilities.getFromDuration().get(0)+"to date: "+Utilities.getFromDuration().get(1));
-
+                System.out.println("from date: "+Utilities.getFromDuration().get(0)+" to date: "+Utilities.getFromDuration().get(1));
+                Utilities.captureSreenShotWithStage("PERSONAL INFO ", "updateAddressValue",_driver);
 
                 //update them landmard
                 addressLandmark.clear();
                 addressLandmark.sendKeys(data.getAddressLandmark());
 
-                currentAddrYearsElement.clear();
+               /* currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
-                currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+                currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());*/
 
                 updatePrimarySTDElement.clear();
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
@@ -1022,10 +1022,10 @@ public class DE_ApplicationInfoPersonalTabNeo {
                 addressLandmark.clear();
                 addressLandmark.sendKeys(data.getAddressLandmark());
 
-                currentAddrYearsElement.clear();
+              /*  currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
-                currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
+                currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());*/
 
                 updatePrimarySTDElement.clear();
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
