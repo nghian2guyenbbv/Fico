@@ -219,7 +219,7 @@ public class AutomationHandlerService {
 
     public void logout(WebDriver driver, String accountAuto) {
         try {
-
+            Thread.sleep(60000);
             System.out.println("Logout");
             LogoutPage logoutPage = new LogoutPage(driver);
             logoutPage.logout();
