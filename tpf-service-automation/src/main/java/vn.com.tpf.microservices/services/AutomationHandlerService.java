@@ -2154,7 +2154,12 @@ public class AutomationHandlerService {
         //loanDetailsPage.getTabLoanDetailsElement().click();
         WebElement loanDetailPage = loanDetailsPage.getTabLoanDetailsElement();
         actions.moveToElement(loanDetailPage).click().build().perform();
+        
+        WebElement sourcingDetailsTab = driver.findElement(By.id("sourcingDetailsLiId"));
+        actions.moveToElement(sourcingDetailsTab).click().build().perform();
         DE_LoanDetailsSourcingDetailsTabNeo loanDetailsSourcingDetailsTab = new DE_LoanDetailsSourcingDetailsTabNeo(driver);
+        Utilities.captureSreenShotWithStage(stage,"Click_sourcing_tab",driver);
+
         await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
         await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -2250,7 +2255,7 @@ public class AutomationHandlerService {
         System.out.println("click referrence tab");
         await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
-
+        Utilities.captureScreenShot(driver);
         referencesPage.updateData(referenceDTO);
         Utilities.captureScreenShot(driver);
         referencesPage.getSaveBtnElement().click();
@@ -2388,6 +2393,7 @@ public class AutomationHandlerService {
             // ==========DOCUMENTS=================
             stage = "DOCUMENTS";
             handleUpdateAppErrorFullDocumentPage(stage, documentDTOS, application, driver);
+*/
 
             // ==========REFERENCES=================
             stage = "REFERENCES";
