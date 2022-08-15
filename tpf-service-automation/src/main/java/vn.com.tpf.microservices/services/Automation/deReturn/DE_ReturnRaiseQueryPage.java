@@ -158,4 +158,39 @@ public class DE_ReturnRaiseQueryPage {
         btnSubmitResponseElement.click();
 
     }
+
+    @SneakyThrows
+    public void setDataMulDoc(DEResponseQueryMulDocDTO deResponseQueryDTO) {
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+        await("responseQueryFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> responseQueryFormElement.isDisplayed());
+
+        applicationNumberElement.clear();
+        applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
+        idRowResponseQueryElement.click();
+        Thread.sleep(5000);
+
+        await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 2);
+
+
+        textSeachResponseQueryElement.clear();
+
+        if (Objects.isNull(deResponseQueryDTO.getQueryName())){
+            textSeachResponseQueryElement.sendKeys("T_RETURN");
+        }else{
+            textSeachResponseQueryElement.sendKeys(deResponseQueryDTO.getQueryName());
+        }
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("Raise Query Code Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 2);
+
+        idRowCalculationElement.click();
+
+        textResponseElement.clear();
+        textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
+        btnSubmitResponseElement.click();
+
+    }
 }

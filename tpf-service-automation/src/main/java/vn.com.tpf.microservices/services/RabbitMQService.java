@@ -199,6 +199,8 @@ public class RabbitMQService {
 					return response(message, payload, automationService.ResponseQuery(request));
 			case "returnSimpleProduct":
 				return response(message, payload, automationService.returnSimpleProduct(request));
+			case "deResponseQueryMultiDoc":
+				return response(message,payload,automationService.DE_ResponseQueryMulDoc(request));
 			case "testLogin":
 				return response(message, payload, automationService.fine1Neo(request));
 			default:

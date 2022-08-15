@@ -23,6 +23,7 @@ import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
+import vn.com.tpf.microservices.services.Automation.deReturn.DEResponseQueryMulDocDTO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1281,6 +1282,14 @@ public class DataInitial {
         return map;
     }
     //endregion
+
+
+    public static Map<String, Object> getDataFromDE_ResponseQueryMulDoc(DEResponseQueryMulDocDTO deResponseQueryMulDocDTO){
+        Map<String, Object> map = new HashMap<>();
+        map.put("DEResponseQueryList", deResponseQueryMulDocDTO);
+        return map;
+
+    }
 
     //region SALE_QUEUE
     public static Map<String, Object> getData_SaleQueue(SaleQueueDetails saleQueueDetailsList) throws JsonProcessingException {

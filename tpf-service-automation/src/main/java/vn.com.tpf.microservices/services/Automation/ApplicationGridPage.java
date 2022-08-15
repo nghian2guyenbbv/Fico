@@ -64,6 +64,10 @@ public class ApplicationGridPage {
     @CacheLookup
     private WebElement aLeadAssignElement;
 
+    @FindBy(how = How.XPATH, using = "//*[@id='collectedDocs']")
+    @CacheLookup
+    private WebElement collectedDocs;
+
 
     public ApplicationGridPage(WebDriver driver) {
         PageFactory.initElements(driver, this);

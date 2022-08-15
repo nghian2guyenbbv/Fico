@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -15,6 +16,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class DE_ApplicationManagerPage {
@@ -65,6 +67,15 @@ public class DE_ApplicationManagerPage {
 
     @FindBy(how = How.XPATH, using = "//table[@id='applicationTable']//tbody//tr[1]//td[1]")
     private WebElement applicationTableAppIDElement;
+
+    @FindBy(how = How.ID, using = "Text_team_Branch0")
+    private WebElement textSelectTeamNameElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'content_team_Branch0']//ul[@id = 'holder']")
+    private WebElement textSelectTeamNameContainerElement;
+
+    @FindBy(how = How.XPATH, using = "//li[contains(@id, 'listitem_team_Branch')]")
+    private List<WebElement> liSelectTeamNameOptionElement;
 
     public DE_ApplicationManagerPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -129,5 +140,78 @@ public class DE_ApplicationManagerPage {
         Utilities.captureScreenShot(_driver);
 
         return appID;
+    }
+
+    public void setAssignedRaise(String appId, String user, String teamName) {
+        await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> applicationManagerFormElement.isDisplayed());
+
+        applicationNumberElement.sendKeys(appId);
+        searchApplicationElement.click();
+
+        await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tdApplicationElement.size() > 0);
+
+        await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> showTaskElement.isDisplayed());
+
+        showTaskElement.click();
+
+        await("taskTableDivElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> taskTableDivElement.isDisplayed());
+
+        await("editElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> editElement.isDisplayed());
+
+        editElement.click();
+        await("Textbox select Team enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectTeamNameElement.isEnabled());
+
+        textSelectTeamNameElement.clear();
+        textSelectTeamNameElement.sendKeys(teamName);
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("Select Team Name Container displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectTeamNameContainerElement.isDisplayed());
+
+        int listTeamNameOption = liSelectTeamNameOptionElement.size();
+
+        await("No Team Name Found timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> listTeamNameOption > 0);
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (WebElement eTeamName : liSelectTeamNameOptionElement) {
+            if (!Objects.isNull(eTeamName.getAttribute("username")) && StringEscapeUtils.unescapeJava(eTeamName.getAttribute("username")).equals(teamName)) {
+                eTeamName.click();
+                break;
+            }
+        }
+
+        Utilities.captureScreenShot(_driver);
+        await("textSelectUserElement enable Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectUserElement.isEnabled());
+
+        textSelectUserElement.clear();
+        textSelectUserElement.sendKeys(user);
+
+
+        await("textSelectUserOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> textSelectUserOptionElement.size() > 0);
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (WebElement e : textSelectUserOptionElement) {
+            if (!Objects.isNull(e.getAttribute("title")) && StringEscapeUtils.unescapeJava(e.getAttribute("title")).equals(user)) {
+                e.click();
+                break;
+            }
+        }
+        Utilities.captureScreenShot(_driver);
+        saveTaskElement.click();
     }
 }

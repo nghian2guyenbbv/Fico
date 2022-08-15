@@ -21,7 +21,6 @@ import vn.com.tpf.microservices.models.AutoField.WaiveFieldDTO;
 import vn.com.tpf.microservices.models.AutoMField.MFieldRequest;
 import vn.com.tpf.microservices.models.AutoMField.WaiveFieldDetails;
 import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDTO;
-import vn.com.tpf.microservices.models.AutoQuickLead.QuickLeadDetails;
 import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDTO;
 import vn.com.tpf.microservices.models.AutoReturnQuery.ResponseQueryDetails;
 import vn.com.tpf.microservices.models.AutoReturnQuery.SaleQueueDTO;
@@ -31,11 +30,11 @@ import vn.com.tpf.microservices.models.AutomationMonitor.AutomationMonitorDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
+import vn.com.tpf.microservices.services.Automation.deReturn.DEResponseQueryMulDocDTO;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.DataInitial;
 
 import javax.annotation.PostConstruct;
-import javax.management.Query;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -830,8 +829,30 @@ public class AutomationService {
 	}
 	//endregion
 
-	//endregion
+	private void runAutomationDE_ResponseQueryMulDoc(DEResponseQueryMulDocDTO deResponseQueryMulDocDTOList){
+		String browser = "chrome";
+		String projectJson = deResponseQueryMulDocDTOList.getProject();
+		Map<String, Object> mapValue = DataInitial.getDataFromDE_ResponseQueryMulDoc(deResponseQueryMulDocDTOList);
+		AutomationThreadService automationThreadService = null;
+		if("smartnet".equals(projectJson)) {
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQueryMultiDoc","RETURN");
+		}else{
+			automationThreadService= new AutomationThreadService(loginDTOQueue, browser, mapValue,"runAutomationDE_ResponseQueryMultiDoc",projectJson.toUpperCase());
+		}
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(automationThreadService);
+		workerThreadPool.submit(automationThreadService);
+	}
 
+	public Map<String, Object> DE_ResponseQueryMulDoc(JsonNode request) throws Exception {
+		JsonNode body = request.path("body");
+		System.out.println(request);
+		Assert.notNull(request.get("body"), "no body");
+		DEResponseQueryMulDocDTO deResponseQueryMulDocDTOList = mapper.treeToValue(request.path("body"), DEResponseQueryMulDocDTO.class);
+
+		runAutomationDE_ResponseQueryMulDoc(deResponseQueryMulDocDTOList);
+
+		return response(0, body, deResponseQueryMulDocDTOList);
+	}
 	//region FUNCTION RESPONSE QUERY
 
 	public Map<String, Object> ResponseQuery(JsonNode request) throws Exception {

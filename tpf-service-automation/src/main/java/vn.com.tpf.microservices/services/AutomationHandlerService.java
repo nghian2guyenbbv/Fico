@@ -2,7 +2,9 @@ package vn.com.tpf.microservices.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
@@ -50,6 +52,7 @@ import vn.com.tpf.microservices.services.Automation.autoQuickLead.LeadGridPage;
 import vn.com.tpf.microservices.services.Automation.autoQuickLead.LeadPage;
 import vn.com.tpf.microservices.services.Automation.autoQuickLead.QuickLeadEntryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.AssignManagerSaleQueuePage;
+import vn.com.tpf.microservices.services.Automation.deReturn.DEResponseQueryMulDocDTO;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnRaiseQueryPage;
 import vn.com.tpf.microservices.services.Automation.deReturn.DE_ReturnSaleQueuePage;
 import vn.com.tpf.microservices.services.Automation.lending.*;
@@ -59,7 +62,10 @@ import vn.com.tpf.microservices.services.Automation.returnQuery.SaleQueuePage;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -2417,7 +2423,6 @@ public class AutomationHandlerService {
             stage = "MISC FRM APPDTL";
             handleUpdateAppErrorFullMISCPage(miscFrmAppDtlDTO, driver);
 
-
             await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(driver::getTitle, is("Application Grid"));
 
@@ -4022,6 +4027,229 @@ public class AutomationHandlerService {
         }
 
         return accountDTO;
+    }
+
+    public void runAutomationDE_ResponseQueryMultiDoc(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO){
+        ResponseAutomationModel responseModel = new ResponseAutomationModel();
+        Instant start = Instant.now();
+        String stage = "";
+        DEResponseQueryMulDocDTO deResponseQueryDTO = DEResponseQueryMulDocDTO.builder().build();
+
+        try {
+            stage = "INIT DATA";
+            //*************************** GET DATA *********************//
+            deResponseQueryDTO = (DEResponseQueryMulDocDTO) mapValue.get("DEResponseQueryList");
+            log.info("runAutomationDE_ResponseQueryMulDoc deResponseQueryDTO INIT DATA: {}", deResponseQueryDTO);
+            System.out.println(stage + ": DONE");
+            //*************************** END GET DATA *********************//
+            if (accountDTO == null) {
+                deResponseQueryDTO.setStatus("ERROR");
+                deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
+
+                responseModel.setProject(deResponseQueryDTO.getProject());
+                responseModel.setReference_id(deResponseQueryDTO.getReference_id());
+                responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+                responseModel.setApp_id(deResponseQueryDTO.getAppId());
+                responseModel.setAutomation_result("RESPONSEQUERY FAILED" + " -  ACCOUNT NOT CORRECT AUTO");
+
+                System.out.println("Auto Error: " + deResponseQueryDTO.getAppId() + " - ACCOUNT NOT CORRECT AUTO");
+            } else {
+                String queryName = String.valueOf(mapValue.get("queryName"));
+                String userRaise = Optional.ofNullable(mapValue.get("userRaise")).orElse("").toString();
+                deResponseQueryDTO.setQueryName(queryName);
+
+                //***************************// LOGIN//***************************//
+                stage = "LOGIN FINONE";
+                LoginPageNeo loginPage = new LoginPageNeo(driver);
+                loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
+                loginPage.clickLogin();
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
+                System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                //***************************//END LOGIN//***************************//
+
+                // ========== APPLICATION MANAGER =================
+                HomePage homePage = new HomePage(driver);
+                homePage.getMenuApplicationElement().click();
+                stage = "APPLICATION MANAGER";
+                this.assignManger(driver, deResponseQueryDTO.getAppId(), "TPF UNDERWRITING", accountDTO.getUserName().toLowerCase());
+                System.out.println(stage + ": DONE");
+                Utilities.captureScreenShot(driver);
+
+               /* homePage.getApplicationManagerElement().click();
+                await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Manager"));
+
+                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
+                await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
+                de_applicationManagerPage.setAssignedHasTeamName(deResponseQueryDTO.getAppId(), accountDTO.getUserName().toLowerCase(), "TPF UNDERWRITING");
+                */
+                System.out.println(stage + ": DONE");
+                // ========== END APPLICATION MANAGER =================
+
+                // ========== APPLICATIONS =================
+                stage = "APPLICATIONS";
+                HomePage homePageMoveApp = new HomePage(driver);
+                homePageMoveApp.getMenuApplicationElement().click();
+                homePageMoveApp.getApplicationElement().click();
+
+                await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Grid"));
+                Utilities.captureScreenShot(driver);
+                ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
+                applicationGridPage.updateData(deResponseQueryDTO.getAppId());
+                System.out.println(stage + ": DONE");
+                // ========== END APPLICATIONS =================
+                // ========== UPLOADED MULTI DOCS =================
+                stage = "UPLOADED MULTI DOCS";
+                DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
+                String tabCore = driver.getWindowHandle();
+                applicationGridPage.getCollectedDocs().click();
+                for (String tab: driver.getWindowHandles()){
+                    if(!tab.equals(tabCore)){
+                        driver.switchTo().window(tab);
+                        List<WebElement> listElDocs = driver.findElements(By.xpath("//*[contains(@id,'applicationDocument_name')]"));
+                        List<String> listDocs = new ArrayList<>();
+                        for (WebElement webElement : listElDocs){
+                            listDocs.add(webElement.getText());
+                        }
+                        List<WebElement> photoimgs = driver.findElements(By.xpath("//*[contains(@id,'photoimg')]"));
+                        await("Get input photoimgs Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                .until(() -> photoimgs.size() > 0);
+                        ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
+                        for(var i = 0; i < deResponseQueryDTO.getDataDocuments().size();i++){
+                            WebElement documentStatusElement2 = driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + deResponseQueryDTO.getDataDocuments().get(i).getDocumentName() + "')]//select[starts-with(@id,'applicationDocument_receiveState')]"));
+
+                            documentStatusElement2.sendKeys("received");
+                            WebElement documentBtnUploadElement2 = driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + deResponseQueryDTO.getDataDocuments().get(i).getDocumentName() + "')]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
+
+                            String fromFile = downdloadFileURL;
+                            System.out.println("URLdownload: " + fromFile);
+                            String docName = deResponseQueryDTO.getDataDocuments().get(i).getFileName();
+                            String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+
+                            if ("TPF_Transcript".equals(docName)){
+                                docName = "TPF_Tran1";
+                            }
+
+                            toFile += UUID.randomUUID().toString() + "_" + docName;
+
+                            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+                            File file = new File(toFile);
+                            if (file.exists()) {
+                                String docUrl = file.getAbsolutePath();
+                                System.out.println("PATH:" + docUrl);
+                                Thread.sleep(2000);
+
+                                documentBtnUploadElement2.sendKeys(docUrl);
+                                Utilities.captureScreenShot(driver);
+                            }
+                        }
+                        driver.findElement(By.xpath("//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")).click();
+                        Thread.sleep(10000);
+                    }
+                }
+
+                System.out.println(stage + ": DONE");
+                // ========== END UPLOADED MULTI DOCS =================
+
+
+                // ========== RESPONSE QUERY =================
+                stage = "RESPONSE QUERY";
+                driver.switchTo().window(tabCore);
+                HomePage homePage2 = new HomePage(driver);
+                homePage2.getMenuApplicationElement().click();
+
+                de_ReturnRaiseQueryPage.getResponseQueryElement().click();
+                de_ReturnRaiseQueryPage.setDataMulDoc(deResponseQueryDTO);
+                System.out.println(stage + ": DONE");
+                System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                // ========== END RESPONSE QUERY =================
+
+                //set user raise query
+                // ========== APPLICATION MANAGER =================
+                HomePage hP = new HomePage(driver);
+                hP.getMenuApplicationElement().click();
+                stage = "APPLICATION MANAGER";
+                hP.getApplicationManagerElement().click();
+                await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("Application Manager"));
+
+                DE_ApplicationManagerPage de_appPg = new DE_ApplicationManagerPage(driver);
+                await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> de_appPg.getApplicationManagerFormElement().isDisplayed());
+                if(!userRaise.equals("")){
+                    de_appPg.setAssignedRaise(deResponseQueryDTO.getAppId(), userRaise.toLowerCase(), "TPF UNDERWRITING");
+                }
+                System.out.println(stage + ": DONE");
+                // ========== END APPLICATION MANAGER =================
+
+                // ========= set UPDATE DB automation_return_smartnet============================
+                Query queryUpdate1 = new Query();
+                queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
+                Update update1 = new Update();
+                update1.set("userauto", accountDTO.getUserName());
+                update1.set("status", 1);
+                System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+
+                deResponseQueryDTO.setStatus("OK");
+                deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
+                responseModel.setProject(deResponseQueryDTO.getProject());
+                responseModel.setReference_id(deResponseQueryDTO.getReference_id());
+                responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+                responseModel.setApp_id(deResponseQueryDTO.getAppId());
+                responseModel.setAutomation_result("RESPONSEQUERY PASS RQ51");
+                // ========= END UPDATE DB ============================
+            }
+            Utilities.captureScreenShot(driver);
+
+        } catch (Exception e) {
+
+            deResponseQueryDTO.setStatus("ERROR");
+            deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
+
+            responseModel.setProject(deResponseQueryDTO.getProject());
+            responseModel.setReference_id(deResponseQueryDTO.getReference_id());
+            responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+            responseModel.setApp_id(deResponseQueryDTO.getAppId());
+            responseModel.setAutomation_result("RESPONSEQUERY FAILED" + " - " + e.getMessage());
+
+            System.out.println("Auto Error:" + stage + "=> MESSAGE " + e.getMessage() + "\n TRACE: " + e.toString());
+            e.printStackTrace();
+
+            Utilities.captureScreenShot(driver);
+        } finally {
+            Instant finish = Instant.now();
+            System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
+
+            System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " + responseModel.getApp_id());
+
+            mongoTemplate.save(deResponseQueryDTO);
+            // call m-sale update rq51 queue 30.6.2022 m-sale request
+            try {
+                MOBILITY_updateStatusAutomationRQ51(deResponseQueryDTO, responseModel);
+            }catch(Exception ex){
+                System.out.println("ex: "+ex);
+
+            }
+            // call m-sale update rq51 queue 30.6.2022 m-sale request end
+            logout(driver, accountDTO.getUserName());
+        }
+    }
+
+    private void MOBILITY_updateStatusAutomationRQ51(DEResponseQueryMulDocDTO deResponseQueryDTO, ResponseAutomationModel responseModel) throws Exception{
+        if (deResponseQueryDTO.getProject().toUpperCase().equals("MOBILITY_RQ51")) {
+            ObjectNode bodyRequest = mapper.createObjectNode();
+            bodyRequest.put("transaction_id", deResponseQueryDTO.getTransaction_id());
+            bodyRequest.put("automation_result", responseModel.getAutomation_result());
+            bodyRequest.put("reference_id", deResponseQueryDTO.getReference_id());
+            bodyRequest.put("project", deResponseQueryDTO.getProject());
+            bodyRequest.put("app_id", deResponseQueryDTO.getAppId());
+            JsonNode jsonNode = rabbitMQService.sendAndReceive("tpf-service-mobility",
+                    Map.of("func", "updateAutomationRQ51", "body", bodyRequest));
+            System.out.println("rabit:=>" + jsonNode.toString());
+        }
     }
 
     public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
