@@ -2393,7 +2393,7 @@ public class AutomationHandlerService {
             // ==========DOCUMENTS=================
             stage = "DOCUMENTS";
             handleUpdateAppErrorFullDocumentPage(stage, documentDTOS, application, driver);
-*/
+
 
             // ==========REFERENCES=================
             stage = "REFERENCES";
@@ -4088,7 +4088,7 @@ public class AutomationHandlerService {
                                 "automation_result", responseAutomationModel.getAutomation_result(),
                                 "reference_id", responseAutomationModel.getReference_id()
                         )));
-        System.out.println("rabit:=>" + jsonNode.toString());
+        System.out.println("rabbit:=>" + jsonNode.toString());
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 
@@ -5993,7 +5993,8 @@ public class AutomationHandlerService {
                 Instant finish = Instant.now();
                 System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
                 System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-                logoutV2(driver, accountDTO);
+                //logoutV2(driver, accountDTO);
+                logout(driver,accountDTO.getUserName());
                 autoUpdateStatusRabbit(responseModel, "updateAutomation");
             }
         }

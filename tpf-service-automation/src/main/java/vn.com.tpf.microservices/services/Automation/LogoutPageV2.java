@@ -22,7 +22,8 @@ import static org.hamcrest.Matchers.is;
 public class LogoutPageV2 {
     private WebDriver _driver;
 
-    @FindBy(how = How.ID, using = "loggedInUserPhoto")
+    /*@FindBy(how = How.ID, using = "loggedInUserPhoto")*/
+    @FindBy(how = How.ID, using = "userLoginIcon")
     @CacheLookup
     private WebElement userPhotoElement;
 
