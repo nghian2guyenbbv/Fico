@@ -219,6 +219,8 @@ public class DE_ApplicationInfoFinancialDetailsTabNeo {
             //WebElement incomeHead = _driver.findElement(By.id("incomeDetailForm_incomeHead_" + indexRow + "_chosen"));
             WebElement incomeHead = _driver.findElement(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_"+indexRow+"_chosen')]//*[contains(text(),'Select')]"));
             actions.moveToElement(incomeHead).click().perform();
+            WebElement incomeHeadInput = _driver.findElement(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_"+indexRow+"_chosen')]//input"));
+            incomeHeadInput.sendKeys(data.getIncomeHead());
             //Thread.sleep(5000);//wait to show income list
             System.out.println("click incomeHead: " + indexRow);
             List<WebElement> incomeHeads = _driver.findElements(By.xpath("//*[contains(@id, 'incomeDetailForm_incomeHead_" + indexRow + "_chosen_o_')]"));
