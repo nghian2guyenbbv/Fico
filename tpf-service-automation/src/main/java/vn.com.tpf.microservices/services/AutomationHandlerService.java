@@ -77,7 +77,7 @@ import static org.awaitility.Awaitility.*;
 import static org.hamcrest.Matchers.is;
 
 @Service
-public class AutomationHandlerService {
+public class AutomationHandlerService extends AbstractHandlerService{
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 

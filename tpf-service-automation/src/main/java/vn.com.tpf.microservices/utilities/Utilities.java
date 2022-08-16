@@ -83,6 +83,27 @@ public class Utilities {
             mapResult.put(title, _elementValue);
     }
 
+    /**
+     * Take Screen shot with stage
+     * @param stage
+     * @param appOrFunction
+     * @param driver
+     */
+    public static void captureSreenShotWithStage(String stage, String appOrFunction, WebDriver driver){
+        File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        SessionId session = ((RemoteWebDriver)driver).getSessionId();
+        try {
+            if (appOrFunction != null && !appOrFunction.isEmpty() && !"UNKNOW".equals(appOrFunction)) {
+                FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + stage + "_" + appOrFunction + "_" + session.toString() + "_" + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+            } else {
+                FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + stage + "_" + session.toString() + "_" + System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
+
     public static void captureScreenShot(WebDriver ldriver) {
         File src = ((TakesScreenshot) ldriver).getScreenshotAs(OutputType.FILE);
         SessionId session = ((RemoteWebDriver)ldriver).getSessionId();
