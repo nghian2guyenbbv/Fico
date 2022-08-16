@@ -227,7 +227,7 @@ public class AutomationHandlerService {
 
     public void logout(WebDriver driver, String accountAuto) {
         try {
-
+            Thread.sleep(60000);
             System.out.println("Logout");
             LogoutPage logoutPage = new LogoutPage(driver);
             logoutPage.logout();
@@ -2168,7 +2168,12 @@ public class AutomationHandlerService {
         //loanDetailsPage.getTabLoanDetailsElement().click();
         WebElement loanDetailPage = loanDetailsPage.getTabLoanDetailsElement();
         actions.moveToElement(loanDetailPage).click().build().perform();
+
+        WebElement sourcingDetailsTab = driver.findElement(By.id("sourcingDetailsLiId"));
+        actions.moveToElement(sourcingDetailsTab).click().build().perform();
         DE_LoanDetailsSourcingDetailsTabNeo loanDetailsSourcingDetailsTab = new DE_LoanDetailsSourcingDetailsTabNeo(driver);
+        Utilities.captureSreenShotWithStage(stage,"Click_sourcing_tab",driver);
+
         await("Load loan details - sourcing details tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanDetailsSourcingDetailsTab.getTabSourcingDetailsElement().getAttribute("class").contains("active"));
         await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -2218,6 +2223,7 @@ public class AutomationHandlerService {
         ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
         if (documentDTOS.size() > 0) {
             String docComment = "no comment";
+
             DE_DocumentsPage documentsPage = new DE_DocumentsPage(driver);
             //go to the top page
             driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
@@ -2226,11 +2232,8 @@ public class AutomationHandlerService {
             documentsPage.getTabDocumentsElement().click();
             await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-            if(application.getQuickLead().getDocumentsComment()!= null && !application.getQuickLead().getDocumentsComment().isEmpty()){
-                docComment = application.getQuickLead().getDocumentsComment();
-            }
 
-            documentsPage.setData2(documentDTOS, downdloadFileURL, docComment);
+            documentsPage.setData2( documentDTOS, downdloadFileURL, docComment);
 
             Utilities.captureScreenShot(driver);
 
@@ -2266,7 +2269,7 @@ public class AutomationHandlerService {
         System.out.println("click referrence tab");
         await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
-
+        Utilities.captureScreenShot(driver);
         referencesPage.updateData(referenceDTO);
         Utilities.captureScreenShot(driver);
         referencesPage.getSaveBtnElement().click();
@@ -7326,23 +7329,11 @@ public class AutomationHandlerService {
 
             stage = "LOGIN FINONE";
 
-            //***************************//LOGIN PAGE//***************************//
-
-//            LoginPage loginPage = new LoginPage(driver);
-//            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword());
-//            Utilities.captureScreenShot(driver);
-//            loginPage.clickLogin();
-//            Utilities.captureScreenShot(driver);
-//
-//            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-//                    .until(driver::getTitle, is("DashBoard"));
-            //NghiaNVT - update for FinOne v6
             LoginPageNeo loginPage = new LoginPageNeo(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
+            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
 
             //***************************//END LOGIN//***************************//
-
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
 
