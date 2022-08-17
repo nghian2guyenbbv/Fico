@@ -399,6 +399,12 @@ public class AutomationHandlerService extends AbstractHandlerService{
                     driver = setupTestDriver.getDriver();
                     runAutomation_fine1Neo(driver, mapValue, accountDTO);
                     break;
+                case "runAutomationDE_ResponseQueryMultiDoc":
+                    accountDTO = returnMulDoc_pollAccountFromQueue(accounts, project.toUpperCase(), mapValue);
+                    setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
+                    driver = setupTestDriver.getDriver();
+                    runAutomationDE_ResponseQueryMultiDoc(driver, mapValue, accountDTO);
+                break;
             }
 
         } catch (Exception e) {
@@ -418,7 +424,76 @@ public class AutomationHandlerService extends AbstractHandlerService{
             }
         }
     }
+    private DERaiseQueryDTO getApplicationFromDEResponseQuery(DEResponseQueryDTO deResponseQueryDTO, Query query) {
+        query.addCriteria(Criteria.where("applicationNo").is(deResponseQueryDTO.getAppId())
+                .and("stage").in("KYC","LEAD DETAILS","CREDIT_APPROVAL","LOGIN ACCEPTANCE")).with(new Sort(Sort.Direction.DESC, "createdDate"));
+        System.out.println("appID : " + deResponseQueryDTO.getAppId());
+        DERaiseQueryDTO applicationDTO = mongoTemplate.findOne(query, DERaiseQueryDTO.class);
+        System.out.println("getApplicationFromDEResponseQuery: "+ applicationDTO);
+        if (applicationDTO != null && !applicationDTO.getQueryStatus().equals("Raised")) {
+            System.out.println("This application query status is not Raised");
+            return null;//return accountDTO null
+        }
+        return applicationDTO;
 
+    }
+
+    private DERaiseQueryDTO getApplicationFromDEResponseMultiQuery(DEResponseQueryMulDocDTO deResponseQueryDTO, Query query) {
+        query.addCriteria(Criteria.where("applicationNo").is(deResponseQueryDTO.getAppId())
+                .and("stage").in("KYC","LEAD DETAILS","CREDIT_APPROVAL","LOGIN ACCEPTANCE")).with(new Sort(Sort.Direction.DESC, "createdDate"));
+        System.out.println("appID : " + deResponseQueryDTO.getAppId());
+        DERaiseQueryDTO applicationDTO = mongoTemplate.findOne(query, DERaiseQueryDTO.class);
+        if (applicationDTO != null && !applicationDTO.getQueryStatus().equals("Raised")) {
+            System.out.println("This application query status is not Raised");
+            return null;//return accountDTO null
+        }
+        return applicationDTO;
+
+    }
+    private LoginDTO returnMulDoc_pollAccountFromQueue(Queue<LoginDTO> accounts, String project, Map<String, Object> mapValue) throws Exception {
+        LoginDTO accountDTO = null;
+
+        while (Objects.isNull(accountDTO)) {
+            Query query = new Query();
+            System.out.println("Wait to get account...");
+            DEResponseQueryMulDocDTO deResponseQueryDTO = (DEResponseQueryMulDocDTO) mapValue.get("DEResponseQueryList");
+            DERaiseQueryDTO applicationDTO = null;
+            try {
+                applicationDTO = getApplicationFromDEResponseMultiQuery(deResponseQueryDTO, query);
+                System.out.println("Raise returnMulDoc_pollAccountFromQueue  : " + applicationDTO.getRaiseTo());
+            } catch (NullPointerException ex) {
+                return accountDTO;
+            }
+            AccountFinOneDTO accountFinOneDTO = null;
+            if (!Objects.isNull(applicationDTO)) {
+                query = new Query();
+                query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
+                accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+            }
+            if (!Objects.isNull(accountFinOneDTO)) {
+                accountDTO = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
+
+                Query queryUpdate = new Query();
+                queryUpdate.addCriteria(Criteria.where("active").is(0).and("username").is(accountFinOneDTO.getUsername()).and("project").is(project));
+                Update update = new Update();
+                update.set("active", 1);
+                AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+
+                if (resultUpdate == null) {
+                    Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+                    accountDTO = null;
+                } else {
+                    System.out.println("Get it:" + accountDTO.getUserName());
+                    System.out.println("Exist:" + accounts.size());
+                }
+                mapValue.put("userRaise",applicationDTO.getRaiseBy());
+                mapValue.put("queryName", applicationDTO.getQueryCode());
+            } else
+                Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
+        }
+
+        return accountDTO;
+    }
     //------------------------ DATA ENTRY -------------------------------------------
     public void runAutomation_QuickLead(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
         Instant start = Instant.now();
@@ -3992,22 +4067,28 @@ public class AutomationHandlerService extends AbstractHandlerService{
         LoginDTO accountDTO = null;
 
         while (Objects.isNull(accountDTO)) {
+            Query query = new Query();
             System.out.println("Wait to get account...");
             DEResponseQueryDTO deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
-            Query query = new Query();
-            query.addCriteria(Criteria.where("applicationId").is(deResponseQueryDTO.getAppId()).and("stage")
-                    .in("KYC","LEAD_DETAILS","CREDIT_APPROVAL","LOGIN_ACCEPTANCE")).with(new Sort(Sort.Direction.DESC,"createdDate"));
-            DERaiseQueryDTO applicationDTO = mongoTemplate.findOne(query, DERaiseQueryDTO.class);
-            if (!"Raise".equals(checkApplicationStatus(applicationDTO))) {
+            System.out.println("return_pollAccountFromQueue deResponseQueryDTO: "+deResponseQueryDTO);
+            DERaiseQueryDTO applicationDTO = null;
+            try {
+                applicationDTO = getApplicationFromDEResponseQuery(deResponseQueryDTO, query);
+                System.out.println("Raise return_pollAccountFromQueue  : " + applicationDTO.getRaiseTo());
+            } catch (NullPointerException ex) {
+                System.out.println("This application was not exist");
                 return accountDTO;
             }
-
             AccountFinOneDTO accountFinOneDTO = null;
             if (!Objects.isNull(applicationDTO)) {
-                query = new Query();
-                query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
-                accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
-                return accountDTO;
+                try {
+                    query = new Query();
+                    query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
+                    accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                    return accountDTO;
+                }catch(NullPointerException ex){
+                    System.out.println("Raised User: "+applicationDTO.getRaiseTo()+"is not in project: "+project);
+                }
             }
             if (!Objects.isNull(accountFinOneDTO)) {
                 accountDTO = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
@@ -4093,7 +4174,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                 // ========== APPLICATIONS =================
                 stage = "APPLICATIONS";
-                HomePage homePageMoveApp = new HomePage(driver);
+                searchAppInapplicationTab(driver,deResponseQueryDTO.getAppId(), stage);
+               /* HomePage homePageMoveApp = new HomePage(driver);
                 homePageMoveApp.getMenuApplicationElement().click();
                 homePageMoveApp.getApplicationElement().click();
 
@@ -4101,11 +4183,12 @@ public class AutomationHandlerService extends AbstractHandlerService{
                         .until(driver::getTitle, is("Application Grid"));
                 Utilities.captureScreenShot(driver);
                 ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
-                applicationGridPage.updateData(deResponseQueryDTO.getAppId());
+                applicationGridPage.updateData(deResponseQueryDTO.getAppId());*/
                 System.out.println(stage + ": DONE");
                 // ========== END APPLICATIONS =================
                 // ========== UPLOADED MULTI DOCS =================
                 stage = "UPLOADED MULTI DOCS";
+                ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
                 DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
                 String tabCore = driver.getWindowHandle();
                 applicationGridPage.getCollectedDocs().click();
@@ -4279,6 +4362,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
+            System.out.println("START init data");
+            System.out.println("START init data : "+mapValue.get("DEResponseQueryList"));
             deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
