@@ -6567,6 +6567,7 @@ public class AutomationHandlerService {
             // ========== PERSONAL INFORMATION =================
             stage = "VIEW/EDIT DETAILED INFORMATION";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
+            crm_ExistingCustomerPage.getCustomerPersonal().click();
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -6578,7 +6579,7 @@ public class AutomationHandlerService {
             await("Load Personal Info tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getPersonalInfoTabElement().getAttribute("class").contains("active"));
 
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId, driver);
 
             await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
@@ -6586,7 +6587,7 @@ public class AutomationHandlerService {
             personalTab.setValue(applicationInfoDTO);
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateData", driver);
 
             stage = "EMPLOYMENT DETAILS";
             // ========== EMPLOYMENT DETAILS =================
@@ -6599,13 +6600,14 @@ public class AutomationHandlerService {
 
             employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetail());
             employmentDetailsTab.getDoneBtnElement().click();
+            Utilities.captureSreenShotWithStage(stage, applicationId, driver);
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetail());
             employmentDetailsTab.getSaveAndNextBtnElement().click();
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateEmployeeData", driver);
 
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
@@ -6622,7 +6624,7 @@ public class AutomationHandlerService {
             }
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateIncomeDetailData", driver);
 
             stage = "BANK / CREDIT CARD DETAILS";
             // ==========BANK DETAILS =================
@@ -6654,7 +6656,7 @@ public class AutomationHandlerService {
             bankDetailsTab.saveAndNext();
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateBankAndCreditCardData", driver);
 
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
@@ -6673,6 +6675,7 @@ public class AutomationHandlerService {
 
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateLoanSoucingDetailData", driver);
 
             Thread.sleep(5000);
 
@@ -6700,7 +6703,7 @@ public class AutomationHandlerService {
             }
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateSourcingDeleteVapData", driver);
 
             // ==========VAP DETAILS=======================
             if (loanDetailsDTO.getVapDetails() != null && loanDetailsDTO.getVapDetails().getVapProduct() != null && !loanDetailsDTO.getVapDetails().getVapProduct().equals("")) {
@@ -6715,11 +6718,15 @@ public class AutomationHandlerService {
                 loanDetailsVapDetailsTab.getBtnSaveAndNextElement().click();
 
                 System.out.println(stage + ": DONE");
-                Utilities.captureScreenShot(driver);
+                Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateVapData", driver);
 
             }
 
             stage = "DOCUMENTS";
+            // ==========DOCUMENTS=================
+            handleForExistingCustomerDocumentPage(stage, documentDTOS, driver);
+
+            /*stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
                 CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
@@ -6737,8 +6744,8 @@ public class AutomationHandlerService {
                 documentsPage.getBtnSubmitElement().click();
             }
 
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            System.out.println(stage + ": DONE");*/
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeDocument", driver);
 
             stage = "REFERENCES";
             // ==========REFERENCES=================
@@ -6751,7 +6758,7 @@ public class AutomationHandlerService {
             referencesPage.getSaveBtnElement().click();
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateReferenceData", driver);
 
 
             // ==========MISC FRM APP DTL=================
