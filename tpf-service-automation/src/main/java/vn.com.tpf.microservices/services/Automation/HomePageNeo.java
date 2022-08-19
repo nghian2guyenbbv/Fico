@@ -40,6 +40,10 @@ public class HomePageNeo {
 	@CacheLookup
 	private WebElement applicationMenuGrid;
 
+	@FindBy(how = How.ID, using = "menuidsgridcreditapproval")
+	@CacheLookup
+	private WebElement creditApprovalMenu;
+
 	@FindBy(how = How.ID, using = "menuidsapplicationGridView")
 	@CacheLookup
 	private WebElement applicationMenuGridView;
@@ -163,4 +167,10 @@ public class HomePageNeo {
 		this.applicationMenuGridView.click();
 	}
 
+	public void creditApprovalClick() {
+		this.applicationMenu.click();
+		await("quickLead visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+				.until(() -> quickLead.isDisplayed());
+		this.creditApprovalMenu.click();
+	}
 }

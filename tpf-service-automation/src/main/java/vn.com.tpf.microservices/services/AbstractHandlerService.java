@@ -10,6 +10,21 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.util.concurrent.TimeUnit;
 
 public class AbstractHandlerService {
+    public void searchAppInCreditApprovalTab(WebDriver driver, String leadAppID, String stage) throws InterruptedException{
+        HomePageNeo homePage = new HomePageNeo(driver);
+        homePage.menuClick();
+        homePage.creditApprovalClick();
+        Thread.sleep(Constant.WAIT_ASSIGN_TIMEOUT);
+        homePage.getAssignedApp().click();
+        Awaitility.await("creditApproval loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> homePage.getApplicationNumber().isDisplayed());
+        homePage.getApplicationNumber().sendKeys(leadAppID);
+        homePage.getApplicationNumber().sendKeys(Keys.ENTER);
+        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+        homePage.getAppQueryElement().click();
+        System.out.println(stage + ": DONE");
+        Utilities.captureSreenShotWithStage(stage,leadAppID+"_searchAppInCreditApprovalTab",driver);
+    }
     public void searchAppInapplicationTab(WebDriver driver, String leadAppID, String stage) throws InterruptedException{
         HomePageNeo homePage = new HomePageNeo(driver);
         homePage.menuClick();

@@ -40,6 +40,7 @@ import vn.com.tpf.microservices.models.Automation.*;
 import vn.com.tpf.microservices.models.AutomationMonitor.AutomationMonitorDTO;
 import vn.com.tpf.microservices.models.DERaiseQuery.DERaiseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDocumentDTO;
 import vn.com.tpf.microservices.models.DEReturn.DESaleQueueDTO;
 import vn.com.tpf.microservices.models.QuickLead.Application;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
@@ -285,10 +286,11 @@ public class AutomationHandlerService extends AbstractHandlerService{
                     runAutomationDE_autoAssign(driver, mapValue, project, browser);
                     break;
                 case "runAutomationDE_ResponseQuery":
-                    accountDTO = return_pollAccountFromQueue(accounts, project.toUpperCase(), mapValue);
+                    Map<String, Object> accountDTOMap= new HashMap<>();
+                    accountDTOMap = return_pollAccountFromQueue(accounts, project.toUpperCase(), mapValue);
                     setupTestDriver = new SeleniumGridDriver(null, browser, fin1URL, null, seleHost, selePort);
                     driver = setupTestDriver.getDriver();
-                    runAutomationDE_responseQuery(driver, mapValue, accountDTO);
+                    runAutomationDE_responseQuery(driver, mapValue, accountDTOMap);
                     break;
                 case "runAutomationDE_SaleQueue":
                     accountDTO = pollAccountFromQueue(accounts, project.toUpperCase());
@@ -426,10 +428,9 @@ public class AutomationHandlerService extends AbstractHandlerService{
     }
     private DERaiseQueryDTO getApplicationFromDEResponseQuery(DEResponseQueryDTO deResponseQueryDTO, Query query) {
         query.addCriteria(Criteria.where("applicationNo").is(deResponseQueryDTO.getAppId())
-                .and("stage").in("KYC","LEAD DETAILS","CREDIT_APPROVAL","LOGIN ACCEPTANCE")).with(new Sort(Sort.Direction.DESC, "createdDate"));
+                .and("stage").in("KYC","LEAD DETAILS","CREDIT APPROVAL","LOGIN ACCEPTANCE")).with(new Sort(Sort.Direction.DESC, "createdDate"));
         System.out.println("appID : " + deResponseQueryDTO.getAppId());
         DERaiseQueryDTO applicationDTO = mongoTemplate.findOne(query, DERaiseQueryDTO.class);
-        System.out.println("getApplicationFromDEResponseQuery: "+ applicationDTO);
         if (applicationDTO != null && !applicationDTO.getQueryStatus().equals("Raised")) {
             System.out.println("This application query status is not Raised");
             return null;//return accountDTO null
@@ -440,7 +441,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
     private DERaiseQueryDTO getApplicationFromDEResponseMultiQuery(DEResponseQueryMulDocDTO deResponseQueryDTO, Query query) {
         query.addCriteria(Criteria.where("applicationNo").is(deResponseQueryDTO.getAppId())
-                .and("stage").in("KYC","LEAD DETAILS","CREDIT_APPROVAL","LOGIN ACCEPTANCE")).with(new Sort(Sort.Direction.DESC, "createdDate"));
+                .and("stage").in("KYC","LEAD DETAILS","CREDIT APPROVAL","LOGIN ACCEPTANCE")).with(new Sort(Sort.Direction.DESC, "createdDate"));
         System.out.println("appID : " + deResponseQueryDTO.getAppId());
         DERaiseQueryDTO applicationDTO = mongoTemplate.findOne(query, DERaiseQueryDTO.class);
         if (applicationDTO != null && !applicationDTO.getQueryStatus().equals("Raised")) {
@@ -466,9 +467,15 @@ public class AutomationHandlerService extends AbstractHandlerService{
             }
             AccountFinOneDTO accountFinOneDTO = null;
             if (!Objects.isNull(applicationDTO)) {
-                query = new Query();
-                query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
-                accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                try{
+                    query = new Query();
+                    query.addCriteria(Criteria.where("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
+                    accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
+                    System.out.println("accountFinOneDTO :"+accountFinOneDTO);
+                }catch(NullPointerException ex){
+                    System.out.println("Raised User"+applicationDTO.getRaiseTo()+" is not in project "+project);
+                    return accountDTO;
+                }
             }
             if (!Objects.isNull(accountFinOneDTO)) {
                 accountDTO = new LoginDTO().builder().userName(accountFinOneDTO.getUsername()).password(accountFinOneDTO.getPassword()).build();
@@ -4063,10 +4070,13 @@ public class AutomationHandlerService extends AbstractHandlerService{
     }
     //region PROJECT: AUTO SMARTNET
     //------------------------ RESPONSE_QUERY-----------------------------------------------------
-    private LoginDTO return_pollAccountFromQueue(Queue<LoginDTO> accounts, String project, Map<String, Object> mapValue) throws Exception {
+    private Map<String, Object> return_pollAccountFromQueue(Queue<LoginDTO> accounts, String project, Map<String, Object> mapValue)  throws InterruptedException{
         LoginDTO accountDTO = null;
+        Map<String, Object> pollAccountMap = new HashMap<>();
+        String errorDes = "No Error";
 
-        while (Objects.isNull(accountDTO)) {
+        /*while (Objects.isNull(accountDTO)) {*/
+        while (pollAccountMap.get("accountDTO") == null) {
             Query query = new Query();
             System.out.println("Wait to get account...");
             DEResponseQueryDTO deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
@@ -4076,18 +4086,29 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 applicationDTO = getApplicationFromDEResponseQuery(deResponseQueryDTO, query);
                 System.out.println("Raise return_pollAccountFromQueue  : " + applicationDTO.getRaiseTo());
             } catch (NullPointerException ex) {
-                System.out.println("This application was not exist");
-                return accountDTO;
+                errorDes = "Raised query for application "+deResponseQueryDTO.getAppId()+" was not exist";
+                System.out.println(errorDes);
+                pollAccountMap.put("errorDes",errorDes);
+                return pollAccountMap;
             }
             AccountFinOneDTO accountFinOneDTO = null;
             if (!Objects.isNull(applicationDTO)) {
                 try {
                     query = new Query();
-                    query.addCriteria(Criteria.where("active").is(0).and("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
+                    query.addCriteria(Criteria.where("project").is(project).and("username").is(applicationDTO.getRaiseTo()));
                     accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
-                    return accountDTO;
+                    System.out.println("accountFinOneDTO "+accountFinOneDTO);
+                    if(Objects.isNull(accountFinOneDTO)){
+                        errorDes = "Raised User: "+applicationDTO.getRaiseTo()+"is not in project: "+project;
+                        System.out.println(errorDes);
+                        pollAccountMap.put("errorDes",errorDes);
+                        return pollAccountMap;
+                    }
                 }catch(NullPointerException ex){
-                    System.out.println("Raised User: "+applicationDTO.getRaiseTo()+"is not in project: "+project);
+                    errorDes = "Raised User: "+applicationDTO.getRaiseTo()+"is not in project: "+project;
+                    System.out.println(errorDes);
+                    pollAccountMap.put("errorDes",errorDes);
+                    return pollAccountMap;
                 }
             }
             if (!Objects.isNull(accountFinOneDTO)) {
@@ -4098,19 +4119,44 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 Update update = new Update();
                 update.set("active", 1);
                 AccountFinOneDTO resultUpdate = mongoTemplate.findAndModify(queryUpdate, update, AccountFinOneDTO.class);
+                System.out.println("resultUpdate: "+resultUpdate );
 
                 if (resultUpdate == null) {
                     Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
-                    accountDTO = null;
+
                 } else {
+                    accountDTO.setUserName(resultUpdate.getUsername());
+                    accountDTO.setPassword(resultUpdate.getPassword());
+                    pollAccountMap.put("accountDTO",accountDTO);
+                    pollAccountMap.put("errorDes",errorDes);
                     System.out.println("Get it:" + accountDTO.getUserName());
                     System.out.println("Exist:" + accounts.size());
                 }
-            } else
+            } else{
                 Thread.sleep(Constant.WAIT_ACCOUNT_TIMEOUT);
+            }
         }
+        System.out.println("accountDTO.getUsername() "+accountDTO.getUserName()
+                +" accountDTO.getPassword() "+accountDTO.getPassword()+" errorDes "+errorDes+" accountDTO"+accountDTO +" pollAccountMap: "+pollAccountMap);
+        return pollAccountMap;
+    }
 
-        return accountDTO;
+    private void handleUploadDocumentDE_ResponseQueryMultiDoc(String stage, List<DEResponseQueryDocumentDTO> documentDTOS, WebDriver driver ) throws Exception{
+        ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
+        if (documentDTOS.size() > 0) {
+            String docComment = "no comment";
+            CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
+            
+            Thread.sleep(2000);//wating to load the document page
+            documentsPage.setDataForResponseMultiDoc("handleUploadDocumentDE_ResponseQueryMultiDoc", documentDTOS, downdloadFileURL, docComment);
+
+            Utilities.captureScreenShot(driver);
+            WebElement submitButton = documentsPage.getBtnSubmitElement();
+            Utilities.clickButtonWithJSExecutor(driver, submitButton);
+            System.out.println("Click submit document button");
+        }
+        System.out.println(stage + ": DONE");
+
     }
 
     public void runAutomationDE_ResponseQueryMultiDoc(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO){
@@ -4123,13 +4169,12 @@ public class AutomationHandlerService extends AbstractHandlerService{
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
             deResponseQueryDTO = (DEResponseQueryMulDocDTO) mapValue.get("DEResponseQueryList");
-            log.info("runAutomationDE_ResponseQueryMulDoc deResponseQueryDTO INIT DATA: {}", deResponseQueryDTO);
+            log.info("deResponseQueryDTO ", deResponseQueryDTO);
             System.out.println(stage + ": DONE");
             //*************************** END GET DATA *********************//
             if (accountDTO == null) {
                 deResponseQueryDTO.setStatus("ERROR");
-                deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
-
+                //deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
                 responseModel.setProject(deResponseQueryDTO.getProject());
                 responseModel.setReference_id(deResponseQueryDTO.getReference_id());
                 responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
@@ -4139,8 +4184,11 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 System.out.println("Auto Error: " + deResponseQueryDTO.getAppId() + " - ACCOUNT NOT CORRECT AUTO");
             } else {
                 String queryName = String.valueOf(mapValue.get("queryName"));
+                //String queryName = Optional.ofNullable(mapValue.get("queryName")).orElse("RQ51").toString();
                 String userRaise = Optional.ofNullable(mapValue.get("userRaise")).orElse("").toString();
+                System.out.println("queryName"+queryName);
                 deResponseQueryDTO.setQueryName(queryName);
+                String appID = deResponseQueryDTO.getAppId();
 
                 //***************************// LOGIN//***************************//
                 stage = "LOGIN FINONE";
@@ -4149,53 +4197,39 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 loginPage.clickLogin();
                 await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("DashBoard"));
-                System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + appID + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
                 //***************************//END LOGIN//***************************//
 
                 // ========== APPLICATION MANAGER =================
-                HomePage homePage = new HomePage(driver);
-                homePage.getMenuApplicationElement().click();
                 stage = "APPLICATION MANAGER";
-                this.assignManger(driver, deResponseQueryDTO.getAppId(), "TPF UNDERWRITING", accountDTO.getUserName().toLowerCase());
+                this.assignManger(driver, appID, "TPF UNDERWRITING", accountDTO.getUserName().toLowerCase());
                 System.out.println(stage + ": DONE");
-                Utilities.captureScreenShot(driver);
+                Utilities.captureSreenShotWithStage(stage, appID,driver);
 
-               /* homePage.getApplicationManagerElement().click();
-                await("Application Manager timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(driver::getTitle, is("Application Manager"));
-
-                DE_ApplicationManagerPage de_applicationManagerPage = new DE_ApplicationManagerPage(driver);
-                await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> de_applicationManagerPage.getApplicationManagerFormElement().isDisplayed());
-                de_applicationManagerPage.setAssignedHasTeamName(deResponseQueryDTO.getAppId(), accountDTO.getUserName().toLowerCase(), "TPF UNDERWRITING");
-                */
                 System.out.println(stage + ": DONE");
                 // ========== END APPLICATION MANAGER =================
 
                 // ========== APPLICATIONS =================
                 stage = "APPLICATIONS";
-                searchAppInapplicationTab(driver,deResponseQueryDTO.getAppId(), stage);
-               /* HomePage homePageMoveApp = new HomePage(driver);
-                homePageMoveApp.getMenuApplicationElement().click();
-                homePageMoveApp.getApplicationElement().click();
-
-                await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(driver::getTitle, is("Application Grid"));
-                Utilities.captureScreenShot(driver);
-                ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
-                applicationGridPage.updateData(deResponseQueryDTO.getAppId());*/
+                //searchAppInapplicationTab(driver,deResponseQueryDTO.getAppId(), stage);
+                searchAppInCreditApprovalTab(driver,appID, stage);
+                Utilities.captureSreenShotWithStage(stage, appID, driver);
                 System.out.println(stage + ": DONE");
                 // ========== END APPLICATIONS =================
                 // ========== UPLOADED MULTI DOCS =================
                 stage = "UPLOADED MULTI DOCS";
                 ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
                 DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
+                List<DEResponseQueryDocumentDTO> DEResponseQueryDocumentDTO = deResponseQueryDTO.getDataDocuments();
                 String tabCore = driver.getWindowHandle();
                 applicationGridPage.getCollectedDocs().click();
                 for (String tab: driver.getWindowHandles()){
-                    if(!tab.equals(tabCore)){
+                    if (!tab.equals(tabCore)) {
                         driver.switchTo().window(tab);
-                        List<WebElement> listElDocs = driver.findElements(By.xpath("//*[contains(@id,'applicationDocument_name')]"));
+                        handleUploadDocumentDE_ResponseQueryMultiDoc(stage, DEResponseQueryDocumentDTO, driver);
+                        Utilities.captureSreenShotWithStage(stage,"handleUploadDocumentDE_ResponseQueryMultiDoc",driver);
+                        /*List<WebElement> listElDocs = driver.findElements(By.xpath("//*[contains(@id,'applicationDocument_name')]"));
                         List<String> listDocs = new ArrayList<>();
                         for (WebElement webElement : listElDocs){
                             listDocs.add(webElement.getText());
@@ -4233,7 +4267,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                             }
                         }
                         driver.findElement(By.xpath("//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")).click();
-                        Thread.sleep(10000);
+                        Thread.sleep(10000);*/
                     }
                 }
 
@@ -4244,18 +4278,33 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 // ========== RESPONSE QUERY =================
                 stage = "RESPONSE QUERY";
                 driver.switchTo().window(tabCore);
-                HomePage homePage2 = new HomePage(driver);
-                homePage2.getMenuApplicationElement().click();
-
-                de_ReturnRaiseQueryPage.getResponseQueryElement().click();
+                SearchMenu searchMenu = new SearchMenu(driver);
+                searchMenu.MoveToPage(Constant.MENU_NAME_LINK_RESPONSE_QUERY);
                 de_ReturnRaiseQueryPage.setDataMulDoc(deResponseQueryDTO);
                 System.out.println(stage + ": DONE");
                 System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
                 // ========== END RESPONSE QUERY =================
 
                 //set user raise query
                 // ========== APPLICATION MANAGER =================
-                HomePage hP = new HomePage(driver);
+                stage = "APPLICATION MANAGER";
+                Thread.sleep(2000);
+                if(!userRaise.equals("")) {
+                    this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                    Thread.sleep(200);
+                    this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                    Thread.sleep(200);
+                    this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                    Thread.sleep(200);
+                    this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                    Thread.sleep(200);
+                    // Error cannot assinge to Raise user at the first time edit in Appplication manager
+                    this.assignManger(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                    Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
+                }
+
+                /*HomePageNeo hP = new HomePageNeo(driver);
                 hP.getMenuApplicationElement().click();
                 stage = "APPLICATION MANAGER";
                 hP.getApplicationManagerElement().click();
@@ -4265,9 +4314,10 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 DE_ApplicationManagerPage de_appPg = new DE_ApplicationManagerPage(driver);
                 await("getApplicationManagerFormElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> de_appPg.getApplicationManagerFormElement().isDisplayed());
+                System.out.println("userRaise.toLowerCase() :"+userRaise.toLowerCase());
                 if(!userRaise.equals("")){
                     de_appPg.setAssignedRaise(deResponseQueryDTO.getAppId(), userRaise.toLowerCase(), "TPF UNDERWRITING");
-                }
+                }*/
                 System.out.println(stage + ": DONE");
                 // ========== END APPLICATION MANAGER =================
 
@@ -4338,72 +4388,83 @@ public class AutomationHandlerService extends AbstractHandlerService{
         }
     }
 
-    public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+    /** return response  when account is null
+     *
+     * @param deResponseQueryDTO
+     * @param responseModel
+     */
+
+    private void handleAccountNullForResponseQuery(DEResponseQueryDTO deResponseQueryDTO, ResponseAutomationModel responseModel, String errorDes){
+        deResponseQueryDTO.setStatus("ERROR");
+        //deResponseQueryDTO.setUserAuto(deResponseQueryDTO.getUserAuto());
+        responseModel.setProject(deResponseQueryDTO.getProject());
+        responseModel.setReference_id(deResponseQueryDTO.getReference_id());
+        responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+        responseModel.setApp_id(deResponseQueryDTO.getAppId());
+        responseModel.setAutomation_result("RESPONSEQUERY FAILED" + " - " + " ACCOUNT IS NOT CORRECT" + errorDes);
+        System.out.println("Auto Error:" + deResponseQueryDTO.getAppId() + " ACCOUNT IS NOT CORRECT" + errorDes);
+    }
+
+    public void runAutomationDE_responseQuery(WebDriver driver, Map<String, Object> mapValue,   Map<String, Object> accountDTOmap) throws Exception {
+        LoginDTO accountDTO = null;
+        if(accountDTOmap.get("accountDTO")!= null){
+             accountDTO = (LoginDTO)accountDTOmap.get("accountDTO");
+        }
+        String errorDes = accountDTOmap.get("errorDes").toString();
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
         DEResponseQueryDTO deResponseQueryDTO = DEResponseQueryDTO.builder().build();
-        log.info("{}", deResponseQueryDTO);
-        if(Objects.isNull(accountDTO) ){
-            deResponseQueryDTO.setStatus("ERROR");
-            deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
-
-            responseModel.setProject(deResponseQueryDTO.getProject());
-            responseModel.setReference_id(deResponseQueryDTO.getReference_id());
-            responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
-            responseModel.setApp_id(deResponseQueryDTO.getAppId());
-            responseModel.setAutomation_result("RESPONSEQUERY FAILED" + " - " + "ACCOUNT IS NOT CORRECT");
-
-            System.out.println("Auto Error:" + deResponseQueryDTO.getAppId() +"ACCOUNT IS NOT CORRECT");
-
-
-
-        }
         try {
-            stage = "INIT DATA";
-            //*************************** GET DATA *********************//
-            System.out.println("START init data");
-            System.out.println("START init data : "+mapValue.get("DEResponseQueryList"));
-            deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
-            //*************************** END GET DATA *********************//
-            System.out.println(stage + ": DONE");
+            if (Objects.isNull(accountDTO)) {
+                deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
+                log.info("{}", deResponseQueryDTO);
+                handleAccountNullForResponseQuery(deResponseQueryDTO, responseModel,errorDes);
+            } else {
+                stage = "INIT DATA";
+                //*************************** GET DATA *********************//
+                deResponseQueryDTO = (DEResponseQueryDTO) mapValue.get("DEResponseQueryList");
+                log.info("{}", deResponseQueryDTO);
+                //*************************** END GET DATA *********************//
+                System.out.println(stage + ": DONE");
 
-            stage = "LOGIN FINONE";
+                stage = "LOGIN FINONE";
 
-            //***************************//LOGIN PAGE//***************************//
+                //***************************//LOGIN PAGE//***************************//
 
-            LoginPageNeo loginPage = new LoginPageNeo(driver);
-            loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
-            loginPage.clickLogin();
-            await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("DashBoard"));
+                LoginPageNeo loginPage = new LoginPageNeo(driver);
+                loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(), "CAS");
+                loginPage.clickLogin();
+                await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(driver::getTitle, is("DashBoard"));
 
-            //***************************//END LOGIN//***************************//
+                //***************************//END LOGIN//***************************//
 
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+                System.out.println(stage + ": DONE");
+                Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
 
-            System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-            stage = "HOME PAGE";
-            SearchMenu searchMenu = new SearchMenu(driver);
-            searchMenu.MoveToPage(Constant.MENU_NAME_LINK_RESPONSE_QUERY);
-            // ========== APPLICATIONS =================
-            stage = "RESPONSE QUERY";
+                stage = "HOME PAGE";
+                SearchMenu searchMenu = new SearchMenu(driver);
+                searchMenu.MoveToPage(Constant.MENU_NAME_LINK_RESPONSE_QUERY);
+                Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
+                // ========== APPLICATIONS =================
+                stage = "RESPONSE QUERY";
 
-            // ========== RESPONSE QUERY =================
-            DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
-            de_ReturnRaiseQueryPage.setData(deResponseQueryDTO, downdloadFileURL);
-            System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                // ========== RESPONSE QUERY =================
+                DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
+                de_ReturnRaiseQueryPage.setData(deResponseQueryDTO, downdloadFileURL);
+                System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
+                // ========= UPDATE DB ============================
 
-            // ========= UPDATE DB ============================
-
-            Query queryUpdate1 = new Query();
-            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
-            Update update1 = new Update();
-            update1.set("userauto", accountDTO.getUserName());
-            update1.set("status", 1);
-            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
+                Query queryUpdate1 = new Query();
+                queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
+                Update update1 = new Update();
+                update1.set("userauto", accountDTO.getUserName());
+                update1.set("status", 1);
+                System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
 //            Query queryUpdate1 = new Query();
 //            queryUpdate1.addCriteria(Criteria.where("status").is(2).and("appId").is(deResponseQueryDTO.getAppId()));
@@ -4412,16 +4473,17 @@ public class AutomationHandlerService extends AbstractHandlerService{
 //            update1.set("status", 1);
 //            System.out.println("Auto: " + accountDTO.getUserName() + " - UPDATE STATUS " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
 
-            deResponseQueryDTO.setStatus("OK");
-            deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
-            responseModel.setProject(deResponseQueryDTO.getProject());
-            responseModel.setReference_id(deResponseQueryDTO.getReference_id());
-            responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
-            responseModel.setApp_id(deResponseQueryDTO.getAppId());
-            responseModel.setAutomation_result("RESPONSEQUERY PASS");
+                deResponseQueryDTO.setStatus("OK");
+                deResponseQueryDTO.setUserAuto(accountDTO.getUserName());
+                responseModel.setProject(deResponseQueryDTO.getProject());
+                responseModel.setReference_id(deResponseQueryDTO.getReference_id());
+                responseModel.setTransaction_id(deResponseQueryDTO.getTransaction_id());
+                responseModel.setApp_id(deResponseQueryDTO.getAppId());
+                responseModel.setAutomation_result("RESPONSEQUERY PASS");
 
-            Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShot(driver);
 
+            }
         } catch (Exception e) {
 
             deResponseQueryDTO.setStatus("ERROR");
@@ -4444,7 +4506,9 @@ public class AutomationHandlerService extends AbstractHandlerService{
             System.out.println("Auto DONE:" + responseModel.getAutomation_result() + "- Project " + responseModel.getProject() + "- AppId " + responseModel.getApp_id());
 
             mongoTemplate.save(deResponseQueryDTO);
-            logout(driver, accountDTO.getUserName());
+            if (accountDTO != null) {
+                logout(driver, accountDTO.getUserName());
+            }
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
 
         }
@@ -6517,7 +6581,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 Instant finish = Instant.now();
                 System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
                 System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-                logoutV2(driver, accountDTO);
+                //logoutV2(driver, accountDTO);
+                logout(driver,accountDTO.getUserName());
                 autoUpdateStatusRabbit(responseModel, "updateAutomation");
             }
         }
@@ -7412,6 +7477,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             //*************************** END GET DATA *********************//
             System.out.println(stage + ": DONE");
 
+            //***************************//LOGIN FINONE//***************************//
             stage = "LOGIN FINONE";
 
             LoginPageNeo loginPage = new LoginPageNeo(driver);
@@ -9862,6 +9928,25 @@ public class AutomationHandlerService extends AbstractHandlerService{
             System.out.println(stage);
             log.info("{}", sb.toString());
         }
+    }
+
+    /** Edit error in application manager at the first time
+     *
+     * @param driver
+     * @param leadApp
+     * @param teamName
+     * @param accountName
+     * @throws InterruptedException
+     */
+    private void assignMangerDE(WebDriver driver, String leadApp, String teamName, String accountName) throws InterruptedException {
+        HomePageNeo homePage = new HomePageNeo(driver);
+        homePage.menuClick();
+        homePage.applicationManagerClick();
+        homePage.getLeadNumber().sendKeys(leadApp);
+        homePage.getSearchApplication().click();
+        Thread.sleep(Constant.WAIT_ACCOUNT_GET_NULL);
+        homePage.getShowTasks().click();
+        homePage.getEditAssigned().click();
     }
     private void assignManger(WebDriver driver, String leadApp, String teamName, String accountName) throws InterruptedException {
         HomePageNeo homePage = new HomePageNeo(driver);

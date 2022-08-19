@@ -64,7 +64,7 @@ public class ApplicationGridPage {
     @CacheLookup
     private WebElement aLeadAssignElement;
 
-    @FindBy(how = How.XPATH, using = "//*[@id='collectedDocs']")
+    @FindBy(how = How.XPATH, using = "//*[@id='collectDocumentsCA']")
     @CacheLookup
     private WebElement collectedDocs;
 

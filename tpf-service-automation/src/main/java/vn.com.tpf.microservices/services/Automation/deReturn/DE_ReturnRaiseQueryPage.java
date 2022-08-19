@@ -89,10 +89,13 @@ public class DE_ReturnRaiseQueryPage {
         _driver = driver;
     }
 
-    @SneakyThrows
-    public void setData(DEResponseQueryDTO deResponseQueryDTO, String downLoadFileURL) {
-        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+    /**
+     * Go to Response Query Tab and search the APPLICATION
+     *
+     * @param deResponseQueryDTO
+     */
 
+    private void searchApplicationInQueryResponse(DEResponseQueryDTO deResponseQueryDTO) {
         await("responseQueryFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> responseQueryFormElement.isDisplayed());
 
@@ -100,7 +103,7 @@ public class DE_ReturnRaiseQueryPage {
         applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("Search Application ID Response Query Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("Search Application ID Response Query Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdResponseQueryElement.size() > 2);
 
         Utilities.captureScreenShot(_driver);
@@ -108,11 +111,17 @@ public class DE_ReturnRaiseQueryPage {
         idRowResponseQueryElement.click();
 
         with().pollInterval(Duration.FIVE_SECONDS).
-        await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbDivResponseQueryElement.size() > 2);
 
         Utilities.captureScreenShot(_driver);
 
+
+    }
+    @SneakyThrows
+    public void setData(DEResponseQueryDTO deResponseQueryDTO, String downLoadFileURL) {
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+        searchApplicationInQueryResponse(deResponseQueryDTO);
         textSeachResponseQueryElement.clear();
 
         if (Objects.isNull(deResponseQueryDTO.getQueryName())){
@@ -177,7 +186,8 @@ public class DE_ReturnRaiseQueryPage {
         textSeachResponseQueryElement.clear();
 
         if (Objects.isNull(deResponseQueryDTO.getQueryName())){
-            textSeachResponseQueryElement.sendKeys("T_RETURN");
+            /*textSeachResponseQueryElement.sendKeys("T_RETURN");*/
+            textSeachResponseQueryElement.sendKeys("RQ51");
         }else{
             textSeachResponseQueryElement.sendKeys(deResponseQueryDTO.getQueryName());
         }
