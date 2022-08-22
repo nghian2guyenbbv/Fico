@@ -3,6 +3,7 @@ package vn.com.tpf.microservices.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jdk.jshell.execution.Util;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -4150,10 +4151,15 @@ public class AutomationHandlerService extends AbstractHandlerService{
             Thread.sleep(2000);//wating to load the document page
             documentsPage.setDataForResponseMultiDoc("handleUploadDocumentDE_ResponseQueryMultiDoc", documentDTOS, downdloadFileURL, docComment);
 
-            Utilities.captureScreenShot(driver);
-            WebElement submitButton = documentsPage.getBtnSubmitElement();
-            Utilities.clickButtonWithJSExecutor(driver, submitButton);
+            WebElement submitButton = documentsPage.getBtnSubmitElementForMultiDoc();
+            /*await("submitButton displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> submitButton.isDisplayed());*/
+            //Utilities.clickButtonWithJSExecutor(driver, submitButton);
+            Actions actions = new Actions(driver);
+            Utilities.moveToElementAndClick(actions, submitButton);
             System.out.println("Click submit document button");
+            Utilities.captureScreenShot(driver);
+            Thread.sleep(5000);
         }
         System.out.println(stage + ": DONE");
 

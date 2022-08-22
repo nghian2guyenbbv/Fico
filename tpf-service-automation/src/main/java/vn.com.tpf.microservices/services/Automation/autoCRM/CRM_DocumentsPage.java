@@ -94,11 +94,13 @@ public class CRM_DocumentsPage extends DocumentPage {
 //    @CacheLookup
     private List<WebElement> lendingPhotoElement;
 
-    //@FindBy(how = How.ID, using = "submitDocuments")
     @FindBy(how= How.XPATH, using="//*[contains(@id, 'topActionBar')]//button[1]")
     @CacheLookup
     private WebElement btnSubmitElement;
 
+    @FindBy(how= How.XPATH, using="//*[contains(@id, 'topActionBar')]//button[contains(@class,'btn btn-primary pull-right')]")
+    @CacheLookup
+    private WebElement btnSubmitElementForMultiDoc;
 
     //------------------- UPDATE-----------------------
     @FindBy(how = How.ID, using = "lendingDocumentsTable_wrapper")
@@ -174,21 +176,9 @@ public class CRM_DocumentsPage extends DocumentPage {
                     FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(doc.getFileName(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
                     File file = new File(toFile);
                     if("Received".equals(checkCurrrentStatus(_driver))){
-                        try {
-                            WebElement uploadedDocument = _driver.findElement(By.xpath("//*[contain(@class,'image-thumbs ecm-clearfix')]"));
-                            // Click Edit if document was existed
-                            WebElement editViewDoc = _driver.findElement(By.xpath("//*[@id='dv_documentEdit']"));
-                            await("Load edit ViewDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                    .until(() -> editViewDoc.isDisplayed());
-                            editViewDoc.click();
-                            actions.moveToElement(editViewDoc).click().perform();
-                            saveDocumentOrNotFlag = false;
-                            System.out.println("Click Edit document");
-                        }catch(NoSuchElementException ex){
-                            // No document was uploaded
+                           // Multiple upload document just replace, no edit
                             changeDocumentStatus(_driver,"Select");
                             saveDocumentOrNotFlag = true;
-                        }
                     }
                     System.out.println("file.exists(): "+file.exists());
                     if (file.exists()) {
@@ -196,17 +186,18 @@ public class CRM_DocumentsPage extends DocumentPage {
                         System.out.println("PATH:" + photoUrl);
                         changeDocumentStatus(_driver,"Received");
                         try {
-                            Thread.sleep(10000);
+                            Thread.sleep(5000);
                             WebElement inputDocElement = _driver.findElement(By.xpath("//*[@id='document_viewer_mp']//input[contains(@class,'input_images')]"));
                             WebElement imageAddMore = _driver.findElement(By.xpath("//li[contains(@class, 'imageBox add_more_box')]"));
                             await("Load imageAddMore Timeout!").atMost(300, TimeUnit.SECONDS)
                                     .until(() -> imageAddMore.isDisplayed());
                             inputDocElement.sendKeys(photoUrl);
-                            Thread.sleep(2000);//waiting upload image
+                            Thread.sleep(5000);//waiting upload image
                             //go to the top page
                             _driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
                             WebElement saveDoc = _driver.findElement(By.id("dv_documentSave"));
-
+                            await("saveDoc Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                                    .until(() -> saveDoc.isDisplayed());
                             executor.executeScript("arguments[0].click();",saveDoc);
                             /*await("dv_documentSave Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                                     .until(() -> !saveDoc.isDisplayed());*/
@@ -225,33 +216,7 @@ public class CRM_DocumentsPage extends DocumentPage {
                 }
             }
         }
-        if (saveDocumentOrNotFlag && !"runAutomation_Existing_Customer_Full".equals(func)&& !"handleUploadDocumentDE_ResponseQueryMultiDoc".equals(func)) { //quickLead - Existing customer doesn't have Active and Document tab
-            _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]")).click();
-            Utilities.captureScreenShot(_driver);
-            System.out.println("SAVE DOCUMENT" + " => DONE");
-
-            documentLoadActivityElement.click();
-
-            await("documentBtnCommentElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentBtnCommentElement.isDisplayed());
-
-            Utilities.captureScreenShot(_driver);
-
-            documentBtnCommentElement.click();
-
-            Utilities.captureScreenShot(_driver);
-
-            await("Document Text Comment visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> documentTextCommentElement.isDisplayed());
-
-            documentTextCommentElement.sendKeys(documentComment);
-
-            documentBtnAddCommnetElement.click();
-            Utilities.captureScreenShot(_driver);
-            System.out.println("ADD COMMENT" + " => DONE");
-        }
         Utilities.captureScreenShot(_driver);
-        executor.executeScript("arguments[0].click();",btnSubmitElement);
     }
 
     public void setData2(String func, List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL, String documentComment)throws IOException, InterruptedException {
