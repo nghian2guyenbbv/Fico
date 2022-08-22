@@ -203,7 +203,7 @@ public class AutomationHandlerService {
 //                System.out.println("push to queue... : " + accountDTO.toString());
 //                accounts.add(accountDTO);
             try {
-                Thread.sleep(60000);
+                Thread.sleep(30000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -219,7 +219,7 @@ public class AutomationHandlerService {
 
     public void logout(WebDriver driver, String accountAuto) {
         try {
-            Thread.sleep(60000);
+            Thread.sleep(30000);
             System.out.println("Logout");
             LogoutPage logoutPage = new LogoutPage(driver);
             logoutPage.logout();
@@ -4993,8 +4993,8 @@ public class AutomationHandlerService {
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("FIELD INVESTIGATION VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(driver::getTitle, is("FI Entries Grid"));
+//                await("FIELD INVESTIGATION VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(driver::getTitle, is("FI Entries Grid"));
 
                 System.out.println("STAGE - " + stageApplication + " - PASS");
 
@@ -7498,6 +7498,7 @@ public class AutomationHandlerService {
 
             LoginDTO accountDTONew = null;
             do {
+                System.out.println("Wait to get account...");
                 Query query = new Query();
                 query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
                 AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
@@ -7517,8 +7518,9 @@ public class AutomationHandlerService {
                         loginDTOList.add(accountDTONew);
                         System.out.println("Get it:" + accountDTONew.toString());
                     }
-                } else
+                } else {
                     accountDTONew = null;
+                }
             } while (!Objects.isNull(accountDTONew));
 
             //insert data
@@ -7587,6 +7589,7 @@ public class AutomationHandlerService {
                     if (!Objects.isNull(autoAssignAllocationDTO)) {
 
                         //update app
+                        Thread.sleep(3000);
                         Query queryUpdate = new Query();
                         queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                         Update update = new Update();
@@ -7676,14 +7679,14 @@ public class AutomationHandlerService {
                     responseModel.setData(resultRespone);
                     autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
 
-                    WebElement buttonBackElement = driver.findElement(By.xpath("//*[contains(@class,'backSaveBtns')]//input[@type='button']"));
-
-                    buttonBackElement.click();
-
-                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                            .until(driver::getTitle, is("Application Manager"));
-
-                    System.out.println(ex.getMessage());
+//                    WebElement buttonBackElement = driver.findElement(By.xpath("//*[contains(@class,'backSaveBtns')]//input[@type='button']"));
+//
+//                    buttonBackElement.click();
+//
+//                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                            .until(driver::getTitle, is("Application Manager"));
+//
+//                    System.out.println(ex.getMessage());
                 }
             } while (!Objects.isNull(autoAssignAllocationDTO));
         } catch (Exception e) {
