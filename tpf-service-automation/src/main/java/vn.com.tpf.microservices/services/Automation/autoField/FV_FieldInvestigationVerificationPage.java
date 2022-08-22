@@ -174,6 +174,9 @@ public class FV_FieldInvestigationVerificationPage {
     @FindBy(how = How.XPATH, using = "//textarea[@id = 'field_investigation_entry_remarks']")
     private WebElement textareaRemarkElement;
 
+    @FindBy(how = How.ID, using = "field_investigation_entry_vo_verificationResult")
+    private List<WebElement> resultOfAgency;
+
 
     public FV_FieldInvestigationVerificationPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -398,6 +401,16 @@ public class FV_FieldInvestigationVerificationPage {
 
         verificationDateElement.clear();
         verificationDateElement.sendKeys(submitFieldDTO.getVerificationDate());
+        verificationDateElement.sendKeys(Keys.ENTER);
+
+        await("resultOfAgency loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> resultOfAgency.size() > 0);
+        for (WebElement e : resultOfAgency) {
+            if(e.getText().equals(submitFieldDTO.getResultDecisionFiv())){
+                e.click();
+                break;
+            }
+        }
 
         with().pollInterval(Duration.FIVE_SECONDS).await("Button Save And Proceed loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> buttonSaveAndProceed.isDisplayed());
