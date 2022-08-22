@@ -2394,7 +2394,6 @@ public class AutomationHandlerService {
             stage = "DOCUMENTS";
             handleUpdateAppErrorFullDocumentPage(stage, documentDTOS, application, driver);
 
-
             // ==========REFERENCES=================
             stage = "REFERENCES";
             handleUpdateAppErrorFullReferencePage(stage, referenceDTO, driver, actions);
@@ -6764,6 +6763,7 @@ public class AutomationHandlerService {
             // ==========MISC FRM APP DTL=================
             stage = "MISC FRM APPDTL PAGE";
             CRM_MiscFrmAppDtlPage miscFrmAppDtlPage = new CRM_MiscFrmAppDtlPage(driver);
+            Thread.sleep(5000);//waiting noitification
             miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
             miscFrmAppDtlPage.setData(miscFrmAppDtlDTO);
             Utilities.captureScreenShot(driver);
