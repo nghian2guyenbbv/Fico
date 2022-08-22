@@ -134,8 +134,6 @@ public class CRM_DocumentsPage extends DocumentPage {
     }
 
     public void setDataForResponseMultiDoc(String func, List<DEResponseQueryDocumentDTO> documentDTOS, String downLoadFileURL, String documentComment)throws IOException, InterruptedException {
-        boolean saveDocumentOrNotFlag = true;
-        Actions actions = new Actions(_driver);
         with().pollInterval(Duration.FIVE_SECONDS).
                 await("Tab Document loading Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loadTabDocumentTreeList.isDisplayed());
@@ -160,7 +158,6 @@ public class CRM_DocumentsPage extends DocumentPage {
             if (requiredFiled.contains(docName)) {
                 await("Show document Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> element.isDisplayed());
-                //actions.moveToElement(element).click().build().perform();
                 executor.executeScript("arguments[0].click();",element);
                 System.out.println("element.click(): "+docName);
                 Thread.sleep(2000);
@@ -178,7 +175,6 @@ public class CRM_DocumentsPage extends DocumentPage {
                     if("Received".equals(checkCurrrentStatus(_driver))){
                            // Multiple upload document just replace, no edit
                             changeDocumentStatus(_driver,"Select");
-                            saveDocumentOrNotFlag = true;
                     }
                     System.out.println("file.exists(): "+file.exists());
                     if (file.exists()) {
@@ -209,7 +205,6 @@ public class CRM_DocumentsPage extends DocumentPage {
 
                         } catch (NoSuchElementException ex) {
                             changeDocumentStatus(_driver,"Select");
-                            saveDocumentOrNotFlag = false;
                         }
                         Utilities.captureScreenShot(_driver);
                     }

@@ -178,6 +178,7 @@ public class DE_ReturnRaiseQueryPage {
         applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
         idRowResponseQueryElement.click();
         Thread.sleep(5000);
+        Utilities.captureSreenShotWithStage("UPLOAD DOCUMENT","setDataMulDoc",_driver);
 
         await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tbDivResponseQueryElement.size() > 2);

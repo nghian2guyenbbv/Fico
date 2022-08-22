@@ -4209,6 +4209,15 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                 // ========== APPLICATION MANAGER =================
                 stage = "APPLICATION MANAGER";
+                this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                Thread.sleep(200);
+                this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                Thread.sleep(200);
+                this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                Thread.sleep(200);
+                this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
+                Thread.sleep(200);
+                // Error cannot assinge to Raise user at the first time edit in Appplication manager
                 this.assignManger(driver, appID, "TPF UNDERWRITING", accountDTO.getUserName().toLowerCase());
                 System.out.println(stage + ": DONE");
                 Utilities.captureSreenShotWithStage(stage, appID,driver);
@@ -4225,6 +4234,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 // ========== END APPLICATIONS =================
                 // ========== UPLOADED MULTI DOCS =================
                 stage = "UPLOADED MULTI DOCS";
+                Thread.sleep(10000);
                 ApplicationGridPage applicationGridPage = new ApplicationGridPage(driver);
                 DE_ReturnRaiseQueryPage de_ReturnRaiseQueryPage = new DE_ReturnRaiseQueryPage(driver);
                 List<DEResponseQueryDocumentDTO> DEResponseQueryDocumentDTO = deResponseQueryDTO.getDataDocuments();
@@ -4295,7 +4305,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 //set user raise query
                 // ========== APPLICATION MANAGER =================
                 stage = "APPLICATION MANAGER";
-                Thread.sleep(2000);
+                Thread.sleep(5000);
                 if(!userRaise.equals("")) {
                     this.assignMangerDE(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
                     Thread.sleep(200);
