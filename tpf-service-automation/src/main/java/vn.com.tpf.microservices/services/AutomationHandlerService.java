@@ -4974,8 +4974,8 @@ public class AutomationHandlerService {
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("Field Investigation Initiation failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> fv_FieldVerificationPage.getCheckMoveToNextStageElement().size() == 0);
+//                await("Field Investigation Initiation failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> fv_FieldVerificationPage.getCheckMoveToNextStageElement().size() == 0);
 
                 await("FIELD INVESTIGATION INITIATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Grid"));
@@ -5009,8 +5009,8 @@ public class AutomationHandlerService {
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(driver::getTitle, is("Application Grid"));
+//                await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(driver::getTitle, is("Application Grid"));
 
                 System.out.println("STAGE - " + stageApplication + " - PASS");
 
@@ -5439,9 +5439,9 @@ public class AutomationHandlerService {
             if (applicationId != null) {
                 if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
                     if (applicationId.contains("APPL")) {
-                        stageError = "UPDATE";
-                    }
+                    stageError = "UPDATE";
                 }
+            }
             }
             //*************************** END GET DATA *********************//
             //---------------- GET STAGE -------------------------//
