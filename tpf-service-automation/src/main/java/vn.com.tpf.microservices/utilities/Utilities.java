@@ -199,10 +199,20 @@ public class Utilities {
                         .toLowerCase())
                 .collect(Collectors.joining(WORD_SEPARATOR));
     }
-    public static void gotoTopPage(WebDriver driver){
+
+    /**
+     * Go to the top page
+     * @param driver
+     */
+    public static void gotoTopPage(WebDriver driver) {
         driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
     }
-    public static void gotoEndPage(WebDriver driver){
+
+    /**
+     * Go to End page
+     * @param driver
+     */
+    public static void gotoEndPage(WebDriver driver) {
         driver.findElement(By.tagName("Body")).sendKeys(Keys.END);
     }
     public static void scrollToView(WebDriver driver, WebElement element){
@@ -288,7 +298,7 @@ public class Utilities {
     }
 
     /**
-     * Check element exist or not
+     * Check element exist or not by id
      * @param by
      * @param element
      * @param driver
