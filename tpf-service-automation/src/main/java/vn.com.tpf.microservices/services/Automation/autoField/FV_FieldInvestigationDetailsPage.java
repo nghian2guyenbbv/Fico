@@ -236,7 +236,7 @@ public class FV_FieldInvestigationDetailsPage {
         await("Button Save Decision Element loading timeout!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnSaveDecisionElement.isEnabled());
 
-        btnSaveDecisionElement.click();
+        actions.moveToElement(btnSaveDecisionElement).click().build().perform();
 
         System.out.println("Button Save" + ": DONE");
 

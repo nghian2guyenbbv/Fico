@@ -213,7 +213,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 //                System.out.println("push to queue... : " + accountDTO.toString());
 //                accounts.add(accountDTO);
             try {
-                Thread.sleep(60000);
+                Thread.sleep(30000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -229,7 +229,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
     public void logout(WebDriver driver, String accountAuto) {
         try {
-            Thread.sleep(60000);
+            Thread.sleep(30000);
             System.out.println("Logout");
             LogoutPage logoutPage = new LogoutPage(driver);
             logoutPage.logout();
@@ -2165,6 +2165,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
         System.out.println(stage + ": DONE");
         Utilities.captureScreenShot(driver);
+
     }
 
     private void handleUpdateAppErrorFullEmploymentTab(String stage, Application application, DE_ApplicationInfoPage appInfoPage, ApplicationInfoDTO applicationInfoDTO, WebDriver driver, Actions actions)throws Exception{
@@ -2251,7 +2252,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
         //loanDetailsPage.getTabLoanDetailsElement().click();
         WebElement loanDetailPage = loanDetailsPage.getTabLoanDetailsElement();
         actions.moveToElement(loanDetailPage).click().build().perform();
-
+        
         WebElement sourcingDetailsTab = driver.findElement(By.id("sourcingDetailsLiId"));
         actions.moveToElement(sourcingDetailsTab).click().build().perform();
         DE_LoanDetailsSourcingDetailsTabNeo loanDetailsSourcingDetailsTab = new DE_LoanDetailsSourcingDetailsTabNeo(driver);
@@ -4693,7 +4694,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                                 "automation_result", responseAutomationModel.getAutomation_result(),
                                 "reference_id", responseAutomationModel.getReference_id()
                         )));
-        System.out.println("rabit:=>" + jsonNode.toString());
+        System.out.println("rabbit:=>" + jsonNode.toString());
     }
     //------------------------ END AUTO ASSIGN -----------------------------------------------------
 
@@ -5580,8 +5581,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("Field Investigation Initiation failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> fv_FieldVerificationPage.getCheckMoveToNextStageElement().size() == 0);
+//                await("Field Investigation Initiation failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> fv_FieldVerificationPage.getCheckMoveToNextStageElement().size() == 0);
 
                 await("FIELD INVESTIGATION INITIATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("Application Grid"));
@@ -5599,8 +5600,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("FIELD INVESTIGATION VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(driver::getTitle, is("FI Entries Grid"));
+//                await("FIELD INVESTIGATION VERIFICATION failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(driver::getTitle, is("FI Entries Grid"));
 
                 System.out.println("STAGE - " + stageApplication + " - PASS");
 
@@ -5615,8 +5616,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                 System.out.println("PAGE LOADING: " + driver.getTitle());
 
-                await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(driver::getTitle, is("Application Grid"));
+//                await("FIELD INVESTIGATION DETAILS failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(driver::getTitle, is("Application Grid"));
 
                 System.out.println("STAGE - " + stageApplication + " - PASS");
 
@@ -6045,9 +6046,9 @@ public class AutomationHandlerService extends AbstractHandlerService{
             if (applicationId != null) {
                 if (!applicationId.isEmpty() && !applicationId.contains("UNKNOWN")) {
                     if (applicationId.contains("APPL")) {
-                        stageError = "UPDATE";
-                    }
+                    stageError = "UPDATE";
                 }
+            }
             }
             //*************************** END GET DATA *********************//
             //---------------- GET STAGE -------------------------//
@@ -6076,8 +6077,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
         }
     }
 
-    private void checkExistingCustomer(CRM_ExistingCustomerPage crm_ExistingCustomerPage, CRM_ExistingCustomerDTO existingCustomerDTO, String applicationId,  WebDriver driver){
-
+    private String checkExistingCustomer(CRM_ExistingCustomerPage crm_ExistingCustomerPage, CRM_ExistingCustomerDTO existingCustomerDTO,  WebDriver driver){
+        String applicationID = null;
         crm_ExistingCustomerPage.application_personal_Click();
 
         await("Personal Loan Page displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -6167,8 +6168,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
         crm_ExistingCustomerPage.getCustomerInformationSaveElement().click();
 
         Utilities.captureScreenShot(driver);
-        applicationId = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
-        System.out.println("APPID => " + applicationId);
+        applicationID = crm_ExistingCustomerPage.getApplicantIdHeaderElement().getText();
+        System.out.println("APPID => " + applicationID);
 
         await("Work flow failed!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> crm_ExistingCustomerPage.getPrimaryApplicantElement().isDisplayed());
@@ -6205,6 +6206,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 //            driver.findElement(By.xpath("//*[@id='applicationChildTabs_customerPersonal']/a")).click();
 //
 //            //switch test flow end
+        return applicationID;
 
     }
     private void handleForExistingEmployeePersonalTab( String stage, CRM_ApplicationInfoPage appInfoPage,CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver) throws Exception{
@@ -6437,7 +6439,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 // ========== EXISTING CUSTOMER =================
                 stage = "EXISTING CUSTOMER";
                 CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
-                checkExistingCustomer(crm_ExistingCustomerPage,existingCustomerDTO,applicationId, driver);
+                applicationId = checkExistingCustomer(crm_ExistingCustomerPage,existingCustomerDTO, driver);
 
                 // ========== VIEW/EDIT DETAILED INFORMATION =================
                 stage = "VIEW/EDIT DETAILED INFORMATION";
@@ -7171,6 +7173,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             // ========== PERSONAL INFORMATION =================
             stage = "VIEW/EDIT DETAILED INFORMATION";
             CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
+            crm_ExistingCustomerPage.getCustomerPersonal().click();
             crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -7182,7 +7185,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             await("Load Personal Info tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> appInfoPage.getPersonalInfoTabElement().getAttribute("class").contains("active"));
 
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId, driver);
 
             await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
@@ -7190,7 +7193,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             personalTab.setValue(applicationInfoDTO);
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateData", driver);
 
             stage = "EMPLOYMENT DETAILS";
             // ========== EMPLOYMENT DETAILS =================
@@ -7203,13 +7206,14 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
             employmentDetailsTab.setData(applicationInfoDTO.getEmploymentDetail());
             employmentDetailsTab.getDoneBtnElement().click();
+            Utilities.captureSreenShotWithStage(stage, applicationId, driver);
             await("Employment Status loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> employmentDetailsTab.getTableAfterDoneElement().isDisplayed());
             employmentDetailsTab.setMajorOccupation(applicationInfoDTO.getEmploymentDetail());
             employmentDetailsTab.getSaveAndNextBtnElement().click();
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateEmployeeData", driver);
 
             stage = "FINANCIAL";
             // ==========FINANCIAL DETAILS =================
@@ -7226,7 +7230,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             }
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateIncomeDetailData", driver);
 
             stage = "BANK / CREDIT CARD DETAILS";
             // ==========BANK DETAILS =================
@@ -7258,7 +7262,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             bankDetailsTab.saveAndNext();
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateBankAndCreditCardData", driver);
 
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
@@ -7277,6 +7281,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
             Utilities.captureScreenShot(driver);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateLoanSoucingDetailData", driver);
 
             Thread.sleep(5000);
 
@@ -7304,7 +7309,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             }
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateSourcingDeleteVapData", driver);
 
             // ==========VAP DETAILS=======================
             if (loanDetailsDTO.getVapDetails() != null && loanDetailsDTO.getVapDetails().getVapProduct() != null && !loanDetailsDTO.getVapDetails().getVapProduct().equals("")) {
@@ -7319,11 +7324,15 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 loanDetailsVapDetailsTab.getBtnSaveAndNextElement().click();
 
                 System.out.println(stage + ": DONE");
-                Utilities.captureScreenShot(driver);
+                Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateVapData", driver);
 
             }
 
             stage = "DOCUMENTS";
+            // ==========DOCUMENTS=================
+            handleForExistingCustomerDocumentPage(stage, documentDTOS, driver);
+
+            /*stage = "DOCUMENTS";
             // ==========DOCUMENTS=================
             if (documentDTOS.size() > 0) {
                 CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
@@ -7341,8 +7350,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 documentsPage.getBtnSubmitElement().click();
             }
 
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            System.out.println(stage + ": DONE");*/
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeDocument", driver);
 
             stage = "REFERENCES";
             // ==========REFERENCES=================
@@ -7355,12 +7364,13 @@ public class AutomationHandlerService extends AbstractHandlerService{
             referencesPage.getSaveBtnElement().click();
 
             System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);
+            Utilities.captureSreenShotWithStage(stage, applicationId+"completeUpdateReferenceData", driver);
 
 
             // ==========MISC FRM APP DTL=================
             stage = "MISC FRM APPDTL PAGE";
             CRM_MiscFrmAppDtlPage miscFrmAppDtlPage = new CRM_MiscFrmAppDtlPage(driver);
+            Thread.sleep(5000);//waiting noitification
             miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
             miscFrmAppDtlPage.setData(miscFrmAppDtlDTO);
             Utilities.captureScreenShot(driver);
@@ -8095,6 +8105,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
             LoginDTO accountDTONew = null;
             do {
+                System.out.println("Wait to get account...");
                 Query query = new Query();
                 query.addCriteria(Criteria.where("active").is(0).and("project").is(project));
                 AccountFinOneDTO accountFinOneDTO = mongoTemplate.findOne(query, AccountFinOneDTO.class);
@@ -8114,8 +8125,9 @@ public class AutomationHandlerService extends AbstractHandlerService{
                         loginDTOList.add(accountDTONew);
                         System.out.println("Get it:" + accountDTONew.toString());
                     }
-                } else
+                } else {
                     accountDTONew = null;
+                }
             } while (!Objects.isNull(accountDTONew));
 
             //insert data
@@ -8184,6 +8196,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                     if (!Objects.isNull(autoAssignAllocationDTO)) {
 
                         //update app
+                        Thread.sleep(3000);
                         Query queryUpdate = new Query();
                         queryUpdate.addCriteria(Criteria.where("status").is(0).and("appId").is(autoAssignAllocationDTO.getAppId()).and("userName").is(autoAssignAllocationDTO.getUserName()));
                         Update update = new Update();
@@ -8273,14 +8286,14 @@ public class AutomationHandlerService extends AbstractHandlerService{
                     responseModel.setData(resultRespone);
                     autoUpdateStatusRabbitAllocation(responseModel, "updateStatusApp", accountDTO.getUserName(), appID);
 
-                    WebElement buttonBackElement = driver.findElement(By.xpath("//*[contains(@class,'backSaveBtns')]//input[@type='button']"));
-
-                    buttonBackElement.click();
-
-                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                            .until(driver::getTitle, is("Application Manager"));
-
-                    System.out.println(ex.getMessage());
+//                    WebElement buttonBackElement = driver.findElement(By.xpath("//*[contains(@class,'backSaveBtns')]//input[@type='button']"));
+//
+//                    buttonBackElement.click();
+//
+//                    await("Application Manager Back timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                            .until(driver::getTitle, is("Application Manager"));
+//
+//                    System.out.println(ex.getMessage());
                 }
             } while (!Objects.isNull(autoAssignAllocationDTO));
         } catch (Exception e) {
