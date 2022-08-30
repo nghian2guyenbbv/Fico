@@ -342,6 +342,9 @@ public class CRM_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList1_phoneNumber']")
     private WebElement mobilePhoneNumberCurrentAddressElement;
 
+    @FindBy(how = How.XPATH, using = "//*[@id='phoneNumberList0_phoneNumber']")
+    private WebElement mobilePhoneNumberCurrentAddressElementUpdateAdress;
+
 
     public CRM_ApplicationInfoPersonalTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -1400,8 +1403,11 @@ public class CRM_ApplicationInfoPersonalTab {
                 if(!data.getMobilePhone().isEmpty()){
                     boolean checkMobilephoneNumber = _driver.findElements(By.xpath("//*[@id='phoneNumberList0_phoneNumber']")).size() != 0;
                     if (checkMobilephoneNumber){
-                        mobilePhoneNumberCurrentAddressElement.clear();
-                        mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());
+                        /*mobilePhoneNumberCurrentAddressElement.clear();
+                        mobilePhoneNumberCurrentAddressElement.sendKeys(data.getMobilePhone());*/
+                        mobilePhoneNumberCurrentAddressElementUpdateAdress.clear();
+                        mobilePhoneNumberCurrentAddressElementUpdateAdress.sendKeys(data.getMobilePhone());
+
                     }else {
                         mobilePhoneNumberElement.clear();
                         mobilePhoneNumberElement.sendKeys(data.getMobilePhone());

@@ -114,6 +114,35 @@ public class Utilities {
         }
     }
 
+    /**
+     * capture Screen with Folder
+     * @param driver
+     * @param functionName
+     * @param appId
+     */
+
+    public static void captureScreenShotWithFolder(WebDriver driver, String functionName, String appId, String stage){
+        File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        SessionId session = ((RemoteWebDriver)driver).getSessionId();
+        try {
+            if (functionName != null && !functionName.isEmpty()) {
+                if (appId != null && !appId.isEmpty()) { //appId maybe replace with the Last name and First name
+                    FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER  + functionName + "/" + appId + "/" + appId + "_" +stage+"_"+ session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+
+                } else {
+                    FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + functionName + "/" +stage+"_"+ session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+
+                }
+
+            } else {
+                FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public static String readTextFromFile(String filePath) {
         try {
             System.out.println(System.getProperty("user.dir"));
@@ -264,14 +293,23 @@ public class Utilities {
      * After complete Personal tab soometime we got a warning
      * @param driver
      */
-    public static void pressOkOnWarning(WebDriver driver){
+    public static void pressOkOnWarning(WebDriver driver) throws InterruptedException{
         try{
-            WebElement okButton = driver.findElement(By.xpath("//*[contains(@id,'submitRequestToFunctionCall')}"));
-            okButton.click();
+            Thread.sleep(5000);
+            //WebElement okButton = driver.findElement(By.xpath("//*[contains(@id,'dialog-confirm-close')]//input[contains(@id,'submitRequestToFunctionCall')]"));
+            WebElement okButton = driver.findElement(By.xpath("//*[contains(@id,'dialog-confirm-close')]//input"));
+            if(okButton.getAttribute("value")!=null && "Ok".equals(okButton.getAttribute("value"))){
+                okButton.getAttribute("value");
+                System.out.println("press OK in warning dialog");
+            }
         }catch(NoSuchElementException ex){
-            System.out.println("Not warning");
+            System.out.println("Not warning. NoSuchElementException");
+            ;
+        }catch(ElementNotInteractableException ex){
+            System.out.println("Not warning. ElementNotInteractableException");
             ;
         }
+        //StaleElementReferenceException ElementNotInteractableException
     }
 
     /**
