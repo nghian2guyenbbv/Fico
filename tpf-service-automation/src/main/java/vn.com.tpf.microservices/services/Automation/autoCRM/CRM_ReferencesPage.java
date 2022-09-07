@@ -41,7 +41,8 @@ public class CRM_ReferencesPage {
     @CacheLookup
     private WebElement btnCreateNewRowElement;
 
-    @FindBy(how = How.XPATH, using = "//*[@id='container-no-tpl']/div/div[6]/button[1]")
+    //@FindBy(how = How.XPATH, using = "//*[@id='container-no-tpl']/div/div[6]/button[1]")
+    @FindBy(how = How.XPATH, using = "//button[@class='saveBtnHkeys btn btn-primary']")
     @CacheLookup
     private WebElement saveBtnElement;
 
@@ -116,9 +117,9 @@ public class CRM_ReferencesPage {
             _driver.findElement(By.id("customer_references_name_"+ index)).clear();
             _driver.findElement(By.id("customer_references_name_"+ index)).sendKeys(data.getFullName());
 
-            WebElement relationship = _driver.findElement(By.id("customer_references_relationship_" + index + "_chzn"));
+            WebElement relationship = _driver.findElement(By.id("customer_references_relationship_" + index + "_chosen"));
             relationship.click();
-            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chzn_o_')]"));
+            List<WebElement> relationships = _driver.findElements(By.xpath("//*[contains(@id, 'customer_references_relationship_" + index + "_chosen_o_')]"));
             await("relationships loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> relationships.size() > 0);
             Utilities.chooseDropdownValue(data.getRelationShip(), relationships);

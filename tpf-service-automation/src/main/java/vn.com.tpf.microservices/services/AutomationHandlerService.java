@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.openqa.selenium.*;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -4169,11 +4170,12 @@ public class AutomationHandlerService extends AbstractHandlerService{
     }
 
     public void runAutomationDE_ResponseQueryMultiDoc(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO){
+        String functionName = "runAutomationDE_ResponseQueryMultiDoc";
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
         DEResponseQueryMulDocDTO deResponseQueryDTO = DEResponseQueryMulDocDTO.builder().build();
-
+        String appID = "";
         try {
             stage = "INIT DATA";
             //*************************** GET DATA *********************//
@@ -4197,7 +4199,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 String userRaise = Optional.ofNullable(mapValue.get("userRaise")).orElse("").toString();
                 System.out.println("queryName"+queryName);
                 deResponseQueryDTO.setQueryName(queryName);
-                String appID = deResponseQueryDTO.getAppId();
+                appID = deResponseQueryDTO.getAppId();
 
                 //***************************// LOGIN//***************************//
                 stage = "LOGIN FINONE";
@@ -4207,7 +4209,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 await("Login timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(driver::getTitle, is("DashBoard"));
                 System.out.println("Auto:" + accountDTO.getUserName() + " - GET DONE " + " - " + " App: " + appID + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-                Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
                 //***************************//END LOGIN//***************************//
 
                 // ========== APPLICATION MANAGER =================
@@ -4223,7 +4225,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 // Error cannot assinge to Raise user at the first time edit in Appplication manager
                 this.assignManger(driver, appID, "TPF UNDERWRITING", accountDTO.getUserName().toLowerCase());
                 System.out.println(stage + ": DONE");
-                Utilities.captureSreenShotWithStage(stage, appID,driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
 
                 System.out.println(stage + ": DONE");
                 // ========== END APPLICATION MANAGER =================
@@ -4232,7 +4234,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 stage = "APPLICATIONS";
                 //searchAppInapplicationTab(driver,deResponseQueryDTO.getAppId(), stage);
                 searchAppInCreditApprovalTab(driver,appID, stage);
-                Utilities.captureSreenShotWithStage(stage, appID, driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
                 System.out.println(stage + ": DONE");
                 // ========== END APPLICATIONS =================
                 // ========== UPLOADED MULTI DOCS =================
@@ -4247,46 +4249,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                     if (!tab.equals(tabCore)) {
                         driver.switchTo().window(tab);
                         handleUploadDocumentDE_ResponseQueryMultiDoc(stage, DEResponseQueryDocumentDTO, driver);
-                        Utilities.captureSreenShotWithStage(stage,"handleUploadDocumentDE_ResponseQueryMultiDoc",driver);
-                        /*List<WebElement> listElDocs = driver.findElements(By.xpath("//*[contains(@id,'applicationDocument_name')]"));
-                        List<String> listDocs = new ArrayList<>();
-                        for (WebElement webElement : listElDocs){
-                            listDocs.add(webElement.getText());
-                        }
-                        List<WebElement> photoimgs = driver.findElements(By.xpath("//*[contains(@id,'photoimg')]"));
-                        await("Get input photoimgs Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                                .until(() -> photoimgs.size() > 0);
-                        ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
-                        for(var i = 0; i < deResponseQueryDTO.getDataDocuments().size();i++){
-                            WebElement documentStatusElement2 = driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + deResponseQueryDTO.getDataDocuments().get(i).getDocumentName() + "')]//select[starts-with(@id,'applicationDocument_receiveState')]"));
-
-                            documentStatusElement2.sendKeys("received");
-                            WebElement documentBtnUploadElement2 = driver.findElement(new By.ByXPath("//div[contains(@id,'lendingDocumentsTable_wrapper')]//table[contains(@id,'lendingDocumentsTable')]//tbody[@id = 'lendingDocumentList']//tr[contains(@data-documentcode,'" + deResponseQueryDTO.getDataDocuments().get(i).getDocumentName() + "')]//table[contains(@class, 'table table-striped table-bordered')]//input[contains(@type, 'file')]"));
-
-                            String fromFile = downdloadFileURL;
-                            System.out.println("URLdownload: " + fromFile);
-                            String docName = deResponseQueryDTO.getDataDocuments().get(i).getFileName();
-                            String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
-
-                            if ("TPF_Transcript".equals(docName)){
-                                docName = "TPF_Tran1";
-                            }
-
-                            toFile += UUID.randomUUID().toString() + "_" + docName;
-
-                            FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
-                            File file = new File(toFile);
-                            if (file.exists()) {
-                                String docUrl = file.getAbsolutePath();
-                                System.out.println("PATH:" + docUrl);
-                                Thread.sleep(2000);
-
-                                documentBtnUploadElement2.sendKeys(docUrl);
-                                Utilities.captureScreenShot(driver);
-                            }
-                        }
-                        driver.findElement(By.xpath("//div[contains(@class, 'txt-r actionBtnDiv')]//input[contains(@value, 'Save')]")).click();
-                        Thread.sleep(10000);*/
+                        Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
                     }
                 }
 
@@ -4302,7 +4265,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 de_ReturnRaiseQueryPage.setDataMulDoc(deResponseQueryDTO);
                 System.out.println(stage + ": DONE");
                 System.out.println("Auto - FINISH: " + " - " + " App: " + deResponseQueryDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-                Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
                 // ========== END RESPONSE QUERY =================
 
                 //set user raise query
@@ -4320,7 +4283,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                     Thread.sleep(200);
                     // Error cannot assinge to Raise user at the first time edit in Appplication manager
                     this.assignManger(driver, appID, "TPF UNDERWRITING", userRaise.toLowerCase());
-                    Utilities.captureSreenShotWithStage(stage,deResponseQueryDTO.getAppId(),driver);
+                    Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
                 }
 
                 /*HomePageNeo hP = new HomePageNeo(driver);
@@ -4358,6 +4321,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 // ========= END UPDATE DB ============================
             }
             Utilities.captureScreenShot(driver);
+            Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
 
         } catch (Exception e) {
 
@@ -4374,6 +4338,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             e.printStackTrace();
 
             Utilities.captureScreenShot(driver);
+            Utilities.captureScreenShotWithFolder(driver, functionName, appID, stage);
         } finally {
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
@@ -4544,6 +4509,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
     //------------------------ SALE_QUEUE-----------------------------------------------------
     public void runAutomationDE_saleQueue(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        String functionName ="runAutomationDE_saleQueue";
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -4568,14 +4534,14 @@ public class AutomationHandlerService extends AbstractHandlerService{
             //***************************//END LOGIN//***************************//
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
-
+            Utilities.captureScreenShotWithFolder(driver, functionName, deSaleQueueDTO.getAppId(), stage);
             // ========== SALE QUEUE =================
             stage = "SALE QUEUE";
             DE_ReturnSaleQueuePage de_ReturnSaleQueuePage = new DE_ReturnSaleQueuePage(driver);
             de_ReturnSaleQueuePage.setData(deSaleQueueDTO, accountDTO.getUserName().toLowerCase(), downdloadFileURL);
 
             System.out.println("Auto - FINISH: " + stage + " - " + " App: " + deSaleQueueDTO.getAppId() + " - Time: " + Duration.between(start, Instant.now()).toSeconds());
-
+            Utilities.captureScreenShotWithFolder(driver, functionName, deSaleQueueDTO.getAppId(), stage);
             // ========== Last Update User ACCA =================
             if (!Objects.isNull(deSaleQueueDTO.getUserCreatedSalesQueue())) {
                 AssignManagerSaleQueuePage de_applicationManagerPage = new AssignManagerSaleQueuePage(driver);
@@ -4610,7 +4576,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                             .until(() -> applicationIdAssignedNumberElement.isDisplayed());
 
                     applicationIdAssignedNumberElement.click();
-
+                    Utilities.captureScreenShotWithFolder(driver, functionName, deSaleQueueDTO.getAppId(), stage);
                     de_applicationManagerPage.getBtnMoveToNextStageElement().click();
 
                     await("Application timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -4620,7 +4586,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                     SearchMenu searchMenuMN_1 = new SearchMenu(driver);
                     searchMenuMN_1.MoveToPage(Constant.MENU_NAME_LINK_APPLICATION_MANAGER);
-
+                    Utilities.captureScreenShotWithFolder(driver, functionName, deSaleQueueDTO.getAppId(), stage);
                     // ========== APPLICATION MANAGER =================
                     stage = "APPLICATION MANAGER";
 
@@ -4638,9 +4604,11 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                     await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                             .until(() -> de_applicationManagerPage.getShowTaskElement().isDisplayed());
+                    Utilities.captureScreenShotWithFolder(driver, functionName, deSaleQueueDTO.getAppId(), stage);
 
                     if ("LOGIN_ACCEPTANCE".equals(de_applicationManagerPage.getTdCheckStageApplicationElement().getText())) {
                         de_applicationManagerPage.setDataACCA(deSaleQueueDTO.getUserCreatedSalesQueue());
+                        Utilities.captureScreenShotWithFolder(driver, functionName, deSaleQueueDTO.getAppId(), stage);
                     }
 
                 }
@@ -4656,6 +4624,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                         .until(driver::getTitle, is("Application Manager"));
                 //Service Acc đang lấy cho team DE tại ngày 04/09/2020
                 de_applicationManagerPage.setData(deSaleQueueDTO.getAppId(), "serviceacc_ldl");
+                Utilities.captureScreenShotWithFolder(driver, functionName, deSaleQueueDTO.getAppId(), stage);
             }
 
             deSaleQueueDTO.setStatus("OK");
@@ -6219,7 +6188,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
         return applicationID;
 
     }
-    private void handleForExistingEmployeePersonalTab( String stage, CRM_ApplicationInfoPage appInfoPage,CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver) throws Exception{
+    private void handleForExistingEmployeePersonalTab( String stage, CRM_ApplicationInfoPage appInfoPage,CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver, String custId, String functionName) throws Exception{
 
         CRM_ApplicationInfoPersonalTab personalTab = appInfoPage.getApplicationInfoPersonalTab();
 
@@ -6227,6 +6196,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 .until(() -> appInfoPage.getPersonalInfoTabElement().getAttribute("class").contains("active"));
 
         Utilities.captureScreenShot(driver);
+        Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
         await("getPersonalCustomerDetailsElement displayed timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> personalTab.getPersonalCustomerDetailsElement().isDisplayed());
@@ -6235,10 +6205,11 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
         System.out.println(stage + ": DONE");
         Utilities.captureScreenShot(driver);
+        Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
     }
 
-    private void handleForExistingEmploymentDetailTab(String stage, CRM_ApplicationInfoPage appInfoPage, CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver, Actions actions) throws Exception{
+    private void handleForExistingEmploymentDetailTab(String stage, CRM_ApplicationInfoPage appInfoPage, CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver, Actions actions, String custId, String functionName) throws Exception{
         Utilities.pressOkOnWarning(driver);
         Utilities.gotoTopPage(driver);
         WebElement web = driver.findElement(By.id("customerMainChildTabs_employment_tab"));
@@ -6264,8 +6235,9 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
         System.out.println(stage + ": DONE");
         Utilities.captureScreenShot(driver);
+        Utilities.captureScreenShotWithFolder(driver,functionName, custId, stage);
     }
-    private void handleForExistingEmployeeFinancialDetailTab(String stage, CRM_ApplicationInfoPage appInfoPage, CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver, Actions actions ) throws  Exception{
+    private void handleForExistingEmployeeFinancialDetailTab(String stage, CRM_ApplicationInfoPage appInfoPage, CRM_ApplicationInformationsListDTO applicationInfoDTO, WebDriver driver, Actions actions, String custId, String functionName) throws  Exception{
         if (applicationInfoDTO.getFinancialDetail() != null) {
             Thread.sleep(5000);
             CRM_ApplicationInfoFinancialDetailsTab financialDetailsTab = appInfoPage.getApplicationInfoFinancialDetailsTab();
@@ -6409,6 +6381,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
     public void runAutomation_Existing_Customer_Full(Map<String, Object> mapValue, WebDriver driver, LoginDTO accountDTO) throws Exception {
         {
+            String functionName ="runAutomation_Existing_Customer_Full";
             ResponseAutomationModel responseModel = new ResponseAutomationModel();
             Instant start = Instant.now();
             String stage = "";
@@ -6430,6 +6403,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 CRM_DynamicFormDTO miscFrmAppDtlDTO = (CRM_DynamicFormDTO) mapValue.get("MiscFrmAppDtlDTO");
                 log.info("{}", existingCustomerDTO);
                 mongoTemplate.save(existingCustomerDTO);
+                String custId = existingCustomerDTO.getNeoCustID();
                 //*************************** END GET DATA *********************//
                 System.out.println(stage + ": DONE");
 
@@ -6445,36 +6419,43 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
                 System.out.println(stage + ": DONE");
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 // ========== EXISTING CUSTOMER =================
                 stage = "EXISTING CUSTOMER";
                 CRM_ExistingCustomerPage crm_ExistingCustomerPage = new CRM_ExistingCustomerPage(driver);
                 applicationId = checkExistingCustomer(crm_ExistingCustomerPage,existingCustomerDTO, driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 // ========== VIEW/EDIT DETAILED INFORMATION =================
                 stage = "VIEW/EDIT DETAILED INFORMATION";
                 crm_ExistingCustomerPage.getEditCustomerExistCustomerElement().click();
                 System.out.println(stage + ": DONE");
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 // ========== APPLICANT INFORMATION =================
                 //========== PERSONAL INFORMATION =================
                 stage = "PERSONAL INFORMATION";
 
                 CRM_ApplicationInfoPage appInfoPage = new CRM_ApplicationInfoPage(driver);
-                handleForExistingEmployeePersonalTab(stage, appInfoPage, applicationInfoDTO, driver);
+                handleForExistingEmployeePersonalTab(stage, appInfoPage, applicationInfoDTO, driver, custId, functionName);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 stage = "EMPLOYMENT DETAILS";
                 // ========== EMPLOYMENT DETAILS =================
-                handleForExistingEmploymentDetailTab(stage, appInfoPage,applicationInfoDTO,driver,actions);
+                handleForExistingEmploymentDetailTab(stage, appInfoPage,applicationInfoDTO,driver,actions, custId, functionName);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 stage = "FINANCIAL";
                 // ==========FINANCIAL DETAILS =================
-                handleForExistingEmployeeFinancialDetailTab(stage, appInfoPage, applicationInfoDTO, driver, actions);
+                handleForExistingEmployeeFinancialDetailTab(stage, appInfoPage, applicationInfoDTO, driver, actions, custId, functionName);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 stage = "BANK / CREDIT CARD DETAILS";
                 // ==========BANK DETAILS =================
                 handleForExistingCustomerBankCreditTab(stage, appInfoPage,driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 // ==========LOAN DETAILS=================
                 stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
@@ -6482,23 +6463,28 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 driver.findElement(By.tagName("Body")).sendKeys(Keys.HOME);
                 CRM_LoanDetailsPage loanDetailsPage = new CRM_LoanDetailsPage(driver);
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
                 loanDetailsPage.getTabLoanDetailsElement().click();
 
                 handleForExistingCustomerSourcingDetailTab(stage, loanDetailsDTO,driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 // ==========VAP DETAILS=======================
                 stage = "LOAN DETAIL PAGE - VAP DETAIL TAB";
 
                 handleForExistingCustomerVAPdetailTab(stage, loanDetailsDTO, driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 stage = "DOCUMENTS";
                 // ==========DOCUMENTS=================
                 handleForExistingCustomerDocumentPage(stage, documentDTOS, driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 // ==========REFERENCES=================
                 stage = "REFERENCES PAGE";
                 CRM_ReferencesPage referencesPage = new CRM_ReferencesPage(driver);
                 handleForExistingReferencePage(stage, referencesPage, referenceDTO, driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 // ==========MISC FRM APP DTL=================
                 stage = "MISC FRM APPDTL PAGE";
@@ -6506,6 +6492,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 miscFrmAppDtlPage.getTabMiscFrmAppDtlElementByName().click();
                 miscFrmAppDtlPage.setData(miscFrmAppDtlDTO);
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 await("getBtnSaveElement end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> miscFrmAppDtlPage._getBtnSaveElement().isEnabled());
@@ -6513,6 +6500,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 miscFrmAppDtlPage._getBtnSaveElement().click();
 
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
 
@@ -6521,6 +6509,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                         .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
 
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 Thread.sleep(15000);
 
@@ -6530,6 +6519,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 //            actions.click(miscFrmAppDtlPage.getBtnMoveToNextStageElement()).perform();
 
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 System.out.println(stage + ": DONE");
 
@@ -6537,11 +6527,13 @@ public class AutomationHandlerService extends AbstractHandlerService{
                         .until(driver::getTitle, is("Application Grid"));
 
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
                 stage = "COMPLETE";
                 System.out.println("AUTO QUICKLEAD OK: user run auto: " + accountDTO.getUserName());
 
                 System.out.println("AUTO QUICKLEAD - FINISH: " + stage + " - " + Duration.between(start, Instant.now()).toSeconds());
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 responseModel.setProject(existingCustomerDTO.getProject());
                 responseModel.setReference_id(existingCustomerDTO.getReference_id());
@@ -6550,6 +6542,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 responseModel.setAutomation_result("QUICKLEAD PASS" + " - Session ID: " + session + " - UserAuto: " + accountDTO.getUserName());
 
                 Utilities.captureScreenShot(driver);
+                Utilities.captureScreenShotWithFolder(driver, functionName,custId, stage);
 
                 Query queryUpdate = new Query();
                 queryUpdate.addCriteria(Criteria.where("_id").is(new ObjectId(existingCustomerDTO.getId())).and("quickLeadId").is(existingCustomerDTO.getQuickLeadId()));
@@ -7491,6 +7484,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
     }
 
     public void runAutomation_Sale_Queue_With_FullInfo(WebDriver driver, Map<String, Object> mapValue, LoginDTO accountDTO) throws Exception {
+        JavascriptExecutor executor = (JavascriptExecutor)driver;
         ResponseAutomationModel responseModel = new ResponseAutomationModel();
         Instant start = Instant.now();
         String stage = "";
@@ -7567,17 +7561,6 @@ public class AutomationHandlerService extends AbstractHandlerService{
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
-/*
-            crm_applicationManagerPage.getMenuioApplicatnElement().click();
-            Utilities.captureScreenShot(driver);
-            crm_applicationManagerPage.getApplicationElement().click();
-            Utilities.captureScreenShot(driver);
-            await("Application Grid timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(driver::getTitle, is("Application Grid"));
-            Utilities.captureScreenShot(driver);
-            crm_applicationManagerPage.applicationGrid(applicationId);
-            System.out.println(stage + ": DONE");
-            Utilities.captureScreenShot(driver);*/
 
             // ========== APPLICANT INFORMATION =================
             // ========== PERSONAL INFORMATION =================
@@ -7678,6 +7661,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
 
             // ==========LOAN DETAILS=================
             stage = "LOAN DETAIL PAGE - SOURCING DETAIL TAB";
+            Thread.sleep(3000);
             CRM_LoanDetailsPage loanDetailsPage = new CRM_LoanDetailsPage(driver);
             Utilities.captureScreenShot(driver);
             Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
@@ -7690,25 +7674,52 @@ public class AutomationHandlerService extends AbstractHandlerService{
             await("Load loan details - sourcing details container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> loanDetailsSourcingDetailsTab.getSourcingDetailsDivContainerElement().isDisplayed());
             loanDetailsDTO.getSourcingDetails().setApplicationNumber(applicationId);
-            loanDetailsSourcingDetailsTab.updateData(loanDetailsDTO.getSourcingDetails());
-
+            loanDetailsSourcingDetailsTab.updateData2(loanDetailsDTO.getSourcingDetails());
             Utilities.captureScreenShot(driver);
             Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
+            Utilities.gotoTopPage(driver);
+            Thread.sleep(200);
+            loanDetailsSourcingDetailsTab.getSaveButton().click();
+
+            Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
+            Thread.sleep(2000);
+            try{
+                Thread.sleep(300);
+                WebElement confirmDeleteVapNext = driver.findElement(By.xpath("//*[contains(@onclick,'saveAndNextSourcingDetailForm')]"));
+                executor.executeScript("arguments[0].click();",confirmDeleteVapNext);
+                System.out.println("click Confirm delete Vap");
+            }catch(NoSuchElementException ex){
+                System.out.println("Not confirmDeleteVapNext. NoSuchElementException");
+                ;
+            }
+
+           /* try {
+                WebElement confirmDeleteVap = driver.findElement(By.id("confirmDeleteVapNext"));
+                executor.executeScript(confirmDeleteVap.getAttribute("onclick"));
+
+            }catch(NoSuchElementException ex){
+                ;
+            }*/
+            Thread.sleep(300);
             loanDetailsSourcingDetailsTab.getBtnSaveAndNextElement().click();
+
+            Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
+            Thread.sleep(2000);
+            try{
+                Thread.sleep(300);
+                WebElement confirmDeleteVapNext = driver.findElement(By.xpath("//*[contains(@onclick,'saveAndNextSourcingDetailForm')]"));
+                executor.executeScript("arguments[0].click();",confirmDeleteVapNext);
+                System.out.println("click Confirm delete Vap");
+            }catch(NoSuchElementException ex){
+                System.out.println("Not confirmDeleteVapNext. NoSuchElementException");
+                ;
+            }
+
+            // confirmDeleteVapNext;
 
             Thread.sleep(5000);
 
-//            try {
-//
-//                await("getBtnConfirmDeleteVapNextElement1 visibale Timeout!").atMost(60, TimeUnit.SECONDS)
-//                        .until(() -> driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).isDisplayed());
-//                //loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
-//
-//                driver.findElement(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).click();
-//            } catch (Exception e) {
-//                System.out.println("Confirm Delete Vap Next Visibale!!!");
-//            }
-
+/*
             boolean confirmDeleteVap = driver.findElements(By.xpath("//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")).size() != 0;
 
             if (confirmDeleteVap){
@@ -7720,7 +7731,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
 
                 loanDetailsSourcingDetailsTab.getBtnConfirmDeleteVapNextElement1().click();
-            }
+            }*/
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
@@ -7737,6 +7748,10 @@ public class AutomationHandlerService extends AbstractHandlerService{
                 loanDetailsVapDetailsTab.setData(loanDetailsDTO.getVapDetails());
                 Utilities.captureScreenShot(driver);
                 Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
+                Thread.sleep(200);
+                loanDetailsVapDetailsTab.getSaveButton2().click();
+                Thread.sleep(200);
+
                 loanDetailsVapDetailsTab.getBtnSaveAndNextElement().click();
 
                 System.out.println(stage + ": DONE");
@@ -7767,28 +7782,15 @@ public class AutomationHandlerService extends AbstractHandlerService{
                     Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
 
                 }
-                /*CRM_DocumentsPage documentsPage = new CRM_DocumentsPage(driver);
-                await("Load document tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentsPage.getTabDocumentsElement().isDisplayed() && documentsPage.getTabDocumentsElement().isEnabled());
-                documentsPage.getTabDocumentsElement().click();
-                await("Load document container Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentsPage.getDocumentsContainerElement().isDisplayed());
-                documentsPage.getBtnGetDocumentElement().click();
-                await("Load document table Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                        .until(() -> documentsPage.getLendingTrElement().size() > 0);
-
-                documentsPage.setData(documentDTOS, downdloadFileURL);
-                Utilities.captureScreenShot(driver);
-                documentsPage.getBtnSubmitElement().click();*/
             }
 
             System.out.println(stage + ": DONE");
             Utilities.captureScreenShot(driver);
             Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
+            Utilities.gotoTopPage(driver);
 
             stage = "REFERENCES";
             // ==========REFERENCES=================
-            stage = "REFERENCES PAGE";
             CRM_ReferencesPage referencesPage = new CRM_ReferencesPage(driver);
             await("Load references tab Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> referencesPage.getTabReferencesElement().isDisplayed() && referencesPage.getTabReferencesElement().isEnabled());
@@ -7816,11 +7818,17 @@ public class AutomationHandlerService extends AbstractHandlerService{
             Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
 
             miscFrmAppDtlPage.updateCommunicationValue(miscFrmAppDtlDTO.getRemark());
-
+            Utilities.gotoTopPage(driver);
+            Utilities.gotoTopPage(driver);
+            Utilities.gotoTopPage(driver);
             with().pollInterval(org.awaitility.Duration.FIVE_SECONDS).
             await("Button Move To Next Stage Element end tab not enabled!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> miscFrmAppDtlPage.getBtnMoveToNextStageElement().isEnabled());
-            miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            Utilities.gotoTopPage(driver);
+            Utilities.gotoTopPage(driver);
+            //miscFrmAppDtlPage.getBtnMoveToNextStageElement().click();
+            WebElement msicElement =  miscFrmAppDtlPage.getBtnMoveToNextStageElement();
+            executor.executeScript("arguments[0].click();",msicElement);
 
             Utilities.captureScreenShot(driver);
             Utilities.captureScreenShotWithFolder(driver, functionName, applicationId, stage);
@@ -7918,7 +7926,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             Instant finish = Instant.now();
             System.out.println("EXEC: " + Duration.between(start, finish).toMinutes());
             System.out.println(responseModel.getAutomation_result() + " => Project: " + responseModel.getProject() + " => AppId: " + responseModel.getApp_id());
-            logoutV2(driver, accountDTO);
+            logout(driver, accountDTO.getUserName());
             autoUpdateStatusRabbit(responseModel, "updateAutomation");
         }
     }
@@ -9175,6 +9183,8 @@ public class AutomationHandlerService extends AbstractHandlerService{
             System.out.println(stage + ": DONE");
             ResponseQueryDTO idMongoDB = mongoTemplate.insert(responseQueryDTO);
             idMongoDb = idMongoDB.getId();
+            String appId = responseQueryDTO.getApplicationId();
+            String functionName = "runAutomation_ResponseQuery";
             //*************************** INSERT DATA - DONE *********************//
 
             stage = "LOGIN FINONE";
@@ -9183,6 +9193,7 @@ public class AutomationHandlerService extends AbstractHandlerService{
             loginPage.setLoginValue(accountDTO.getUserName(), accountDTO.getPassword(),"CAS");
             loginPage.clickLogin();
             System.out.println("Func: responseQuery" + " - AccountAuto: " + accountDTO.getUserName() + " - " + stage + " DONE" + " - AppId: " + responseQueryDTO.getApplicationId());
+            Utilities.captureScreenShotWithFolder(driver, functionName, appId, stage);
             //***************************//END LOGIN//***************************//
 
             //*************************** UPDATE STATUS DATA *********************//

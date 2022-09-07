@@ -225,9 +225,13 @@ public class DE_ReturnSaleQueuePage {
 
         await("showTaskElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> showTaskElement.isDisplayed());
+       System.out.println("tdCheckStageApplicationElement.getText():"+tdCheckStageApplicationElement.getText());
+
+       /* await("Stage SALES QUEUE wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> "SALES QUEUE".equals(tdCheckStageApplicationElement.getText()));*/
 
         await("Stage SALES QUEUE wrong Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                .until(() -> "SALES QUEUE".equals(tdCheckStageApplicationElement.getText()));
+                .until(() -> tdCheckStageApplicationElement.getText() != null);
 
         if (!"SALES QUEUE".equals(tdCheckStageApplicationElement.getText())){
             return;

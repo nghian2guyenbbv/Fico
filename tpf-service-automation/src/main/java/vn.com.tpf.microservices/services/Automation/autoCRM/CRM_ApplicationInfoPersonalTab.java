@@ -30,6 +30,10 @@ import static org.awaitility.Awaitility.with;
 public class CRM_ApplicationInfoPersonalTab {
 
     private WebDriver _driver;
+    @FindBy(how = How.ID, using = "saveButton2")
+    @CacheLookup
+    private WebElement saveButton2;
+
     @FindBy(how = How.ID, using = "create_new_applicant")
     @CacheLookup
     private WebElement btnCreateNewUserElement;
@@ -571,7 +575,9 @@ public class CRM_ApplicationInfoPersonalTab {
        
 
         Thread.sleep(2000);
-
+        saveButton2.click();
+        Thread.sleep(2000);
+        Utilities.captureScreenShot(_driver);
         saveAndNext();
     }
 
@@ -703,7 +709,9 @@ public class CRM_ApplicationInfoPersonalTab {
 
         await("numDuplicateElement not enabled").atMost(120, TimeUnit.SECONDS)
                 .until(() -> StringUtils.isNotEmpty(numDuplicateElement.getText()));
-
+        Thread.sleep(2000);
+        saveButton2.click();
+        Thread.sleep(2000);
         saveAndNext();
     }
 

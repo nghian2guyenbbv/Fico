@@ -21,6 +21,11 @@ import static org.awaitility.Awaitility.await;
 
 @Getter
 public class CRM_LoanDetailsVapDetailsTab {
+    /*@FindBy(how = How.ID, using = "saveButton2")*/
+    @FindBy(how = How.ID, using = "saveVap")
+    @CacheLookup
+    private WebElement saveButton2;
+
 
     private WebDriver _driver;
 

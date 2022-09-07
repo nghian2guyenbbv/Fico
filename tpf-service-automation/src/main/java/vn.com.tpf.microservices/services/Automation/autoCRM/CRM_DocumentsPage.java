@@ -7,6 +7,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.LocalFileDetector;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
@@ -215,6 +217,7 @@ public class CRM_DocumentsPage extends DocumentPage {
     }
 
     public void setData2(String func, List<CRM_DocumentsDTO> documentDTOS, String downLoadFileURL, String documentComment)throws IOException, InterruptedException {
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
         boolean saveDocumentOrNotFlag = true;
         Actions actions = new Actions(_driver);
         with().pollInterval(Duration.FIVE_SECONDS).
@@ -222,14 +225,9 @@ public class CRM_DocumentsPage extends DocumentPage {
                 .until(() -> loadTabDocumentElement.isDisplayed());
 
         List<String> requiredFiled = new ArrayList<>();
-       /* if (documentDTOS.size() > 0) {
-            documentDTOS.stream().forEach(doc -> {
-                requiredFiled.add(doc.getType());
-            });
-        }*/
 
         if (documentDTOS.size() > 0 ) {
-            if("runAutomation_Existing_Customer_Full".equals(func)){
+            if("runAutomation_Existing_Customer_Full".equals(func)||"runAutomation_Sale_Queue_With_FullInfo".equals(func)){
                 documentDTOS.stream().forEach(doc -> {
                     requiredFiled.add(doc.getType()); });
             }else{
@@ -258,7 +256,7 @@ public class CRM_DocumentsPage extends DocumentPage {
                 Thread.sleep(2000);
                 String finalDocName = docName;
                 CRM_DocumentsDTO doc;
-                if ("runAutomation_Existing_Customer_Full".equals(func)) {
+                if ("runAutomation_Existing_Customer_Full".equals(func)||"runAutomation_Sale_Queue_With_FullInfo".equals(func)) {
                     doc = documentDTOS.stream().filter(q -> q.getType().equals(finalDocName)).findAny().orElse(null);
 
                 } else {
@@ -332,7 +330,7 @@ public class CRM_DocumentsPage extends DocumentPage {
                 }
             }
         }
-        if (saveDocumentOrNotFlag && !"runAutomation_Existing_Customer_Full".equals(func)) { //quickLead - Existing customer doesn't have Active and Document tab
+        if ((saveDocumentOrNotFlag && !"runAutomation_Existing_Customer_Full".equals(func))&&(saveDocumentOrNotFlag && !"runAutomation_Sale_Queue_With_FullInfo".equals(func))) { //quickLead - Existing customer doesn't have Active and Document tab
             _driver.findElement(By.xpath("//*[@id='topActionBar']/button[1]")).click();
             Utilities.captureScreenShot(_driver);
             System.out.println("SAVE DOCUMENT" + " => DONE");
