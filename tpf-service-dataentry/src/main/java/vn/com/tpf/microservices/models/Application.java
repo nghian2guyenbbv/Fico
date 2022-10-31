@@ -46,12 +46,4 @@ public class Application {
 
     private String partnerId;
     private String partnerName;
-
-//    private boolean isHolding = false;
-
-    private String reasonCancel;
-    private String createFrom;
-    private Long routingId;
-    private RoutingF1 routingF1;
-    private String stageF1;
 }

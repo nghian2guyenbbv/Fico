@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.CacheLookup;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class DE_ApplicationInfoPersonalTab {
@@ -168,6 +170,9 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.ID, using = "address3ToBeAdded_country")
     private WebElement address3Element;
 
+    @FindBy(how = How.ID, using = "address_landmark")
+    private WebElement addressLandmark;
+
     @FindBy(how = How.ID, using = "address_noOfYearsAtCurrentAdress")
     private WebElement currentAddrYearsElement;
 
@@ -189,6 +194,9 @@ public class DE_ApplicationInfoPersonalTab {
 
     @FindBy(how = How.XPATH, using = "//*[@id='phoneNumber_phoneNumberList_new1']")
     private WebElement primaryNumberElement;
+
+    @FindBy(how = How.XPATH, using = "//*[@id='extension_phoneNumberList_new1']")
+    private WebElement primaryEXTNElement;
 
     @FindBy(how = How.ID, using = "create_another_Address")
     private WebElement cbCreateAnotherElement;
@@ -319,6 +327,17 @@ public class DE_ApplicationInfoPersonalTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'NUMBER')]")
     private WebElement updatePrimaryNumberElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'address')]//input[contains(@placeholder,'EXTN')]")
+    private WebElement updatePrimaryExtElement;
+
+
+    //------------------------- update them
+    @FindBy(how = How.XPATH, using = "//a[contains(@title,'Add Alternate Mobile Number')]")
+    private WebElement addAlternateMobileElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'dynamic_addedPNO')]//input[contains(@placeholder,'Mobile Phone')]")
+    private List<WebElement> listMobileAlternateElement;
+
 
     public DE_ApplicationInfoPersonalTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -364,7 +383,7 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void setValue(ApplicationInfoDTO applicationInfoDTO) throws IOException {
+    public void setValue(ApplicationInfoDTO applicationInfoDTO) throws IOException, InterruptedException {
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> genderSelectOptionElement.size() > 0);
@@ -431,10 +450,32 @@ public class DE_ApplicationInfoPersonalTab {
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> communicationDetailDivElement.isDisplayed());
-        selectPrimaryAddress(0);//default la Current Address
+        selectPrimaryAddress( applicationInfoDTO.getCommunicationDetails().getPrimaryAddress());//default la Current Address
         await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> primaryEmailElement.isDisplayed());
         getPrimaryEmailElement().sendKeys(applicationInfoDTO.getEmail());
+
+
+        //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=1
+                && !applicationInfoDTO.communicationDetails.getPrimaryAddress().equals("Current Address"))
+        {
+            cusMobileElements.clear();
+            cusMobileElements.sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(0).getPhoneNumber());
+        }
+
+        //check nhap them so dien thoai thu 2, update them, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
+        {
+            addAlternateMobileElement.click();
+
+            await("listMobileAlternateElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listMobileAlternateElement.size() > 0);
+
+            listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
+            Utilities.captureScreenShot(_driver);
+        }
+
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -527,7 +568,7 @@ public class DE_ApplicationInfoPersonalTab {
 
     }
 
-    public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException {
+    public void setAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
         int index = 0;
         Actions actions = new Actions(_driver);
         Utilities.captureScreenShot(_driver);
@@ -544,9 +585,15 @@ public class DE_ApplicationInfoPersonalTab {
 //                    .until(() -> btnCreateAnotherElement.isEnabled());
 //            actions.moveToElement(btnCreateAnotherElement).click().build().perform();
 
+            //Sleep Wait Address Type
+            Thread.sleep(15000);
+
             await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressDivElement.isDisplayed());
+
             mobilePhoneNumberElement.click();
+
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> addressTypeElement.isDisplayed());
 
@@ -652,6 +699,10 @@ public class DE_ApplicationInfoPersonalTab {
             address3Element.sendKeys(data.getWard());
 
 
+            //update them landmard
+            addressLandmark.clear();
+            addressLandmark.sendKeys(data.getAddressLandmark());
+
             currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
             currentAddrMonthsElement.sendKeys(data.getResidentDurationMonth());
 //            currentCityYearsElement.sendKeys(data.getCityDurationYear());
@@ -659,10 +710,13 @@ public class DE_ApplicationInfoPersonalTab {
 
 
             //dien so dien thoan ban neu co
+
             primaryStdElement.clear();
             primaryStdElement.sendKeys(data.getPriStd());
             primaryNumberElement.clear();
             primaryNumberElement.sendKeys(data.getPriNumber());
+            primaryEXTNElement.clear();
+            primaryEXTNElement.sendKeys(data.getPriExt());
 
             mobilePhoneNumberElement.sendKeys(data.getMobilePhone());
             Utilities.captureScreenShot(_driver);
@@ -682,7 +736,7 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void updateAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, Exception {
+    public void updateAddressValue(List<AddressDTO> datas) throws JsonParseException, JsonMappingException, Exception, InterruptedException {
 
         Actions actions = new Actions(_driver);
 
@@ -710,6 +764,7 @@ public class DE_ApplicationInfoPersonalTab {
         for (AddressDTO data : datas) {
 
             System.out.println("data => " + data.getAddressType());
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("trAddressListElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> trAddressListElement.size() > 0);
             Utilities.captureScreenShot(_driver);
@@ -735,9 +790,13 @@ public class DE_ApplicationInfoPersonalTab {
                 WebElement we =_driver.findElement(By.xpath("//*[contains(@id,'address_details_Table_wrapper')]//*[contains(text(),'" + data.getAddressType() +"')]//ancestor::tr//*[contains(@id,'editTag')]"));
                 we.click();
 
+                //Sleep Wait Address Type
+//                Thread.sleep(15000);
+
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
+                with().pollInterval(Duration.FIVE_SECONDS).
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
@@ -809,6 +868,10 @@ public class DE_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
 
+                //update them landmard
+                addressLandmark.clear();
+                addressLandmark.sendKeys(data.getAddressLandmark());
+
                 currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
@@ -818,6 +881,8 @@ public class DE_ApplicationInfoPersonalTab {
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
                 updatePrimaryNumberElement.clear();
                 updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+                updatePrimaryExtElement.clear();
+                updatePrimaryExtElement.sendKeys(data.getPriExt());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
@@ -829,10 +894,13 @@ public class DE_ApplicationInfoPersonalTab {
                         .until(() -> btnCreateAnotherElement.isEnabled());
                 btnCreateAnotherElement.click();
 
+                //Sleep Wait Address Type
+//                Thread.sleep(15000);
 
                 await("addressDivElement display Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressDivElement.isDisplayed());
 
+                with().pollInterval(Duration.FIVE_SECONDS).
                 await("textCountryElement not enabled Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                         .until(() -> addressTypeElement.isDisplayed());
 
@@ -907,6 +975,10 @@ public class DE_ApplicationInfoPersonalTab {
                 address3Element.clear();
                 address3Element.sendKeys(data.getWard());
 
+                //update them landmard
+                addressLandmark.clear();
+                addressLandmark.sendKeys(data.getAddressLandmark());
+
                 currentAddrYearsElement.clear();
                 currentAddrYearsElement.sendKeys(data.getResidentDurationYear());
                 currentAddrMonthsElement.clear();
@@ -916,6 +988,8 @@ public class DE_ApplicationInfoPersonalTab {
                 updatePrimarySTDElement.sendKeys(data.getPriStd());
                 updatePrimaryNumberElement.clear();
                 updatePrimaryNumberElement.sendKeys(data.getPriNumber());
+                updatePrimaryExtElement.clear();
+                updatePrimaryExtElement.sendKeys(data.getPriExt());
 
                 updateMobilePhoneNumberElement.clear();
                 updateMobilePhoneNumberElement.sendKeys(data.getMobilePhone());
@@ -925,9 +999,18 @@ public class DE_ApplicationInfoPersonalTab {
         }
     }
 
-    public void selectPrimaryAddress(int index) {
+    public void selectPrimaryAddress(String type) {
         //checkBoxPrimaryAddressElements.get(index).click();
-        cbPrimaryAddessElement.click();
+        //cbPrimaryAddessElement.click();
+
+        //update lai cho nay , chon dia chi lien lac 9-4-2020
+        if(_driver.findElements(By.xpath("//*[@id='communicationList']/tbody/tr[td[4]='"+ type +"']/td[7]/input")).size()>0)
+        {
+            Utilities.captureScreenShot(_driver);
+            WebElement webElement=_driver.findElement(By.xpath("//*[@id='communicationList']/tbody/tr[td[4]='"+ type +"']/td[7]/input"));
+            webElement.click();
+            Utilities.captureScreenShot(_driver);
+        }
     }
 
     public void setFamilyValue(List<FamilyDTO> datas) throws IOException {
@@ -948,21 +1031,31 @@ public class DE_ApplicationInfoPersonalTab {
     }
 
     public void updateFamilyValue(List<FamilyDTO> datas) throws IOException {
-        for (FamilyDTO data : datas) {
-            this.memberNameElement.clear();
-            this.memberNameElement.sendKeys(data.getMemberName());
-            new Select(this.relationshipTypeElement).selectByVisibleText(data.getRelationshipType());
-            this.phoneNumberElement.clear();
-            this.phoneNumberElement.sendKeys(data.getPhoneNumber());
-            if (StringUtils.isNotBlank(data.getEducationStatus()))
-                new Select(this.educationStatusElement).selectByVisibleText(data.getEducationStatus());
-            this.comNameElement.clear();
-            this.comNameElement.sendKeys(data.getComName());
-            if (StringUtils.isNotBlank(data.getIsDependent()) && Integer.parseInt(data.getIsDependent()) == 1)
-                this.IsDependentElement.click();
+        if (datas == null || datas.size() < 1){
+            List<WebElement> deleteFamily = _driver.findElements(By.id("DeleteFamilyDetails0"));
+            if (deleteFamily.size() > 0){
+                for (WebElement e: deleteFamily){
+                    e.click();
+                }
+                System.out.println("DELETE FAMILY");
+            }
+        }else{
+            for (FamilyDTO data : datas) {
+                this.memberNameElement.clear();
+                this.memberNameElement.sendKeys(data.getMemberName());
+                new Select(this.relationshipTypeElement).selectByVisibleText(data.getRelationshipType());
+                this.phoneNumberElement.clear();
+                this.phoneNumberElement.sendKeys(data.getPhoneNumber());
+                if (StringUtils.isNotBlank(data.getEducationStatus()))
+                    new Select(this.educationStatusElement).selectByVisibleText(data.getEducationStatus());
+                this.comNameElement.clear();
+                this.comNameElement.sendKeys(data.getComName());
+                if (StringUtils.isNotBlank(data.getIsDependent()) && Integer.parseInt(data.getIsDependent()) == 1)
+                    this.IsDependentElement.click();
 
-            // TODO: instead of break this loop, we must create new family row element here if have more data
-            break;
+                // TODO: instead of break this loop, we must create new family row element here if have more data
+                break;
+            }
         }
 
     }
@@ -1050,8 +1143,7 @@ public class DE_ApplicationInfoPersonalTab {
 
     }
 
-    public void updateValue(ApplicationInfoDTO applicationInfoDTO) throws Exception
-    {
+    public void updateValue(ApplicationInfoDTO applicationInfoDTO) throws Exception {
 
         this.genderSelectElement.click();
         await("genderSelectOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
@@ -1102,6 +1194,7 @@ public class DE_ApplicationInfoPersonalTab {
                 .until(() -> btnAddIdentElement.isEnabled());
         btnAddIdentElement.click();
         updateIdentificationValue(applicationInfoDTO.getIdentification(),deleteIdDetailElement.size()-1);
+        loadIdentificationSection();
         //end update identification
 
         //update address: ko xoa dc do anh huong cac employment detail nen chi edit
@@ -1113,27 +1206,58 @@ public class DE_ApplicationInfoPersonalTab {
         updateAddressValue(applicationInfoDTO.getAddress());
         loadAddressSection();
 
-        if (applicationInfoDTO.getFamily().size() > 0) {
-            loadFamilySection();
-            await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> familyDivElement.isDisplayed());
-            updateFamilyValue(applicationInfoDTO.getFamily());
-        }
+        loadFamilySection();
+        await("Load Family Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> familyDivElement.isDisplayed());
+        updateFamilyValue(applicationInfoDTO.getFamily());
+        loadFamilySection();
 
         loadCommunicationSection();
         await("Load Communication details Section Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> communicationDetailDivElement.isDisplayed());
-        selectPrimaryAddress(0);//default la Current Address
+        selectPrimaryAddress(applicationInfoDTO.getCommunicationDetails().getPrimaryAddress());//default la Current Address
         await("emailPrimary loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> primaryEmailElement.isDisplayed());
         getPrimaryEmailElement().clear();
         getPrimaryEmailElement().sendKeys(applicationInfoDTO.getEmail());
+
+        //update them nếu chon loai dia chi lien lac khác current thì vẩn nhap số current, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=1
+                && !applicationInfoDTO.communicationDetails.getPrimaryAddress().equals("Current Address"))
+        {
+            cusMobileElements.clear();
+            cusMobileElements.sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(0).getPhoneNumber());
+        }
+
+        //Check neu co sdt thu 2 thi xoa
+        List<WebElement> deletePhone = _driver.findElements(By.xpath("//div[@id='comm_mobileNumbers']//a//i"));
+        if (deletePhone != null && deletePhone.size() > 1){
+            for (int i = 1; i < deletePhone.size(); i++){
+                deletePhone.get(i).click();
+            }
+        }
+
+        //check nhap them so dien thoai thu 2, update them, luc nao so mobile cung lay cua current
+        if(applicationInfoDTO.communicationDetails.getPhoneNumbers()!=null && applicationInfoDTO.communicationDetails.getPhoneNumbers().size()>=2)
+        {
+            addAlternateMobileElement.click();
+
+            await("listMobileAlternateElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listMobileAlternateElement.size() > 0);
+
+            listMobileAlternateElement.get(0).clear();
+            listMobileAlternateElement.get(0).sendKeys(applicationInfoDTO.communicationDetails.getPhoneNumbers().get(1).getPhoneNumber());
+            Utilities.captureScreenShot(_driver);
+        }
+        Actions actions=new Actions(_driver);
+        actions.moveToElement(saveAndNextElement).sendKeys(Keys.PAGE_UP).perform();
+
         loadCommunicationSection(); // close section after complete input
 
         await("Button check address duplicate not enabled").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> btnCheckDuplicateUpdateElement.isDisplayed());
 
-        Actions actions=new Actions(_driver);
+
          //actions.moveToElement(btnCheckDuplicateUpdateElement).click().build().perform();
         btnCheckDuplicateElement.click();
 

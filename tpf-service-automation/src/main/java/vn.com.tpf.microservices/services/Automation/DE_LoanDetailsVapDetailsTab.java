@@ -63,6 +63,9 @@ public class DE_LoanDetailsVapDetailsTab {
     @FindBy(how = How.XPATH, using = "//*[contains(@id,'vap_details_Table')]//*[contains(@id,'edit')]")
     private WebElement editVapElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'vap_details_Table')]//*[contains(@id,'delete')]")
+    private WebElement deleteVapElement;
+
     public DE_LoanDetailsVapDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
@@ -169,5 +172,9 @@ public class DE_LoanDetailsVapDetailsTab {
         }
 
         doneBtnElement.click();
+    }
+
+    public void clickDeleteVap() {
+        deleteVapElement.click();
     }
 }

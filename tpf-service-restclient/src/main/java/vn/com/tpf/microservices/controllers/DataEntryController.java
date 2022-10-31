@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.Authenticator;
-import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +35,6 @@ import java.util.*;
 public class DataEntryController {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
-	private static final String DIGITEXX = "DIGI-TEXX";
-
-	@Value("${spring.queue.dataentry-sgb}")
-	private String queueDESGB;
 
 	@Autowired
 	private RabbitMQService rabbitMQService;
@@ -55,12 +50,6 @@ public class DataEntryController {
 
 	@Value("${spring.url.digitex-token}")
 	private String digitexToken;
-
-	@Value("${spring.url.auto-routing}")
-	private String urlAutoRouting;
-
-	@Value("${spring.auto-routing}")
-	private boolean autoRouting;
 
 	private RestTemplate restTemplate;
 
@@ -132,7 +121,7 @@ public class DataEntryController {
 													@RequestPart("description")  String description)
 			throws Exception {
 
-		JsonNode body = null;
+
 		ObjectMapper mapper = new ObjectMapper();
 
 
@@ -250,20 +239,14 @@ public class DataEntryController {
 
 
 	@PostMapping("/v1/dataentry/sendapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
 	public ResponseEntity<?> sendapp(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
 		request.put("func", "sendApp");
 		request.put("token", token);
 		request.put("body", body);
-		String partnerName = this.getPartnerName(body);
 
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -278,13 +261,6 @@ public class DataEntryController {
 		request.put("token", token);
 		request.put("body", body);
 
-		String partnerName = this.getPartnerName(body);
-
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -295,7 +271,7 @@ public class DataEntryController {
 	public ResponseEntity<?> comment(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "old_commentApp");
+		request.put("func", "commentApp");
 		request.put("token", token);
 		request.put("body", body);
 
@@ -305,7 +281,7 @@ public class DataEntryController {
 	}
 
 	@PostMapping("/v1/dataentry/updatestatus")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
 	public ResponseEntity<?> cancel(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
@@ -313,13 +289,6 @@ public class DataEntryController {
 		request.put("token", token);
 		request.put("body", body);
 
-		String partnerName = this.getPartnerName(body);
-
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -330,7 +299,7 @@ public class DataEntryController {
 	public ResponseEntity<?> quicklead(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "old_quickLead");
+		request.put("func", "quickLead");
 		request.put("token", token);
 		request.put("body", body);
 
@@ -360,62 +329,47 @@ public class DataEntryController {
 		boolean validatePersonalImage = false;
 		boolean validateACCA = false;
 		boolean validateComment = false;
-		String checkDuplicateFile = "";
 
-		if (appId.equals("new")) {
+        if (appId.equals("new")) {
+
+            for (MultipartFile item : files) {
+                if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
+                    validateIdCard = true;
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
+                    validateIdCard = true;
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
+                    validateHousehold = true;
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
+                    validateHousehold = true;
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
+                    validatePersonalImage = true;
+                } else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
+                    validateACCA = true;
+                }
+            }
+            if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
+            } else {
+                return ResponseEntity.status(200)
+                        .header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
+                                "result_code", 3, "message", "Thieu document!"));
+            }
+        }else {
 			for (MultipartFile item : files) {
-				if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
-					return ResponseEntity.status(200)
-							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
-				}
-
-				if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
 					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
-					validateACCA = true;
-				}
-				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
-			}
-			if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
-			} else {
-				return ResponseEntity.status(200)
-						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-								"result_code", 3, "message", "Thieu document!"));
-			}
-		}else {
-			for (MultipartFile item : files) {
-				if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
-					return ResponseEntity.status(200)
-							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
-				}
-
-				if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
-					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
-					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
-					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
-					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
-					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
 					validateACCA = true;
 				}else {
 					validateComment = true;
 				}
-
-				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
 			}
 			if (!validateComment) {
 			} else {
@@ -504,7 +458,7 @@ public class DataEntryController {
 //										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 //								parts_02.add("Household", multipartFileToSend.getResource());
 //							}else
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -512,7 +466,7 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -523,44 +477,44 @@ public class DataEntryController {
 							}
 							i = i + 1;
 						}
-						i = 0;
+                        i = 0;
 						for (JsonNode item :body){
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
-								if (!checkIdCard) {
-									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									documents.add(doc);
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+							    if (!checkIdCard) {
+                                    doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    documents.add(doc);
 
-									MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
-											"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-									parts_02.add("ID-Card", multipartFileToSend.getResource());
+                                    MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
+                                            "ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+                                    parts_02.add("ID-Card", multipartFileToSend.getResource());
 
-									checkIdCard = true;
-								}
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
-								if (!checkHousehold) {
-									doc.put("file-name", "Household_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									documents.add(doc);
+                                    checkIdCard = true;
+                                }
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+							    if (!checkHousehold) {
+                                    doc.put("file-name", "Household_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    documents.add(doc);
 
-									MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
-											"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-									parts_02.add("Household", multipartFileToSend.getResource());
+                                    MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
+                                            "Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+                                    parts_02.add("Household", multipartFileToSend.getResource());
 
-									checkHousehold = true;
-								}
+                                    checkHousehold = true;
+                                }
 							}
 							i = i + 1;
 						}
-						i = 0;
+                        i = 0;
 						for (JsonNode item :body){
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -572,7 +526,7 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -591,15 +545,15 @@ public class DataEntryController {
 					}
 					try {
 						if (parts_02.size() > 0) {
-							try{
-								ObjectNode dataLogReq = mapper.createObjectNode();
-								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
-								dataLogReq.put("method", "POST");
-								dataLogReq.put("url", urlDigitexDocumentApi);
+                            try{
+                                ObjectNode dataLogReq = mapper.createObjectNode();
+                                dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+                                dataLogReq.put("method", "POST");
+                                dataLogReq.put("url", urlDigitexDocumentApi);
 								dataLogReq.put("data", parts_02.toString());
-								log.info("{}", dataLogReq);
-							}
-							catch (Exception ex){}
+                                log.info("{}", dataLogReq);
+                            }
+                            catch (Exception ex){}
 
 
 							HttpHeaders headers_DT = new HttpHeaders();
@@ -699,12 +653,12 @@ public class DataEntryController {
 //										"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 //								parts_02.add("Household", multipartFileToSend.getResource());
 //							}else
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -714,12 +668,12 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -733,66 +687,65 @@ public class DataEntryController {
 							i = i + 1;
 						}
 
-						i = 0;
+                        i = 0;
 						for (JsonNode item :body){
 
 							ObjectNode doc = mapper.createObjectNode();
 
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
+							    if (!checkIdCard) {
+                                    doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    String docId = null;
+                                    for (int j = 0; j < countDocId; j++) {
+                                        if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
+                                            docId = response.path("data").path("data").get(j).path("urlid").textValue();
+                                        }
+                                    }
+                                    doc.put("document-id", docId);
+                                    documents.add(doc);
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
-								if (!checkIdCard) {
-									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									String docId = null;
-									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
-											docId = response.path("data").path("data").get(j).path("urlid").textValue();
-										}
-									}
-									doc.put("document-id", docId);
-									documents.add(doc);
+                                    MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
+                                            "ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+                                    parts_02.add("ID-Card", multipartFileToSend.getResource());
 
-									MultipartFile multipartFileToSend = new MockMultipartFile("ID-Card_" + files[i].getOriginalFilename(),
-											"ID-Card_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-									parts_02.add("ID-Card", multipartFileToSend.getResource());
+                                    checkIdCard = true;
+                                }
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
+							    if (!checkHousehold) {
+                                    doc.put("file-name", "Household_" + item.path("originalname").textValue());
+                                    doc.put("md5", item.path("md5").textValue());
+                                    String docId = null;
+                                    for (int j = 0; j < countDocId; j++) {
+                                        if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
+                                            docId = response.path("data").path("data").get(j).path("urlid").textValue();
+                                        }
+                                    }
+                                    doc.put("document-id", docId);
+                                    documents.add(doc);
 
-									checkIdCard = true;
-								}
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
-								if (!checkHousehold) {
-									doc.put("file-name", "Household_" + item.path("originalname").textValue());
-									doc.put("md5", item.path("md5").textValue());
-									String docId = null;
-									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
-											docId = response.path("data").path("data").get(j).path("urlid").textValue();
-										}
-									}
-									doc.put("document-id", docId);
-									documents.add(doc);
+                                    MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
+                                            "Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
+                                    parts_02.add("Household", multipartFileToSend.getResource());
 
-									MultipartFile multipartFileToSend = new MockMultipartFile("Household_" + files[i].getOriginalFilename(),
-											"Household_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
-									parts_02.add("Household", multipartFileToSend.getResource());
-
-									checkHousehold = true;
-								}
+                                    checkHousehold = true;
+                                }
 							}
 							i = i + 1;
 						}
 
-						i = 0;
+                        i = 0;
 						for (JsonNode item :body) {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -806,13 +759,13 @@ public class DataEntryController {
 									checkIdCard = true;
 								}
 
-							} else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+							} else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -832,16 +785,16 @@ public class DataEntryController {
 					}
 					try {
 						if (parts_02.size() > 0) {
-							try{
-								ObjectNode dataLogReq = mapper.createObjectNode();
-								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
-								dataLogReq.put("method", "POST");
-								dataLogReq.put("appId", appId);
-								dataLogReq.put("url", urlDigitexResumitDocumentApi);
+						    try{
+                                ObjectNode dataLogReq = mapper.createObjectNode();
+                                dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+                                dataLogReq.put("method", "POST");
+                                dataLogReq.put("appId", appId);
+                                dataLogReq.put("url", urlDigitexResumitDocumentApi);
 								dataLogReq.put("data", parts_02.toString());
-								log.info("{}", dataLogReq);
-							}
-							catch (Exception ex){}
+                                log.info("{}", dataLogReq);
+                            }
+                            catch (Exception ex){}
 
 							HttpHeaders headers_DT = new HttpHeaders();
 							headers_DT.set("authkey", digitexToken);
@@ -935,7 +888,7 @@ public class DataEntryController {
 		request.put("body", body);
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
-		return ResponseEntity.status(response.path("status").asInt(500))
+ 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
@@ -995,80 +948,64 @@ public class DataEntryController {
 	}
 
 	public JsonNode mergeFile(JsonNode mainNode, JsonNode updateNode) {
-		boolean checkIdCard = false;
-		boolean checkHousehold = false;
-		boolean checkPersonalImage = false;
-		boolean checkACCAForm = false;
+	    boolean checkIdCard = false;
+        boolean checkHousehold = false;
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode resultNode = mapper.createArrayNode();
 		for (JsonNode item : mainNode) {
 			if (updateNode != null) {
 				for (JsonNode item2 : updateNode) {
-					if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+					if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ID-Card")) {
-							if (!checkIdCard) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("contentType", item.findPath("contentType").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
+						    if (!checkIdCard) {
+                                ObjectNode doc = mapper.createObjectNode();
+                                doc.put("originalname", item.findPath("originalname").textValue());
+                                doc.put("filename", item.findPath("filename").textValue());
+                                doc.put("md5", item.findPath("md5").textValue());
+                                doc.put("urlid", item2.findPath("document-id").asText(null));
+                                ((ArrayNode) resultNode).add(doc);
 
-								checkIdCard=true;
-							}
+                                checkIdCard=true;
+                            }
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase()) ||
-							item.findPath("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase()) ||
+							item.findPath("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Household")) {
+                            if (!checkHousehold) {
+                                ObjectNode doc = mapper.createObjectNode();
+                                doc.put("originalname", item.findPath("originalname").textValue());
+                                doc.put("filename", item.findPath("filename").textValue());
+                                doc.put("md5", item.findPath("md5").textValue());
+                                doc.put("urlid", item2.findPath("document-id").asText(null));
+                                ((ArrayNode) resultNode).add(doc);
 
-							if (!checkHousehold) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("contentType", item.findPath("contentType").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
-
-								checkHousehold = true;
-							}
+                                checkHousehold = true;
+                            }
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("Personal-Image")) {
-							if (!checkPersonalImage) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("contentType", item.findPath("contentType").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
-
-								checkPersonalImage = true;
-							}
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
 						}
-					} else if (item.findPath("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+					} else if (item.findPath("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
 						if (item2.findPath("document-type").textValue().equals("ACCA-Form")) {
-							if (!checkACCAForm) {
-								ObjectNode doc = mapper.createObjectNode();
-								doc.put("originalname", item.findPath("originalname").textValue());
-								doc.put("filename", item.findPath("filename").textValue());
-								doc.put("md5", item.findPath("md5").textValue());
-								doc.put("contentType", item.findPath("contentType").textValue());
-								doc.put("urlid", item2.findPath("document-id").asText(null));
-								((ArrayNode) resultNode).add(doc);
-
-								checkACCAForm = true;
-							}
+							ObjectNode doc = mapper.createObjectNode();
+							doc.put("originalname", item.findPath("originalname").textValue());
+							doc.put("filename", item.findPath("filename").textValue());
+							doc.put("md5", item.findPath("md5").textValue());
+							doc.put("urlid", item2.findPath("document-id").asText(null));
+							((ArrayNode) resultNode).add(doc);
 						}
 					} else {
 						ObjectNode doc = mapper.createObjectNode();
 						doc.put("originalname", item.findPath("originalname").textValue());
 						doc.put("filename", item.findPath("filename").textValue());
 						doc.put("md5", item.findPath("md5").textValue());
-						doc.put("contentType", item.findPath("contentType").textValue());
 						((ArrayNode) resultNode).add(doc);
 
 						break;
@@ -1087,7 +1024,6 @@ public class DataEntryController {
 				doc.put("originalname", item.findPath("originalname").textValue());
 				doc.put("filename", item.findPath("filename").textValue());
 				doc.put("md5", item.findPath("md5").textValue());
-				doc.put("contentType", item.findPath("contentType").textValue());
 				((ArrayNode) resultNode).add(doc);
 			}
 		}
@@ -1145,27 +1081,20 @@ public class DataEntryController {
 		request.put("body", body);
 		request.put("token", token);
 
-		JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
 
 	@PostMapping("/v1/dataentry/commentapp")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex')")
 	public ResponseEntity<?> commentV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "commentApp");
+		request.put("func", "commentAppV2");
 		request.put("token", token);
 		request.put("body", body);
 
-		String partnerName = this.getPartnerName(body);
-
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -1176,17 +1105,10 @@ public class DataEntryController {
 	public ResponseEntity<?> quickleadV2(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
-		request.put("func", "quickLead");
+		request.put("func", "quickLeadV2");
 		request.put("token", token);
 		request.put("body", body);
 
-		String partnerName = this.getPartnerName(body);
-
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
@@ -1199,15 +1121,7 @@ public class DataEntryController {
 		Map<String, Object> request = new HashMap<>();
 		request.put("token", token);
 		request.put("body", body);
-
-		String partnerName = this.getPartnerName(body);
-
 		request.put("func", "uploadPartner");
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
 
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
@@ -1223,7 +1137,7 @@ public class DataEntryController {
 		request.put("token", token);
 		request.put("func", "getTokenSaigonBpo");
 
-		JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
@@ -1250,59 +1164,27 @@ public class DataEntryController {
 		boolean validatePersonalImage = false;
 		boolean validateACCA = false;
 		boolean validateComment = false;
-		String checkDuplicateFile = "";
 
 		Map partner = new HashMap();
-		String partnerIdToGetPartner = partnerId;
-		Long routingId;
+		String partnerIdToGetPartner;
 		if (appId.equals("new")) {
-			if(autoRouting){
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-				headers.setBearerAuth(token.replace("Bearer", "").trim());
-				ObjectNode objectNode = mapper.createObjectNode();
-				objectNode.put("request_id", UUID.randomUUID().toString());
-				objectNode.put("reference_id", UUID.randomUUID().toString());
-				String schemeCode = NumberUtils.isDigits(partnerId) ? "" : partnerId;
-				objectNode.put("schemeCode", schemeCode);
-				HttpEntity<?> entity = new HttpEntity<>(objectNode, headers);
-
-				ResponseEntity<String> res = restTemplate.postForEntity(urlAutoRouting, entity, String.class);
-
-				if (!res.getStatusCode().is2xxSuccessful()) {
-					return ResponseEntity.status(200)
-							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-									"result_code", 3, "message", "auto_assign not available"));
-				}
-				partnerIdToGetPartner = mapper.readTree(res.getBody()).path("data").path("vendorId").asText("");
-				routingId = mapper.readTree(res.getBody()).path("data").path("routingId").asLong(-1);
-				request.put("routingId", routingId);
-			}
-
+			partnerIdToGetPartner = partnerId;
 			for (MultipartFile item : files) {
-				if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
-					return ResponseEntity.status(200)
-							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
-				}
-
-				if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
 					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
 					validateACCA = true;
 				}
-				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
 			}
-//			if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
-			if (validateIdCard && validateACCA) {
+			if (validateIdCard && validateHousehold && validatePersonalImage && validateACCA) {
 			} else {
 				return ResponseEntity.status(200)
 						.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
@@ -1310,29 +1192,21 @@ public class DataEntryController {
 			}
 		}else {
 			for (MultipartFile item : files) {
-				if (checkDuplicateFile.contains(item.getOriginalFilename().toUpperCase())){
-					return ResponseEntity.status(200)
-							.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-									"result_code", 3, "message", "Duplicate File: " + item.getOriginalFilename()));
-				}
-
-				if (item.getOriginalFilename().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+				if (item.getOriginalFilename().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 					validateIdCard = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 					validateHousehold = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())) {
 					validatePersonalImage = true;
-				} else if (item.getOriginalFilename().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())) {
+				} else if (item.getOriginalFilename().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())) {
 					validateACCA = true;
 				}else {
 					validateComment = true;
 				}
-
-				checkDuplicateFile = checkDuplicateFile + ";"+item.getOriginalFilename().toUpperCase();
 			}
 			if (!validateComment) {
 			} else {
@@ -1355,7 +1229,7 @@ public class DataEntryController {
 			appForBodyGetApp.put("applicationId", appId);
 			bodyGetApp.put("data", appForBodyGetApp);
 			requestGetApp.put("body", bodyGetApp);
-			JsonNode responseGetApp = rabbitMQService.sendAndReceive(queueDESGB, requestGetApp);
+			JsonNode responseGetApp = rabbitMQService.sendAndReceive("tpf-service-dataentry", requestGetApp);
 			if(responseGetApp != null
 					&& responseGetApp.path("data") != null
 					&& responseGetApp.path("data").path("data") != null
@@ -1372,8 +1246,7 @@ public class DataEntryController {
 		try {
 			Map<String, Object> partnerMap = new HashMap<>();
 			partnerMap.put("partnerId", partnerIdToGetPartner);
-			partnerMap.put("status", "0");
-			JsonNode partnerResponse = rabbitMQService.sendAndReceive(queueDESGB,
+			JsonNode partnerResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry",
 					Map.of("func", "getPartner","body", partnerMap));
 
 			if(partnerResponse == null || partnerResponse.get("data").isNull()){
@@ -1384,7 +1257,6 @@ public class DataEntryController {
 				partner = mapper.convertValue(partnerResponse.get("data").get(0), Map.class);
 			}
 			Object url = mapper.convertValue(partner, Map.class).get("url");
-			request.put("partnerName", partner.get("partnerName").toString());
 
 			ResponseEntity<?> res = new ResponseEntity<Authenticator.Success>(HttpStatus.CREATED);
 
@@ -1432,12 +1304,7 @@ public class DataEntryController {
 				boolean checkIdCard = false;
 				boolean checkHousehold = false;
 				int i = 0;
-				if("3".equals(partnerIdToGetPartner)){
-					request.put("body", body);
-					JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-					return ResponseEntity.status(response.path("status").asInt(500))
-							.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-				}
+
 				if (appId.equals("new")){
 					ArrayNode documents = mapper.createArrayNode();
 					if(files != null) {
@@ -1446,7 +1313,7 @@ public class DataEntryController {
 //							i = 0;
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -1454,7 +1321,7 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								documents.add(doc);
@@ -1470,7 +1337,7 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1482,7 +1349,7 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1502,7 +1369,7 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1514,7 +1381,7 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
@@ -1537,29 +1404,13 @@ public class DataEntryController {
 
 							HttpHeaders headers_DT = new HttpHeaders();
 							if(partner.get("partnerId").equals("1")){
-								int version = (int) partner.get("version");
-								if (version == 1){
-									headers_DT.set("authkey", digitexToken);
-								} else {
-									Map<String, Object> tokenMap = new HashMap<>();
-									Map<String, Object> tokenBodyMap = new HashMap<>();
-									tokenBodyMap.put("partnerId", partner.get("partnerId"));
-									tokenMap.put("body", tokenBodyMap);
-									tokenMap.put("func", "getTokenDGT");
-									JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
-									String tokenPartner = tokenResponse.path("data").asText();
-									if(StringUtils.isEmpty(tokenPartner)){
-										return ResponseEntity.status(200)
-												.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-														"result_code", 3, "message", "Not get token digitexx"));
-									}
-									headers_DT.setBearerAuth(tokenPartner);
-								}
+								headers_DT.set("authkey", partner.get("token").toString());
+
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 								ObjectNode dataLogReq = mapper.createObjectNode();
-								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==" + partner.get("partnerName") + "==]");
 								dataLogReq.put("method", "POST");
 								dataLogReq.put("url", documentApi);
 								dataLogReq.put("data", entity_DT.toString());
@@ -1571,7 +1422,7 @@ public class DataEntryController {
 								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 
 								ObjectNode dataLog = mapper.createObjectNode();
-								dataLog.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+								dataLog.put("type", "[==HTTP-LOG-RESPONSE==" + partner.get("partnerName") + "==]");
 								dataLog.put("url", documentApi);
 								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 								log.info("{}", dataLog);
@@ -1581,7 +1432,7 @@ public class DataEntryController {
 								tokenBodyMap.put("partnerId", partner.get("partnerId"));
 								tokenMap.put("body", tokenBodyMap);
 								tokenMap.put("func", "getTokenSaigonBpo");
-								JsonNode tokenResponse = rabbitMQService.sendAndReceive(queueDESGB, tokenMap);
+								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
 								String tokenPartner = tokenResponse.path("data").asText();
 								if(StringUtils.isEmpty(tokenPartner)){
 									return ResponseEntity.status(200)
@@ -1612,10 +1463,8 @@ public class DataEntryController {
 								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 								log.info("{}", dataLog);
 
-								if(res_DT.getStatusCode().is2xxSuccessful()){
-									Object map = mapper.valueToTree(res_DT.getBody());
-									outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-								}
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 							}
 						}
 					}
@@ -1636,15 +1485,14 @@ public class DataEntryController {
 					ArrayNode documents = mapper.createArrayNode();
 					if(files != null) {
 						for (JsonNode item :body){
-//							i = 0;
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 								doc.put("file-name", "Personal-Image_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Customer Photograph".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Customer Photograph.pdf".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -1654,12 +1502,12 @@ public class DataEntryController {
 								MultipartFile multipartFileToSend = new MockMultipartFile("Personal-Image_" + files[i].getOriginalFilename(),
 										"Personal-Image_" + files[i].getOriginalFilename(), files[i].getContentType(), files[i].getInputStream());
 								parts_02.add("Personal-Image", multipartFileToSend.getResource());
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 								doc.put("file-name", "ACCA-Form_" + item.path("originalname").textValue());
 								doc.put("md5", item.path("md5").textValue());
 								String docId = null;
 								for (int j = 0; j < countDocId; j++){
-									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Application cum Credit Contract (ACCA)".toUpperCase())){
+									if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Application cum Credit Contract (ACCA).pdf".toUpperCase())){
 										docId = response.path("data").path("data").get(j).path("urlid").textValue();
 									}
 								}
@@ -1678,13 +1526,13 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())){
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())){
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_ID Card".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_ID Card.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -1697,13 +1545,13 @@ public class DataEntryController {
 
 									checkIdCard = true;
 								}
-							}else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())){
+							}else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())){
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Family Book".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Family Book.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -1725,13 +1573,13 @@ public class DataEntryController {
 
 							ObjectNode doc = mapper.createObjectNode();
 
-							if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+							if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 								if (!checkIdCard) {
 									doc.put("file-name", "ID-Card_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of ID card".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of ID card.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -1745,13 +1593,13 @@ public class DataEntryController {
 									checkIdCard = true;
 								}
 
-							} else if (item.path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+							} else if (item.path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 								if (!checkHousehold) {
 									doc.put("file-name", "Household_" + item.path("originalname").textValue());
 									doc.put("md5", item.path("md5").textValue());
 									String docId = null;
 									for (int j = 0; j < countDocId; j++) {
-										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().contains("TPF_Notarization of Family Book".toUpperCase())) {
+										if (response.path("data").path("data").get(j).path("originalname").textValue().toUpperCase().equals("TPF_Notarization of Family Book.pdf".toUpperCase())) {
 											docId = response.path("data").path("data").get(j).path("urlid").textValue();
 										}
 									}
@@ -1775,29 +1623,12 @@ public class DataEntryController {
 							HttpHeaders headers_DT = new HttpHeaders();
 
 							if(partner.get("partnerId").equals("1")){
-								int version = (int) partner.get("version");
-								if (version == 1){
-									headers_DT.set("authkey", digitexToken);
-								} else {
-									Map<String, Object> tokenMap = new HashMap<>();
-									Map<String, Object> tokenBodyMap = new HashMap<>();
-									tokenBodyMap.put("partnerId", partner.get("partnerId"));
-									tokenMap.put("body", tokenBodyMap);
-									tokenMap.put("func", "getTokenDGT");
-									JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
-									String tokenPartner = tokenResponse.path("data").asText();
-									if(StringUtils.isEmpty(tokenPartner)){
-										return ResponseEntity.status(200)
-												.header("x-pagination-total", "0").body(Map.of("reference_id", UUID.randomUUID().toString(), "date_time", new Timestamp(new Date().getTime()),
-														"result_code", 3, "message", "Not get token digitexx"));
-									}
-									headers_DT.setBearerAuth(tokenPartner);
-								}
+								headers_DT.set("authkey", partner.get("token").toString());
 								headers_DT.setContentType(MediaType.MULTIPART_FORM_DATA);
 								HttpEntity<?> entity_DT = new HttpEntity<>(parts_02, headers_DT);
 
 								ObjectNode dataLogReq = mapper.createObjectNode();
-								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==DIGITEXX==]");
+								dataLogReq.put("type", "[==HTTP-LOG-REQUEST==" + partner.get("partnerName") + "==]");
 								dataLogReq.put("method", "POST");
 								dataLogReq.put("appId", appId);
 								dataLogReq.put("url", resumitDocumentApi);
@@ -1807,7 +1638,7 @@ public class DataEntryController {
 								ResponseEntity<?> res_DT = restTemplate.postForEntity(resumitDocumentApi, entity_DT, Object.class);
 
 								ObjectNode dataLog = mapper.createObjectNode();
-								dataLog.put("type", "[==HTTP-LOG-RESPONSE==DIGITEXX==]");
+								dataLog.put("type", "[==HTTP-LOG-RESPONSE==" + partner.get("partnerName") + "==]");
 								dataLog.put("url", resumitDocumentApi);
 								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 								log.info("{}", dataLog);
@@ -1817,12 +1648,12 @@ public class DataEntryController {
 
 							} else if(partner.get("partnerId").equals("2")){
 								Map<String, Object> tokenMap = new HashMap<>();
-								Map<String, Object> tokenBodyMap = new HashMap<>();
-								tokenBodyMap.put("partnerId", partner.get("partnerId"));
-								tokenMap.put("token", token);
+                                Map<String, Object> tokenBodyMap = new HashMap<>();
+                                tokenBodyMap.put("partnerId", partner.get("partnerId"));
+                                tokenMap.put("token", token);
 								tokenMap.put("func", "getTokenSaigonBpo");
-								tokenMap.put("body", tokenBodyMap);
-								JsonNode tokenResponse = rabbitMQService.sendAndReceive(queueDESGB, tokenMap);
+                                tokenMap.put("body", tokenBodyMap);
+								JsonNode tokenResponse = rabbitMQService.sendAndReceive("tpf-service-dataentry", tokenMap);
 								String tokenPartner = tokenResponse.path("data").asText();
 								if(StringUtils.isEmpty(tokenPartner)){
 									return ResponseEntity.status(200)
@@ -1853,10 +1684,8 @@ public class DataEntryController {
 								dataLog.set("result", mapper.convertValue(res_DT, JsonNode.class));
 								log.info("{}", dataLog);
 
-								if(res_DT.getStatusCode().is2xxSuccessful()){
-									Object map = mapper.valueToTree(res_DT.getBody());
-									outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
-								}
+								Object map = mapper.valueToTree(res_DT.getBody());
+								outputDT = mapper.readTree(mapper.writeValueAsString(((JsonNode) map).get("output")));
 							}
 						}
 					}
@@ -1890,18 +1719,10 @@ public class DataEntryController {
 					.header("x-pagination-total", "0").body(e.toString());
 		}
 
-		String partnerName = partner.get("partnerName").toString();
-
-		if(partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)){
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
 		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
-
 
 	@PostMapping("/v1/dataentry/deResponseQuery")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
@@ -1930,144 +1751,48 @@ public class DataEntryController {
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}
-	/**
-	 * Check if partnerName = DIGI-TEXX => queue is tpf-service-dataentry else tpf-service-dataentry-sgb
-	 * @param body
-	 * @return
-	 * @throws Exception
-	 */
-	private String getPartnerName(JsonNode body) throws Exception{
-		String partnerId = null;
-//		if(body.path("partnerId").isTextual()){
-//			partnerId = body.path("partnerId").asText();
-//		}else if(body.path("data").path("partnerId").isTextual()) {
-//			partnerId = body.path("data").path("partnerId").asText();
-//		}else
-		if(body.path("applicationId").isTextual()){
-			String partnerName = this.getPartnerNameByAppId(body.path("applicationId").asText());
-			return partnerName;
-		}else if(body.path("data").path("applicationId").isTextual()){
-			String partnerName = this.getPartnerNameByAppId(body.path("data").path("applicationId").asText());
-			return partnerName;
-		}else if(body.path("quickLeadId").isTextual()){
-			String partnerName = this.getPartnerNameByQuickLeadId(body.path("quickLeadId").asText());
-			return partnerName;
-		}else if(body.path("data").path("quickLeadId").isTextual()){
-			String partnerName = this.getPartnerNameByQuickLeadId(body.path("data").path("quickLeadId").asText());
-			return partnerName;
-		}else
-			return null;
 
-//		Map<String, Object> request = new HashMap<>();
-//		request.put("func", "getPartner");
-//		request.put("body", Map.of("partnerId", partnerId));
-//
-//		JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-//		return response.path("data").path(0).path("partnerName").asText();
-	}
-
-	private String getPartnerNameByQuickLeadId(String quickleadId) {
-		try{
-			Map<String, Object> requestGetApp = new HashMap<>();
-			requestGetApp.put("func", "getAppByQuickLeadId");
-			requestGetApp.put("body", Map.of("quickLeadId", quickleadId));
-
-			JsonNode responseGetApp = rabbitMQService.sendAndReceive(queueDESGB, requestGetApp);
-			if(responseGetApp != null
-					&& responseGetApp.path("data") != null){
-				return responseGetApp.get("data").get("partnerName").asText();
-			}
-		}catch (Exception e){
-			log.error("getPartnerNameByQuickLeadId exception " + e.getMessage());
-		}
-		return null;
-	}
-
-	private String getPartnerNameByAppId(String applicationId) {
-		try{
-			Map<String, Object> requestGetApp = new HashMap<>();
-			requestGetApp.put("func", "getByAppId");
-			Map<String, Object> bodyGetApp = new HashMap<>();
-			bodyGetApp.put("data", Map.of("applicationId", applicationId));
-			requestGetApp.put("body", bodyGetApp);
-
-			JsonNode responseGetApp = rabbitMQService.sendAndReceive(queueDESGB, requestGetApp);
-			if(responseGetApp != null
-					&& responseGetApp.path("data") != null
-					&& responseGetApp.path("data").path("data") != null
-					&& responseGetApp.path("data").path("data").get(0) != null){
-				return responseGetApp.get("data").get("data").get(0).get("partnerName").asText();
-			}
-		}catch (Exception e){
-			log.error("getPartnerNameByAppId exception " + e.getMessage());
-		}
-		return null;
-
-	}
-
-	@PostMapping("/v1/dataentry/cancel-app")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
-	public ResponseEntity<?> cancelF1(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
-			throws Exception {
-		Map<String, Object> request = new HashMap<>();
-		request.put("func", "cancelF1");
-		request.put("token", token);
-		request.put("body", body);
-
-		String partnerName = this.getPartnerName(body);
-
-		if (partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)) {
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
-		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-	}
-
-	@GetMapping("/v1/dataentry/list-reason")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
-	public ResponseEntity<?> getListReason(@RequestHeader("Authorization") String token)
-			throws Exception {
-		Map<String, Object> request = new HashMap<>();
-		request.put("token", token);
-		request.put("func", "getListReason");
-
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
-		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-	}
-
-	@PostMapping("/v1/dataentry/get-stage")
-	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root','3p-service-digitex','3p-service-sgbpo')")
-	public ResponseEntity<?> getStageF1(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
-			throws Exception {
-		Map<String, Object> request = new HashMap<>();
-		request.put("func", "getStageF1");
-		request.put("token", token);
-		request.put("body", body);
-
-		String partnerName = this.getPartnerName(body);
-
-		if (partnerName != null && !"null".contains(partnerName) && !DIGITEXX.equals(partnerName)) {
-			JsonNode response = rabbitMQService.sendAndReceive(queueDESGB, request);
-			return ResponseEntity.status(response.path("status").asInt(500))
-					.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-		}
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
-		return ResponseEntity.status(response.path("status").asInt(500))
-				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
-	}
-
-	@PostMapping("/v1/dataentry/raiseQueryData")
+	//Field Verification - Initiate Verification
+	@PostMapping("/v1/dataentry/initiateVerification")
 	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
-	public ResponseEntity<?> raiseQueryData(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+	public ResponseEntity<?> initiateVerification(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
 			throws Exception {
 		Map<String, Object> request = new HashMap<>();
+		request.put("func", "initiateVerification");
+		request.put("token", token);
 		request.put("body", body);
-		request.put("func", "raiseQueryData");
-		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-dataentry", request);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	//Field Verification - Waive Off All
+	@PostMapping("/v1/dataentry/waiveOffAll")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> waiveOffAll(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "waiveOffAll");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
+		return ResponseEntity.status(response.path("status").asInt(500))
+				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
+	}
+
+	//Field Verification - Field Investigation
+	@PostMapping("/v1/dataentry/fieldInvestigation")
+	@PreAuthorize("#oauth2.hasAnyScope('tpf-service-dataentry','tpf-service-root')")
+	public ResponseEntity<?> fieldInvestigation(@RequestHeader("Authorization") String token, @RequestBody JsonNode body)
+			throws Exception {
+		Map<String, Object> request = new HashMap<>();
+		request.put("func", "fieldInvestigation");
+		request.put("token", token);
+		request.put("body", body);
+
+		JsonNode response = rabbitMQService.sendAndReceive("tpf-service-automation", request);
 		return ResponseEntity.status(response.path("status").asInt(500))
 				.header("x-pagination-total", response.path("total").asText("0")).body(response.path("data"));
 	}

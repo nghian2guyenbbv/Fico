@@ -11,6 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class EmploymentDTO implements Serializable {
 	private String occupationType;
+	private String employeeNumber;
 	private String taxCode;
 	private String natureOfBussiness;
 	private String industry;

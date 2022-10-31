@@ -17,4 +17,6 @@ public class LoanDetailsDTO {
     private String loanAmount;
     private String loanTerm;
     private String saleAgentCode;
+
+    private String loadPurpose;
 }

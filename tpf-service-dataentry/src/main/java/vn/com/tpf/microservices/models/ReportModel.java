@@ -15,9 +15,4 @@ public class ReportModel {
 
     private String createdBy;
     private String saleBranch;
-
-    private String partnerName;
-    private String dsaCode;
-
-//    private boolean isHolding;
 }

@@ -40,9 +40,6 @@ public class RabbitMQService {
 	}
 
 	public JsonNode sendAndReceive(String appId, Object object) throws Exception {
-
-		log.info("Log rest" + mapper.writeValueAsString(object));
-
 		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
 		Message response = rabbitTemplate.sendAndReceive(appId, request);
 

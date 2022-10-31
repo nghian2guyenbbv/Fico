@@ -1,15 +1,21 @@
 package vn.com.tpf.microservices.services.Automation.deReturn;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.awaitility.Duration;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.LocalFileDetector;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.CacheLookup;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
+import org.springframework.util.StringUtils;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDTO;
 import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryDocumentDTO;
+import vn.com.tpf.microservices.models.DEReturn.DEResponseQueryMulDocDTO;
 import vn.com.tpf.microservices.models.Document;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -17,13 +23,11 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class DE_ReturnRaiseQueryPage {
@@ -45,7 +49,7 @@ public class DE_ReturnRaiseQueryPage {
     @CacheLookup
     private WebElement searchApplicationElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='queries_to_be_responded']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='queries_to_be_responded']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tdResponseQueryElement;
 
@@ -53,7 +57,7 @@ public class DE_ReturnRaiseQueryPage {
     @CacheLookup
     private WebElement idRowResponseQueryElement;
 
-    @FindBy(how = How.XPATH, using = "//table[@id='response_grid_table']//tbody//tr")
+    @FindBy(how = How.XPATH, using = "//table[@id='response_grid_table']//tbody//tr//td")
     @CacheLookup
     private List<WebElement> tbDivResponseQueryElement;
 
@@ -88,44 +92,54 @@ public class DE_ReturnRaiseQueryPage {
         _driver = driver;
     }
 
+    @SneakyThrows
     public void setData(DEResponseQueryDTO deResponseQueryDTO, String downLoadFileURL) {
-        try{
-            await("appManager_lead_application_number visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> responseQueryFormElement.isDisplayed());
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+        await("responseQueryFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> responseQueryFormElement.isDisplayed());
 
-            applicationNumberElement.clear();
-            applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
+        applicationNumberElement.clear();
+        applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
+        Thread.sleep(2000);
+//        await("tdResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> tdResponseQueryElement.size() > 2);
 
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tdResponseQueryElement.size() > 0);
-
-            idRowResponseQueryElement.click();
-
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tbDivResponseQueryElement.size() > 0);
+        idRowResponseQueryElement.click();
+        Thread.sleep(2000);
+//        await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> tbDivResponseQueryElement.size() > 2);
 
 
-            textSeachResponseQueryElement.clear();
+        textSeachResponseQueryElement.clear();
+
+        if (Objects.isNull(deResponseQueryDTO.getQueryName())){
             textSeachResponseQueryElement.sendKeys("T_RETURN");
-            idRowCalculationElement.click();
-            await("tdApplicationElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> tbDivResponseQueryElement.size() > 0);
+        }else{
+            textSeachResponseQueryElement.sendKeys(deResponseQueryDTO.getQueryName());
+        }
 
-            textResponseElement.clear();
-            textResponseElement.sendKeys(deResponseQueryDTO.getDocument().getComments());
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("Raise Query Code Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 2);
 
+        idRowCalculationElement.click();
+
+        textResponseElement.clear();
+        textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
+
+        if(!Objects.isNull(deResponseQueryDTO.getDataDocument())&& !StringUtils.isEmpty(deResponseQueryDTO.getDataDocument().getFileName())) {
             String fromFile = downLoadFileURL;
             System.out.println("URLdownload: " + fromFile);
 
-            String docName = deResponseQueryDTO.getDocument().getFileName();
+            String docName = deResponseQueryDTO.getDataDocument().getFileName();
             String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
+            toFile += UUID.randomUUID().toString() + "_" + docName;
 
-            toFile+= UUID.randomUUID().toString()+"_"+ docName;
             FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode(docName, "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
             File file = new File(toFile);
-            if(file.exists()) {
+            if (file.exists()) {
                 String docUrl = file.getAbsolutePath();
-                System.out.println("paht;" + docUrl);
+                System.out.println("Path;" + docUrl);
                 Thread.sleep(2000);
 
                 btnUploadFileElement.sendKeys(docUrl);
@@ -134,12 +148,43 @@ public class DE_ReturnRaiseQueryPage {
             }
 
             Utilities.captureScreenShot(_driver);
-
-            btnSubmitResponseElement.click();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+        btnSubmitResponseElement.click();
+
+    }
+
+    @SneakyThrows
+    public void setDataMulDoc(DEResponseQueryMulDocDTO deResponseQueryDTO, String defaultResponseQueryType) {
+        ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
+        await("responseQueryFormElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> responseQueryFormElement.isDisplayed());
+
+        applicationNumberElement.clear();
+        applicationNumberElement.sendKeys(deResponseQueryDTO.getAppId());
+        idRowResponseQueryElement.click();
+        Thread.sleep(5000);
+
+        await("tbDivResponseQueryElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 2);
+
+
+        textSeachResponseQueryElement.clear();
+
+        if (Objects.isNull(deResponseQueryDTO.getQueryName())){
+            textSeachResponseQueryElement.sendKeys(defaultResponseQueryType);
+        }else{
+            textSeachResponseQueryElement.sendKeys(deResponseQueryDTO.getQueryName());
+        }
+
+        with().pollInterval(Duration.FIVE_SECONDS).
+                await("Raise Query Code Not Found!!!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> tbDivResponseQueryElement.size() > 2);
+
+        idRowCalculationElement.click();
+
+        textResponseElement.clear();
+        textResponseElement.sendKeys(deResponseQueryDTO.getCommentText());
+        btnSubmitResponseElement.click();
 
     }
 }

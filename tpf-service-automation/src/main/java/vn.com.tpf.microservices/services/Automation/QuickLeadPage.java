@@ -96,6 +96,18 @@ public class QuickLeadPage {
     @CacheLookup
     private WebElement sourcingChanneInputElement;
 
+    @FindBy(how = How.ID, using = "alternateChannelMode_chzn")
+    @CacheLookup
+    private WebElement alternateChannelModeElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'alternateChannelMode_chzn_o_')]")
+    @CacheLookup
+    private List<WebElement> alternateChannelModeOptionElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'alternateChannelMode_chzn')]//input")
+    @CacheLookup
+    private WebElement alternateChannelModeInputElement;
+
     @FindBy(how = How.ID, using = "saveButtonLeadBottom")
     @CacheLookup
     private WebElement saveButtonleadElement;
@@ -156,6 +168,16 @@ public class QuickLeadPage {
 
         sourcingChanneInputElement.sendKeys(quickLead.getSourcingChannel());
         sourcingChanneInputElement.sendKeys(Keys.ENTER);
+
+        if ("ALTERNATE_CHANNEL".equals(quickLead.getSourcingChannel())){
+            actions.moveToElement(alternateChannelModeElement).click().build().perform();
+
+            await("alternateChannelModeElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> alternateChannelModeOptionElement.size() >0);
+
+            alternateChannelModeInputElement.sendKeys(quickLead.getAlternateChannelMode());
+            alternateChannelModeInputElement.sendKeys(Keys.ENTER);
+        }
 
         saveButtonleadElement.click();
     }

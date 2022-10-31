@@ -3,12 +3,7 @@ spring:
     name: tpf-service-assets
   cloud:
     config:
-      uri: http://127.0.0.1:8888
-      fail-fast: true
-      retry.initial-interval: 5000
-      retry.max-attempts: 100
-      retry.max-interval: 10000
-      retry.multiplier: 2
+      uri: http://10.131.23.30:8888
 ---
 spring:
   profiles: dev

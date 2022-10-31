@@ -20,4 +20,5 @@ public class AccountFinOneDTO {
         private int active;
         private int status;
         private Date createDate;
+        private String funcAutomation;
 }

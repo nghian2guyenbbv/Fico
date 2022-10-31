@@ -34,7 +34,7 @@ public class RabbitMQService {
 
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(60000);
+		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
 	}
 
 	public void send(String appId, Object object) throws Exception {
@@ -79,30 +79,16 @@ public class RabbitMQService {
 			switch (request.path("func").asText()) {
 			case "createApp":
 				return response(message, payload, appService.createApp(request));
-			case "createQuickLeadApp":
-				return response(message, payload, appService.createQuickLeadApp(request));
-			case "waiveField":
-				return response(message, payload, appService.waiveField(request));
-			case "submitField":
-				return response(message, payload, appService.submitField(request));
 			case "updateApp":
 				return response(message, payload, appService.updateApp(request));
 			case "updateAutomation":
 				return response(message, payload, appService.updateAutomation(request));
-			case "deResponseQuery":
-				return response(message, payload, appService.deResponseQuery(request));
-			case "deSaleQueue":
-				return response(message, payload, appService.deSaleQueue(request));
 			case "getReason":
 				return response(message, payload, appService.getReason(request));
 			case "getLoan":
 				return response(message, payload, appService.getLoan(request));
 			case "getCheckList":
 				return response(message, payload, appService.getCheckList(request));
-			case "createQuickLeadAppWithCustId":
-				return response(message, payload, appService.createQuickLeadAppWithCustId(request));
-            case "saleQueueWithFullInfo":
-            	return response(message, payload, appService.saleQueueWithFullInfo(request));
 			default:
 				return response(message, payload, appService.sendFinnOne(request));
 			}

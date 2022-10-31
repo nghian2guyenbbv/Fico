@@ -11,7 +11,7 @@ public class DynamicForm {
     @NotEmpty(message = "formName not null")
     private String formName;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "zalo not null")
     private String zalo;
 
@@ -43,7 +43,7 @@ public class DynamicForm {
     @NotEmpty(message = "loanPurpose not null")
     private String loanPurpose;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "otherLoanPurposeDetail not null")
     private String otherLoanPurposeDetail;
 
@@ -51,7 +51,7 @@ public class DynamicForm {
     @NotEmpty(message = "newBankCardNumber not null")
     private String newBankCardNumber;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "courierCode not null")
     private String courierCode;
 
@@ -63,21 +63,20 @@ public class DynamicForm {
     @NotEmpty(message = "saleAgentCode not null")
     private String saleAgentCode;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "loanAtWork not null")
     private String loanAtWork;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "internalCode not null")
     private String internalCode;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "totalMonthlyPayable not null")
     private String totalMonthlyPayable;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "remark not null")
     private String remark;
 
-    private String oldContractLoanAmount;
 }

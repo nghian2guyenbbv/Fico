@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 //@Document(collection = "dataentry")
@@ -31,9 +32,6 @@ public class QuickLead {
     private Date lastModifiedDate;
     private List<QLDocument> documents;
     private List<QLDocument> documentsComment;
-//    private List<QLDocument> documentsAfterSubmit;
 
     private String partnerId;
-    private String customerId;
-    private String alternateChannelMode;
 }

@@ -31,7 +31,8 @@ public class HomePage {
 	@CacheLookup
 	private WebElement applicationElement;
 
-	@FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")
+	/*@FindBy(how = How.XPATH, using = "//*[contains(@class,'applications-li')]")*/
+	@FindBy(how = How.XPATH, using = "//*[contains(@class,'meg-drop applications-li')]")
 	@CacheLookup
 	private WebElement menuApplicationElement;
 
