@@ -34,46 +34,67 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement tabMiscFrmAppDtlContainerElement;
 
-    //UAT
-    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
-    @CacheLookup
-    private WebElement loanPurposeElement;
-
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
-    @CacheLookup
-    private List<WebElement> loanPurposeOptionElement;
-
-    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
-    @CacheLookup
-    private WebElement loanPurposeInputElement;
-    //Update
-
-    //update loanpurpose
-    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
-    @CacheLookup
-    private List<WebElement> loanPurposeCloseElement;
-
-
-//        //PRO
-//    //production khac id
-//    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+//    //UAT
+//    @FindBy(how = How.ID, using = "Loan_purpose_1_frmAppDtl_0_chzn")
 //    @CacheLookup
 //    private WebElement loanPurposeElement;
 //
-//    //production khac
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn_o_')]")
 //    @CacheLookup
 //    private List<WebElement> loanPurposeOptionElement;
 //
-//    //update loanpurpose PRO
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'Loan_purpose_1_frmAppDtl_0_chzn')]//input")
+//    @CacheLookup
+//    private WebElement loanPurposeInputElement;
+//    //Update
+//
+//    //update loanpurpose
+//    @FindBy(how = How.XPATH, using = "//*[contains(@id,'Loan_purpose_1_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
 //    @CacheLookup
 //    private List<WebElement> loanPurposeCloseElement;
 //
-//    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
-//    @CacheLookup
-//    private WebElement loanPurposeInputElement;
+//    @FindBy(how = How.ID, using = "insurance_company_frmAppDtl_2")
+//    private WebElement companyNameElement;
 //
+//    @FindBy(how = How.ID, using = "tpf_insurance_fee_frmAppDtl_2")
+//    private WebElement monthlyFeeElement;
+//
+//    @FindBy(how = How.ID, using = "insurance_company_contract_frmAppDtl_2")
+//    private WebElement contractNumberElement;
+
+//------------------------- END UAT --------------------------------
+
+    //PRO
+    //production khac id
+    @FindBy(how = How.ID, using = "loanpurpose_frmAppDtl_0_chzn")
+    @CacheLookup
+    private WebElement loanPurposeElement;
+
+    //production khac
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn_o_')]")
+    @CacheLookup
+    private List<WebElement> loanPurposeOptionElement;
+
+    //update loanpurpose PRO
+    @FindBy(how = How.XPATH, using = "//*[contains(@id,'loanpurpose_frmAppDtl_0_chzn')]//*[contains(@class,'search-choice-close')]")
+    @CacheLookup
+    private List<WebElement> loanPurposeCloseElement;
+
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'loanpurpose_frmAppDtl_0_chzn')]//input")
+    @CacheLookup
+    private WebElement loanPurposeInputElement;
+
+    @FindBy(how = How.ID, using = "tpf_insurance_company_frmAppDtl_2")
+    private WebElement companyNameElement;
+
+    @FindBy(how = How.ID, using = "tpf_insurance_fee_frmAppDtl_2")
+    private WebElement monthlyFeeElement;
+
+    @FindBy(how = How.ID, using = "tpf_insurance_company_contract_frmAppDtl_2")
+    private WebElement contractNumberElement;
+    //------------- END PRO----------------//
+
+
 
     @FindBy(how = How.ID, using = "householdmembers_frmAppDtl_1")
     @CacheLookup
@@ -119,7 +140,29 @@ public class DE_MiscFrmAppDtlPage {
     @CacheLookup
     private WebElement btnMoveToNextStageElement;
 
+    //------------------- UPDATE
+    @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_51")
+    private WebElement loanOfWorkNoElememt;
 
+    @FindBy(how = How.ID, using = "uniform-loan_at_work_frmAppDtl_52")
+    private WebElement loanOfWorkYesElememt;
+
+    @FindBy(how = How.ID, using = "T_Courier_Code_frmAppDtl_4")
+    private WebElement courierCodeElement;
+
+    //------------------ UDDATE 19-3-2020-------------------
+    @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_51")
+    private WebElement oldContractLoanAmountLess20Elememt;
+
+    @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_52")
+    private WebElement oldContractLoanAmountMore20Elememt;
+
+    @FindBy(how = How.ID, using = "uniform-Old_Contract_Loan_Amount_frmAppDtl_53")
+    private WebElement oldContractLoanAmountOtherElememt;
+
+    //------------------ UDDATE 09-04-2020-------------------
+    @FindBy(how = How.ID, using = "ZALO_DYN_frmAppDtl_5")
+    private WebElement zaloElement;
 
     public DE_MiscFrmAppDtlPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -161,11 +204,51 @@ public class DE_MiscFrmAppDtlPage {
         Utilities.chooseDropdownValue(data.getHouseOwnership(), houseOwnerShipOptionElement);
         Utilities.captureScreenShot(_driver);
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
+
+        //update them contractNumber
+        companyNameElement.sendKeys(data.getCompanyName());
+        contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
+        monthlyFeeElement.sendKeys(data.getMonthlyFee());
+        //
+
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
+
+        courierCodeElement.sendKeys(data.getCourierCode());
+
+        zaloElement.sendKeys(data.getZalo());
+
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+        Utilities.captureScreenShot(_driver);
+
+        //update them oldContractNumber
+        if(data.getOldContractLoanAmount().equals("1"))
+        {
+            oldContractLoanAmountLess20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("2"))
+        {
+            oldContractLoanAmountMore20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("3"))
+        {
+            oldContractLoanAmountOtherElememt.click();
+        }
+        //
+
+
+        if(data.getLoanOfWork().equals("Yes"))
+        {
+            loanOfWorkYesElememt.click();
+        }
+
+        if(data.getLoanOfWork().equals("No"))
+        {
+            loanOfWorkNoElememt.click();
+        }
         Utilities.captureScreenShot(_driver);
     }
 
@@ -210,16 +293,60 @@ public class DE_MiscFrmAppDtlPage {
 
         mortgagePaymentCostElement.clear();
         mortgagePaymentCostElement.sendKeys(data.getMortgagePaymentCost());
+
+        //update them contractNumber
+        companyNameElement.clear();
+        companyNameElement.sendKeys(data.getCompanyName());
+        contractNumberElement.clear();
+        contractNumberElement.sendKeys(data.getContractNumber());
+        monthlyFeeElement.clear();
+        monthlyFeeElement.sendKeys(data.getMonthlyFee());
+        //
+
         remarkElement.clear();
         remarkElement.sendKeys(data.getRemark());
         newBankCardNumberElement.clear();
         newBankCardNumberElement.sendKeys(data.getNewBankCardNumber());
+
+        courierCodeElement.clear();
+        courierCodeElement.sendKeys(data.getCourierCode());
+
+        zaloElement.clear();
+        zaloElement.sendKeys(data.getZalo());
+
         salesAgentCodeElement.clear();
         salesAgentCodeElement.sendKeys(data.getSalesAgentCode());
         maxRequestRateElement.clear();
         maxRequestRateElement.sendKeys(data.getMaxRequestRate());
         totalMonthlyPayableElement.clear();
         totalMonthlyPayableElement.sendKeys(data.getTotalMonthlyPayable());
+
+
+        //update them oldContractNumber
+        if(data.getOldContractLoanAmount().equals("1"))
+        {
+            oldContractLoanAmountLess20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("2"))
+        {
+            oldContractLoanAmountMore20Elememt.click();
+        }
+        if(data.getOldContractLoanAmount().equals("3"))
+        {
+            oldContractLoanAmountOtherElememt.click();
+        }
+        //
+
+        if(data.getLoanOfWork().equals("Yes"))
+        {
+            loanOfWorkYesElememt.click();
+        }
+
+        if(data.getLoanOfWork().equals("No"))
+        {
+            loanOfWorkNoElememt.click();
+        }
+        Utilities.captureScreenShot(_driver);
     }
 
 

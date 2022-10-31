@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>tpf-service-automation</artifactId>
-    <description>TPF SERVICE AUTOMATION</description>
+    <artifactId>tpf-service-automation-mobility</artifactId>
+    <description>TPF SERVICE AUTOMATION MOBILITY</description>
 
     <dependencies>
         <dependency>

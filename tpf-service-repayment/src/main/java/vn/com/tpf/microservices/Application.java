@@ -1,20 +1,12 @@
 package vn.com.tpf.microservices;
 
 import org.springframework.amqp.core.Queue;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.client.RestTemplate;
-
-import javax.sql.DataSource;
 
 @SpringBootApplication
 @EnableDiscoveryClient
@@ -37,35 +29,4 @@ public class Application {
 		return new RestTemplate();
 	}
 
-	@Bean(name = "dspsFicodb")
-	@Primary
-	@ConfigurationProperties(prefix="spring.datasource")
-	public DataSource ficodbDataSource() {
-		return DataSourceBuilder.create().build();
-	}
-
-	@Bean(name = "jdbcTemplate")
-	public JdbcTemplate jdbcTemplateFicodb(@Qualifier("dspsFicodb") DataSource dsMaster) {
-		return new JdbcTemplate(dsMaster);
-	}
-
-	@Bean(name = "namedParameterJdbcTemplatePosgres")
-	public NamedParameterJdbcTemplate namedParameterJdbcTemplatePosgres(@Qualifier("dspsFicodb") DataSource ds){
-		return new NamedParameterJdbcTemplate(ds);
-	}
-	@Bean(name = "dsF1")
-	@ConfigurationProperties(prefix="spring.f1-datasource")
-	public DataSource ficocenDataSource() {
-		return DataSourceBuilder.create().build();
-	}
-
-	@Bean(name = "jdbcTemplateF1")
-	public JdbcTemplate jdbcTemplateF1(@Qualifier("dsF1") DataSource dsMaster) {
-		return new JdbcTemplate(dsMaster);
-	}
-
-	@Bean(name = "namedParameterJdbcTemplateF1")
-	public NamedParameterJdbcTemplate namedParameterJdbcTemplateF1(@Qualifier("dsF1") DataSource ds){
-		return new NamedParameterJdbcTemplate(ds);
-	}
 }

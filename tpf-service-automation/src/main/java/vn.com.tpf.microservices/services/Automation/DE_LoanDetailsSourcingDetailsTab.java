@@ -2,6 +2,7 @@ package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.CacheLookup;
@@ -102,6 +103,12 @@ public class DE_LoanDetailsSourcingDetailsTab {
     @CacheLookup
     private WebElement btnSaveAndNextElement;
 
+    @FindBy(how = How.XPATH, using = "//div[contains(@id, 'confirmDeleteVapNext')]")
+    private WebElement dialogConfirmDeleteVapNextElements;
+
+    @FindBy(how = How.XPATH, using = "//div[@class = 'modal-scrollable']//div[starts-with(@id,'confirmDeleteVap')]//a[contains(text(),'Confirm')]")
+    private WebElement btnConfirmDeleteVapNextElements;
+
 
     //------------------------- UPDATE ---------------------------------
 
@@ -115,6 +122,12 @@ public class DE_LoanDetailsSourcingDetailsTab {
 
     @FindBy(how = How.XPATH, using = "//div[@class='modal-scrollable']//a[contains(@id, 'confirmDeleteVapNext')]")
     private WebElement btnConfirmDeleteVapNextElement1;
+
+
+    //------------------------- UPDATE 4-3-2020 ---------------------------------
+    @FindBy(how = How.ID, using = "loan_Info_loanPurposeDescription")
+    @CacheLookup
+    private WebElement loanDetailPurposeElement;
 
     public DE_LoanDetailsSourcingDetailsTab(WebDriver driver) {
         PageFactory.initElements(driver, this);
@@ -158,10 +171,17 @@ public class DE_LoanDetailsSourcingDetailsTab {
 //                .until(() -> productNameOptionElement.size() > 0);
 //        Utilities.chooseDropdownValue(data.getProductName(), productNameOptionElement);
 //
+        schemeElement.click();
+        await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> schemeOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+
+//        //update them scheme
 //        schemeElement.click();
 //        await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
 //                .until(() -> schemeOptionElement.size() > 0);
 //        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+
 
 //        loanAmountElement.sendKeys("");
 //        loanAmountElement.sendKeys(data.getLoanAmount());
@@ -190,6 +210,10 @@ public class DE_LoanDetailsSourcingDetailsTab {
 
         Utilities.captureScreenShot(_driver);
 
+        //update nhap leaddeatail
+        loanDetailPurposeElement.clear();
+        loanDetailPurposeElement.sendKeys(data.getLoadPurpose());
+
         salesAgentCodeElement.click();
         await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> salesAgentCodeOptionElement.size() > 0);
@@ -201,11 +225,31 @@ public class DE_LoanDetailsSourcingDetailsTab {
         applicationFormNumberElement.clear();
         applicationFormNumberElement.sendKeys(data.getApplicationNumber());
 
+        List<WebElement> deleteLoanType = _driver.findElements(By.xpath("//*[contains(@id, 'loanApplication_type_chzn')]//*[contains(@class, 'search-choice-close')]"));
+        if (deleteLoanType != null && deleteLoanType.size() > 0){
+            deleteLoanType.get(0).click();
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         loanApplicationTypeElement.click();
         await("channelOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> loanApplicationTypeOptionElement.size() > 0);
         Utilities.chooseDropdownValue(data.getLoanAppType(), loanApplicationTypeOptionElement);
 
+        schemeElement.click();
+        await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                .until(() -> schemeOptionElement.size() > 0);
+        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
+
+//        //update them scheme
+//        schemeElement.click();
+//        await("schemeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                .until(() -> schemeOptionElement.size() > 0);
+//        Utilities.chooseDropdownValue(data.getScheme(), schemeOptionElement);
 
         loanAmountElement.clear();
         Utilities.checkValueSendkey(data.getLoanAmount(),loanAmountElement);
@@ -232,6 +276,10 @@ public class DE_LoanDetailsSourcingDetailsTab {
                 .until(() -> StringUtils.isNotEmpty(rateElement.getAttribute("value")));
 
         Utilities.captureScreenShot(_driver);
+
+        //update nhap leaddeatail
+        loanDetailPurposeElement.clear();
+        loanDetailPurposeElement.sendKeys(data.getLoadPurpose());
 
         salesAgentCodeElement.click();
         await("salesAgentCodeOptionElement loading timeout").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)

@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Entity
-@Table(name = "fico_customer_current_amount_2", schema = "payoo")
+@Table(name = "fico_customer_current_amount", schema = "payoo")
 public class FicoCustomer {
     @Id
     //@GeneratedValue(strategy= GenerationType.IDENTITY)

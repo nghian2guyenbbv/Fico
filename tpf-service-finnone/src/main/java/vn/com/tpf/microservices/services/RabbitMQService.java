@@ -86,18 +86,9 @@ public class RabbitMQService {
 				return response(message, payload, finnoneService.getCheckDupApplication(request));	
 			case "getCheckList":
 				return response(message, payload, finnoneService.getCheckList(request));
-			case "getPrecheckList":
-				return response(message, payload, finnoneService.getPreCheckList(request));
-			case "getAppInfo":
-				return response(message, payload, finnoneService.getAppInfo(request)); 
-			case "getDataFields":
-				return response(message, payload, finnoneService.getDataFields(request));
-			case "getEducationField":
-					return response(message, payload, finnoneService.getEducationField(request));
 			default:
 				return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}
-			
 
 		} catch (IllegalArgumentException e) {
 			return response(message, payload, Map.of("status", 400, "data", Map.of("message", e.getMessage())));

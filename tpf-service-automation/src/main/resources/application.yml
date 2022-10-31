@@ -1,12 +1,30 @@
 spring:
   rabbitmq:
-    host: localhost
+    #    host: localhost
+    #      host: 10.131.23.30
+    #      host: 10.131.31.202
+    host: 10.129.28.27
+    port: 5672
+    username: tpf-service-automation
+    password: tpf-service-automation
+    app-id: tpf-service-automation-test1
+    logstash: tpf-service-logstash-automation
   data:
     mongodb:
-      uri: mongodb://10.131.23.30:27017/tpfdb
+      #      uri: mongodb://10.131.31.202:27017/tpfdb
+      uri: mongodb://10.129.28.27:27017/tpfdb
   url:
-    downloadFile: abc
+    finone: http://10.1.66.20:4141/finnone-webapp/app/auth/login
+    seleHost: 127.0.0.1
+    selePort: 4445
+    rabbitIdRes: tpf-service-mobility
+    #    seleHost: 10.131.31.202
+    #    selePort: 4646
+    #    downloadFile: http://10.131.31.202:3001/v1/file/
+    #downloadFile: http://10.1.66.27:3001/v1/file/
+    downloadFile: http://10.129.28.27:3001/v1/file/
 eureka:
   client:
     serviceUrl:
-      defaultZone:  http://10.131.23.30:8761/eureka
+      #      defaultZone:  http://10.131.31.202:8761/eureka
+      defaultZone:  http://10.129.28.27:8761/eureka

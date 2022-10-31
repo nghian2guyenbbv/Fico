@@ -24,5 +24,6 @@ public class EmploymentDetails {
     public String employmentLocation;
     public String isMajorEmployment;
     public String remarks;
+    public String natureOfOccupation;
 
 }

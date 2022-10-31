@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.models.Automation;
 
 import lombok.*;
+import vn.com.tpf.microservices.models.CommunicationDetails;
 
 import java.io.Serializable;
 import java.util.List;
@@ -26,4 +27,7 @@ public class ApplicationInfoDTO implements Serializable {
     private List<FamilyDTO> family;
     private EmploymentDTO employmentDetails;
     private List<IncomeDetailDTO> incomeDetails;
+    private List<BankCreditCardDetailsDTO> bankCreditCardDetails;
+
+    public CommunicationDetails communicationDetails;
 }

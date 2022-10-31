@@ -48,21 +48,14 @@ public class RabbitMQService {
 	private RabbitTemplate rabbitTemplateFirstCheck;
 
 	@Autowired
-	private RabbitTemplate rabbitTemplateRouting;
-
-	@Autowired
 	private RestTemplate restTemplate;
 
 	@Autowired
 	private DataEntryService dataEntryService;
 
-	@Autowired
-	private RaiseQueryService raiseQueryService;
-
 	@PostConstruct
 	private void init() {
-		rabbitTemplate.setReplyTimeout(30000);
-        rabbitTemplateRouting.setReplyTimeout(10000);
+		rabbitTemplate.setReplyTimeout(Integer.MAX_VALUE);
 		rabbitTemplateFirstCheck.setReplyTimeout(1000 * 120);
 	}
 
@@ -100,17 +93,6 @@ public class RabbitMQService {
 		return null;
 	}
 
-	public JsonNode sendAndReceiveRouting(String appId, Object object) throws Exception {
-		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
-		Message response = rabbitTemplateRouting.sendAndReceive(appId, request);
-
-		if (response != null) {
-			return mapper.readTree(new String(response.getBody(), "UTF-8"));
-		}
-
-		return null;
-	}
-
 	public JsonNode sendAndReceiveFirstCheck(String appId, Object object) throws Exception {
 		Message request = MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
 		Message response = rabbitTemplateFirstCheck.sendAndReceive(appId, request);
@@ -132,26 +114,6 @@ public class RabbitMQService {
 			dataLog.put("payload", new String(payload, "UTF-8"));
 		}
 		log.info("{}", dataLog);
-
-		if (message.getMessageProperties().getReplyTo() != null) {
-			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
-		}
-
-		return null;
-	}
-
-	public Message response(Message message, byte[] payload, Object object, boolean isWriteLog) throws Exception {
-		ObjectNode dataLog = mapper.createObjectNode();
-		dataLog.put("type", "[==RABBITMQ-LOG==]");
-		dataLog.set("result", mapper.convertValue(object, JsonNode.class));
-		try {
-			dataLog.set("payload", mapper.readTree(new String(payload, "UTF-8")));
-		} catch (Exception e) {
-			dataLog.put("payload", new String(payload, "UTF-8"));
-		}
-		if(isWriteLog){
-			log.info("{}", dataLog);
-		}
 
 		if (message.getMessageProperties().getReplyTo() != null) {
 			return MessageBuilder.withBody(mapper.writeValueAsString(object).getBytes()).build();
@@ -186,7 +148,7 @@ public class RabbitMQService {
 				case "getAll":
 					return response(message, payload, dataEntryService.getAll(request));
 				case "getByAppId":
-					return response(message, payload, dataEntryService.getByAppId(request), false);
+					return response(message, payload, dataEntryService.getByAppId(request));
 				case "getDetail":
 					return response(message, payload, dataEntryService.getDetail(request, token));
 				case "getAddress":
@@ -199,18 +161,28 @@ public class RabbitMQService {
 					return response(message, payload, dataEntryService.getBranchByUser(request, info.path("data")));
 				case "firstCheck":
 					return response(message, payload, dataEntryService.firstCheck(request, token));
+				case "quickLead":
+					return response(message, payload, dataEntryService.quickLead(request, token));
 				case "sendApp":
 					return response(message, payload, dataEntryService.sendApp(request, token));
 				case "updateApp":
 					return response(message, payload, dataEntryService.updateApp(request, token));
+				case "commentApp":
+					return response(message, payload, dataEntryService.commentApp(request, token));
 				case "cancelApp":
 					return response(message, payload, dataEntryService.updateStatus(request, token));
 				case "uploadFile":
 					return response(message, payload, dataEntryService.uploadFile(request, token));
+				case "old_updateAutomation":
+					return response(message, payload, dataEntryService.updateAutomation(request, token));
+				case "old_updateFullApp":
+					return response(message, payload, dataEntryService.updateFullApp(request, token));
+				case "old_updateAppError":
+					return response(message, payload, dataEntryService.updateAppError(request, token));
 				case "uploadDigiTex":
 					return response(message, payload, dataEntryService.uploadDigiTex(request, token));
 				case "getTATReport":
-					return response(message, payload, dataEntryService.getTATReport_New(request, token));
+					return response(message, payload, dataEntryService.getTATReport(request, token));
 				case "getStatusReport":
 					return response(message, payload, dataEntryService.getStatusReport(request, token));
 				case "getDocumentId":
@@ -218,51 +190,23 @@ public class RabbitMQService {
 				case "getListStatus":
 					return response(message, payload, dataEntryService.getListStatus(request));
 				case "getSearchReport":
-					return response(message, payload, dataEntryService.getSearchReport(request,token), false);
+					return response(message, payload, dataEntryService.getSearchReport(request,token));
 				case "getPartner":
-					return response(message, payload, dataEntryService.getPartner(request,token), false);
-				case "quickLead":
-					return response(message, payload, dataEntryService.quickLead(request, token));
-				case "commentApp":
-					return response(message, payload, dataEntryService.commentApp(request, token));
+					return response(message, payload, dataEntryService.getPartner(request,token));
+				case "quickLeadV2":
+					return response(message, payload, dataEntryService.quickLeadV2(request, token));
+				case "commentAppV2":
+					return response(message, payload, dataEntryService.commentAppV2(request, token));
 				case "updateAutomation":
-					return response(message, payload, dataEntryService.updateAutomation(request, token));
+					return response(message, payload, dataEntryService.updateAutomationV2(request, token));
 				case "updateAppError":
-					return response(message, payload, dataEntryService.updateAppError(request, token));
+					return response(message, payload, dataEntryService.updateAppErrorV2(request, token));
 				case "updateFullApp":
-					return response(message, payload, dataEntryService.updateFullApp(request, token));
+					return response(message, payload, dataEntryService.updateFullAppV2(request, token));
 				case "uploadPartner":
 					return response(message, payload, dataEntryService.uploadPartner(request, token));
 				case "getTokenSaigonBpo":
 					return response(message, payload, dataEntryService.getTokenSaigonBpo(request, token));
-				case "getAppByQuickLeadId":
-					return response(message, payload, dataEntryService.getAppByQuickLeadId(request), false);
-				case "callApiF1":
-					return response(message, payload, dataEntryService.callApiF1(request));
-				case "sendAppNonWeb":
-					return response(message, payload, dataEntryService.sendAppNonWeb(request));
-				case "commentAppNonWeb":
-					return response(message, payload, dataEntryService.commentAppNonWeb(request));
-				case "raiseQueryData":
-					return response(message, payload, raiseQueryService.addRaiseQuery(request));
-				case "convertToLeadF1":
-					return response(message, payload, dataEntryService.convertToLeadF1(request));
-				case "getListReason":
-					return response(message, payload, dataEntryService.getListReason(token));
-				case "getStageF1":
-					return response(message, payload, dataEntryService.getStageF1(request, token));
-				case "cancelF1":
-					return response(message, payload, dataEntryService.cancelF1(request, token));
-				case "updateAfterQuickLeadF1":
-					return response(message, payload, dataEntryService.updateAfterQuickLeadF1(request));
-				case "updateFullAppApiF1":
-					return response(message, payload, dataEntryService.updateFullAppApiF1(request));
-				case "updateAppErrorApiF1":
-					return response(message, payload, dataEntryService.updateAppErrorApiF1(request));
-				case "getTokenDGT":
-					return response(message, payload, dataEntryService.getTokenDGT(request, token));
-				case "jobUpdateStatusIH":
-					return response(message, payload, dataEntryService.jobUpdateStatusIH());
 				default:
 					return response(message, payload, Map.of("status", 404, "data", Map.of("message", "Function Not Found")));
 			}

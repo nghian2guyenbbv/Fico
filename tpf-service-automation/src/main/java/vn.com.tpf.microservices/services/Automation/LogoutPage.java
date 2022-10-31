@@ -8,6 +8,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.utilities.Constant;
+import vn.com.tpf.microservices.utilities.Utilities;
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,13 +32,14 @@ public class LogoutPage {
     }
 	
     public void logout() {
+        Utilities.captureScreenShot(_driver);
         await("userPhotoElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> userPhotoElement.isDisplayed());
         userPhotoElement.click();
         await("logoutLinkElement not visiable!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> logoutLinkElement.isDisplayed());
         logoutLinkElement.click();
-
+        Utilities.captureScreenShot(_driver);
         try {
             _driver.switchTo().alert().accept();
         } catch (Exception ex) {

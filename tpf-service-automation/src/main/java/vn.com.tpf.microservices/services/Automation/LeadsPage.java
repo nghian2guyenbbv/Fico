@@ -1,6 +1,7 @@
 package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
+import org.awaitility.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class LeadsPage {
@@ -41,7 +43,6 @@ public class LeadsPage {
     private WebElement notifyElement;
 
     @FindBy(how = How.XPATH, using="//div[@class='ui-pnotify-text']")
-    @CacheLookup
     private WebElement notifyTextElement;
 
     @FindBy(how = How.XPATH, using="//span[@class='ui-pnotify-history-pulldown icon-chevron-down']")
@@ -73,11 +74,19 @@ public class LeadsPage {
 
         searchQueryElement.sendKeys(leadId);
 
+        try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("tdLeadElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> tdLeadElement.size() > 2);
 
         WebElement webElement=_driver.findElement(new By.ByXPath("//table[@id='lead']//tbody//tr//td[contains(@class,'tbl-left')]//a[contains(text(),'" + leadId +"')]"));
 
+        with().pollInterval(Duration.FIVE_SECONDS).
         await("aLeadElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                 .until(() -> webElement.isDisplayed());
 

@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class DEResponseQueryDocumentDTO {
-    private String queryCode;
+    private String documentName;
     private String fileName;
-    private String comments;
 }

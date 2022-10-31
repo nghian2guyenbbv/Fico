@@ -3,7 +3,10 @@ package vn.com.tpf.microservices.services.Automation;
 
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.awaitility.Duration;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -15,6 +18,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import vn.com.tpf.microservices.models.Document;
+import vn.com.tpf.microservices.models.FileUploadDoc;
 import vn.com.tpf.microservices.models.QuickLead.QuickLead;
 import vn.com.tpf.microservices.utilities.Constant;
 import vn.com.tpf.microservices.utilities.Utilities;
@@ -22,13 +26,11 @@ import vn.com.tpf.microservices.utilities.Utilities;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 @Getter
 public class LeadDetailPage {
@@ -152,15 +154,12 @@ public class LeadDetailPage {
     private List<WebElement> docNameElement;
 
     @FindBy(how = How.XPATH, using = "//*[contains(@id, 'photoimg')]")
-    @CacheLookup
     private List<WebElement> photoElement;
 
     @FindBy(how = How.ID, using = "saveButtonLeadToSaveDocuments")
-    @CacheLookup
     private WebElement saveDocBtnElement;
 
     @FindBy(how = How.ID, using = "moveToApplication1")
-    @CacheLookup
     private WebElement moveAppBtnElement;
 
     @FindBy(how = How.ID, using = "moveToAppConfirmDialog")
@@ -171,12 +170,19 @@ public class LeadDetailPage {
     @CacheLookup
     private WebElement modalBtnConfirmElement;
 
+    @FindBy(how = How.XPATH, using = "//*[contains(@id, 'c_docStatus')]")
+    private List<WebElement> checkBoxFileElement;
+
+    @FindBy(how = How.XPATH, using = "//div[@id = 'docu_jsp_include']//input[contains(@id, 'photoimg')]")
+    private List<WebElement> listBtnUploadDocument;
+
     public LeadDetailPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
         _driver = driver;
     }
 
-    public void setData(QuickLead quickLead, String leadId,String downLoadFileURL) {
+    public boolean setData(QuickLead quickLead, String leadId,String downLoadFileURL) {
+        boolean flag=true;
         try {
             ((RemoteWebDriver) _driver).setFileDetector(new LocalFileDetector());
             Actions actions = new Actions(_driver);
@@ -257,10 +263,20 @@ public class LeadDetailPage {
                     .until(() -> leadDocElement.isDisplayed());
 
             getDocBtnElement.click();
+
+
             Utilities.captureScreenShot(_driver);
 
+            Thread.sleep(30000);
+
+            with().pollInterval(Duration.FIVE_SECONDS).
             await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> documentContainerElement.isDisplayed());
+
+            int listButtonDoc = listBtnUploadDocument.size();
+
+            await("documentContainerElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                    .until(() -> listButtonDoc > 0);
 
             //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
             //String toFile = SCREENSHOT_PRE_PATH_DOC;
@@ -272,12 +288,26 @@ public class LeadDetailPage {
             System.out.println("URLdownload: " + fromFile);
 
             int index = 0;
-            List<String> requiredFiled = Arrays.asList("TPF_Application cum Credit Contract (ACCA)", "TPF_ID Card", "TPF_Family Book","TPF_Notarization of Family Book",
-                                                        "TPF_Customer Photograph","TPF_Health Insurance Card","TPF_Customer Signature","TPF_Health Insurance Card","TPF_Banking Statement",
-                                                        "TPF_Employer Confirmation","TPF_Labor Contract","TPF_Salary slip",
-                                                        "TPF_Map to Customer House","TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac",
-                                        "TPF_Electricity bills","TPF_Water bill","TPF_Internet bills","TPF_Phone bills","PF_Cable TV bills","TPF_Confirm_student_infomation"); //
+            List<String> requiredFiled = Arrays.asList(
+                    "TPF_Application cum Credit Contract (ACCA)","TPF_ID Card","TPF_Notarization of ID card","TPF_Family Book",
+                    "TPF_Notarization of Family Book","TPF_Customer Photograph","TPF_Customer Signature",
+                    "TPF_Health Insurance Card","TPF_Banking Statement","TPF_Employer Confirmation","TPF_Labor Contract",
+                    "TPF_Salary slip","TPF_Appointment decision","TPF_Residence Confirmation","TPF_KT3","TPF_Electricity bills",
+                    "TPF_Water bill","TPF_Map to Customer House","TPF_Driving_License","TPF_Giay_xac_nhan_nhan_than",
+                    "TPF_Salary_SMS_Banking","TPF_E-Banking_photo","TPF_Others","TPF_Details of Stock","TPF_Employee_Card",
+                    "TPF_Collab document","TPF_Internet bills","TPF_Phone bills","TPF_Cable TV bills","TPF_Credit contract documentations",
+                    "TPF_Other_Bien_Lai_TTKV_Tai_TCTD_Khac","TPF_Other_Bao_Hiem_Xa_Hoi_Online","TPF_Other_Chung_Nhan_Ket_Hon",
+                    "TPF_Other_Mail_Xin_Deviation","TPF_Other_Tra_Cuu_Tren_Tong_Cuc_Thue","TPF_Xac_Nhan_Tam_Tru",
+                    "TPF_ Confirm_student_Information","TPF_ Confirm_student_Infomation","TPF_Confirm_student_infomation",
+                    "TPF_Confirm_student_Infomation","TPF_Confirm_student_information","TPF_Confirm_student_Information",
+                    "TPF_Offer_Letter","TPF_Diploma","TPF_Transcript","TPF_Representatives","TPF_Representatives ",
+                    "TPF_Student_Portal_Login_Photo","TPF_Insurance Bill","TPF_Insurance_Bill","TPF_Insurance Contract",
+                    "TPF_Insurance_Contract","TPF_student_Card","TPF_School_Confirmation","TPF_student_ID_Card"
+            );
             Utilities.captureScreenShot(_driver);
+
+            //update count file upload
+            List<FileUploadDoc> listIndexDoc=new ArrayList<FileUploadDoc>();
 
             for (WebElement element : docNameElement) {
                 final int _tempIndex = index;
@@ -285,25 +315,37 @@ public class LeadDetailPage {
                 //String toFile = "D:\\FILE_TEST_HE_THONG_\\";
                 String toFile = Constant.SCREENSHOT_PRE_PATH_DOCKER;
                 if (requiredFiled.contains(docName)) {
-                    toFile+=UUID.randomUUID().toString()+"_"+ docName +".pdf";
 
-                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(docName)).findAny().orElse(null);
+                    String finalDocName = docName;
+                    Document doc=quickLead.documents.stream().filter(q->q.getType().equals(finalDocName)).findAny().orElse(null);
 
                     if(doc!=null)
                     {
+                        //bo sung get ext file
+                        String ext=FilenameUtils.getExtension(doc.getFilename());
 
+                        if ("TPF_Transcript".equals(docName)){
+                            docName = "TPF_Tran1";
+                        }
+
+                        toFile+=UUID.randomUUID().toString()+"_"+ docName +"." + ext;
 
                         FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile), 10000, 10000);
+//                        FileUtils.copyURLToFile(new URL(fromFile + URLEncoder.encode( doc.getFilename(), "UTF-8").replaceAll("\\+", "%20")), new File(toFile));
                         File file = new File(toFile);
                         if(file.exists()) {
                             //FileUtils.copyURLToFile(new URL(fromFile), new File(toFile), 10000, 10000);
                             String photoUrl = file.getAbsolutePath();
-                            System.out.println("paht;" + photoUrl);
+                            System.out.println("PATH: " + photoUrl);
                             // Added sleep to make you see the difference.
-                            Thread.sleep(2000);
+                            Thread.sleep(3000);
 
                             photoElement.get(_tempIndex).sendKeys(photoUrl);
-                            Utilities.captureScreenShot(_driver);
+
+                            //add object
+                            listIndexDoc.add(FileUploadDoc.builder().index(_tempIndex).urlPhoto(photoUrl).build());
+
+                            //Utilities.captureScreenShot(_driver);
 //                        // Added sleep to make you see the difference.
 //                        Thread.sleep(2000);
                         }
@@ -312,23 +354,64 @@ public class LeadDetailPage {
                 index++;
             }
 
+            Thread.sleep(5000);
             saveDocBtnElement.click();
-            Utilities.captureScreenShot(_driver);
 
             await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
                     .until(() -> moveAppBtnElement.isDisplayed());
+
+            Utilities.captureScreenShot(_driver);
+
+            // -------------------- update count, get nhung file da duoc upload
+            List<WebElement> listCheckBoxUpload=_driver.findElements(By.xpath("//*[contains(@id, 'c_docStatus') and contains(@value,'2')]"));
+
+            if(listCheckBoxUpload.size()!=listIndexDoc.size())
+            {
+                flag=false;
+                return flag;
+            }
+
+//            //TH thieu file
+//            while(listCheckBoxUpload.size()!=listIndexDoc.size())
+//            {
+//                for (FileUploadDoc i: listIndexDoc) {
+//                    if(checkBoxFileElement.get(i.getIndex()).getAttribute("value").equals("0"))
+//                    {
+//                        photoElement.get(i.getIndex()).sendKeys(i.getUrlPhoto());
+//                        Thread.sleep(2000);
+//                    }
+//                }
+//                saveDocBtnElement.click();
+//                await("moveAppBtnElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                        .until(() -> moveAppBtnElement.isDisplayed());
+//
+//                listCheckBoxUpload=_driver.findElements(By.xpath("//*[contains(@id, 'c_docStatus') and contains(@value,'2')]"));
+//                Utilities.captureScreenShot(_driver);
+//            }
+            //------------------- End update
+
             moveAppBtnElement.click();
 
             Utilities.captureScreenShot(_driver);
 
-            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
-                    .until(() -> modalConfirmElement.isDisplayed());
+            try {
+                await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+                        .until(() -> _driver.findElement(By.xpath("//div[@id = 'moveToAppConfirmDialog']")).isDisplayed());
+                modalBtnConfirmElement.click();
+            } catch (Exception e) {
+                System.out.println("modalConfirmElement visibale Timeout!");
+            }
 
-            modalBtnConfirmElement.click();
+//            await("modalConfirmElement visibale Timeout!").atMost(Constant.TIME_OUT_S, TimeUnit.SECONDS)
+//                    .until(() -> modalConfirmElement.isDisplayed());
+//
+//            modalBtnConfirmElement.click();
 
             Utilities.captureScreenShot(_driver);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return flag;
     }
 }
+

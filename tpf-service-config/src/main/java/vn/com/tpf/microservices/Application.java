@@ -17,17 +17,17 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 	}
 
-//	@Value("${spring.rabbitmq.app-id}")
-//	private String appId;
+	@Value("${spring.rabbitmq.app-id}")
+	private String appId;
 
-//	@Bean
-//	public Queue queue() {
-//		return new Queue(appId, true, false, false);
-//	}
+	@Bean
+	public Queue queue() {
+		return new Queue(appId, true, false, false);
+	}
 
-//	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
-//	public Message onMessage() {
-//		return null;
-//	}
+	@RabbitListener(queues = "${spring.rabbitmq.app-id}")
+	public Message onMessage() {
+		return null;
+	}
 
 }

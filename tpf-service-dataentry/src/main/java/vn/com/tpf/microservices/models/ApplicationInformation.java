@@ -15,5 +15,4 @@ public class ApplicationInformation {
     @Valid
     private List<FinancialDetail> financialDetails;
 
-    private List<BankingDetail> bankingDetails;
 }

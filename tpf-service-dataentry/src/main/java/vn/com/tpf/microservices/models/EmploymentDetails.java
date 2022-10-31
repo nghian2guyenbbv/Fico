@@ -27,8 +27,8 @@ public class EmploymentDetails {
 //    @NotEmpty(message = "otherCompanyTaxCode not null")
     private String otherCompanyTaxCode;
 
-//    @NotNull
-//    @NotEmpty(message = "industry not null")
+    @NotNull
+    @NotEmpty(message = "industry not null")
     private String industry;
 
     @NotNull
@@ -55,11 +55,11 @@ public class EmploymentDetails {
     @NotEmpty(message = "monthsInJob not null")
     private String monthsInJob;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "toDate not null")
     private String toDate;
 
-    //    @NotNull
+//    @NotNull
 //    @NotEmpty(message = "fromDate not null")
     private String fromDate;
 
@@ -82,13 +82,5 @@ public class EmploymentDetails {
     @NotNull
     @NotEmpty(message = "totalMonthsInOccupation not null")
     private String totalMonthsInOccupation;
-
-    private String natureOfOccupation;
-
-    public EmploymentDetails() {
-        if (natureOfOccupation == null || natureOfOccupation.equals("")){
-            this.natureOfOccupation = "";
-        }
-    }
 
 }

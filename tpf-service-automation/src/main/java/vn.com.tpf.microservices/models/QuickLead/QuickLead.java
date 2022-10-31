@@ -15,6 +15,7 @@ public class QuickLead {
     public String lastName;
     public String city;
     public String sourcingChannel;
+    public String alternateChannelMode;
     public String dateOfBirth;
     public String sourcingBranch;
     public String natureOfOccupation;

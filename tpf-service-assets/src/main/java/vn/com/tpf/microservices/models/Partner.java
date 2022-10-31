@@ -16,6 +16,7 @@ public class Partner {
 
     @Id
     private String id;
+    @Indexed(unique = true, sparse = true)
     private String partnerId;
     private String partnerName;
     private String ip;
@@ -30,5 +31,4 @@ public class Partner {
     private String token;
     private Map<String, Object> account;
     private Map<String, Object> url;
-    private int version;
 }

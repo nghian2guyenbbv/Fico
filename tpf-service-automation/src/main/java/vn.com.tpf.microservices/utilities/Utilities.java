@@ -14,7 +14,11 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +33,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Utilities {
+    private static final Logger log = LoggerFactory.getLogger(Utilities.class);
+    @Autowired
+    static RestTemplate restTemplate;
     public static HashMap<String, Object> createMqObject(String userName, String password) {
         return new HashMap<String, Object>() {
             {
@@ -37,6 +44,36 @@ public class Utilities {
             }
         };
     }
+
+    /**
+     * capture Screen with Folder
+     * @param driver
+     * @param functionName
+     * @param appId
+     */
+
+    public static void captureScreenShotWithFolder(WebDriver driver, String functionName, String appId, String stage){
+        File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        SessionId session = ((RemoteWebDriver)driver).getSessionId();
+        try {
+            if (functionName != null && !functionName.isEmpty()) {
+                if (appId != null && !appId.isEmpty()) { //appId maybe replace with the Last name and First name
+                    FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER  + functionName + "/" + appId + "/" + appId + "_" +stage+"_"+ session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+
+                } else {
+                    FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + functionName + "/" +stage+"_"+ session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+
+                }
+
+            } else {
+                FileUtils.copyFile(src, new File(Constant.SCREENSHOT_PRE_PATH_DOCKER + session.toString() + "_"+ System.currentTimeMillis() + Constant.SCREENSHOT_EXTENSION));
+
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
 
     public static void chooseDropdownValue(String visibleTextValue, List<WebElement> optionElements) {
         for (WebElement element : optionElements) {
@@ -152,7 +189,7 @@ public class Utilities {
         int i = 0;
         String textSendkey = "";
         do {
-            webElement.click();
+//            webElement.click();
             webElement.clear();
             webElement.sendKeys(inputValue);
             textSendkey = webElement.getAttribute("value").replace(",","");
@@ -176,4 +213,5 @@ public class Utilities {
                         .toLowerCase())
                 .collect(Collectors.joining(WORD_SEPARATOR));
     }
+
 }
